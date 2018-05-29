@@ -1,0 +1,636 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="General">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Math">
+      <UniqueIdentifier>{3136dbb1-7504-4a14-be89-799d2669accd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Input">
+      <UniqueIdentifier>{716a1e9b-0001-4690-bcc5-bb44c823b19e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer">
+      <UniqueIdentifier>{75657888-d4f8-4e14-9c67-d7db19151e78}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{8e2edc38-89b7-4d59-9deb-1ad5fbb8bf58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty">
+      <UniqueIdentifier>{67a99b15-b1a9-45ff-84b8-3a4e46455f76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\stb">
+      <UniqueIdentifier>{1ca5825b-75bc-44c0-8c44-2c87a03bbe85}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Audio">
+      <UniqueIdentifier>{d4deb739-86ef-4cdf-8024-76b09211f2e9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ThirdParty\fmod">
+      <UniqueIdentifier>{155649b8-b366-4254-b725-8d3b89d7a10d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="TinyXml2">
+      <UniqueIdentifier>{83a2cd8e-ad98-45bf-a7c4-48b30634808d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="DevConsole">
+      <UniqueIdentifier>{b85642fa-5b1f-4f4d-a29e-2c0333d4083d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="File">
+      <UniqueIdentifier>{91cd2bb4-d6c2-44c4-af9e-eb28647d0a19}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\External">
+      <UniqueIdentifier>{e97307be-4ac0-413d-9bc9-ee8053a3e8ae}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\GL">
+      <UniqueIdentifier>{0935ea56-6518-457f-83fd-558479c8c811}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\External\gl">
+      <UniqueIdentifier>{4e685964-eda4-4e60-9a93-2ce06165a772}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Camera">
+      <UniqueIdentifier>{1b3ccc05-2a6a-4868-99a3-69ea5ffd6a38}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Physics">
+      <UniqueIdentifier>{69a0b4e1-b8ed-4bea-ae63-f0b0ebb7ecd7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Time">
+      <UniqueIdentifier>{afad1fa6-ba17-4964-90b6-0e94d8b87969}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Mesh">
+      <UniqueIdentifier>{e3e6b363-96b6-4185-9f23-8f770eed32f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Debug">
+      <UniqueIdentifier>{cecdeb45-6995-419c-9d61-8decb857807e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Layouts">
+      <UniqueIdentifier>{95f19bc4-2da8-4bca-84c3-747ae34bc24f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Renderer\Lights">
+      <UniqueIdentifier>{be0244d7-672a-4c20-8369-29f14c73b180}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Math\MathUtil.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vector2.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Disc2.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\AABB2.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\InputSystem.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Time.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Input\XboxController.cpp">
+      <Filter>Input</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Rgba.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Texture.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\IntVector2.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\stb\stb_image.c">
+      <Filter>ThirdParty\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SpriteSheet.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SpriteAnimation.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\AudioSystem.cpp">
+      <Filter>Audio</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\ErrorWarningAssert.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\StringUtils.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\FloatRange.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\IntRange.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\XMLUtilities.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="TinyXml2\tinyxml2.cpp">
+      <Filter>TinyXml2</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\EngineCommon.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Blackboard.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Image.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\BitmapFont.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SpriteAnimSet.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SpriteAnimSetDefinition.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\SpriteAnimationDefinition.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Matrix44.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vector3.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Vector4.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\HeatMap.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\RawNoise.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\SmoothNoise.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\CubicSpline2D.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="FileUtil\File.cpp">
+      <Filter>File</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RenderBuffer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Sampler.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\ShaderProgram.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\GL\glfunctions.cpp">
+      <Filter>Renderer\GL</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Windows.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Camera.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\FrameBuffer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Camera\OrbitCamera.cpp">
+      <Filter>Renderer\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\stb\stb_image_write.c">
+      <Filter>ThirdParty\stb</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\IsoSprites.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Time\Clock.cpp">
+      <Filter>Time</Filter>
+    </ClCompile>
+    <ClCompile Include="Time\TimeSystem.cpp">
+      <Filter>Time</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Trajectory.cpp">
+      <Filter>Physics</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Animator.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Sprites.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\Mesh.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Mesh\MeshBuilder.cpp">
+      <Filter>Mesh</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\VertexBuffer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\IndexBuffer.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Debug\DebugDraw.cpp">
+      <Filter>Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Transform.cpp">
+      <Filter>Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Camera\PerspectiveCamera.cpp">
+      <Filter>Renderer\Camera</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Layouts\VertexLayout.cpp">
+      <Filter>Renderer\Layouts</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Shader.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Lights\Light.cpp">
+      <Filter>Renderer\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Lights\PointLight.cpp">
+      <Filter>Renderer\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Lights\AmbientLight.cpp">
+      <Filter>Renderer\Lights</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\ShaderDefinitions.cpp">
+      <Filter>Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\UniformBuffer.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="ThirdParty\Math\mikktspace.c">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Renderable.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Materials\Material.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\RenderScene.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\ForwardRenderingPath.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Materials\MaterialProperty.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Materials\PropertyBlockInfo.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Shaders\ShaderProgramInfo.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\MeshProgramBinding.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManagement\Scene.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneManagement\SceneManager.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject\GameObject.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\DrawCall.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\ParticleSystem\ParticleSystem.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\ParticleSystem\ParticleEmitter.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Blob.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\TextureCube.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Component.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\RigidBody3D.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collider\Collider.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collider\BoxCollider.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collider\SphereCollider.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collider\BoxCollider2D.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Raycast3D.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Audio\AudioComponent.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Logger\LogManager.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Renderer\Camera\OrthographicCamera.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Math\Quaternion.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="DevConsole\Command.cpp">
+      <Filter>DevConsole</Filter>
+    </ClCompile>
+    <ClCompile Include="DevConsole\DevConsole.cpp">
+      <Filter>DevConsole</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Vertex.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Math\MathUtil.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector2.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\AABB2.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Disc2.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Renderer.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\InputSystem.hpp">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Time.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\XboxController.hpp">
+      <Filter>Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Rgba.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Texture.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\IntVector2.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\stb\stb_image.h">
+      <Filter>ThirdParty\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SpriteSheet.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SpriteAnimation.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Audio\AudioSystem.hpp">
+      <Filter>Audio</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\fmod\fmod.h">
+      <Filter>ThirdParty\fmod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\fmod\fmod.hpp">
+      <Filter>ThirdParty\fmod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\fmod\fmod_codec.h">
+      <Filter>ThirdParty\fmod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\fmod\fmod_common.h">
+      <Filter>ThirdParty\fmod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\fmod\fmod_dsp.h">
+      <Filter>ThirdParty\fmod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\fmod\fmod_dsp_effects.h">
+      <Filter>ThirdParty\fmod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\fmod\fmod_errors.h">
+      <Filter>ThirdParty\fmod</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\fmod\fmod_output.h">
+      <Filter>ThirdParty\fmod</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\ErrorWarningAssert.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\StringUtils.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\FloatRange.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\IntRange.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\XMLUtilities.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="TinyXml2\tinyxml2.h">
+      <Filter>TinyXml2</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\EngineCommon.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Blackboard.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Image.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\BitmapFont.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SpriteAnimSet.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SpriteAnimSetDefinition.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\SpriteAnimationDefinition.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Vertex.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Matrix44.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector3.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Vector4.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\HeatMap.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\RawNoise.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\SmoothNoise.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\CubicSpline2D.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="EngineBuildPreferences.hpp" />
+    <ClInclude Include="FileUtil\File.h">
+      <Filter>File</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\RenderBuffer.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Sampler.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\ShaderProgram.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\GL\glfunctions.hpp">
+      <Filter>Renderer\GL</Filter>
+    </ClInclude>
+    <ClInclude Include="Core\Windows.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\External\gl\glcorearb.h">
+      <Filter>Renderer\External\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\External\gl\glext.h">
+      <Filter>Renderer\External\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\External\gl\wglext.h">
+      <Filter>Renderer\External\gl</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Camera.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\FrameBuffer.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Camera\OrbitCamera.hpp">
+      <Filter>Renderer\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="ThirdParty\stb\stb_image_write.h">
+      <Filter>ThirdParty\stb</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\IsoSprites.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Time\Clock.hpp">
+      <Filter>Time</Filter>
+    </ClInclude>
+    <ClInclude Include="Time\TimeSystem.hpp">
+      <Filter>Time</Filter>
+    </ClInclude>
+    <ClInclude Include="Physics\Trajectory.hpp">
+      <Filter>Physics</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Animator.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Sprites.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\Mesh.hpp">
+      <Filter>Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Mesh\MeshBuilder.hpp">
+      <Filter>Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\VertexBuffer.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\IndexBuffer.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Debug\DebugDraw.hpp">
+      <Filter>Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Math\Transform.hpp">
+      <Filter>Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Camera\PerspectiveCamera.hpp">
+      <Filter>Renderer\Camera</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Layouts\VertexLayout.hpp">
+      <Filter>Renderer\Layouts</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Shader.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Lights\Light.hpp">
+      <Filter>Renderer\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Lights\PointLight.hpp">
+      <Filter>Renderer\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\Lights\AmbientLight.hpp">
+      <Filter>Renderer\Lights</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\ShaderDefinitions.hpp">
+      <Filter>Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Renderer\UniformBuffer.hpp" />
+    <ClInclude Include="ThirdParty\Math\mikktspace.h" />
+    <ClInclude Include="Renderer\Renderable.hpp" />
+    <ClInclude Include="Renderer\Materials\Material.hpp" />
+    <ClInclude Include="Renderer\RenderScene.hpp" />
+    <ClInclude Include="Renderer\ForwardRenderingPath.hpp" />
+    <ClInclude Include="Renderer\Materials\MaterialProperty.hpp" />
+    <ClInclude Include="Renderer\Materials\PropertyBlockInfo.hpp" />
+    <ClInclude Include="Renderer\Shaders\ShaderProgramInfo.hpp" />
+    <ClInclude Include="Renderer\MeshProgramBinding.hpp" />
+    <ClInclude Include="SceneManagement\Scene.hpp" />
+    <ClInclude Include="SceneManagement\SceneManager.hpp" />
+    <ClInclude Include="GameObject\GameObject.hpp" />
+    <ClInclude Include="Renderer\DrawCall.hpp" />
+    <ClInclude Include="Renderer\ParticleSystem\ParticleSystem.hpp" />
+    <ClInclude Include="Renderer\ParticleSystem\ParticleEmitter.hpp" />
+    <ClInclude Include="Core\Blob.hpp" />
+    <ClInclude Include="Renderer\TextureCube.hpp" />
+    <ClInclude Include="Core\Component.hpp" />
+    <ClInclude Include="Physics\RigidBody3D.hpp" />
+    <ClInclude Include="Physics\Collider\Collider.hpp" />
+    <ClInclude Include="Physics\Collider\BoxCollider.hpp" />
+    <ClInclude Include="Physics\Collider\SphereCollider.hpp" />
+    <ClInclude Include="Physics\Collider\BoxCollider2D.hpp" />
+    <ClInclude Include="Physics\Raycast3D.hpp" />
+    <ClInclude Include="Audio\AudioComponent.hpp" />
+    <ClInclude Include="Logger\LogManager.hpp" />
+    <ClInclude Include="Renderer\Camera\OrthographicCamera.hpp" />
+    <ClInclude Include="Math\Quaternion.hpp" />
+    <ClInclude Include="DevConsole\Command.hpp">
+      <Filter>DevConsole</Filter>
+    </ClInclude>
+    <ClInclude Include="DevConsole\DevConsole.hpp">
+      <Filter>DevConsole</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="ThirdParty\fmod\fmod_vc.lib">
+      <Filter>ThirdParty\fmod</Filter>
+    </Library>
+    <Library Include="ThirdParty\fmod\fmod64_vc.lib">
+      <Filter>ThirdParty\fmod</Filter>
+    </Library>
+  </ItemGroup>
+</Project>

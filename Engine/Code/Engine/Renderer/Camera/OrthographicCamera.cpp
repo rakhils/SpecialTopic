@@ -1,0 +1,25 @@
+#include "Engine/Renderer/Camera/OrthographicCamera.hpp"
+#include "Engine/Core/EngineCommon.hpp"
+
+// CONSTRUCTOR
+OrthographicCamera::OrthographicCamera()
+{
+
+}
+
+// DESTRUCTOR
+OrthographicCamera::~OrthographicCamera()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/05/21
+*@purpose : Updates camera
+*@param   : delta time
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void OrthographicCamera::Update(float deltaTime)
+{
+	UNUSED(deltaTime);
+}
