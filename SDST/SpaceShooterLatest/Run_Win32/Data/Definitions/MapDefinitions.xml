@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MapDefinitions>
+ <MapDefinition name ="island" defaultTile="water" width="16~20" height="18~30" >
+<GenerattionSteps>
+   <FillAndEdge filltype="grass" edgeTile="lava" edgethickness="1~3" />
+</GenerattionSteps>
+   </MapDefinition>
+
+</MapDefinitions>
+
+      

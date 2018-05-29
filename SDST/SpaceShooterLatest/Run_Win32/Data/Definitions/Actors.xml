@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ActorDefinitions>
+  
+  <ActorDefinition name="Player" faction="good">
+    <SpriteAnimSet spriteSheet="player1/BODY.png" spriteLayout="13,21">
+      <SpriteAnim name="WalkSouth"  spriteIndexes="130,131,132,133,134,135,136,137,138"/>
+      <SpriteAnim name="WalkWest"   spriteIndexes="117,118,119,120,121,122,123,124,125"/>
+      <SpriteAnim name="WalkNorth"  spriteIndexes="104,105,106,107,108,109,110,111,112"/>
+      <SpriteAnim name="WalkEast"   spriteIndexes="143,144,145,146,147,148,149,150,151"/>
+      
+      <SpriteAnim name="ShootSouth"   spriteIndexes="234,235,236,237,238,239,240,241,242,243,244,245,246"/>
+      <SpriteAnim name="ShootWest"    spriteIndexes="221,222,223,224,225,226,227,228,229,230,231,232,233"/>
+      <SpriteAnim name="ShootNorth"   spriteIndexes="208,209,210,211,212,213,214,215,216,217,218,219,220"/>
+      <SpriteAnim name="ShootEast"    spriteIndexes="247,248,249,250,251,252,253,254,255,256,257,258,259"/>
+      <SpriteAnim name="Idle"   spriteIndexes="27"/>
+    </SpriteAnimSet>
+    <Size physicsRadius="0.8"></Size>
+    <Movement walking="true" speed="2.0">
+      <Tile type="Mud" penalty="1.0"/>
+    </Movement>
+    <Health max="100" start="100"/>
+  </ActorDefinition>
+
+  <ActorDefinition name="Goblin" faction="evil">
+    <Size physicsRadius="0.8" localDrawBounds="-0.5,-0.3,0.5,1.033"/>
+    <Movement>
+      <Walk speed="2.0"/>
+    </Movement>
+    <Behaviors behavior="HEAL,SHOOT,FOLLOW,PATROL,SHOOT,EXPLORE" direction="0,1">
+    </Behaviors>
+    <Health max="5" start="5"/>
+    <SpriteAnimSet spriteSheet="goblin.png" spriteLayout="9,4" fps="10">
+      <SpriteAnim name="WalkSouth"		spriteIndexes="18,19,20,21,22,23,24,25,26"/>
+      <SpriteAnim name="WalkWest"		  spriteIndexes="27,28,29,30,31,32,33,34,35"/>
+      <SpriteAnim name="WalkNorth"	  spriteIndexes="0,1,2,3,4,5,6,7,8"/>
+      <SpriteAnim name="WalkEast"	    spriteIndexes="9,10,11,12,13,14,15,16,17"/>
+      <SpriteAnim name="Idle"         spriteIndexes="27"/>
+      <SpriteAnim name="Heal"	spriteIndexes="9,0,27,18"/>
+    </SpriteAnimSet>
+  </ActorDefinition>
+
+
+  <ActorDefinition name="Balrog" faction="evil">
+    <Size physicsRadius="0.8" drawRadius="0.8"/>
+    <Behaviors behavior="HEAL,SHOOT,PATROL,SHOOT,EXPLORE" direction="0,1"></Behaviors>
+    <Movement>
+      <Walk speed="1.0"/>
+    </Movement>
+    <Health max="5" start="5"/>
+    <SpriteAnimSet spriteSheet="actor1.png" spriteLayout="9,4">
+      <SpriteAnim name="WalkSouth"		spriteIndexes="18,19,20,21,22,23,24,25,26"/>
+      <SpriteAnim name="WalkWest"		spriteIndexes="27,28,29,30,31,32,33,34,35"/>
+      <SpriteAnim name="WalkNorth"	spriteIndexes="0,1,2,3,4,5,6,7,8"/>
+      <SpriteAnim name="WalkEast"	spriteIndexes="9,10,11,12,13,14,15,16,17"/>
+      <SpriteAnim name="Heal"	spriteIndexes="9,0,27,18"/>
+      <SpriteAnim name="Idle"   spriteIndexes="0"/>
+    </SpriteAnimSet>
+  </ActorDefinition>
+
+  <ActorDefinition name="shopkeeper" faction="neutral">
+    <Size physicsRadius="0.6" localDrawBounds="-0.5,-0.3,0.5,1.033"/>
+    <Movement>
+      <Walk speed="2.0"/>
+    </Movement>
+    <Behaviors behavior="PATROL" direction="0,1"></Behaviors>
+    <Health max="2" start="2"/>
+    <SpriteAnimSet spriteSheet="shopkeeper.png" spriteLayout="3,4" fps="10">
+      <SpriteAnim name="WalkSouth"  spriteIndexes="6,7,8"/>
+      <SpriteAnim name="WalkWest"   spriteIndexes="9,10,11"/>
+      <SpriteAnim name="WalkNorth"  spriteIndexes="0,1,2"/>
+      <SpriteAnim name="WalkEast"   spriteIndexes="3,4,5"/>
+      <SpriteAnim name="Idle"		spriteIndexes="6" fps="3"/>
+    </SpriteAnimSet>
+  </ActorDefinition>
+
+</ActorDefinitions>

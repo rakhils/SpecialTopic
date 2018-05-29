@@ -1,0 +1,105 @@
+#include "Map.hpp"
+
+#include "Engine/GameObject/GameObject.hpp"
+#include "Engine/Debug/DebugDraw.hpp"
+#include "Game/GameCommon.hpp"
+#include "Engine/Renderer/Camera.hpp"
+#include "Engine/Math/Transform.hpp"
+
+Map::Map()
+{
+	debugDraw = DebugDraw::GetNewInstance(); 
+	debugDraw->m_renderer = g_theRenderer;
+	mins = Vector2(-20, -20);
+	maxs = Vector2(20, 20);
+}
+
+//////////////////////////////////////////////////////////////
+/*DATE    : 2018/05/07
+*@purpose : NIL
+*
+*@param   : NIL
+*
+*@return  : NIL
+*/
+//////////////////////////////////////////////////////////////
+void Map::AddToMapObjects(GameObject *gameObject)
+{
+	m_mapObjects.push_back(gameObject);
+}
+
+//////////////////////////////////////////////////////////////
+/*DATE    : 2018/05/07
+*@purpose : NIL
+*
+*@param   : NIL
+*
+*@return  : NIL
+*/
+//////////////////////////////////////////////////////////////
+void Map::RemoveFromMapObject(GameObject *gameObject)
+{
+	for(int index = 0;index < m_mapObjects.size();index++)
+	{
+		if(m_mapObjects.at(index) == gameObject)
+		{
+			m_mapObjects.erase(m_mapObjects.begin() + index);
+			index--;
+		}
+	}
+}
+
+void Map::Update(float deltaTime)
+{
+	UNUSED(deltaTime);
+}
+
+//////////////////////////////////////////////////////////////
+/*DATE    : 2018/01/22
+*@purpose : NIL
+*
+*@param   : NIL
+*
+*@return  : NIL
+*/
+//////////////////////////////////////////////////////////////
+void Map::Render()
+{
+	Vector2 basePosition(50,50);
+	DebugRenderOptions options;
+	debugDraw->DebugRenderText2D(Vector3(0, 110, 0), Vector3(0, 0, 0), "MINI MAP", Vector2(0, 0), 5, Rgba::GREEN, options);
+	debugDraw->DebugRenderLine2D(Vector3(0, 0, 0),   Vector3(0, 100, 0),Rgba::WHITE,options);
+	debugDraw->DebugRenderLine2D(Vector3(0, 0, 0),   Vector3(100,0, 0), Rgba::WHITE, options);
+	debugDraw->DebugRenderLine2D(Vector3(0, 100, 0), Vector3(100, 100, 0), Rgba::WHITE, options);
+	debugDraw->DebugRenderLine2D(Vector3(100, 0, 0), Vector3(100, 100, 0), Rgba::WHITE, options);
+	for (int mapObjIndex = 0; mapObjIndex < m_mapObjects.size(); mapObjIndex++)
+	{
+		Vector3 gameObjPosition = m_mapObjects.at(mapObjIndex)->m_transform.GetLocalPosition();
+		if(m_mapObjects.at(mapObjIndex)->m_name == "player")
+		{
+			gameObjPosition = Camera::GetCurrentCamera()->m_transform.GetLocalPosition();
+		}
+		float xPos = RangeMapFloat(gameObjPosition.x, -100, 100, -50, 50);
+		float yPos = RangeMapFloat(gameObjPosition.z, -100, 100, -50, 50);
+		xPos = ClampFloat(xPos, -50, 50) + basePosition.x;
+		yPos = ClampFloat(yPos, -50, 50) + basePosition.y;
+		Rgba color;
+		//Not sure of excat way to do mini map. Dont want to disturb engine code with games minimap
+		if(m_mapObjects.at(mapObjIndex)->m_name == "asteroid")
+		{
+			color = Rgba::RED;
+		}
+		if(m_mapObjects.at(mapObjIndex)->m_name == "enemy")
+		{
+			color = Rgba::BLUE;
+		}
+		if(m_mapObjects.at(mapObjIndex)->m_name == "player")
+		{
+			color = Rgba::GREEN;
+		}
+		debugDraw->DebugRenderCross(Vector3(xPos, yPos, 0), 2, color, options);
+
+	}
+}
+
+

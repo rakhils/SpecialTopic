@@ -1,0 +1,82 @@
+<ItemDefinitions>
+
+
+  <ItemDefinition name="inventory_bg" slot="NONE">
+    <SpriteAnimSet spriteSheet="terrain.png" spriteLayout="8,8">
+      <SpriteAnim name="Idle" spriteIndexes="57"/>
+    </SpriteAnimSet>
+  </ItemDefinition>
+
+  <ItemDefinition name="bow" slot="NONE" picktext="YOU CAN SHOOT WITH ARROWS" droptext="YOU LOST BOW">
+    <SpriteAnimSet spriteSheet="inventories.png" spriteLayout="12,8">
+      <SpriteAnim name="Idle" spriteIndexes="13"/>
+    </SpriteAnimSet>
+  </ItemDefinition>
+  
+  <ItemDefinition name="equipment_head_hood" slot="HEAD" picktext="CAN HIDE FROM ENEMIES" droptext="YOU LOST HOOD">
+    <Stats SPEED="50~60"></Stats>
+    <SpriteAnimSet spriteSheet="player1/EQUIPMENT_HEAD_HOOD.png" spriteLayout="13,21">
+      <SpriteAnim name="WalkSouth"  spriteIndexes="130,131,132,133,134,135,136,137,138"/>
+      <SpriteAnim name="WalkWest"   spriteIndexes="117,118,119,120,121,122,123,124,125"/>
+      <SpriteAnim name="WalkNorth"  spriteIndexes="104,105,106,107,108,109,110,111,112"/>
+      <SpriteAnim name="WalkEast"   spriteIndexes="143,144,145,146,147,148,149,150,151"/>
+
+      <SpriteAnim name="ShootSouth"   spriteIndexes="234,235,236,237,238,239,240,241,242,243,244,245,246"/>
+      <SpriteAnim name="ShootWest"    spriteIndexes="221,222,223,224,225,226,227,228,229,230,231,232,233"/>
+      <SpriteAnim name="ShootNorth"   spriteIndexes="208,209,210,211,212,213,214,215,216,217,218,219,220"/>
+      <SpriteAnim name="ShootEast"    spriteIndexes="247,248,249,250,251,252,253,254,255,256,257,258,259"/>
+      
+      <SpriteAnim name="Idle"   spriteIndexes="27"/>
+    </SpriteAnimSet>
+    <Tags tag="hood"></Tags>
+  </ItemDefinition>
+
+  <ItemDefinition name="equipment_head_armor" slot="HEAD" picktext="EXTRA SHIELD FROM ENEMIES" droptext="YOU LOST ARMOR">
+    <Stats SPEED="-60~-50" RATEOFATTACK="50~60"></Stats>
+    <SpriteAnimSet spriteSheet="player1/EQUIPMENT_HEAD_ARMOR.png" spriteLayout="13,21">
+      <SpriteAnim name="WalkSouth"  spriteIndexes="130,131,132,133,134,135,136,137,138"/>
+      <SpriteAnim name="WalkWest"   spriteIndexes="117,118,119,120,121,122,123,124,125"/>
+      <SpriteAnim name="WalkNorth"  spriteIndexes="104,105,106,107,108,109,110,111,112"/>
+      <SpriteAnim name="WalkEast"   spriteIndexes="143,144,145,146,147,148,149,150,151"/>
+
+      <SpriteAnim name="ShootSouth"   spriteIndexes="234,235,236,237,238,239,240,241,242,243,244,245,246"/>
+      <SpriteAnim name="ShootWest"    spriteIndexes="221,222,223,224,225,226,227,228,229,230,231,232,233"/>
+      <SpriteAnim name="ShootNorth"   spriteIndexes="208,209,210,211,212,213,214,215,216,217,218,219,220"/>
+      <SpriteAnim name="ShootEast"    spriteIndexes="247,248,249,250,251,252,253,254,255,256,257,258,259"/>
+      <SpriteAnim name="Idle"   spriteIndexes="27"/>
+    </SpriteAnimSet>
+  </ItemDefinition>
+  
+  
+  <ItemDefinition name="equipment_chest_armor" slot="CHEST">
+    <SpriteAnimSet spriteSheet="player1/EQUIPMENT_CHEST_ARMOR.png" spriteLayout="13,21">
+      <SpriteAnim name="WalkSouth"  spriteIndexes="130,131,132,133,134,135,136,137,138"/>
+      <SpriteAnim name="WalkWest"   spriteIndexes="117,118,119,120,121,122,123,124,125"/>
+      <SpriteAnim name="WalkNorth"  spriteIndexes="104,105,106,107,108,109,110,111,112"/>
+      <SpriteAnim name="WalkEast"   spriteIndexes="143,144,145,146,147,148,149,150,151"/>
+
+      <SpriteAnim name="ShootSouth"   spriteIndexes="234,235,236,237,238,239,240,241,242,243,244,245,246"/>
+      <SpriteAnim name="ShootWest"    spriteIndexes="221,222,223,224,225,226,227,228,229,230,231,232,233"/>
+      <SpriteAnim name="ShootNorth"   spriteIndexes="208,209,210,211,212,213,214,215,216,217,218,219,220"/>
+      <SpriteAnim name="ShootEast"    spriteIndexes="247,248,249,250,251,252,253,254,255,256,257,258,259"/>
+      <SpriteAnim name="Idle"   spriteIndexes="27"/>
+    </SpriteAnimSet>
+  </ItemDefinition>
+
+  <ItemDefinition name="equipment_leg_armor" slot="LEG">
+    <SpriteAnimSet spriteSheet="player1/EQUIPMENT_LEG_ARMOR.png" spriteLayout="13,21">
+      <SpriteAnim name="WalkSouth"  spriteIndexes="130,131,132,133,134,135,136,137,138"/>
+      <SpriteAnim name="WalkWest"   spriteIndexes="117,118,119,120,121,122,123,124,125"/>
+      <SpriteAnim name="WalkNorth"  spriteIndexes="104,105,106,107,108,109,110,111,112"/>
+      <SpriteAnim name="WalkEast"   spriteIndexes="143,144,145,146,147,148,149,150,151"/>
+
+      <SpriteAnim name="ShootSouth"   spriteIndexes="234,235,236,237,238,239,240,241,242,243,244,245,246"/>
+      <SpriteAnim name="ShootWest"    spriteIndexes="221,222,223,224,225,226,227,228,229,230,231,232,233"/>
+      <SpriteAnim name="ShootNorth"   spriteIndexes="208,209,210,211,212,213,214,215,216,217,218,219,220"/>
+      <SpriteAnim name="ShootEast"    spriteIndexes="247,248,249,250,251,252,253,254,255,256,257,258,259"/>
+      <SpriteAnim name="Idle"   spriteIndexes="27"/>
+    </SpriteAnimSet>
+  </ItemDefinition>
+  
+  
+</ItemDefinitions>

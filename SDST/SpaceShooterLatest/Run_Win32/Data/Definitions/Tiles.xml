@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<TileDefinitions>
+  <TileDefinition name="grass"
+    spriteCoords="0,0"
+    spriteLayout ="8,8"
+    spriteTint="180,180,180"
+    allowsSight="true"
+    allowsWalking="true"
+    allowsFlying="true"
+    allowsSwimming="false" />
+   
+
+  <TileDefinition name="water"
+    spriteCoords="6,6"
+    spriteLayout ="8,8"
+    spriteTint="180,180,180"
+    allowsSight="true"
+    allowsWalking="true"
+    allowsFlying="true"
+    allowsSwimming="false"
+  />
+
+
+  <TileDefinition name="lava"
+    spriteCoords="6,7"
+    spriteLayout ="8,8"
+    spriteTint="180,180,180"
+    allowsSight="true"
+    allowsWalking="false"
+    allowsFlying="true"
+    allowsSwimming="false"
+  />
+</TileDefinitions>
