@@ -3,7 +3,7 @@
 *.lo
 *.o
 *.obj
-!data/*/*.obj
+!data/**/*.obj
 
 # Precompiled Headers
 *.gch
@@ -95,12 +95,10 @@ $RECYCLE.BIN/
 data/log/
 *.suo
 *.TMP
+
+
 data/screenshot/
 *.log
 data/config/user.config
 *.ipch
-*.db-shm
-*.db-wal
-
-**/Temporary/**/*.*
-!**/ThirdParty/**/*.*
+**/.vs/
