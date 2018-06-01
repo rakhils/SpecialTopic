@@ -55,7 +55,7 @@ void App::RunFrame()
 void App::Update(float deltaTime)
 {
 	g_theGame->Update(deltaTime);
-	isQuitTriggered = g_theGame->isQuitTriggered;
+	//isQuitTriggered = g_theGame->isQuitTriggered;
 }
 
 void App::Render()
