@@ -1,0 +1,91 @@
+<ShaderDefinitions>
+  <Shaders name ="debug">
+    <program define="USE_DIFFUSE;USE_SPECULAR">
+      <vertex   file="Data//Shaders//Debug" />
+      <fragment file="Data//Shaders//Debug" />
+    </program>
+
+    <blend>
+      <color operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+      <alpha operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+    </blend>
+
+    <fill mode="fillmode_solid"></fill>
+    <cull mode="cullmode_none"></cull>
+    <windorder order="wind_clockwise"></windorder>
+    
+    <depth compare="compare_always" write="false" />
+
+  </Shaders>
+
+  <Shaders name ="lighting">
+    <program define="AMBIENT">
+      <vertex   file="Data//Shaders//BasicLighting" />
+      <fragment file="Data//Shaders//BasicLighting" />
+    </program>
+
+    <blend>
+      <color operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+      <alpha operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+    </blend>
+
+    <fill mode="fillmode_solid"></fill>
+    <cull mode="cullmode_back"></cull>
+    <windorder order="wind_clockwise"></windorder>
+
+    <depth compare="compare_less" write="true" />
+
+  </Shaders>
+
+  <Shaders name ="default">
+    <program define="AMBIENT">
+      <vertex   file="Data//Shaders//PASSTHROUGH" />
+      <fragment file="Data//Shaders//PASSTHROUGH" />
+    </program>
+
+    <blend>
+      <color operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+      <alpha operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+    </blend>
+
+    <fill mode="fillmode_solid"></fill>
+    <cull mode="cullmode_back"></cull>
+    <windorder order="wind_clockwise"></windorder>
+
+    <depth compare="compare_less" write="true" />
+
+  </Shaders>
+
+  <Shaders name ="Additive">
+    <program define="AMBIENT">
+      <vertex   file="Data//Shaders//Additive" />
+      <fragment file="Data//Shaders//Additive" />
+    </program>
+
+    <blend>
+      <color operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+      <alpha operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+    </blend>
+
+    <fill mode="fillmode_solid"></fill>
+    <cull mode="cullmode_back"></cull>
+    <windorder order="wind_clockwise"></windorder>
+
+    <depth compare="compare_less" write="false" />
+
+  </Shaders>
+
+  <Shaders name ="Skybox">
+  <program define="AMBIENT">
+    <vertex   file="Data//Shaders//Skybox" />
+    <fragment file="Data//Shaders//Skybox" />
+  </program>
+
+
+    <cull mode="cullmode_none"></cull>
+
+  <depth compare="compare_always" write="false" />
+
+  </Shaders>
+
+</ShaderDefinitions>

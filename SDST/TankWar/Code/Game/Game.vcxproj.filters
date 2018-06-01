@@ -1,0 +1,243 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="General">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="General\GamePlay">
+      <UniqueIdentifier>{bd6514af-0b8a-4fc4-8998-a6789f62666f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General\Data">
+      <UniqueIdentifier>{35b2d5be-7f06-488e-9c36-559522d7ba3d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General\Data\Definitions">
+      <UniqueIdentifier>{26044600-cd06-4bbe-8e65-0af281e9628a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General\GamePlay\Tiles">
+      <UniqueIdentifier>{2c9e66dd-181a-4694-b169-ff2b8818eb89}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General\GamePlay\Maps">
+      <UniqueIdentifier>{acc3a3b1-0434-4c59-a28d-bc6e8412f111}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General\GamePlay\Entity">
+      <UniqueIdentifier>{d6b33ab1-8fbc-4b55-a4e2-025da3700af9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General\Data\Shaders">
+      <UniqueIdentifier>{37c621eb-b9db-46aa-9241-99cd25e469cd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General\Data\Shaders\glsl">
+      <UniqueIdentifier>{85fa78a6-6d47-4632-bf70-ac6ac5277785}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General\Data\Materials">
+      <UniqueIdentifier>{e4fa48f2-9687-4d58-8f9f-f3484373a813}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="General\Data\Images">
+      <UniqueIdentifier>{5bea4f46-c03a-473d-88a6-2b2744ab4675}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Main_Win32.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="App.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Game.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="GameCommon.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Maps\Map.cpp">
+      <Filter>General\GamePlay\Maps</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Maps\MapDefinition.cpp">
+      <Filter>General\GamePlay\Maps</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Maps\MapGenSteps.cpp">
+      <Filter>General\GamePlay\Maps</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Tiles\TileDefinition.cpp">
+      <Filter>General\GamePlay\Tiles</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Tiles\Tiles.cpp">
+      <Filter>General\GamePlay\Tiles</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Entity\Entity.cpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Entity\Bullet.cpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Entity\Asteroid.cpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Entity\Ship.cpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="App.hpp">
+      <Filter>General</Filter>
+    </ClInclude>
+    <ClInclude Include="Game.hpp">
+      <Filter>General</Filter>
+    </ClInclude>
+    <ClInclude Include="GameCommon.hpp">
+      <Filter>General</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Maps\Map.hpp">
+      <Filter>General\GamePlay\Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Maps\MapDefinition.hpp">
+      <Filter>General\GamePlay\Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Maps\MapGenSteps.hpp">
+      <Filter>General\GamePlay\Maps</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Tiles\TileDefinition.hpp">
+      <Filter>General\GamePlay\Tiles</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Tiles\Tiles.hpp">
+      <Filter>General\GamePlay\Tiles</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\Entity.hpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\Bullet.hpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\Asteroid.hpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\Ship.hpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Tiles.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\GameConfig.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\MapDefinitions.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Actors.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Adventures.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Items.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Portals.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Projectile.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Shaders.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\Run_Win32\Data\Shaders\Debug.fs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\Debug.vs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\PASSTHROUGH.fs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\PASSTHROUGH.vs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\BasicLighting.fs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\BasicLighting.vs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\Ligths.fs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\Ligths.vs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Materials\ship.mat">
+      <Filter>General\Data\Materials</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Materials\default.mat">
+      <Filter>General\Data\Materials</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\glsl\shipproperty.glsl">
+      <Filter>General\Data\Shaders\glsl</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Materials\Asteroids.mat">
+      <Filter>General\Data\Materials</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Materials\text.mat">
+      <Filter>General\Data\Materials</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Materials\default_light.mat">
+      <Filter>General\Data\Materials</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Materials\bullet.mat">
+      <Filter>General\Data\Materials</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Materials\Particles.mat">
+      <Filter>General\Data\Materials</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\Additive.fs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\Additive.vs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Materials\Skybox.mat">
+      <Filter>General\Data\Materials</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\Skybox.fs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\Skybox.vs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\..\Run_Win32\Data\Shaders\glsl\light.glsl">
+      <Filter>General\Data\Shaders\glsl</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\..\Run_Win32\Data\Images\example_colour.png">
+      <Filter>General\Data\Images</Filter>
+    </Image>
+    <Image Include="..\..\Run_Win32\Data\Images\example_normal.png">
+      <Filter>General\Data\Images</Filter>
+    </Image>
+    <Image Include="..\..\Run_Win32\Data\Images\grass.png">
+      <Filter>General\Data\Images</Filter>
+    </Image>
+    <Image Include="..\..\Run_Win32\Data\Images\particle.png">
+      <Filter>General\Data\Images</Filter>
+    </Image>
+    <Image Include="..\..\Run_Win32\Data\Images\sample.png">
+      <Filter>General\Data\Images</Filter>
+    </Image>
+    <Image Include="..\..\Run_Win32\Data\Images\stone.png">
+      <Filter>General\Data\Images</Filter>
+    </Image>
+    <Image Include="..\..\Run_Win32\Data\Images\tank.png">
+      <Filter>General\Data\Images</Filter>
+    </Image>
+    <Image Include="..\..\Run_Win32\Data\Images\terrain.png">
+      <Filter>General\Data\Images</Filter>
+    </Image>
+  </ItemGroup>
+</Project>
