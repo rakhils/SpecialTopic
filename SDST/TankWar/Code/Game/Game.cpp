@@ -81,6 +81,7 @@ void Game::CreatePlayer()
 {
 	Mesh *sphere = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3(0, 0, 0), 1, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
 	m_tank = new Ship();
+	m_tank->SetScene(m_scene);
 	m_tank->AddRigidBody3DComponent();
 	m_tank->AddCameraComponent(Vector3(0, 0, -10));
 	m_tank->m_renderable->SetMesh(sphere);
@@ -136,10 +137,6 @@ void Game::Update(float deltaTime)
 		Matrix44 worldMatrix = m_tank->m_transform.GetWorldMatrix();
 		Vector3 forwardDirection = worldMatrix.GetKAxis();
 		m_tank->m_transform.Translate(forwardDirection*(1 * deltaTime));
-		//LogManager::PushLog("Data//Logs//Sample.txt", "test2\n");
-
-		DebugDraw::GetInstance()->DebugRenderLogf(0,"test");
-		//((AudioComponent*)m_test1Object->GetComponentByType(AUDIO))->Play();
 	}
 	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_S))
 	{
@@ -156,12 +153,9 @@ void Game::Update(float deltaTime)
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/04/29
 *@purpose : NIL
-*
 *@param   : NIL
-*
 *@return  : NIL
-*/
-//////////////////////////////////////////////////////////////
+*//////////////////////////////////////////////////////////////
 void Game::Render()
 {
 	DebugRenderOptions options;
@@ -187,10 +181,8 @@ void Game::Render()
 
 void Game::SetCameraFocusOnPosition()
 {
-	float PI = 3.14f;
-	float aspect = Windows::GetInstance()->GetDimensions().x/Windows::GetInstance()->GetDimensions().y;
-	//Camera::GetGamePlayCamera()->SetPerspectiveCamera(PI /6.f, 1/aspect, 0.1f, 300.f);
-	//g_theRenderer->SetCamera(Camera::GetGamePlayCamera());
+	//float PI = 3.14f;
+	//float aspect = Windows::GetInstance()->GetDimensions().x/Windows::GetInstance()->GetDimensions().y;
 }
 
 
