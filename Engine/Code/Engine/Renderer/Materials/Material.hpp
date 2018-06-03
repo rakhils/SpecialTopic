@@ -77,8 +77,8 @@ public:
 	void			SetProperty(std::string name, void const *data, size_t data_size);
 	Material *		Clone();
 	//Static_Methodsk
-	static Material* CreateOrGetMaterial(std::string filepath);
-	static Material* CreateOrGetMaterial(std::string filepath, bool isNewResource);
+	static Material* CreateOrGetMaterial1(std::string filepath);
+	static Material* CreateOrGetMaterial1(std::string filepath, bool isNewResource);
 	static Material* AquireResource(std::string filepath);
 protected:
 	//Member_Variables

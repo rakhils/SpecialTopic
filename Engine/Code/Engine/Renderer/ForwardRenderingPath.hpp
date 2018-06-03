@@ -28,7 +28,6 @@ class ForwardRenderingPath
 public:
 	//Member_Variables
 	Renderer * m_renderer;
-	TextureCube			   *texturecube;
 	//Static_Member_Variables
 
 	//Methods

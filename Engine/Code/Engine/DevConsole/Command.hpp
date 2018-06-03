@@ -82,6 +82,14 @@ void SaveLog(Command &cmd);
 void EchoColor(Command &cmd);
 void ToggleDebugRenderVisibility(Command &cmd);
 void ClearDebugRenderDraws(Command &cmd);
+
+//DEBUG RENDER COMMANDS
+void DebugRenderQuad2D(Command &cmd);
+void DebugRenderText2D(Command &cmd);
+void DebugRenderPoint3D(Command &cmd);
+void DebugRenderSphere(Command &cmd);
+void DebugRenderWiredSphere(Command &cmd);
+void DebugRenderText3D(Command &cmd);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static std::vector<std::string> GetCommandHistory();
 

@@ -1,4 +1,5 @@
 #pragma once
+#pragma warning (disable : 4820 4619 4668 4047 4024 4204 4100 4201)
 #include "Engine/Math/Matrix44.hpp"
 /*\class  : Quaternion	   
 * \group  : <GroupName>		   

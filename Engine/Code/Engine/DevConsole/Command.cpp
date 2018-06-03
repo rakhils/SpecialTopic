@@ -203,8 +203,15 @@ void CommandStartup()
 	CommandRegister("clear", ClearCommand, "CLEARS OUTPUT SCREEN");
 	CommandRegister("save_log", SaveLog, "SAVES COMMAND");
 	CommandRegister("echo_with_color", EchoColor, "ECHO THE INPUT COLOR");
-	CommandRegister("debug_render", ToggleDebugRenderVisibility, "TOGGLES DEBUG RENDER OBJECTS VISIBILITY");
-	CommandRegister("debug_render_clear", ClearDebugRenderDraws, "CLEARS ALL DEBUG RENDER OBJECTS");
+
+	//DEBUG RENDER COMMANDS
+	CommandRegister("debug_render"          , ToggleDebugRenderVisibility,   "TOGGLES DEBUG RENDER OBJECTS VISIBILITY");
+	CommandRegister("debug_render_clear"    , ClearDebugRenderDraws,		 "CLEARS ALL DEBUG RENDER OBJECTS");
+	CommandRegister("debug_render_quad2d"   , DebugRenderQuad2D,			 "DRAWS DEBUG QUAD2D IN 2D SPACE");
+	CommandRegister("debug_render_text2d"   , DebugRenderText2D,			 "DRAWS TEXT IN 2D SPACE");
+	CommandRegister("debug_render_point3d"  , DebugRenderPoint3D,			 "DRAWS POINT IN CURRENT 3D SPACE");
+	CommandRegister("debug_render_sphere"   , DebugRenderSphere,			 "DRAWS SPHERE IN CURRENT 3D SPACE");
+	CommandRegister("debug_render_text3d"	, DebugRenderText3D,			 "DRAWS TEXT IN CURRENT 3D SPACE");
 }
 
 //////////////////////////////////////////////////////////////
@@ -412,6 +419,207 @@ void ClearDebugRenderDraws(Command &cmd)
 	{
 		DebugDraw::ClearAllDebugRenderDraws();
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DebugRenderQuad2D(Command &cmd)
+{
+	DebugRenderOptions options;
+	Vector3 position;
+	Vector2 dimension;
+	float lifetime = 0;
+	if(!cmd.GetNextVector3(&position))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID POSITION", Rgba::RED);
+		return;
+	}
+	if(!cmd.GetNextVector2(&dimension))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID DIMENSIONS", Rgba::RED);
+		return;
+	}
+	if(!cmd.GetNextFloat(&lifetime))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID LIFETIME", Rgba::RED);
+		return;
+	}
+	options.m_lifeTime = lifetime;
+	DebugDraw::GetInstance()->DebugRenderQuad2D(position, AABB2(Vector2(0, 0), dimension.x, dimension.y), 0.f, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
+	DevConsole::GetInstance()->PushToOutputText("SUCCESS", Rgba::GREEN);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/01
+*@purpose : Draws text in 2d space
+*@param   : Command obj
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DebugRenderText2D(Command &cmd)
+{
+	DebugRenderOptions options;
+	Vector3 position;
+	float   fontsize = 1;
+	float   lifetime = 0;
+	if (!cmd.GetNextVector3(&position))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID POSITION SYNTAX - POSITION,FONTSIZE,LIFETIME,STRING", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextFloat(&fontsize))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID FONT SIZE SYNTAX - POSITION,FONTSIZE,LIFETIME,STRING", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextFloat(&lifetime))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID LIFETIME SYNTAX - POSITION,FONTSIZE,LIFETIME,STRING", Rgba::RED);
+		return;
+	}
+	std::string str = cmd.GetNextString();
+	options.m_lifeTime = lifetime;
+	DebugDraw::GetInstance()->DebugRenderText2D(position, Vector3::ZERO, str, Vector2::ONE, fontsize, Rgba::WHITE, options);
+	DevConsole::GetInstance()->PushToOutputText("SUCCESS", Rgba::GREEN);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/01
+*@purpose : Renders point in current camera space
+*@param   : Command obj
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DebugRenderPoint3D(Command &cmd)
+{
+	DebugRenderOptions options;
+	Vector3 position;
+	Rgba    colorStart;
+	Rgba    colorEnd;
+	float   lifetime = 0;
+	if (!cmd.GetNextVector3(&position))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID POSITION SYNTAX - POSITION,COLOR,COLOR,LIFETIME", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextColor(&colorStart))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID START COLOR SYNTAX - POSITION,COLOR,COLOR,LIFETIME", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextColor(&colorEnd))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID END COLOR SYNTAX - POSITION,COLOR,COLOR,LIFETIME", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextFloat(&lifetime))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID LIFE TIME SYNTAX - POSITION,COLOR,COLOR,LIFETIME", Rgba::RED);
+		return;
+	}
+	options.m_startColor = colorStart;
+	options.m_endColor = colorEnd;
+	options.m_lifeTime = lifetime;
+	DebugDraw::GetInstance()->DebugRenderPoint(position);
+	DevConsole::GetInstance()->PushToOutputText("SUCCESS", Rgba::GREEN);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/01
+*@purpose : Renders sphere in current camera 3d space
+*@param   : Command obj
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DebugRenderSphere(Command &cmd)
+{
+	DebugRenderOptions options;
+	Vector3 position;
+	float   radius;
+	float   lifetime = 0;
+	if (!cmd.GetNextVector3(&position))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID POSITION SYNTAX -   POSITION,RADIUS,LIFE TIME", Rgba::RED);
+		return;																			   
+	}																					   
+	if (!cmd.GetNextFloat(&radius))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID RADIUS SYNTAX -   POSITION,RADIUS,LIFE TIME", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextFloat(&lifetime))													   
+	{																					   
+		DevConsole::GetInstance()->PushToOutputText("INVALID LIFE TIME SYNTAX -   POSITION,RADIUS,LIFE TIME", Rgba::RED);
+		return;
+	}
+	options.m_lifeTime = lifetime;
+	DebugDraw::GetInstance()->DebugRenderSphere(position,radius,32,32,nullptr,Rgba::WHITE,DEBUG_RENDER_FILL,options);
+	DevConsole::GetInstance()->PushToOutputText("SUCCESS", Rgba::GREEN);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/01
+*@purpose : Renders wire sphere in 3d space
+*@param   : Command obj
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DebugRenderWiredSphere(Command &cmd)
+{
+	DebugRenderOptions options;
+	Vector3 position;
+	float   radius;
+	float   lifetime = 0;
+	if (!cmd.GetNextVector3(&position))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID POSITION SYNTAX -   POSITION,RADIUS,LIFE TIME", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextFloat(&radius))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID RADIUS SYNTAX -   POSITION,RADIUS,LIFE TIME", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextFloat(&lifetime))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID LIFE TIME SYNTAX -   POSITION,RADIUS,LIFE TIME", Rgba::RED);
+		return;
+	}
+	options.m_lifeTime = lifetime;
+	DebugDraw::GetInstance()->DebugRenderSphere(position, radius, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_WIRE, options);
+	DevConsole::GetInstance()->PushToOutputText("SUCCESS", Rgba::GREEN);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/01
+*@purpose : Renders text in current 3d space
+*@param   : Command obj
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DebugRenderText3D(Command &cmd)
+{
+	DebugRenderOptions options;
+	Vector3 position;
+	float   fontsize = 1;
+	float   lifetime = 0;
+	if (!cmd.GetNextVector3(&position))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID POSITION SYNTAX - POSITION,FONTSIZE,LIFETIME,STRING", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextFloat(&fontsize))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID FONT SIZE SYNTAX - POSITION,FONTSIZE,LIFETIME,STRING", Rgba::RED);
+		return;
+	}
+	if (!cmd.GetNextFloat(&lifetime))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID LIFETIME SYNTAX - POSITION,FONTSIZE,LIFETIME,STRING", Rgba::RED);
+		return;
+	}
+	std::string str = cmd.GetNextString();
+	options.m_lifeTime = lifetime;
+	DevConsole::GetInstance()->PushToOutputText("SUCCESS", Rgba::GREEN);
 }
 
 /*

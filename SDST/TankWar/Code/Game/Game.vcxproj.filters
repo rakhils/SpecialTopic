@@ -35,6 +35,9 @@
     <Filter Include="General\Data\Images">
       <UniqueIdentifier>{5bea4f46-c03a-473d-88a6-2b2744ab4675}</UniqueIdentifier>
     </Filter>
+    <Filter Include="General\GamePlay\Scenes">
+      <UniqueIdentifier>{46c6e9b6-97b5-42b4-be59-dea4174c340b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Main_Win32.cpp">
@@ -70,11 +73,20 @@
     <ClCompile Include="GamePlay\Entity\Bullet.cpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClCompile>
-    <ClCompile Include="GamePlay\Entity\Asteroid.cpp">
+    <ClCompile Include="GamePlay\Entity\Tank.cpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClCompile>
-    <ClCompile Include="GamePlay\Entity\Ship.cpp">
-      <Filter>General\GamePlay\Entity</Filter>
+    <ClCompile Include="GamePlay\Scenes\SceneLevel1.cpp">
+      <Filter>General\GamePlay\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Scenes\SceneLoading.cpp">
+      <Filter>General\GamePlay\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Scenes\SceneMainMenu.cpp">
+      <Filter>General\GamePlay\Scenes</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Scenes\SceneReadyUp.cpp">
+      <Filter>General\GamePlay\Scenes</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -108,11 +120,20 @@
     <ClInclude Include="GamePlay\Entity\Bullet.hpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="GamePlay\Entity\Asteroid.hpp">
+    <ClInclude Include="GamePlay\Entity\Tank.hpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClInclude>
-    <ClInclude Include="GamePlay\Entity\Ship.hpp">
-      <Filter>General\GamePlay\Entity</Filter>
+    <ClInclude Include="GamePlay\Scenes\SceneLevel1.hpp">
+      <Filter>General\GamePlay\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Scenes\SceneLoading.hpp">
+      <Filter>General\GamePlay\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Scenes\SceneMainMenu.hpp">
+      <Filter>General\GamePlay\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Scenes\SceneReadyUp.hpp">
+      <Filter>General\GamePlay\Scenes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

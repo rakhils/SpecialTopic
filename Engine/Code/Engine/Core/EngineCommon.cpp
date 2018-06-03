@@ -231,7 +231,10 @@ void PrintFailureMessage(char *file, int line, char* message, bool breakmode)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void PrintMessage(char *message)
 {
-	return;
+	if(true)
+	{
+		return;
+	}
 	char msgbuf[1000];
 	sprintf_s(msgbuf, "=======================\nTODO : %s\n====================", message);
 	OutputDebugStringA(msgbuf);

@@ -9,11 +9,11 @@
 #include "Engine/Renderer/Lights/Light.hpp"
 #include "Engine/Mesh/MeshBuilder.hpp"
 #include "Engine/Renderer/TextureCube.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 ForwardRenderingPath::ForwardRenderingPath()
 {
-	texturecube = new TextureCube();
-	texturecube->make_from_image("Data//Images//Galaxy.png");
+	
 }
 
 //////////////////////////////////////////////////////////////
@@ -28,8 +28,6 @@ ForwardRenderingPath::ForwardRenderingPath()
 ForwardRenderingPath::ForwardRenderingPath(Renderer *renderer)
 {
 	m_renderer = renderer;
-	texturecube = new TextureCube();
-	texturecube->make_from_image("Data//Images//Galaxy.png");
 }
 
 // DESTRUCTOR
@@ -52,19 +50,20 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	Camera::SetCurrentCamera(camera);
 	m_renderer->BeginFrame();
 
-
-	Mesh *m_cube = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3(0, 0, 0), Vector3(1, 1, 1), Rgba::WHITE, FILL_MODE_FILL);
-	Material *skyboxMaterial = Material::CreateOrGetMaterial("Data\\Materials\\Skybox.mat", m_renderer);
-	Renderable *renderableSkyBox = new Renderable();
-	renderableSkyBox->SetMaterial(skyboxMaterial);
-	renderableSkyBox->SetMesh(m_cube);
-	m_renderer->BindShader(skyboxMaterial->GetShader());
-	Shader::SetCurrentShader(skyboxMaterial->GetShader());
-	//m_renderer->BindMaterial(skyboxMaterial);
-	m_renderer->BindCubeMapTexture(texturecube, 8);
-	m_renderer->DrawMesh(m_cube, renderableSkyBox->m_modelMatrix);
-	delete renderableSkyBox;
-
+	if(scene->m_isSkyBoxEnabled)
+	{
+		Mesh *m_cube = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3(0, 0, 0), Vector3(1, 1, 1), Rgba::WHITE, FILL_MODE_FILL);
+		Material *skyboxMaterial = Material::CreateOrGetMaterial1("Data\\Materials\\Skybox.mat", Renderer::GetInstance());
+		Renderable *renderableSkyBox = new Renderable();
+		renderableSkyBox->SetMaterial(skyboxMaterial);
+		renderableSkyBox->SetMesh(m_cube);
+		Renderer::GetInstance()->BindShader(skyboxMaterial->GetShader());
+		Shader::SetCurrentShader(skyboxMaterial->GetShader());
+		//m_renderer->BindMaterial(skyboxMaterial);
+		Renderer::GetInstance()->BindCubeMapTexture(scene->m_texturecube, 8);
+		Renderer::GetInstance()->DrawMesh(m_cube, renderableSkyBox->m_modelMatrix);
+		delete renderableSkyBox;
+	}
 
 	std::vector<DrawCall> drawCalls;
 	
@@ -147,11 +146,17 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 		m_renderer->BindMaterial(drawCalls.at(index).m_material);
 		//scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTAxis());// Calculating but not using exactly
 		Light::BindAllLightsToShader(m_renderer);
-		if(drawCalls.at(index).m_name == "grid")
+		DrawCall dc = drawCalls.at(index);
+		if(drawCalls.at(index).m_mesh == nullptr)
 		{
-			//m_renderer->BeginFrame();
+			Vector3 position = dc.m_modelMatrix.GetTAxis();
+			m_renderer->DrawText2D(position.GetXY(), dc.m_name, 20, Rgba::WHITE, 1, nullptr);
 		}
-		m_renderer->DrawMesh(drawCalls.at(index).m_mesh,drawCalls.at(index).m_modelMatrix);
+		else
+		{
+			m_renderer->DrawMesh(dc.m_mesh,dc.m_modelMatrix);
+			GL_CHECK_ERROR();
+		}
 	}
 }
 

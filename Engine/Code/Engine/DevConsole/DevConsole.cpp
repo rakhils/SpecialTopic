@@ -6,6 +6,7 @@
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Renderer/Camera.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 
 DevConsole* DevConsole::s_devConsole = nullptr;
@@ -69,13 +70,13 @@ void DevConsole::UpdateDimensions(Vector2 mins, Vector2 maxs)
 	m_screenBounds = AABB2(mins,maxs);
 	m_fontSize = static_cast<int>((maxs.y - mins.y) * m_fontScreenRatio);
 	m_inputBox.maxs.x = maxs.x;
-	m_inputBox.mins.x = mins.x + static_cast<float>(m_fontSize);
+	m_inputBox.mins.x = mins.x + 2*static_cast<float>(m_fontSize);
 	m_inputBox.mins.y = 2.0f*static_cast<float>(m_fontSize);
 	m_inputBox.maxs.y = m_fontSize * 3.0f;
 	
 
 	m_outputBox.maxs.x = maxs.x;
-	m_outputBox.mins.x = mins.x + m_fontSize;
+	m_outputBox.mins.x = mins.x + 2*m_fontSize;
 	m_outputBox.mins.y = mins.y + (maxs.y - mins.y) * 4 * m_fontScreenRatio;
 	m_outputBox.maxs.y = maxs.y;
 
@@ -140,23 +141,20 @@ bool DevConsole::IsPredictionOn()
 //////////////////////////////////////////////////////////////
 void DevConsole::Render(Renderer *renderer)
 {
-	Material *material = Material::CreateOrGetMaterial("default",renderer);
-	renderer->BindMaterial(material);
-	Camera::SetCurrentCamera(Camera::GetDefaultCamera());
-	Camera::GetDefaultCamera()->SetOrthoProjection();
-	//renderer->SetShader(ShaderDefinitions::GetShaderByDefinitionName("default"));
-	//renderer->m_currentShader->m_shaderDef->SetShaderInitValues(renderer->m_currentShader);
-	
-	renderer->EnableDepth(COMPARE_ALWAYS, true);
-	renderer->ClearDepth();
+	Camera::SetCurrentCamera(Camera::GetUICamera());
+	Renderer::GetInstance()->BeginFrame();
+	GL_CHECK_ERROR();
 	RenderBoundaries(renderer);
 	
-	renderer->DrawText2D(m_inputBox.mins, m_inputString, 10.0f, Rgba::WHITE, 1.0f, nullptr);
+	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
 	renderer->BindMaterial(material);
+	renderer->DrawText2D(m_inputBox.mins, m_inputString, 10.0f, Rgba::WHITE, 1.0f, nullptr);
+	delete material;
+
 	RenderSelections(renderer);
 
 	RenderOutputBox(renderer);
-	renderer->BindMaterial(material);
+
 	RenderCursor(renderer);
 	
 	RenderScrollBar(renderer);
@@ -178,6 +176,8 @@ void DevConsole::Render(Renderer *renderer)
 //////////////////////////////////////////////////////////////
 void DevConsole::RenderOutputBox(Renderer *renderer)
 {
+	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
+	renderer->BindMaterial(material);
 	float positionY = m_outputBox.mins.y + static_cast<float>(m_outputString.size()) * m_fontSize;
 	positionY -= (m_lastOutputIndex * m_fontSize);
 	for (int index = 0; index < m_outputString.size() - m_lastOutputIndex; index++)
@@ -193,7 +193,7 @@ void DevConsole::RenderOutputBox(Renderer *renderer)
 		renderer->DrawTextOnPoint(str, 0, static_cast<int>(str.length()), startPosition, static_cast<float>(m_fontSize)/2.0f, rgb);
 		positionY -= m_fontSize;
 	}
-
+	delete material;
 	//renderer->DrawTextOnPointWithCR(m_outputString, m_outputBox.mins, 10.0f, Rgba::WHITE, m_firstOutputIndex);
 }
 
@@ -208,19 +208,23 @@ void DevConsole::RenderOutputBox(Renderer *renderer)
 //////////////////////////////////////////////////////////////
 void DevConsole::RenderCursor(Renderer *renderer)
 {
+	m_cursorBlinkCount++;
+	if (m_cursorBlinkCount < 180)
+	{
+		return;
+	}
+	Material *material = Material::AquireResource("default");
+	renderer->BindMaterial(material);
 	Vector2 position;
 	position.x = m_inputBox.mins.x + m_fontSize*m_commandIndex + m_fontSize/2;
 	position.y = m_inputBox.mins.y;
-	m_cursorBlinkCount++;
-	if(m_cursorBlinkCount > 180)
-	{
-		AABB2 aabb2(position,static_cast<float>(m_fontSize)/5.0f,static_cast<float>(m_fontSize));
-		renderer->DrawAABB(aabb2,Rgba::RED);
-	}
+	AABB2 aabb2(position,static_cast<float>(m_fontSize)/6.0f,static_cast<float>(m_fontSize));
+	renderer->DrawAABB(aabb2,Rgba::RED);
 	if(m_cursorBlinkCount > 360)
 	{
 		m_cursorBlinkCount = 0;
 	}
+	delete material;
 }
 
 //////////////////////////////////////////////////////////////
@@ -234,6 +238,8 @@ void DevConsole::RenderCursor(Renderer *renderer)
 //////////////////////////////////////////////////////////////
 void DevConsole::RenderBoundaries(Renderer *renderer)
 {
+	Material *material = Material::AquireResource("default");
+	renderer->BindMaterial(material);
 	int widthOfBoundary = m_fontSize; 
 	AABB2 aabbBottom(Vector2(0.0f,0.0f),Vector2(m_screenBounds.maxs.x,static_cast<float>(widthOfBoundary)));
 	AABB2 aabbLeft  (Vector2(0.0f,0.0f),Vector2(static_cast<float>(widthOfBoundary),m_screenBounds.maxs.y));
@@ -250,6 +256,7 @@ void DevConsole::RenderBoundaries(Renderer *renderer)
 	renderer->DrawAABB(aabbRight,Rgba::WHITE);
 	renderer->DrawAABB(aabbTop,Rgba::WHITE);
 	renderer->DrawAABB(aabbSeperation, Rgba::WHITE);
+	delete material;
 }
 
 //////////////////////////////////////////////////////////////
@@ -263,6 +270,8 @@ void DevConsole::RenderBoundaries(Renderer *renderer)
 //////////////////////////////////////////////////////////////
 void DevConsole::RenderSelections(Renderer *renderer)
 {
+	Material *material = Material::AquireResource("default");
+	renderer->BindMaterial(material);
 	int lowerValue = m_startPoint;
 	int higherValue = m_endPoint;
 	if(m_startPoint > m_endPoint)
@@ -279,6 +288,7 @@ void DevConsole::RenderSelections(Renderer *renderer)
 	float endPointX = startPointX + (m_endPoint - m_startPoint)*m_fontSize;
 	AABB2 selectionAABB(Vector2(startPointX + m_fontSize/2.0f,m_inputBox.mins.y + m_fontSize),Vector2(endPointX+m_fontSize/2.0f,m_inputBox.mins.y - m_fontSize));
 	renderer->DrawAABB(selectionAABB,Rgba::CONSOLE_FADED_BLUE);
+	delete material;
 }
 
 //////////////////////////////////////////////////////////////
@@ -292,6 +302,8 @@ void DevConsole::RenderSelections(Renderer *renderer)
 //////////////////////////////////////////////////////////////
 void DevConsole::RenderScrollBar(Renderer *renderer)
 {
+	Material *material = Material::AquireResource("default");
+	renderer->BindMaterial(material);
 	float outputBoxHeigth = m_outputBox.maxs.y - m_outputBox.mins.y - 2*m_fontSize; // border
 	int numberOfLineCanBeDrawn = static_cast<int>(outputBoxHeigth/static_cast<float>(m_fontSize)*1.0f);
 	if(m_outputString.size() > numberOfLineCanBeDrawn)
@@ -302,7 +314,7 @@ void DevConsole::RenderScrollBar(Renderer *renderer)
 		m_scrollBar = AABB2(Vector2(m_outputBox.maxs.x - 3*m_fontSize,m_scrollBarMins),Vector2(m_outputBox.maxs.x - 2*m_fontSize,scrollBarHeight));
 		renderer->DrawAABB(m_scrollBar,Rgba::BLUE);
 	}
-
+	delete material;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -318,17 +330,21 @@ void DevConsole::RenderPredictionBox(Renderer *renderer)
 	float boxMaxX   = m_screenBounds.maxs.x - 2*m_fontSize;
 
 
-	AABB2 predictionBox(Vector2(boxStartX, boxStartY), Vector2(boxMaxX,boxStartY + m_fontSize*m_predictions.size()));
-	AABB2 predictionSelectionBox(Vector2(boxStartX, boxStartY + m_predictionIndex * m_fontSize), Vector2(boxMaxX, boxStartY + (m_predictionIndex + 1)*m_fontSize));
-
+	AABB2 predictionBox(Vector2(boxStartX - m_fontSize, boxStartY), Vector2(boxMaxX,boxStartY + m_fontSize*m_predictions.size()));
+	AABB2 predictionSelectionBox(Vector2(boxStartX - m_fontSize, boxStartY + m_predictionIndex * m_fontSize), Vector2(boxMaxX, boxStartY + (m_predictionIndex + 1)*m_fontSize));
+	Material *defaultMaterial = Material::AquireResource("default");
+	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	renderer->DrawAABB(predictionBox,Rgba::BLACK);
 	renderer->DrawRectangle(predictionBox);
 
 	renderer->DrawAABB(predictionSelectionBox, Rgba::BLUE);
 	renderer->DrawRectangle(predictionSelectionBox);
-
+	delete defaultMaterial;
 	Vector2 startPosition(boxStartX, boxStartY + m_fontSize/2);
 
+
+	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
+	Renderer::GetInstance()->BindMaterial(material);
 
 	for(int predictionIndex = 0;predictionIndex < m_predictions.size();predictionIndex++)
 	{
@@ -342,6 +358,7 @@ void DevConsole::RenderPredictionBox(Renderer *renderer)
 		renderer->DrawTextOnPoint(helpText, 0, static_cast<int>(helpText.length()), helpTextStartPos, static_cast<float>(m_fontSize) / 2.0f, randomColor);
 		startPosition.y += m_fontSize;
 	}
+	delete material;
 
 }
 

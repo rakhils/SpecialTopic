@@ -861,6 +861,25 @@ int GetNextLowerMultiple(int currValue, int multipleValue)
 	return 0;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/02
+*@purpose : Loops the vvalue in the interval
+*@param   : Value , lower bound , upper bound
+*@return  : Returns the value inside interval
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int LoopValue(int value, int lowerBound, int upperBound)
+{
+	if(value < lowerBound)
+	{
+		value = upperBound;
+	}
+	if(value > upperBound)
+	{
+		value = lowerBound;
+	}
+	return value;
+}
+
 bool HasPercentChance(float value)
 {
 	float randomValue = GetRandomFloatZeroToOne();

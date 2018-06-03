@@ -14,6 +14,7 @@ public:
 	Vector3() { x = y = z = 0.f;}
 	Vector3(std::string value);
 	Vector3(Vector2 value);
+	Vector3(Vector2 value,float valuez);
 	Vector3(float value) { x = y = z = value; }
 	Vector3(float xval,float yval,float zval);
 

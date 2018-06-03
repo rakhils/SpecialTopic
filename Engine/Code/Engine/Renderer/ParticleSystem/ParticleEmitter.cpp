@@ -111,7 +111,7 @@ void ParticleEmitter::Update(Camera *camera, float deltaTime)
 	if (m_particles.size() > 0)
 	{
 		Renderable *renderable = new Renderable();
-		renderable->SetMaterial(Material::CreateOrGetMaterial("Data\\Materials\\Particles.mat", m_renderer));
+		renderable->SetMaterial(Material::CreateOrGetMaterial1("Data\\Materials\\Particles.mat", m_renderer));
 		Mesh *mesh = meshBuilder.CreateMesh();
 		renderable->SetMesh(mesh);
 		renderable->m_name = "particles";

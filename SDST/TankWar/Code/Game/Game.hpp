@@ -13,12 +13,13 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 
-struct ObjectProperties
+enum GAME_STATE
 {
-	Vector4 m_tint;
-
+	LOADING_SCREEN,
+	MAIN_MENU,
+	READY_UP,
+	LEVEL1,
 };
-
 class ForwardRenderingPath;
 class Renderable;
 class Scene;
@@ -26,17 +27,27 @@ class Ship;
 class Game
 {
 public:
-	bool				   m_init = false;
+	bool				   m_init				   = false;
+	GAME_STATE			   m_state;
+
+	Ship				   *m_tank			       = nullptr;
+	Scene				   *m_currentScene	       = nullptr;
+	Scene				   *m_nextScene		       = nullptr;
+	Scene				   *m_sceneLoading	       = nullptr;
+	Scene				   *m_sceneMainMenu        = nullptr;
+	Scene				   *m_sceneReadyUp	       = nullptr;
+	Scene				   *m_sceneLevel1	       = nullptr;
 
 
-	Ship				   *m_tank;
-	Scene				   *m_scene;
 	ForwardRenderingPath   *m_forwardRenderingPath = nullptr;
 
 	Game();
 	void Init();
+	void InitScenes();
+	void SetCurrentScene(Scene *scene);
+	void SelectNextScene();
 	void CreatePlayer();
-	void SetCameraFocusOnPosition();
+	void CreateTerrain();
 	void Update(float deltaTime);
 	void Render();
 };

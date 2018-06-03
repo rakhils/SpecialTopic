@@ -804,7 +804,7 @@ void Renderer::DrawTexturedCube(Vector3 centre, Vector3 size, const Texture *tex
 
 void Renderer::DrawTexturedAABB(const AABB2& bounds,const Texture *texture, const Vector2& texCoordsAtMins, const Vector2& texCoordsAtMaxs, const Rgba& color)
 {
-	Texture::SetCurrentTexture((Texture*)texture);
+	UNUSED(texture);
 	const int MAX_NUM_VERTEX = 6;
 	Vertex_3DPCU rectangle[MAX_NUM_VERTEX];
 
@@ -843,9 +843,9 @@ void Renderer::DrawTexturedAABB(const AABB2& bounds,const Texture *texture, cons
 *//////////////////////////////////////////////////////////////
 void Renderer::DrawTexturedAABBOnXY(const AABB2& bounds, Vector3 rigthDirection,Vector3 upDirection, float zValue, const Texture *texture, const Vector2& mins, const Vector2& maxs, const Rgba& color)
 {
+	UNUSED(texture);
 	Vector3 position(bounds.GetCenter().x, bounds.GetCenter().y, zValue);
 	Vector2 dimension = bounds.GetDimensions();
-	Texture::SetCurrentTexture((Texture*)texture);
 	const int MAX_NUM_VERTEX = 6;
 	Vertex_3DPCU rectangle[MAX_NUM_VERTEX];
 
@@ -884,7 +884,7 @@ void Renderer::DrawTexturedAABBOnXY(const AABB2& bounds, Vector3 rigthDirection,
 *//////////////////////////////////////////////////////////////
 void Renderer::DrawTexturedAABBOn3D( Vector3 position, Vector3 rigthDirection,Vector3 upDirection, Vector2 dimension, const Texture *texture,const Vector2& mins, const Vector2& maxs,const Rgba& color)
 {
-	Texture::SetCurrentTexture((Texture*)texture);
+	UNUSED(texture);
 	const int MAX_NUM_VERTEX = 6;
 	Vertex_3DPCU rectangle[MAX_NUM_VERTEX];
 
@@ -1052,12 +1052,9 @@ void Renderer::DrawAABBXZ(const AABB2& bounds,float y, const Rgba& color)
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/02/10
 *@purpose : Draw AABB in YZ plane
-*
 *@param   : AABB in YZ ,X of aabb value and color
-*
 *@return  : NIL
-*/
-//////////////////////////////////////////////////////////////
+*//////////////////////////////////////////////////////////////
 void Renderer::DrawAABBYZ(const AABB2& bounds, float X, const Rgba& color)
 {
 	const int MAX_NUM_VERTEX = 6;
@@ -1098,6 +1095,20 @@ void Renderer::DrawTextOnPoint(char value[],int start,int length, Vector3 positi
 
 void Renderer::DrawTextOnPoint(char value[],int start,int length, Vector2 position,float height,Rgba rgba)
 {
+	DrawTextOn3DPoint(Vector3(position.x, position.y, 0), Vector3::RIGHT, Vector3::UP, std::string(value), height, rgba);
+	if(true)
+	{
+		return;
+	}
+	Material *sampleMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	BitmapFont *bitmapFont   = BitmapFont::CreateOrGetBitmapFont("Data//Font//font2.png");
+	IntVector2 spriteCords   = bitmapFont->m_spriteSheet->GetSpriteLayout();
+	Texture::SetCurrentTexture((Texture*)bitmapFont->m_spriteSheet->getTexture());
+	sampleMaterial->m_textures.at(0) = (Texture*)bitmapFont->m_spriteSheet->getTexture();
+	BindMaterial(sampleMaterial);
+	/*BindShader(Shader::GetDefaultShader());
+	BindSampler(0U, Sampler::GetDefaultSampler());
+	BindTexture(Texture::GetCurrentTexture());*/
 	for(int index = start;index<length;index++)
 	{
 		char ch			= value[index];
@@ -1106,20 +1117,17 @@ void Renderer::DrawTextOnPoint(char value[],int start,int length, Vector2 positi
 
 		//spriteIndex = (15 - (spriteIndex / 16))*16 + (spriteIndex % 16);
 
-		BitmapFont *bitmapFont = BitmapFont::CreateOrGetBitmapFont("Data//Font//font2.png");
-		IntVector2 spriteCords = bitmapFont->m_spriteSheet->GetSpriteLayout();
 		spriteIndex = (spriteCords.y - 1 - (spriteIndex / spriteCords.y))*spriteCords.y + (spriteIndex % spriteCords.x);
 		AABB2 aabb2 = bitmapFont->m_spriteSheet->GetTexCoordsForSpriteIndex(spriteIndex);
 		Texture::SetCurrentTexture((Texture*)bitmapFont->m_spriteSheet->getTexture());
-		BindShader(Shader::GetCurrentShader());
-		BindSampler(0U, Sampler::GetDefaultSampler());
-		BindTexture(Texture::GetCurrentTexture());
+
 		Vector2 minPosition = aabb2.mins;
 		Vector2 maxPosition = aabb2.maxs;
 		AABB2 textPosition(position,static_cast<float>(height),static_cast<float>(height));
 		
 		DrawTexturedAABB(textPosition,Texture::GetCurrentTexture(),minPosition,maxPosition,rgba);
 	}
+	delete sampleMaterial;
 }
 
 void Renderer::DrawTextOnPoint(char value[],int start,int length, Vector2 pos,float height)
@@ -2033,7 +2041,6 @@ void Renderer::BindMaterial(Material *material)
 		Texture *texture = material->m_textures.at(index);
 		BindSampler(texture->m_slot, material->m_samplers.at(index));
 		BindTexture(texture->m_slot, material->m_textures.at(index));
-		index++;
 	}
 }
 

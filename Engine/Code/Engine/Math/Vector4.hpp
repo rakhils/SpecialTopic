@@ -36,6 +36,7 @@ public:
 	Vector3			XYZ();
 	float			GetLength();
 	void			Normalize();
+	float			GetAverageValue();
 
 	static Vector4	ZERO;
 	static Vector4	ONE;

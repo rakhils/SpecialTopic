@@ -289,22 +289,34 @@
     <ClCompile Include="App.cpp" />
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameCommon.cpp" />
-    <ClCompile Include="GamePlay\Entity\Asteroid.cpp">
-      <SubType>
-      </SubType>
-    </ClCompile>
     <ClCompile Include="GamePlay\Entity\Bullet.cpp">
       <SubType>
       </SubType>
     </ClCompile>
     <ClCompile Include="GamePlay\Entity\Entity.cpp" />
-    <ClCompile Include="GamePlay\Entity\Ship.cpp">
+    <ClCompile Include="GamePlay\Entity\Tank.cpp">
       <SubType>
       </SubType>
     </ClCompile>
     <ClCompile Include="GamePlay\Maps\Map.cpp" />
     <ClCompile Include="GamePlay\Maps\MapDefinition.cpp" />
     <ClCompile Include="GamePlay\Maps\MapGenSteps.cpp" />
+    <ClCompile Include="GamePlay\Scenes\SceneLevel1.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Scenes\SceneLoading.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Scenes\SceneMainMenu.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Scenes\SceneReadyUp.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="GamePlay\Tiles\TileDefinition.cpp" />
     <ClCompile Include="GamePlay\Tiles\Tiles.cpp" />
     <ClCompile Include="Main_Win32.cpp" />
@@ -313,22 +325,34 @@
     <ClInclude Include="App.hpp" />
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="GameCommon.hpp" />
-    <ClInclude Include="GamePlay\Entity\Asteroid.hpp">
-      <SubType>
-      </SubType>
-    </ClInclude>
     <ClInclude Include="GamePlay\Entity\Bullet.hpp">
       <SubType>
       </SubType>
     </ClInclude>
     <ClInclude Include="GamePlay\Entity\Entity.hpp" />
-    <ClInclude Include="GamePlay\Entity\Ship.hpp">
+    <ClInclude Include="GamePlay\Entity\Tank.hpp">
       <SubType>
       </SubType>
     </ClInclude>
     <ClInclude Include="GamePlay\Maps\Map.hpp" />
     <ClInclude Include="GamePlay\Maps\MapDefinition.hpp" />
     <ClInclude Include="GamePlay\Maps\MapGenSteps.hpp" />
+    <ClInclude Include="GamePlay\Scenes\SceneLevel1.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Scenes\SceneLoading.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Scenes\SceneMainMenu.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Scenes\SceneReadyUp.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="GamePlay\Tiles\TileDefinition.hpp" />
     <ClInclude Include="GamePlay\Tiles\Tiles.hpp" />
   </ItemGroup>

@@ -1093,6 +1093,7 @@ DebugDraw * DebugDraw::GetInstance()
 	{
 		s_defaultDraw = new DebugDraw();
 	}
+	s_defaultDraw->SetDebugRender3DCamera(Camera::GetCurrentCamera());
 	return s_defaultDraw;
 }
 

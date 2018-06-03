@@ -37,12 +37,12 @@ Material::~Material()
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-Material* Material::CreateOrGetMaterial(std::string filepath)
+Material* Material::CreateOrGetMaterial1(std::string filepath)
 {
-	return CreateOrGetMaterial(filepath, false);
+	return CreateOrGetMaterial1(filepath, false);
 }
 
-Material* Material::CreateOrGetMaterial(std::string filepath,bool isNewResource)
+Material* Material::CreateOrGetMaterial1(std::string filepath,bool isNewResource)
 
 {
 	/*<material id = "ship">
@@ -128,7 +128,7 @@ Material* Material::CreateOrGetMaterial(std::string filepath,bool isNewResource)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Material* Material::AquireResource(std::string filepath)
 {
-	Material *material = CreateOrGetMaterial(filepath,true);
+	Material *material = CreateOrGetMaterial1(filepath,true);
 	return material->Clone();
 }
 

@@ -468,6 +468,8 @@ void Camera::InitCamera()
 	s_uiCamera->SetDepthStencilTarget(Texture::GetDefaultDepthTargetTexture());
 	s_uiCamera->SetOrthoProjection(Vector2(0.f, 0.f), Vector2(static_cast<float>(window_width), static_cast<float>(window_height)), -100.f, 100.f);
 
+	//SetCurrentCamera(GetGamePlayCamera());
+	//SetCurrentCamera(GetUICamera());
 	SetCurrentCamera(GetDefaultCamera());
 }
 

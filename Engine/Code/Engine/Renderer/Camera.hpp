@@ -73,7 +73,13 @@ public:
 	static void SetCamera(Camera* camera);
 
 	static void SetDefaultCamera (Camera *camera) { s_defaultCamera  = camera;}
-	static void SetCurrentCamera (Camera *camera) { camera->Finalize(); s_currentCamera = camera; }
+	static void SetCurrentCamera (Camera *camera) 
+	{ 
+		if (camera == s_currentCamera) 
+			//return;  
+		camera->Finalize(); 
+		s_currentCamera = camera; 
+	}
 	static void SetGameplayCamera(Camera *camera) { s_gamePlayCamera = camera;}
 	static void SetEffectCamera  (Camera *camera) { s_effectCamera   = camera;}
 	static void SetUICamera      (Camera *camera) { s_uiCamera       = camera;}
