@@ -182,18 +182,20 @@ void DebugDraw::DebugRenderElements()
 	
 	for (size_t index = 0; index < m_drawElements.size(); index++)
 	{
-		SetDepth(m_drawElements.at(index).m_renderOptions.m_mode);
-		Camera::SetCurrentCamera(m_camera);
 		switch (m_drawElements.at(index).m_type)
 		{
 		case ELEMENT:
 		{
+			Camera::SetCurrentCamera(Camera::GetGamePlayCamera());
+			SetDepth(m_drawElements.at(index).m_renderOptions.m_mode);
 			DebugRenderElements(m_drawElements.at(index), identity);
 			break;
 		}
 		case ELEMENT_TAG:
 		{
-			Vector3 cameraRotation = m_camera->m_transform.GetWorldRotation();
+			Camera::SetCurrentCamera(Camera::GetGamePlayCamera());
+			SetDepth(m_drawElements.at(index).m_renderOptions.m_mode);
+			Vector3 cameraRotation = Camera::GetGamePlayCamera()->m_transform.GetWorldRotation();
 			Matrix44 tagMatrix = Matrix44::MatrixFromEuler(cameraRotation);
 			DebugRenderElements(m_drawElements.at(index), tagMatrix);
 			break;
@@ -203,25 +205,34 @@ void DebugDraw::DebugRenderElements()
 			Camera::SetCurrentCamera(Camera::GetUICamera());
 			SetDepth(DEBUG_RENDER_IGNORE_DEPTH);
 			DebugRenderElements(m_drawElements.at(index), identity);
+			ResetDepth();
 			break;
 		}
 		case TEXT:
 		{
+			Camera::SetCurrentCamera(Camera::GetGamePlayCamera());
+			SetDepth(m_drawElements.at(index).m_renderOptions.m_mode);
 			DebugRenderTextElements(m_drawElements.at(index));
+			ResetDepth();
 			break;
 		}
 		case TEXT_TAG:
 		{
+			Camera::SetCurrentCamera(Camera::GetGamePlayCamera());
+			SetDepth(m_drawElements.at(index).m_renderOptions.m_mode);
 			DebugRenderTextTagElements(m_drawElements.at(index));
 			break;
 		}
 		case TEXT_UI:
 		{
+			Camera::SetCurrentCamera(Camera::GetUICamera());
+			SetDepth(DEBUG_RENDER_IGNORE_DEPTH);
 			DebugRenderText2DElements(m_drawElements.at(index));
 			break;
 		}
 		case LOG:
 		{
+			Camera::SetCurrentCamera(Camera::GetUICamera());
 			DebugRenderLogElements(m_drawElements.at(index));
 			break;
 		}
@@ -239,7 +250,7 @@ void DebugDraw::DebugRenderElements()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void DebugDraw::DebugRenderElements(DebugDrawElement element,Matrix44 model)
 {
-	Material *material  = Material::AquireResource("default");
+	Material *material  = Material::AquireResource("Data\\Materials\\debug.mat");
 	Texture::SetCurrentTexture(element.m_texture);
 	m_renderer->BindMaterial(material);
 
@@ -268,7 +279,6 @@ void DebugDraw::DebugRenderLogElements(DebugDrawElement element)
 {
 	Material *material			 = Material::AquireResource("Data\\Materials\\text.mat");
 	Texture::SetCurrentTexture(Texture::GetDefaultTexture());
-	Camera::SetCurrentCamera(Camera::GetUICamera());// NDC space camera
 	m_renderer->BindMaterial(material);
 	Vector3 rigthDirection(1,  0, 0);
 	Vector3 upDirection   (0,  1, 0);
@@ -293,7 +303,6 @@ void DebugDraw::DebugRenderText2DElements(DebugDrawElement element)
 {
 	Material *material		     = Material::AquireResource("Data\\Materials\\text.mat");
 	Texture::SetCurrentTexture(Texture::GetDefaultTexture());
-	Camera::SetCurrentCamera(Camera::GetUICamera());// NDC space camera
 	m_renderer->BindMaterial(material);
 	SetDepth(element.m_renderOptions.m_mode);
 	Transform textTransform;
@@ -315,7 +324,6 @@ void DebugDraw::DebugRenderTextElements(DebugDrawElement element)
 {
 	Material *material		= Material::AquireResource("Data\\Materials\\text.mat");
 	m_renderer->BindMaterial(material);
-	Camera::SetCurrentCamera(m_camera);
 	Matrix44 rotationMatrix = Matrix44::MatrixFromEuler(element.m_transform.GetLocalEulerAngles());
 	Vector3 rigthDirection  = rotationMatrix.GetIAxis();
 	Vector3 upDirection     = rotationMatrix.GetJAxis();

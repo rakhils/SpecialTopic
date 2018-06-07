@@ -3,11 +3,12 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Game/GameCommon.hpp"
+#include "Engine/Renderer/Camera.hpp"
 // CONSTRUCTOR
 Tank::Tank() : GameObject("default")
 {
 	m_stopWatch.SetClock(Clock::g_theMasterClock);
-	m_stopWatch.SetInterval(2);
+	m_stopWatch.SetTimer(2);
 }
 
 // DESTRUCTOR
@@ -31,11 +32,9 @@ void Tank::Update(float deltaTime)
 	m_stopWatch.Decrement();
 	if (m_stopWatch.CheckAndReset())
 	{
-		DebugDraw::GetInstance()->DebugRenderCube(m_transform.GetWorldPosition(), Vector3::ONE*.01f, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
-		//DebugDraw::GetInstance()->DebugRenderC
-		DebugDraw::GetInstance()->DebugRenderLogf("TEST LOG ", "");
+		Vector3 size(0.025f, 0.025f, 0.025f);
+		DebugDraw::GetInstance()->DebugRenderCube(m_transform.GetWorldPosition(), size, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
 	}
-	DebugDraw::GetInstance()->DebugRenderLogf("STOP WATCH %lf ", Clock::g_theMasterClock->frame.m_seconds);
 	GameObject::Update(deltaTime);
 }
 

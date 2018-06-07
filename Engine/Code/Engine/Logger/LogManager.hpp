@@ -18,6 +18,7 @@ class LogManager
 
 public:
 	//Member_Variables
+	static bool s_logEnabled;
 	static std::map<std::string, FILE*> s_logIdMaps;
 	//Static_Member_Variables
 

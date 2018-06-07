@@ -1,6 +1,7 @@
 #include "Engine/Logger/LogManager.hpp"
 #include "Engine/FileUtil/File.h"
 #include "Engine/Time/TimeSystem.hpp"
+bool LogManager::s_logEnabled = false;
 std::map<std::string, FILE*> LogManager::s_logIdMaps;
 // CONSTRUCTOR
 LogManager::LogManager()
@@ -22,6 +23,10 @@ LogManager::~LogManager()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void LogManager::PushLog(std::string logId, char const *format, ...)
 {
+	if(!s_logEnabled)
+	{
+		return;
+	}
 	va_list args;
 	va_start(args, format);
 	char buffer[1000];

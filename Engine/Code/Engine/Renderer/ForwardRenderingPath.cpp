@@ -144,8 +144,8 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	for (int index = 0; index < drawCalls.size(); index++)
 	{
 		m_renderer->BindMaterial(drawCalls.at(index).m_material);
-		//scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTAxis());// Calculating but not using exactly
-		Light::BindAllLightsToShader(m_renderer);
+		std::vector<Light*> lights = scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTAxis());//but not using exactly
+		Light::BindAllLightsToShader(m_renderer,lights);
 		DrawCall dc = drawCalls.at(index);
 		if(drawCalls.at(index).m_mesh == nullptr)
 		{

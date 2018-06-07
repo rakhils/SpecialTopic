@@ -75,6 +75,7 @@ bool			 HasPercentChance ( float value);
 bool			 CheckRandomChance( float chanceForSuccess );	// If 0.27f passed, returns true 27% of the time
 int				 GetNextHigerMultiple(int currValue, int multipleValue);
 int				 GetNextLowerMultiple(int currValue, int multipleValue);
+float			 GetFraction(float value);
 int				 LoopValue(int value, int lowerBound, int upperBound);
 				 
 float			 RangeMapFloat(float value, float OriginalLowerBound, float OriginalUpperBound, float NewLowerbound, float NewUpperBound);

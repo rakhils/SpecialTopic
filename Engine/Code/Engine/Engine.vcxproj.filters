@@ -358,6 +358,9 @@
     <ClCompile Include="Core\Vertex.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="Time\StopWatch.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -624,6 +627,7 @@
     <ClInclude Include="DevConsole\DevConsole.hpp">
       <Filter>DevConsole</Filter>
     </ClInclude>
+    <ClInclude Include="Time\StopWatch.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

@@ -70,13 +70,13 @@ void DevConsole::UpdateDimensions(Vector2 mins, Vector2 maxs)
 	m_screenBounds = AABB2(mins,maxs);
 	m_fontSize = static_cast<int>((maxs.y - mins.y) * m_fontScreenRatio);
 	m_inputBox.maxs.x = maxs.x;
-	m_inputBox.mins.x = mins.x + 2*static_cast<float>(m_fontSize);
+	m_inputBox.mins.x = mins.x +2 * static_cast<float>(m_fontSize);
 	m_inputBox.mins.y = 2.0f*static_cast<float>(m_fontSize);
 	m_inputBox.maxs.y = m_fontSize * 3.0f;
 	
 
 	m_outputBox.maxs.x = maxs.x;
-	m_outputBox.mins.x = mins.x + 2*m_fontSize;
+	m_outputBox.mins.x = mins.x + 2 * m_fontSize;
 	m_outputBox.mins.y = mins.y + (maxs.y - mins.y) * 4 * m_fontScreenRatio;
 	m_outputBox.maxs.y = maxs.y;
 
@@ -142,7 +142,7 @@ bool DevConsole::IsPredictionOn()
 void DevConsole::Render(Renderer *renderer)
 {
 	Camera::SetCurrentCamera(Camera::GetUICamera());
-	Renderer::GetInstance()->BeginFrame();
+	//Renderer::GetInstance()->BeginFrame();
 	GL_CHECK_ERROR();
 	RenderBoundaries(renderer);
 	
@@ -216,7 +216,7 @@ void DevConsole::RenderCursor(Renderer *renderer)
 	Material *material = Material::AquireResource("default");
 	renderer->BindMaterial(material);
 	Vector2 position;
-	position.x = m_inputBox.mins.x + m_fontSize*m_commandIndex + m_fontSize/2;
+	position.x = m_inputBox.mins.x + static_cast<float>(20*(m_commandIndex));
 	position.y = m_inputBox.mins.y;
 	AABB2 aabb2(position,static_cast<float>(m_fontSize)/6.0f,static_cast<float>(m_fontSize));
 	renderer->DrawAABB(aabb2,Rgba::RED);
@@ -248,9 +248,10 @@ void DevConsole::RenderBoundaries(Renderer *renderer)
 	AABB2 aabbTop   (Vector2(0.0f,m_screenBounds.maxs.y-widthOfBoundary),Vector2(m_screenBounds.maxs.x,m_screenBounds.maxs.y));
 
 	AABB2 aabbSeperation(Vector2(0.0f,3.0f*static_cast<float>(m_fontSize)),Vector2(m_screenBounds.maxs.x,4.0f*static_cast<float>(m_fontSize)));
-	AABB2 inputBox = AABB2(m_inputBox.mins.x,m_inputBox.mins.y - m_fontSize,m_inputBox.maxs.x,m_inputBox.maxs.y);
+	AABB2 inputBox = AABB2(m_inputBox.mins.x - 2*m_fontSize,m_inputBox.mins.y - m_fontSize,m_inputBox.maxs.x,m_inputBox.maxs.y);
+	AABB2 outputBox = AABB2(m_outputBox.mins.x - 2 * m_fontSize, m_outputBox.mins.y, m_outputBox.maxs.x, m_outputBox.maxs.y);
 	renderer->DrawAABB(inputBox,Rgba::CONSOLE_BLACK);
-	renderer->DrawAABB(m_outputBox,Rgba::CONSOLE_BLACK);
+	renderer->DrawAABB(outputBox,Rgba::CONSOLE_BLACK);
 	renderer->DrawAABB(aabbBottom,Rgba::WHITE);
 	renderer->DrawAABB(aabbLeft,Rgba::WHITE);
 	renderer->DrawAABB(aabbRight,Rgba::WHITE);

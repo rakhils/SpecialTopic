@@ -54,6 +54,12 @@ void SceneLevel1::InitScene()
 	light->EnableAmbientLight(color.GetAsFloats());
 	AddLight(light);
 	
+	Mesh *lightSphere = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3(0,70,100), 10.f, 15, 15, Rgba::WHITE, FILL_MODE_WIRE);
+	Renderable *lightRenderable = new Renderable();
+	lightRenderable->SetMesh(lightSphere);
+	lightRenderable->SetMaterial(Material::AquireResource("default"));
+	AddRenderable(lightRenderable);
+
 	Light *lightDirectional = Light::CreateOrGetPointLight();
 	Rgba color1;
 	color1.SetAsFloats(1, 1, 1, GetRandomFloatInRange(0.6f, 0.8f));
@@ -140,7 +146,6 @@ void SceneLevel1::CreateMap()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLevel1::Update(float deltaTime)
 {
-	LogManager::PushLog("levelstart.txt", "SCENELEVEL1 UPDATE");
 	if (IsEnteringScene(deltaTime))
 	{
 		UpdateEnteringTime(deltaTime);
@@ -217,7 +222,7 @@ void SceneLevel1::Update(float deltaTime)
 
 	m_playerTank->Update(deltaTime);
 	Vector3 playerWorldPosition = m_playerTank->m_transform.GetWorldPosition();
-	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f , %f, %f", playerWorldPosition.x,playerWorldPosition.y,playerWorldPosition.z);
+	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f ,%f, %f", playerWorldPosition.x,playerWorldPosition.y,playerWorldPosition.z);
 	//DebugDraw::GetInstance()->DebugRenderBasis(Vector3::ZERO, Vector3::ZERO, 0, 50);
 }
 

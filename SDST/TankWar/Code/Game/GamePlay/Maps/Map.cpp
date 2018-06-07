@@ -192,7 +192,7 @@ float Map::GetHeight(Vector2 position)
 	// bl_index  = floor(cell_uv)
 	//DebugDraw::GetInstance()->DebugRenderLogf("GET HEIGHT POS X = %f ,Y = %f ", position.x, position.y);
 	//DebugDraw::GetInstance()->DebugRenderLogf("GET HEIGHT INDEX = %f", index);
-	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f , %f", position.x, position.y);
+	//DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f , %f", position.x, position.y);
 	int index1 = static_cast<int>((static_cast<int>(position.y) * m_extents.GetDimensions().x + static_cast<int>(position.x)));
 	int index2 = static_cast<int>((static_cast<int>(position.y) * m_extents.GetDimensions().x + static_cast<int>(position.x + 1)));
 	int index3 = static_cast<int>((static_cast<int>(position.y + 1) * m_extents.GetDimensions().x + static_cast<int>(position.x)));
@@ -205,9 +205,9 @@ float Map::GetHeight(Vector2 position)
 	float dy = Interpolate(height1, heighty1, GetFraction(position.y));
 	float height = Interpolate(dx, dy, GetFraction(position.y));
 
-	DebugDraw::GetInstance()->DebugRenderLogf("INDEX1 = %d INDEX2 = %d INDEX3 %d ", (index1),(index2),(index3));
-	DebugDraw::GetInstance()->DebugRenderLogf("HEIGHT1 = %f HEIGHT2 = %f HEIGHT3 %f ", height1,heightx1,heighty1);
-	DebugDraw::GetInstance()->DebugRenderLogf("DX = %f DY = %f HEIGHT = %f FRACTIOn %f", dx,dy,height,GetFraction(position.x));
+	//DebugDraw::GetInstance()->DebugRenderLogf("INDEX1 = %d INDEX2 = %d INDEX3 %d ", (index1),(index2),(index3));
+	//DebugDraw::GetInstance()->DebugRenderLogf("HEIGHT1 = %f HEIGHT2 = %f HEIGHT3 %f ", height1,heightx1,heighty1);
+	//DebugDraw::GetInstance()->DebugRenderLogf("DX = %f DY = %f HEIGHT = %f FRACTIOn %f", dx,dy,height,GetFraction(position.x));
 
 	return height;
 }

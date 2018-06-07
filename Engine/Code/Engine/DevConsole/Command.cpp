@@ -207,7 +207,7 @@ void CommandStartup()
 	//DEBUG RENDER COMMANDS
 	CommandRegister("debug_render"          , ToggleDebugRenderVisibility,   "TOGGLES DEBUG RENDER OBJECTS VISIBILITY");
 	CommandRegister("debug_render_clear"    , ClearDebugRenderDraws,		 "CLEARS ALL DEBUG RENDER OBJECTS");
-	CommandRegister("debug_render_quad2d"   , DebugRenderQuad2D,			 "DRAWS DEBUG QUAD2D IN 2D SPACE");
+	//CommandRegister("debug_render_quad2d"   , DebugRenderQuad2D,			 "DRAWS DEBUG QUAD2D IN 2D SPACE");
 	CommandRegister("debug_render_text2d"   , DebugRenderText2D,			 "DRAWS TEXT IN 2D SPACE");
 	CommandRegister("debug_render_point3d"  , DebugRenderPoint3D,			 "DRAWS POINT IN CURRENT 3D SPACE");
 	CommandRegister("debug_render_sphere"   , DebugRenderSphere,			 "DRAWS SPHERE IN CURRENT 3D SPACE");
@@ -522,7 +522,7 @@ void DebugRenderPoint3D(Command &cmd)
 	options.m_startColor = colorStart;
 	options.m_endColor = colorEnd;
 	options.m_lifeTime = lifetime;
-	DebugDraw::GetInstance()->DebugRenderPoint(position);
+	DebugDraw::GetInstance()->DebugRenderCube(position, Vector3::ONE*0.1f, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
 	DevConsole::GetInstance()->PushToOutputText("SUCCESS", Rgba::GREEN);
 }
 
@@ -619,6 +619,7 @@ void DebugRenderText3D(Command &cmd)
 	}
 	std::string str = cmd.GetNextString();
 	options.m_lifeTime = lifetime;
+	DebugDraw::GetInstance()->DebugRenderText(str,position, Vector3::ZERO, Vector2::ONE, lifetime,fontsize, Rgba::WHITE);
 	DevConsole::GetInstance()->PushToOutputText("SUCCESS", Rgba::GREEN);
 }
 

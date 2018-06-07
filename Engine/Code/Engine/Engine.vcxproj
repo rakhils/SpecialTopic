@@ -524,6 +524,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Time\StopWatch.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Time\TimeSystem.cpp">
       <SubType>
       </SubType>
@@ -799,6 +803,10 @@
     <ClInclude Include="ThirdParty\stb\stb_image.h" />
     <ClInclude Include="ThirdParty\stb\stb_image_write.h" />
     <ClInclude Include="Time\Clock.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Time\StopWatch.hpp">
       <SubType>
       </SubType>
     </ClInclude>
