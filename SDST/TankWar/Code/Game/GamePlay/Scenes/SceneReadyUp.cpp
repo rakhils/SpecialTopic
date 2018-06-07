@@ -8,6 +8,7 @@
 #include "Engine/Core/Windows.hpp"
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Logger/LogManager.hpp"
+#include "Engine/Input/InputSystem.hpp"
 
 #include "Game/GamePlay/Scenes/SceneReadyUp.hpp"
 // CONSTRUCTOR
@@ -58,7 +59,7 @@ void SceneReadyUp::Update(float deltaTime)
 	{
 		m_loadingTime += deltaTime;
 	}
-	if (m_loadingTime > 2 && !m_isExitTaskStarted)
+	if (!m_isExitTaskStarted && InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_ENTER))
 	{
 		ExitScene();
 	}
@@ -90,7 +91,7 @@ void SceneReadyUp::Render()
 	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(material);
 	Renderer::GetInstance()->SetUniform("MODELCOLOR", Rgba::WHITE.GetAsFloats());
-	Renderer::GetInstance()->DrawTextOn3DPoint(Vector3(width / 2, height / 2, 0), Vector3::RIGHT, Vector3::UP, "STARTING GAME", 20, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOn3DPoint(Vector3(width / 2, height / 2, 0), Vector3::RIGHT, Vector3::UP, "STARTING GAME PRESS ENTER", 20, Rgba::WHITE);
 	delete material;
 	if (IsEnteringScene(deltaSecond))
 	{
