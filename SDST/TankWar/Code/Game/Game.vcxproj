@@ -377,6 +377,7 @@
   <ItemGroup>
     <None Include="..\..\Run_Win32\Data\Materials\Asteroids.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\bullet.mat" />
+    <None Include="..\..\Run_Win32\Data\Materials\debug.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\default.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\default_light.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\Particles.mat" />

@@ -103,13 +103,15 @@ void SceneMainMenu::Render()
 	Renderer::GetInstance()->BindMaterial(material);
 	Renderer::GetInstance()->SetUniform("MODELCOLOR", Rgba::WHITE.GetAsFloats());
 
+
 	Renderer::GetInstance()->DrawTextOn3DPoint(Vector3(menuSelection,0.f),Vector3::RIGHT,Vector3::UP, "START GAME", 20, Rgba::WHITE);
 	Renderer::GetInstance()->DrawTextOn3DPoint(Vector3(menuSelection.x,menuSelection.y - 4*fontSize, 0), Vector3::RIGHT, Vector3::UP, "QUIT", 20, Rgba::WHITE);
 	delete material;
 	
 	Material *material1 = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(material1);
-	Vector2  selectionPosition(menuSelection.x, menuSelection.y + m_cursorIndex * 2 * fontSize);
+	Vector2  selectionPosition(menuSelection.x - 50, menuSelection.y + m_cursorIndex*-4*fontSize);
+	Renderer::GetInstance()->DrawRectangle(AABB2(selectionPosition, 20,20));
 //	Renderer::GetInstance()->DrawRectangle(AABB2(selectionPosition, Vector2(selectionPosition.x + 200,selectionPosition.y + 2*fontSize)));
 	//Renderer::GetInstance()->DrawRectangle(AABB2(Vector2(0,0),200,200));
 

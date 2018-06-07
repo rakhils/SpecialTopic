@@ -38,7 +38,7 @@ App::~App()
 void App::RunFrame()
 {
 	Clock::g_theMasterClock->BeginFrame();
-	//Renderer::GetInstance()->BeginFrame();
+	Renderer::GetInstance()->BeginFrame();
 	g_theInput->BeginFrame();
 	g_audio->BeginFrame();
 

@@ -229,6 +229,9 @@
     <None Include="..\..\Run_Win32\Data\Shaders\Skybox.vs">
       <Filter>General\Data\Shaders</Filter>
     </None>
+    <None Include="..\..\Run_Win32\Data\Materials\debug.mat">
+      <Filter>General\Data\Materials</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Run_Win32\Data\Shaders\glsl\light.glsl">

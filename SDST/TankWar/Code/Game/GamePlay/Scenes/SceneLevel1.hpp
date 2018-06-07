@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/SceneManagement/Scene.hpp"
 #include "Game/GamePlay/Entity/Tank.hpp"
+#include "Engine/Time/StopWatch.hpp"
 /*\class  : Level1		   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -20,8 +21,7 @@ public:
 	//Member_Variables
 	Tank				  *m_playerTank  = nullptr;
 	Map					  *m_map         = nullptr;
-
-
+	bool				   m_init = false;
 	//Static_Member_Variables
 
 	//Methods

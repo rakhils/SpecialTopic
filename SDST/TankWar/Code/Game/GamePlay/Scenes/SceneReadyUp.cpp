@@ -7,6 +7,8 @@
 #include "Engine/Renderer/Renderable.hpp"
 #include "Engine/Core/Windows.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+#include "Engine/Logger/LogManager.hpp"
+
 #include "Game/GamePlay/Scenes/SceneReadyUp.hpp"
 // CONSTRUCTOR
 SceneReadyUp::SceneReadyUp()
@@ -63,6 +65,10 @@ void SceneReadyUp::Update(float deltaTime)
 	if (isExitingScene(deltaTime))
 	{
 		UpdateExitingTime(deltaTime);
+		if(m_isExitTaskComplete)
+		{
+			LogManager::PushLog("levelstart.txt", "SCENE READY FINAL");
+		}
 	}
 }
 

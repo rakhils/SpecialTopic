@@ -1,21 +1,14 @@
 #pragma once
 #include "Engine/GameObject/GameObject.hpp"
-/*\class  : Ship
-*		   
-* \group  : <GroupName>
-*		   
-* \brief  :
-*		   
-* \TODO:  :
-*		   
-* \note   :
-*		   
-* \author : Rakhil Soman
-*		   
-* \version: 1.0
-*		   
+#include "Engine/Time/StopWatch.hpp"
+/*\class  : Ship		   
+* \group  : <GroupName>		   
+* \brief  :		   
+* \TODO:  :		   
+* \note   :		   
+* \author : Rakhil Soman		   
+* \version: 1.0		   
 * \date   : 5/7/2018 12:25:55 AM
-*
 * \contact: srsrakhil@gmail.com
 */
  
@@ -30,6 +23,7 @@ public:
 	float m_velocity = 12.f;
 	bool  m_isAlive = true;
 	float m_timeElapsed = 0;
+	StopWatch			  m_stopWatch;
 	//Static_Member_Variables
 
 	//Methods

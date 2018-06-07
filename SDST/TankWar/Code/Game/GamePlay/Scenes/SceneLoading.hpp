@@ -17,7 +17,7 @@ class SceneLoading : public Scene
 public:
 	//Member_Variables
 	float m_loadingTime = 0;
-	
+	Scene *m_level1Scene = nullptr;
 	//Static_Member_Variables
 
 	//Methods

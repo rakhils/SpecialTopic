@@ -52,7 +52,7 @@ public:
 
 	void LoadFromImage(Image image,AABB2 const &extents,float min_height,float max_height,Vector2 chunk_counts);
 	void FreeAllChunks();
-
+	float GetHeigthAtIndex(int index);
 	float GetHeight(Vector2 xz);
 
 	AABB2 GetChunkExtents(Vector2 chunk_idx);

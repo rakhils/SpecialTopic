@@ -91,7 +91,7 @@ vec3 normalToBeUsed = vec3(0);
 
 //if(passIsUsingNormalMap == 1)
 {
-	normalToBeUsed = worldNormal;
+	//normalToBeUsed = worldNormal;
 }
 //else
 {	

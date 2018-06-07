@@ -9,7 +9,7 @@
 #include "Engine/Core/Windows.hpp"
 #include "Engine/DevConsole/Command.hpp"
 #include <stdio.h>
-#pragma comment( lib, "opengl32" )	// Link in the OpenGL32.lib static library
+//#pragma comment( lib, "opengl32" )	// Link in the OpenGL32.lib static library
 
 #define UNUSED(x) (void)(x);
 float MAX_DELTA_VALUE = 0.01616f;

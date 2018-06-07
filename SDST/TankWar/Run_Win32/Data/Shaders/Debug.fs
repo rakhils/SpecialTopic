@@ -9,5 +9,6 @@ out vec4 outColor;
 void main( void )
 {
 vec4 diffuse = texture( gTexDiffuse, passUV );
-outColor = diffuse*passColor*passModelColor;
+outColor = diffuse*passModelColor*passColor;
+outColor = passModelColor;
 }

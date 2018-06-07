@@ -2,11 +2,12 @@
 
 #include "Engine/GameObject/GameObject.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
-#include "Game/GameCommon.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Math/Transform.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/Math/MathUtil.hpp"
 
+#include "Game/GameCommon.hpp"
 Map::Map()
 {
 	
@@ -60,6 +61,21 @@ void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, flo
 		int z4 = static_cast<int>((pixelIndex + 3) / maxsz);
 		Vector3 position4(static_cast<float>(x4), RangeMapFloat(values4.GetAverageValue(),0,1,min_height,max_height), static_cast<float>(z4));
 		
+		Vector3 normal;
+		if(pixelIndex + maxsx < image.texture->pixels.size())
+		{
+			Rgba *color5 = image.texture->pixels.at(pixelIndex + maxsx);
+			Vector4 values5 = color5->GetAsFloats();
+			int x5 = static_cast<int>((pixelIndex + maxsx) % maxsx);
+			int z5 = static_cast<int>((pixelIndex + maxsx) / maxsz);
+			Vector3 position5(static_cast<float>(x5), RangeMapFloat(values5.GetAverageValue(), 0, 1, min_height, max_height), static_cast<float>(z5));
+
+			Vector3 u = position2 - position1;
+			Vector3 v = position5 - position4;
+
+			normal = CrossProduct(v.GetNormalized(), u.GetNormalized());
+		}
+
 		if(isRepeatForUV || isFirstLoop)
 		{
 			meshBuilder.SetUV(Vector2(0, 0));
@@ -69,7 +85,7 @@ void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, flo
 			meshBuilder.SetUV(Vector2(1, 0));
 		}
 		meshBuilder.SetColor(Rgba::WHITE);
-		meshBuilder.SetNormal(Vector3::UP);
+		meshBuilder.SetNormal(normal);
 		meshBuilder.PushVertex(position1);
 
 		if (isRepeatForUV || isFirstLoop)
@@ -81,7 +97,7 @@ void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, flo
 			meshBuilder.SetUV(Vector2(1, 1));
 		}
 		meshBuilder.SetColor(Rgba::WHITE);
-		meshBuilder.SetNormal(Vector3::UP);
+		meshBuilder.SetNormal(normal);
 		meshBuilder.PushVertex(position2);
 
 		if (isRepeatForUV || isFirstLoop)
@@ -93,7 +109,7 @@ void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, flo
 			meshBuilder.SetUV(Vector2(1, 0));
 		}
 		meshBuilder.SetColor(Rgba::WHITE);
-		meshBuilder.SetNormal(Vector3::UP);
+		meshBuilder.SetNormal(normal);
 		meshBuilder.PushVertex(position3);
 
 		if (isRepeatForUV || isFirstLoop)
@@ -105,7 +121,7 @@ void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, flo
 			meshBuilder.SetUV(Vector2(1, 1));
 		}
 		meshBuilder.SetColor(Rgba::WHITE);
-		meshBuilder.SetNormal(Vector3::UP);
+		meshBuilder.SetNormal(normal);
 		meshBuilder.PushVertex(position4);
 		if(pixelIndex % maxsx == 0 && pixelIndex !=0)
 		{
@@ -143,6 +159,23 @@ void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, flo
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Map::GetHeigthAtIndex(int index)
+{
+	if (index >= 0 && index < m_image->texture->pixels.size())
+	{
+		Rgba *color1 = m_image->texture->pixels.at(index);
+		Vector4 values = color1->GetAsFloats();
+		return RangeMapFloat(values.GetAverageValue(), 0, 1, m_min_height, m_max_height);
+	}
+	return 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/02
 *@purpose : Calculates height
 *@param   : NIL
@@ -150,20 +183,33 @@ void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, flo
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 float Map::GetHeight(Vector2 position)
 {
-	DebugDraw::GetInstance()->DebugRenderLogf("GET HEIGHT POS X = %f ,Y = %f ", position.x, position.y);
-	size_t index = static_cast<size_t>((static_cast<int>(position.y) * m_extents.GetDimensions().x + static_cast<int>(position.x)));
-	DebugDraw::GetInstance()->DebugRenderLogf("GET HEIGHT INDEX = %f", index);
+	// dx LERP in X with Fractx
+	// dy LERP in Y with Fracty
+	// LERP in dx fracty 
+	// Uv = RangeMap(pos,extents,lowwerleft,extens toprigth,vec0 vec1);
+	// veccUV = UV.grid.
+	// cellfract = fract(celluv)
+	// bl_index  = floor(cell_uv)
+	//DebugDraw::GetInstance()->DebugRenderLogf("GET HEIGHT POS X = %f ,Y = %f ", position.x, position.y);
+	//DebugDraw::GetInstance()->DebugRenderLogf("GET HEIGHT INDEX = %f", index);
+	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f , %f", position.x, position.y);
+	int index1 = static_cast<int>((static_cast<int>(position.y) * m_extents.GetDimensions().x + static_cast<int>(position.x)));
+	int index2 = static_cast<int>((static_cast<int>(position.y) * m_extents.GetDimensions().x + static_cast<int>(position.x + 1)));
+	int index3 = static_cast<int>((static_cast<int>(position.y + 1) * m_extents.GetDimensions().x + static_cast<int>(position.x)));
 
-	if(index >= 0 && index < m_image->texture->pixels.size())
-	{
-		Rgba *color1 = m_image->texture->pixels.at(index);
-		Vector4 values = color1->GetAsFloats();
-		DebugDraw::GetInstance()->DebugRenderLogf("GET HEIGHT VALUE AVG = %f", values.GetAverageValue());
-		DebugDraw::GetInstance()->DebugRenderLogf("GET HEIGHT HEIGTH RANGMAP = %f", RangeMapFloat(values.GetAverageValue(), 0, 1, m_min_height, m_max_height));
+	float height1 = GetHeigthAtIndex(static_cast<int>(index1));
+	float heightx1 = GetHeigthAtIndex(static_cast<int>(index2));
+	float heighty1 = GetHeigthAtIndex(static_cast<int>(index3));
 
-		return RangeMapFloat(values.GetAverageValue(), 0, 1, m_min_height, m_max_height);
-	}
-	return 0.f;
+	float dx = Interpolate(height1, heightx1, GetFraction(position.x));
+	float dy = Interpolate(height1, heighty1, GetFraction(position.y));
+	float height = Interpolate(dx, dy, GetFraction(position.y));
+
+	DebugDraw::GetInstance()->DebugRenderLogf("INDEX1 = %d INDEX2 = %d INDEX3 %d ", (index1),(index2),(index3));
+	DebugDraw::GetInstance()->DebugRenderLogf("HEIGHT1 = %f HEIGHT2 = %f HEIGHT3 %f ", height1,heightx1,heighty1);
+	DebugDraw::GetInstance()->DebugRenderLogf("DX = %f DY = %f HEIGHT = %f FRACTIOn %f", dx,dy,height,GetFraction(position.x));
+
+	return height;
 }
 
 //////////////////////////////////////////////////////////////

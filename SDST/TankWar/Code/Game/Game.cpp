@@ -76,6 +76,7 @@ void Game::InitScenes()
 	m_sceneMainMenu                           = new SceneMainMenu("MainMenu");
 	m_sceneReadyUp                            = new SceneReadyUp("SceneReadUp");
 	m_sceneLoading                            = new SceneLoading("LoadingScene");
+	((SceneLoading*)m_sceneLoading)->m_level1Scene = m_sceneLevel1;
 	//m_sceneLoading->m_forwardRenderingPath    = m_forwardRenderingPath;
 	//m_sceneMainMenu->m_forwardRenderingPath   = m_forwardRenderingPath;
 	//m_sceneReadyUp->m_forwardRenderingPath    = m_forwardRenderingPath;

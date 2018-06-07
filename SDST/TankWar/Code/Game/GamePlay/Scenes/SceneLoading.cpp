@@ -10,6 +10,7 @@
 #include "Engine/Logger/LogManager.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
 
+#include "Game/GamePlay/Scenes/SceneLevel1.hpp"
 #include "Game/GamePlay/Scenes/SceneLoading.hpp"
 #include "Game/GameCommon.hpp"
 // CONSTRUCTOR
@@ -45,13 +46,10 @@ SceneLoading::~SceneLoading()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLoading::Update(float deltaTime)
 {
+	
 	if (IsEnteringScene(deltaTime))
 	{
 		UpdateEnteringTime(deltaTime);
-		if(m_isEntryTaskComplete)
-		{
-			//ExitScene();
-		}
 	}
 	if(m_isEntryTaskComplete)
 	{
@@ -60,6 +58,7 @@ void SceneLoading::Update(float deltaTime)
 	if(m_loadingTime > 2 && !m_isExitTaskStarted)
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf("EXITING LOADING SCREEN", "");
+		((SceneLevel1*)m_level1Scene)->InitScene();
 		ExitScene();
 	}
 	if (isExitingScene(deltaTime))
@@ -105,4 +104,5 @@ void SceneLoading::Render()
 	{
 		DoFullScreenFadeOut();
 	}
+	
 }

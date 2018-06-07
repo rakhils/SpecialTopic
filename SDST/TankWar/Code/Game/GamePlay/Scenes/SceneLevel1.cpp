@@ -12,6 +12,7 @@
 #include "Engine/Renderer/Lights/Light.hpp"
 #include "Engine/Physics/RigidBody3D.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/Logger/LogManager.hpp"
 
 #include "Game/GamePlay/Scenes/SceneLevel1.hpp"
 #include "Game/GamePlay/Entity/Tank.hpp"
@@ -19,12 +20,12 @@
 // CONSTRUCTOR
 SceneLevel1::SceneLevel1() : Scene()
 {
-	InitScene();
+	//InitScene();
 }
 
 SceneLevel1::SceneLevel1(std::string str) : Scene(str)
 {
-	InitScene();
+	//InitScene();
 }
 
 // DESTRUCTOR
@@ -41,6 +42,11 @@ SceneLevel1::~SceneLevel1()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLevel1::InitScene()
 {
+	if(m_init)
+	{
+		return;
+	}
+	m_init = true;
 	m_forwardRenderingPath = new ForwardRenderingPath();
 	Light *light = Light::CreateAmbientLight();
 	Rgba color;
@@ -51,12 +57,15 @@ void SceneLevel1::InitScene()
 	Light *lightDirectional = Light::CreateOrGetPointLight();
 	Rgba color1;
 	color1.SetAsFloats(1, 1, 1, GetRandomFloatInRange(0.6f, 0.8f));
-	lightDirectional->EnablePointLight(color1.GetAsFloats(),Vector3(10,30,10),Vector3(1,0,0));
-	Vector3 lightDirection(0, -1, -1);
-	lightDirectional->SetPointLightDirection(lightDirection);
+	lightDirectional->EnablePointLight(color1.GetAsFloats(),Vector3(0,70,100),Vector3(1,0,0));
+	Vector3 lightDirection(1, -1, 0);
+	lightDirectional->SetPointLightDirection(lightDirection.GetNormalized());
 	lightDirectional->SetPointLightInnerOuterAngles(30.f, 60.f);
 	AddLight(lightDirectional);
-
+	// LOADING IT HERE
+	Material::CreateOrGetMaterial1("Data\\Materials\\Skybox.mat", Renderer::GetInstance());
+	
+	//
 
 	CreatePlayer();
 	CreateMap();
@@ -87,10 +96,11 @@ void SceneLevel1::CreatePlayer()
 	m_playerTank->GetRigidBody3DComponent()->m_gravity = Vector3(0,-1,0);
 	m_playerTank->GetRigidBody3DComponent()->m_useGravity = false;
 	m_playerTank->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
+	m_playerTank->m_transform.SetLocalPosition(Vector3(115, 30, 55));
 	PerspectiveCamera *camera = (PerspectiveCamera*)(m_playerTank->GetComponentByType(CAMERA));
 	AddCamera(camera);
 	AddRenderable(m_playerTank->m_renderable);
-
+	Camera::SetGameplayCamera(camera);
 	/*Mesh *grid = MeshBuilder::Create2DGrid<Vertex_3DPCU>(Vector3(0, 0, 0), Vector2(30, 30), Vector3(1, 0, 0), Vector3(0, 0, 1), Rgba::WHITE);
 	Renderable *renderable = new Renderable();
 	renderable->m_name = "grid";
@@ -111,7 +121,7 @@ void SceneLevel1::CreateMap()
 	m_map = new Map();
 	Image *terrainImage = new Image("Data//Images//m6.png");
 	m_map->m_image = terrainImage;
-	m_map->LoadFromImage(*terrainImage, AABB2(Vector2(0, 0), terrainImage->texture->getDimensions().GetAsVector2()), 1, 50, Vector2::ONE);
+	m_map->LoadFromImage(*terrainImage, AABB2(Vector2(0, 0), terrainImage->texture->getDimensions().GetAsVector2()), 1, 25, Vector2::ONE);
 
 	Renderable *renderable = new Renderable();
 	renderable->m_name = "terrain";
@@ -130,6 +140,7 @@ void SceneLevel1::CreateMap()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLevel1::Update(float deltaTime)
 {
+	LogManager::PushLog("levelstart.txt", "SCENELEVEL1 UPDATE");
 	if (IsEnteringScene(deltaTime))
 	{
 		UpdateEnteringTime(deltaTime);
@@ -138,7 +149,9 @@ void SceneLevel1::Update(float deltaTime)
 	{
 		UpdateExitingTime(deltaTime);
 	}
-
+	DebugRenderOptions options;
+	options.m_lifeTime = 0;
+	DebugDraw::GetInstance()->DebugRenderSphere(Vector3(0, 70, 100), 20, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL_WIRE, options);
 	float PI = 3.14f;
 	Vector3 minRotationValue(-PI / 2, 0, 0);
 	Vector3 maxRotationValue(PI / 2, 2 * PI, 0);
@@ -199,8 +212,8 @@ void SceneLevel1::Update(float deltaTime)
 	}
 	Vector3 position       = m_playerTank->m_transform.GetWorldPosition();
 	float   terrainHeight  = m_map->GetHeight(position.GetXZ());
-	float   currentHeight  = Interpolate(position.y, terrainHeight + 2, deltaTime);
-	m_playerTank->m_transform.SetLocalPosition(Vector3(position.x, currentHeight, position.z));
+	//float   currentHeight  = Interpolate(position.y, terrainHeight + 2, deltaTime);
+	m_playerTank->m_transform.SetLocalPosition(Vector3(position.x, terrainHeight + 2, position.z));
 
 	m_playerTank->Update(deltaTime);
 	Vector3 playerWorldPosition = m_playerTank->m_transform.GetWorldPosition();
