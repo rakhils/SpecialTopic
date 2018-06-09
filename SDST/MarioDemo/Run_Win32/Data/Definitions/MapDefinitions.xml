@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MapDefinitions>
+ <MapDefinition name ="level1" defaultTile="water" width="166" height="8" >
+<GenerationSteps>
+  <FromFile imagepath ="Data/Images/Layer1.png"/>
+</GenerationSteps>
+   </MapDefinition>
+
+</MapDefinitions>
+
+      

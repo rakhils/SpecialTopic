@@ -1,0 +1,6 @@
+<material id="Skybox">
+  <shader id="Skybox" />
+
+  <texture bind="0" src="Data\\Images\\Galaxy.png" />
+
+</material>

@@ -1,0 +1,9 @@
+<material id="Asteroids">
+  <shader id="lighting" />
+
+  <texture bind="0" src="Data\\Images\\stone.png" />
+
+  <float   bind="SPEC_FACTOR" value="100.0" />
+  <float   bind="SPEC_POWER" value="20.0" />
+
+</material>
