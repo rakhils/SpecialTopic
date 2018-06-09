@@ -340,11 +340,19 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Physics\Collider\AABB2Collider.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Physics\Collider\BoxCollider.cpp">
       <SubType>
       </SubType>
     </ClCompile>
     <ClCompile Include="Physics\Collider\BoxCollider2D.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Physics\Collider\CircleCollider.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -612,11 +620,19 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="Physics\Collider\AABB2Collider.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Physics\Collider\BoxCollider.hpp">
       <SubType>
       </SubType>
     </ClInclude>
     <ClInclude Include="Physics\Collider\BoxCollider2D.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Physics\Collider\CircleCollider.hpp">
       <SubType>
       </SubType>
     </ClInclude>

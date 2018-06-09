@@ -361,6 +361,12 @@
     <ClCompile Include="Time\StopWatch.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Physics\Collider\CircleCollider.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Physics\Collider\AABB2Collider.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -628,6 +634,8 @@
       <Filter>DevConsole</Filter>
     </ClInclude>
     <ClInclude Include="Time\StopWatch.hpp" />
+    <ClInclude Include="Physics\Collider\CircleCollider.hpp" />
+    <ClInclude Include="Physics\Collider\AABB2Collider.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

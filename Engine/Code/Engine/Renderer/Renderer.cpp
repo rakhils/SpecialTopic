@@ -1892,11 +1892,15 @@ void Renderer::DrawMeshImmediateWithIndices(DrawPrimitiveType drawPrimitive, uns
 void Renderer::DrawMesh(Mesh *mesh,Matrix44 model)
 {
 	BindShader(Shader::GetCurrentShader());
+	GL_CHECK_ERROR();
 	BindMeshToProgram(Shader::GetCurrentShader()->GetShaderProgram(), mesh);
+	GL_CHECK_ERROR();
 
 	BindRendererUniforms(model);
+	GL_CHECK_ERROR();
 
 	BindRenderState(Shader::GetCurrentShader()->m_state);
+	GL_CHECK_ERROR();
 
 	// Now that it is described and bound, draw using our program
 	glBindFramebuffer(GL_FRAMEBUFFER, Camera::GetCurrentCamera()->GetFrameBufferHandle());
@@ -1904,12 +1908,13 @@ void Renderer::DrawMesh(Mesh *mesh,Matrix44 model)
 	if(mesh->m_drawInstruction.m_usingIndices)
 	{
 		glDrawElements(g_openGlPrimitiveTypes[mesh->m_drawInstruction.m_primitiveType], mesh->m_drawInstruction.m_elemCount, GL_UNSIGNED_INT, 0);
-		GL_CHECK_ERROR();
 	}	
 	else
 	{
 		glDrawArrays(g_openGlPrimitiveTypes[mesh->m_drawInstruction.m_primitiveType], 0, mesh->m_drawInstruction.m_elemCount);
 	}
+	GL_CHECK_ERROR();
+
 }
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/04/03

@@ -22,7 +22,7 @@ public:
 	//Member_Variables
 
 	Vector3		m_targetPosition;
-
+	std::string m_name;
 	Matrix44	m_projection;
 	Matrix44	m_view;
 	Matrix44	m_model;
@@ -75,8 +75,8 @@ public:
 	static void SetDefaultCamera (Camera *camera) { s_defaultCamera  = camera;}
 	static void SetCurrentCamera (Camera *camera) 
 	{ 
-		if (camera == s_currentCamera) 
-			//return;  
+		/*if (camera == s_currentCamera) 
+			//return;  */
 		camera->Finalize(); 
 		s_currentCamera = camera; 
 	}

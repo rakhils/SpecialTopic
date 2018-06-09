@@ -279,14 +279,16 @@ void DebugDraw::DebugRenderLogElements(DebugDrawElement element)
 {
 	Material *material			 = Material::AquireResource("Data\\Materials\\text.mat");
 	Texture::SetCurrentTexture(Texture::GetDefaultTexture());
+	GL_CHECK_ERROR();
 	m_renderer->BindMaterial(material);
 	Vector3 rigthDirection(1,  0, 0);
 	Vector3 upDirection   (0,  1, 0);
 	Vector3 position      (-1 + element.m_fontSize * 2, m_logTextYValue, 0);
-
+	GL_CHECK_ERROR();
 	SetDepth(DEBUG_RENDER_IGNORE_DEPTH);
 	m_renderer->SetUniform("MODELCOLOR", element.m_renderOptions.m_startColor.GetAsFloats());
 	m_renderer->DrawTextOn3DPoint(position, rigthDirection, upDirection, element.m_text, element.m_fontSize, element.m_renderOptions.m_startColor);
+	GL_CHECK_ERROR();
 	ResetDepth();
 
 	m_logTextYValue -= m_logTextFontSize * 2;

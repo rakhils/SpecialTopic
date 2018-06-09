@@ -1,5 +1,6 @@
 #include "Engine/Renderer/FrameBuffer.hpp"
 #include "Engine/Renderer/GL/glfunctions.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 #include "../Core/ErrorWarningAssert.hpp"
 // CONSTRUCTOR
 FrameBuffer::FrameBuffer()
@@ -97,7 +98,7 @@ bool FrameBuffer::Finalize()
 
 	// Update target bindings
 	glDrawBuffers(1, targets);
-
+	GLCheckError(__FILE__, __LINE__);
 	// Bind depth if available;
 	if (m_depth_stencil_target == nullptr) 
 	{
@@ -107,6 +108,8 @@ bool FrameBuffer::Finalize()
 	{
 		glFramebufferTexture(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,m_depth_stencil_target->GetHandle(),0);
 	}
+
+	GLCheckError(__FILE__, __LINE__);
 
 	// Error Check - recommend only doing in debug
 #if defined(_DEBUG)

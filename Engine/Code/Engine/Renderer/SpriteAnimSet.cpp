@@ -42,7 +42,13 @@ SpriteAnimSet::~SpriteAnimSet()
 void SpriteAnimSet::SetAnimation(std::string name)
 {
 	if(m_spriteAnimation[name] != nullptr)
-	m_currentAnimation = m_spriteAnimation[name];
+	{
+		if (m_currentAnimation == m_spriteAnimation[name])
+		{
+			return;
+		}
+		m_currentAnimation = m_spriteAnimation[name];
+	}
 }
 
 void SpriteAnimSet::update(float deltaTime)

@@ -36,7 +36,7 @@ public:
 	void	SetPosition(Vector3 position);
 	// ALL TYPE OF COLLISIONS
 	bool CheckSphereVsBox2DCollision(SphereCollider* sphereCollider, BoxCollider2D* boxCollider);
-
+	
 	virtual void Update(float deltaTime) = 0;
 	virtual bool IsPointInside(Vector3 point) = 0;
 	virtual void OnCollisionEnter(Collider *collider) = 0;

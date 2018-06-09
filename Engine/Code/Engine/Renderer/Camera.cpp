@@ -70,7 +70,11 @@ void Camera::SetOrthoProjection()
 	int width  = Windows::GetInstance()->GetDimensions().x;
 	int height = Windows::GetInstance()->GetDimensions().y;
 
-	SetOrthoProjection(Vector2::ZERO, Vector2(static_cast<float>(width), static_cast<float>(height)), 0.f, 100.f);
+	Vector3 cameraPosition = m_transform.GetWorldPosition();
+	Vector3 minCameraPosition = cameraPosition - Vector3(width / 2, height / 2, 0);
+	Vector3 maxCameraPosition = cameraPosition + Vector3(width / 2, height / 2, 0);
+
+	SetOrthoProjection(minCameraPosition.GetXY(),maxCameraPosition.GetXY(), 0.f, 100.f);
 }
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/02/18
@@ -448,18 +452,21 @@ void Camera::InitCamera()
 	s_defaultCamera->m_defaultFrameBuffer = frameBuffer;
 	s_defaultCamera->SetColorTarget(Texture::GetDefaultColorTargetTexture());
 	s_defaultCamera->SetDepthStencilTarget(Texture::GetDefaultDepthTargetTexture());
+	s_defaultCamera->m_name = "default_camera";
 
 	s_gamePlayCamera = new OrthographicCamera();
 	FrameBuffer *gameplayFrameBuffer = new FrameBuffer();
 	s_gamePlayCamera->m_defaultFrameBuffer = gameplayFrameBuffer;
 	s_gamePlayCamera->SetColorTarget(Texture::GetDefaultColorTargetTexture());
 	s_gamePlayCamera->SetDepthStencilTarget(Texture::GetDefaultDepthTargetTexture());
+	s_gamePlayCamera->m_name = "gameplay_camera";
 
 	s_effectCamera = new OrbitCamera();
 	FrameBuffer *effectCameraFrameBuffer = new FrameBuffer();
 	s_effectCamera->m_defaultFrameBuffer = effectCameraFrameBuffer;
 	s_effectCamera->SetColorTarget(Texture::GetDefaultColorTargetTexture());
 	s_effectCamera->SetDepthStencilTarget(Texture::GetDefaultDepthTargetTexture());
+	s_effectCamera->m_name = "effect_camera";
 
 	s_uiCamera = new OrthographicCamera();
 	FrameBuffer *uiFrameBuffer = new FrameBuffer();
@@ -467,9 +474,10 @@ void Camera::InitCamera()
 	s_uiCamera->SetColorTarget(Texture::GetDefaultColorTargetTexture());
 	s_uiCamera->SetDepthStencilTarget(Texture::GetDefaultDepthTargetTexture());
 	s_uiCamera->SetOrthoProjection(Vector2(0.f, 0.f), Vector2(static_cast<float>(window_width), static_cast<float>(window_height)), -100.f, 100.f);
+	s_uiCamera->m_name = "ui_camera";
 
 	//SetCurrentCamera(GetGamePlayCamera());
-	//SetCurrentCamera(GetUICamera());
+	SetCurrentCamera(GetUICamera());
 	SetCurrentCamera(GetDefaultCamera());
 }
 
