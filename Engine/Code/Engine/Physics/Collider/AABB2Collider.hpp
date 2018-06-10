@@ -1,30 +1,23 @@
 #pragma once
-
-/*\class  : AABB2Collider
-*		   
-* \group  : <GroupName>
-*		   
-* \brief  :
-*		   
-* \TODO:  :
-*		   
-* \note   :
-*		   
-* \author : Rakhil Soman
-*		   
-* \version: 1.0
-*		   
+#include "Engine/Math/AABB2.hpp"
+#include "Engine/Physics/Collider/Collider.hpp"
+/*\class  : AABB2Collider		   
+* \group  : <GroupName>		   
+* \brief  :		   
+* \TODO:  :		   
+* \note   :		   
+* \author : Rakhil Soman		   
+* \version: 1.0		   
 * \date   : 6/8/2018 8:38:03 PM
-*
 * \contact: srsrakhil@gmail.com
 */
  
-class AABB2Collider
+class AABB2Collider : public Collider
 {
 
 public:
 	//Member_Variables
-	
+	AABB2 m_aabb2;
 	//Static_Member_Variables
 
 	//Methods
@@ -32,6 +25,9 @@ public:
 	AABB2Collider();
 	~AABB2Collider();
 	
+	void Update(float deltaTime);
+	bool IsPointInside(Vector3 point);
+	void OnCollisionEnter(Collider *collider);
 	//Static_Methods
 
 protected:

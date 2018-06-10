@@ -11,7 +11,11 @@
 #include "Engine/Math/Vector3.hpp"
 #include "Engine/Math/Vector4.hpp"
 #include "Engine/Math/Matrix44.hpp"
- 
+
+enum DIRECTIONS
+{
+	NORTH_WEST,NORTH,NORTH_EAST,   WEST,CENTRE,EAST,   SOUTH_WEST,SOUTH,SOUTH_EAST
+};
 //RANDOMG FLOAT , RANDOM INT
 float		     GetRandomFloatInRange(float minInclusive, float maxExclusive);
 float		     GetRandomFloatZeroToOne();
@@ -38,7 +42,9 @@ float		     GetDistance( const Vector2 a, const Vector2 b );
 float		     GetDistanceSquared( const Vector2 a, const Vector2 b );
 float		     DoAngleCorrection(float &angle);
 bool		     IsAngleWithinRangeOf(float angle, float baseAngle, float range, float direction);
+bool			 IsAlmostEqual(float value1, float comparison, float diff = 0.001);
 bool		     IsVectorAlmostEqual(Vector2 value1, Vector2 value2, float diff);
+bool			 IsAlmostEqual(Vector3 value1, Vector3 comparion, float diff = 0.001);
 float		     GetLargestOf4(float value1, float value2, float value3, float value4);
 float		     GetLargestOf8(float value1, float value2, float value3, float value4,float value5, float value6, float value7, float value8);
 
@@ -146,3 +152,4 @@ float			 SmoothStop4 (float t); // 4th-degree smooth start (a.k.a. “quartic ease
 float			 SmoothStep3 (float t); // 3rd-degree smooth start/stop (a.k.a. “smoothstep”)
 float			 CorssFade	 (float a, float b, float t);
 
+std::string      GetDirectionNameFromType(DIRECTIONS dir);

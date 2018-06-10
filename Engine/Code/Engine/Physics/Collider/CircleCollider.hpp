@@ -1,30 +1,23 @@
 #pragma once
-
-/*\class  : CircleCollider
-*		   
-* \group  : <GroupName>
-*		   
-* \brief  :
-*		   
-* \TODO:  :
-*		   
-* \note   :
-*		   
-* \author : Rakhil Soman
-*		   
-* \version: 1.0
-*		   
+#include "Engine/Math/Disc2.hpp"
+#include "Engine/Physics/Collider/Collider.hpp"
+/*\class  : CircleCollider	   
+* \group  : <GroupName>		   
+* \brief  :		   
+* \TODO:  :		   
+* \note   :	   
+* \author : Rakhil Soman		   
+* \version: 1.0		   
 * \date   : 6/8/2018 8:37:46 PM
-*
 * \contact: srsrakhil@gmail.com
 */
  
-class CircleCollider
+class CircleCollider : public Collider
 {
 
 public:
 	//Member_Variables
-	
+	Disc2 m_disc;
 	//Static_Member_Variables
 
 	//Methods
@@ -32,6 +25,9 @@ public:
 	CircleCollider();
 	~CircleCollider();
 	
+	void Update(float deltaTime);
+	bool IsPointInside(Vector3 point);
+	void OnCollisionEnter(Collider *collider);
 	//Static_Methods
 
 protected:

@@ -435,22 +435,22 @@ void Renderer::DrawCircle(float centreX,float centreY,float radius)
 void Renderer::DrawCircle(float centreX,float centreY,float nradius,float numofSize)
 {
 	UNUSED(numofSize);
-	const int MAX_NUM_VERTEX = 40;
+	const int MAX_NUM_VERTEX = 31;
 	Vertex_3DPCU line[MAX_NUM_VERTEX];
-	float nangle = 360.0f/MAX_NUM_VERTEX/2.0f;
-	for(int i = 0,j = 0;i <= MAX_NUM_VERTEX/2.f ; i++)
+	float nangle = 360.0f/(MAX_NUM_VERTEX -1);
+	for(int i = 0,j = 0;i < (MAX_NUM_VERTEX - 1); i+=2)
 	{
 		float startX =  centreX + (nradius)*CosDegrees(i*nangle);
 		float startY =  centreY + (nradius)*SinDegrees(i*nangle);
 
 		float endX =  centreX + (nradius)*CosDegrees((i+1)*nangle);
 		float endY =  centreY + (nradius)*SinDegrees((i+1)*nangle);
-		line[j].setRGBA(Rgba::WHITE);
-		line[j++].setPoint(startX,startY);
-		line[j].setRGBA(Rgba::WHITE);
-		line[j++].setPoint(endX,endY);
+		line[i].setRGBA(Rgba::RED);
+		line[i].setPoint(startX,startY);
+		line[i + 1].setRGBA(Rgba::WHITE);
+		line[i + 1].setPoint(endX,endY);
 	}
-	DrawMeshImmediate(PRIMITIVE_LINES,2,line);
+	DrawMeshImmediate(PRIMITIVE_LINES,MAX_NUM_VERTEX/2.f,line);
 }
 
 void Renderer::DrawCircle(Vector2 centre, float nradius)

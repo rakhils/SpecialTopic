@@ -2,9 +2,16 @@
 <MapDefinitions>
  <MapDefinition name ="level1" defaultTile="water" width="166" height="8" >
 <GenerationSteps>
-  <FromFile imagepath ="Data/Images/Layer1.png"/>
+   <SpawnActor>
+     <Brick actor ="Brick" position="100,200"/>
+   </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="600,200"/>
+  </SpawnActor>
 </GenerationSteps>
-   </MapDefinition>
+
+</MapDefinition>
 
 </MapDefinitions>
 

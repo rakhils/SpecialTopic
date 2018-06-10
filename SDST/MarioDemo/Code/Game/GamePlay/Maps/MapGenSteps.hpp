@@ -38,3 +38,18 @@ public:
 	}
 	virtual void Run(Map &newMap);
 };
+
+class MapGenSteps_SpawnActor : public MapGenSteps
+{
+	std::string m_name;
+	std::string m_position;
+public:
+	MapGenSteps_SpawnActor::MapGenSteps_SpawnActor(XMLElement& generationStepElement)
+		: MapGenSteps(generationStepElement)
+	{
+		XMLElement *ChildElement = generationStepElement.FirstChildElement();
+		m_name     = ParseXmlAttribute(*ChildElement, "actor", m_name);
+		m_position = ParseXmlAttribute(*ChildElement, "position", m_position);
+	}
+	virtual void Run(Map &newMap);
+};

@@ -1,5 +1,6 @@
 #pragma once
-
+#include <string>
+#include "Game/GamePlay/Entity/Entity.hpp"
 /*\class  : Pipe
 *		   
 * \group  : <GroupName>
@@ -19,7 +20,7 @@
 * \contact: srsrakhil@gmail.com
 */
  
-class Pipe
+class Pipe : public Entity
 {
 
 public:
@@ -29,9 +30,13 @@ public:
 
 	//Methods
 
-	Pipe();
-	~Pipe();
 	
+	Pipe(std::string name);
+	Pipe(std::string name, EntityDefinition *definition);
+	~Pipe();
+
+	void Update(float deltaTime);
+	void Render();
 	//Static_Methods
 
 protected:

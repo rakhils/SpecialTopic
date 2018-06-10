@@ -29,9 +29,12 @@ public:
 	int m_framesOnJump = 0;
 	CharacterType m_currentCharacter = SmallMario;
 	Action m_currentAction = IDLE;
+	bool   m_hasReachedMaxHeight = false;
+	float  m_maxJumpForce		 = 0.3f;
+	float  m_currentJumpForce	 = 0;
 	float  m_minVelocityForIdle = 0.5;
-	float  m_movementForce = 100;
-	float  m_jumpForce	   = 2000;
+	float  m_movementForce = 15000;
+	float  m_jumpForce	   = 40000;
 	std::string m_characterTypeString = "SmallMario";
 	//Static_Member_Variables
 
@@ -42,17 +45,22 @@ public:
 	~Mario();
 
 	void Update(float deltaTime);
+	void ResetJump();
+	bool IsJumping();
+	void UpdateJump(float deltaTime);
 	void ProcessInput(float deltaTime);
 
 	void WalkWest(float deltaTime);
 	void WalkEast(float deltaTIme);
 	void StayIdle();
 	void Jump(float deltaTime);
-	bool IsGrounded();
+	bool IsGrounded(float deltaTime);
 	void ShootFireBalls(float deltaTime);
 
 	void UpgradeToLevel1Character();
 	void UpgradeToLevel2Characte();
+
+	void OnCollisionEnter(Collider *collider);
 	
 	void Render();
 	

@@ -23,7 +23,7 @@ void BoxCollider::Update(float deltaTime)
 {
 	UNUSED(deltaTime);
 	std::map<std::string, GameObject*>::iterator itGameObject;
-	for(itGameObject = GameObject::s_gameObjects.begin();itGameObject != GameObject::s_gameObjects.end();itGameObject++)
+	for (itGameObject = GameObject::s_gameObjects.begin(); itGameObject != GameObject::s_gameObjects.end(); itGameObject++)
 	{
 		GameObject *gameObject = itGameObject->second;
 		std::map<COMPONENT_COLLIDER_TYPE, Collider*>::iterator it;

@@ -17,6 +17,7 @@ class RigidBody3D : public Component
 
 public:
 	//Member_Variables
+	Transform					m_previousTransform;
 	bool						m_useGravity			= false;
 	bool						m_isKinematic			= false;
 	float						m_speed;
@@ -35,7 +36,10 @@ public:
 	void Update(float deltaTime);
 	void ApplyFriction(float deltaTime);
 	void ApplyGravity(float deltaTime);
+	void AddForce(Vector3 force, float deltaTime);
 	void ApplyForce(Vector3 force, float deltaTime);
+
+	Vector3 GetVelocity(float deltaTime);
 	//Static_Methods
 
 protected:

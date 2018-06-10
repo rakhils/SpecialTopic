@@ -22,6 +22,8 @@ MapGenSteps* MapGenSteps::CreateMapGenStep(XMLElement& genStepXmlElement)
 	std::string genStepName; genStepName.append(name);
 	if (genStepName == "FromFile")
 		return new MapGenSteps_FromFile(genStepXmlElement);
+	if (genStepName == "SpawnActor")
+		return new MapGenSteps_SpawnActor(genStepXmlElement);
 	return nullptr;
 }
 
@@ -53,4 +55,18 @@ void MapGenSteps_FromFile::Run(Map &newMap)
 		}
 	}*/
 	int a = 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MapGenSteps_SpawnActor::Run(Map &newMap)
+{
+	if(m_name == "Brick")
+	{
+		newMap.CreateBricks(m_position);
+	}
 }

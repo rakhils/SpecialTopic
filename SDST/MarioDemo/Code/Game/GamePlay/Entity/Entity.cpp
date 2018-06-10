@@ -46,7 +46,7 @@ void Entity::Render()
 	Vector2 minPosition = m_spriteAnimSet->GetCurrentUVs().mins;
 	Vector2 maxPosition = m_spriteAnimSet->GetCurrentUVs().maxs;
 	Vector2 entityPosition = m_transform.GetWorldPosition().GetXY();
-	AABB2 m_aabb2(entityPosition,GetDrawDimensions().x,GetDrawDimensions().y);
+	AABB2 m_aabb2(entityPosition,GetDrawDimensions().x/2,GetDrawDimensions().y/2);
 
 	g_theRenderer->DrawTexturedAABB(m_aabb2, m_texture, minPosition , maxPosition,Rgba::WHITE);
 }

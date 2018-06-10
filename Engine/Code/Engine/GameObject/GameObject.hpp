@@ -3,6 +3,7 @@
 #include <map>
 #include "Engine/Math/Transform.hpp"
 #include "Engine/Core/Component.hpp"
+#include "Engine/Physics/Collider/Collider.hpp"
 /*\class  : GameObject		   
 * \group  : <GroupName>		   
 * \brief  :	Gameobject is base of each entity in the game	   
@@ -31,10 +32,7 @@ enum COMPONENT_TYPE
 {
 	RIGID_BODY_3D,RIGID_BODY_2D,AUDIO,PARTICLE,LIGHT,CAMERA
 };
-enum COMPONENT_COLLIDER_TYPE
-{
-	BOX_COLLIDER2D,BOX_COLLIDER,SPHERE_COLLIDER,
-};
+
 class GameObject
 {
 
@@ -81,6 +79,7 @@ public:
 	void								AddSphereCollider(Vector3 localPosition, float radius);
 	void								AddBoxCollider(Vector3 localPosition, Vector3 dimensions);
 	void								AddBoxCollider2D(Vector3 localPosition, Vector3 dimensions,Vector3 normal);
+	void								AddCircleCollider(Vector3 localPosition, float radius);
 
 	Component*							GetComponentByType(COMPONENT_TYPE type);
 	RigidBody3D*						GetRigidBody3DComponent();
@@ -88,6 +87,7 @@ public:
 	SphereCollider*						GetSphereCollider();
 	BoxCollider2D *						GetBoxCollider2D();
 	BoxCollider   *						GetBoxCollider();
+	CircleCollider*						GetCircleCollider();
 
 	void								SetPosition(Vector3 position);
 	void								SetScene(Scene *scene);

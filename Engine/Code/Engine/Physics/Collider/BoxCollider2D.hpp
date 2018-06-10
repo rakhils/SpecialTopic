@@ -15,13 +15,8 @@ class BoxCollider2D : public Collider
 
 public:
 	//Member_Variables
-	float   offsetX			= 1.f;
-	float	offsetY			= 1.f;
-	float	offsetZ			= 1.f;
-	Vector3 m_normalX;
-	Vector3 m_normalY;
-	Vector3 m_normalZ;
-	Vector3 m_normal;
+	AABB2 m_aabb2;
+	DIRECTIONS m_colliderDirection;
 	//Static_Member_Variables
 
 	//Methods
@@ -29,10 +24,8 @@ public:
 	BoxCollider2D();
 	~BoxCollider2D();
 	
-	void SetNormal(Vector3 normal);
 	void Update(float deltaTime);
 	bool IsPointInside(Vector3 point);
-	void AddNormals(Vector3 normalX,Vector3 normaly,Vector3 normalz);
 	void OnCollisionEnter(Collider *collider);
 	//Static_Methods
 

@@ -317,6 +317,54 @@ bool IsVectorAlmostEqual(Vector2 value1, Vector2 value2,float diff)
 	return false;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool IsAlmostEqual(Vector3 value1, Vector3 comparion, float diff /*= 0.001*/)
+{
+	if(IsAlmostEqual(value1.x,comparion.x,diff))
+	{
+		if (IsAlmostEqual(value1.y, comparion.y, diff))
+		{
+			if (IsAlmostEqual(value1.z, comparion.z, diff))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool IsAlmostEqual(float value1, float comparison, float diff /*= 0.001*/)
+{
+	if (value1 < comparison)
+	{
+		if(comparison - value1 < diff)
+		{
+			return true;
+		}
+		return false;
+	}
+	if (value1 > comparison)
+	{
+		if (value1 - comparison < diff)
+		{
+			return true;
+		}
+		return false;
+	}
+	return true;
+}
+
 float GetLargestOf4(float value1, float value2, float value3, float value4)
 {
 	float greatest = value1;
@@ -1341,4 +1389,47 @@ float SmoothStep3(float t)
 float CorssFade(float a, float b, float t)
 {
 	return (a + t*(b-a));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string GetDirectionNameFromType(DIRECTIONS dir)
+{
+	switch (dir)
+	{
+	case NORTH_WEST:
+		return "NORTH_WEST";
+		break;
+	case NORTH:
+		return "NORTH";
+		break;
+	case NORTH_EAST:
+		return "NORTH_EAST";
+		break;
+	case EAST:
+		return "EAST";
+		break;
+	case CENTRE:
+		return "CENTRE";
+		break;
+	case WEST:
+		return "WEST";
+		break;
+	case SOUTH_WEST:
+		return "SOUTH_WEST";
+		break;
+	case SOUTH:
+		return "SOUTH";
+		break;
+	case SOUTH_EAST:
+		return "SOUTH_EAST";
+		break;
+	default:
+		break;
+	}
+	return "";
 }

@@ -2,7 +2,8 @@
 #include "Engine/Physics/RigidBody3D.hpp"
 #include "Engine/Core/Component.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
-
+#include "Engine/Physics/Collider/CircleCollider.hpp"
+#include "Engine/Physics/Collider/BoxCollider2D.hpp"
 #include "Game/GamePlay/Entity/Mario.hpp"
 // CONSTRUCTOR
 Mario::Mario():Entity("mario")
@@ -41,6 +42,8 @@ Mario::~Mario()
 *//////////////////////////////////////////////////////////////
 void Mario::Update(float deltaTime)
 {
+	Disc2 colliderOutline = GetCircleCollider()->m_disc;
+
 	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW))
 	{
 		WalkWest(deltaTime);
@@ -53,21 +56,29 @@ void Mario::Update(float deltaTime)
 	{
 		WalkEast(deltaTime);
 	}
-	if (g_theInput->wasKeyJustReleased(InputSystem::KEYBOARD_RIGHT_ARROW))
+	if (g_theInput->wasKeyJustReleased(InputSystem::KEYBOARD_UP_ARROW))
 	{
-		//StayIdle();
+		ResetJump();
+	}
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_DOWN_ARROW))
+	{
+		((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->ApplyForce(Vector3(0, -2*m_jumpForce, 0), deltaTime);
 	}
 
 	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW))
 	{
-		if(IsGrounded())
+		if(IsGrounded(deltaTime) || IsJumping())
 		{
-			Jump(deltaTime);
+			UpdateJump(deltaTime);
+			if (m_currentJumpForce < m_maxJumpForce)
+			{
+				Jump(deltaTime);
+			}
 		}
 	}
 	float xVelocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->m_velocity.x;
 	DebugRenderOptions option;
-	DebugDraw::GetInstance()->DebugRenderQuad2D(Vector3(300, 700, 0), AABB2(Vector2(0, 0), 300, 200), 0, nullptr, Rgba::BLACK, DEBUG_RENDER_FILL, option);
+	DebugDraw::GetInstance()->DebugRenderQuad2D(Vector3(300, 700, 0), AABB2(Vector2(0, 0), 300, 150), 0, nullptr, Rgba::BLACK, DEBUG_RENDER_FILL, option);
 	DebugDraw::GetInstance()->DebugRenderLogf("VELOCITY %f", xVelocity);
 	if( xVelocity > m_minVelocityForIdle)
 	{
@@ -84,7 +95,53 @@ void Mario::Update(float deltaTime)
 	{
 		StayIdle();
 	}
+	Vector3 prevTransform = GetRigidBody3DComponent()->m_previousTransform.GetWorldPosition();
+	Vector3 marioWorldPosition = m_transform.GetWorldPosition();
+	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f, %f, %f", marioWorldPosition.x, marioWorldPosition.y, marioWorldPosition.z);
+	DebugDraw::GetInstance()->DebugRenderLogf("Previous %f, %f, %f", prevTransform.x, prevTransform.y, prevTransform.z);
+	DebugDraw::GetInstance()->DebugRenderLogf("Diff %f, %f, %f"    , (marioWorldPosition.x - prevTransform.x), (marioWorldPosition.y - prevTransform.y), (marioWorldPosition.z - prevTransform.z));
 	Entity::Update(deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::ResetJump()
+{
+	m_currentJumpForce = 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Mario::IsJumping()
+{
+	if(m_currentJumpForce > 0 && m_currentJumpForce < m_maxJumpForce)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::UpdateJump(float deltaTime)
+{
+	m_currentJumpForce += deltaTime;
+	if(m_currentJumpForce > m_maxJumpForce)
+	{
+		ResetJump();
+	}
 }
 
 /*DATE    : 2018/02/25/////////////////////////////////////////
@@ -94,7 +151,7 @@ void Mario::Update(float deltaTime)
 *//////////////////////////////////////////////////////////////
 void Mario::WalkWest(float deltaTime)
 {
-	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->ApplyForce(Vector3(-m_movementForce, 0, 0), deltaTime);
+	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(-m_movementForce, 0, 0), deltaTime);
 	m_forwardVector = Vector2::WEST;
 }
 
@@ -106,7 +163,7 @@ void Mario::WalkWest(float deltaTime)
 *//////////////////////////////////////////////////////////////
 void Mario::WalkEast(float deltaTime)
 {
-	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->ApplyForce(Vector3(m_movementForce, 0, 0), deltaTime);
+	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(m_movementForce, 0, 0), deltaTime);
 	m_forwardVector = Vector2::EAST;
 }
 
@@ -143,7 +200,7 @@ void Mario::StayIdle()
 //////////////////////////////////////////////////////////////
 void Mario::Jump(float deltaTime)
 {
-	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->ApplyForce(Vector3(0, m_jumpForce, 0), deltaTime);
+	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(0, m_jumpForce, 0), deltaTime);
 }
 
 //////////////////////////////////////////////////////////////
@@ -155,14 +212,106 @@ void Mario::Jump(float deltaTime)
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-bool Mario::IsGrounded()
+bool Mario::IsGrounded(float deltaTime)
 {
-	/*if(m_velocity.y == 0)
+	Vector3 velocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->GetVelocity(deltaTime);
+	velocity.x = 0;
+	if(IsAlmostEqual(velocity,Vector3::ZERO,0.05))
 	{
 		return true;
 	}
-	return false;*/
-	return true;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::OnCollisionEnter(Collider *collider)
+{
+	if(collider->m_colliderType == BOX_COLLIDER2D)
+	{
+		BoxCollider2D *boxcollider = (BoxCollider2D*)collider;
+		Vector3 position = m_transform.GetWorldPosition();
+		float   radius = GetCircleCollider()->m_disc.radius;
+		Vector2 circleColliderPosition = GetCircleCollider()->m_disc.center;
+		if(boxcollider->m_colliderDirection == SOUTH)
+		{
+			float distanceToPush = ((circleColliderPosition.y + radius) - boxcollider->m_aabb2.mins.y); 
+			m_transform.SetLocalPosition(Vector3(position.x, position.y - distanceToPush, 0));
+		}
+		if (boxcollider->m_colliderDirection == NORTH)
+		{
+			float distanceToPush = (boxcollider->m_aabb2.maxs.y - (circleColliderPosition.y - radius));
+			m_transform.SetLocalPosition(Vector3(position.x, position.y + distanceToPush, 0));
+		}
+		if (boxcollider->m_colliderDirection == EAST)
+		{
+			float distanceToPush = (boxcollider->m_aabb2.maxs.x - (circleColliderPosition.x - radius));
+			m_transform.SetLocalPosition(Vector3(position.x + distanceToPush, position.y, 0));
+		}
+		if (boxcollider->m_colliderDirection == WEST)
+		{
+			float distanceToPush = ((circleColliderPosition.x + radius) - boxcollider->m_aabb2.mins.x);
+			m_transform.SetLocalPosition(Vector3(position.x - distanceToPush, position.y, 0));
+		}
+		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		if (boxcollider->m_colliderDirection == NORTH_WEST)
+		{
+			Vector2 northWestCornerPosition(boxcollider->m_aabb2.mins.x, boxcollider->m_aabb2.maxs.y);
+			Vector2 distance				 = circleColliderPosition - northWestCornerPosition;
+			Vector2 pushDirection			 = distance.GetNormalized();
+			Vector2 requiredDistance		 = pushDirection*radius;
+			float   differenceX				 = requiredDistance.x - distance.x;
+			float   differenceY				 = requiredDistance.y - distance.y;
+
+			Vector2 finalPosition = position.GetXY() + Vector2(differenceX, differenceY);
+
+			m_transform.SetLocalPosition(Vector3(finalPosition, 0));
+		}
+		if (boxcollider->m_colliderDirection == NORTH_EAST)
+		{
+			Vector2 northEastCornerPosition(boxcollider->m_aabb2.maxs.x, boxcollider->m_aabb2.maxs.y);
+			Vector2 distance = circleColliderPosition - northEastCornerPosition;
+			Vector2 pushDirection = distance.GetNormalized();
+			Vector2 requiredDistance = pushDirection * radius;
+			float   differenceX = requiredDistance.x - distance.x;
+			float   differenceY = requiredDistance.y - distance.y;
+
+			Vector2 finalPosition = position.GetXY() + Vector2(differenceX, differenceY);
+
+			m_transform.SetLocalPosition(Vector3(finalPosition, 0));
+		}
+		if (boxcollider->m_colliderDirection == SOUTH_WEST)
+		{
+			Vector2 southWestCornerPosition(boxcollider->m_aabb2.mins.x, boxcollider->m_aabb2.mins.y);
+			Vector2 distance = circleColliderPosition - southWestCornerPosition;
+			Vector2 pushDirection = distance.GetNormalized();
+			Vector2 requiredDistance = pushDirection * radius;
+			float   differenceX = requiredDistance.x - distance.x;
+			float   differenceY = requiredDistance.y - distance.y;
+
+			Vector2 finalPosition = position.GetXY() + Vector2(differenceX, differenceY);
+
+			m_transform.SetLocalPosition(Vector3(finalPosition, 0));
+		}
+		if (boxcollider->m_colliderDirection == SOUTH_EAST)
+		{
+			Vector2 southEastCornerPosition(boxcollider->m_aabb2.maxs.x, boxcollider->m_aabb2.mins.y);
+			Vector2 distance = circleColliderPosition - southEastCornerPosition;
+			Vector2 pushDirection = distance.GetNormalized();
+			Vector2 requiredDistance = pushDirection * radius;
+			float   differenceX = requiredDistance.x - distance.x;
+			float   differenceY = requiredDistance.y - distance.y;
+
+			Vector2 finalPosition = position.GetXY() + Vector2(differenceX, differenceY);
+
+			m_transform.SetLocalPosition(Vector3(finalPosition, 0));
+		}
+
+	}
 }
 
 //////////////////////////////////////////////////////////////
@@ -177,10 +326,19 @@ bool Mario::IsGrounded()
 void Mario::Render()
 {
 	Material *defaultMaterial = Material::AquireResource("default");
-	m_texture = Texture::CreateOrGetTexture("Data\\Images\\player.png",true,false);
+	m_texture = Texture::CreateOrGetTexture("Data\\Images\\player.png",true,true);
 	defaultMaterial->m_textures.at(0) = m_texture;
 	Texture::SetCurrentTexture(m_texture);
+	defaultMaterial->m_textures.at(0) = m_texture;
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Entity::Render();
+
+	Disc2 colliderOutline = GetCircleCollider()->m_disc;
+	Renderer::GetInstance()->DrawCircle(colliderOutline.center,colliderOutline.radius);
+	DebugDraw::GetInstance()->DebugRenderLogf("COLLIDER POSITION %f, %f",colliderOutline.center.x, colliderOutline.center.y);
+
+	/*Vector2 entityPosition = m_transform.GetWorldPosition().GetXY();
+	AABB2 m_aabb2(entityPosition, GetDrawDimensions().x / 2, GetDrawDimensions().y / 2);
+	Renderer::GetInstance()->DrawAABB(m_aabb2,Rgba::WHITE);*/
 	delete defaultMaterial;
 }

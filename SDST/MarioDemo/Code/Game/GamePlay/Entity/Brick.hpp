@@ -33,12 +33,13 @@ public:
 
 	//Methods
 
-	Brick();
-	Brick(EntityDefinition *definition);
+	Brick(std::string name);
+	Brick(std::string name,EntityDefinition *definition);
 	~Brick();
 
 	void Update(float deltaTime);
 	void Render();
+	void OnCollisionEnter(Collider *collider);
 	
 	//Static_Methods
 

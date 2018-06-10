@@ -18,7 +18,7 @@ public:
 	float m_height = 1;
 
 	float m_speed = 0.05f;
-
+	bool             m_visible = true;
 	Vector2 m_forwardVector;
 	EntityDefinition *m_definition	    = nullptr;
 	Texture			 *m_texture			= nullptr;

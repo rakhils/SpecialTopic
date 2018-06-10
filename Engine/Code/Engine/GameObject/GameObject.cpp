@@ -10,6 +10,7 @@
 #include "Engine/Physics/Collider/SphereCollider.hpp"
 #include "Engine/Physics/Collider/BoxCollider.hpp"
 #include "Engine/Physics/Collider/BoxCollider2D.hpp"
+#include "Engine/Physics/Collider/CircleCollider.hpp"
 #include "Engine/Audio/AudioComponent.hpp"
 #include "Engine/Renderer/ParticleSystem/ParticleEmitter.hpp"
 #include "Engine/Renderer/Camera/PerspectiveCamera.hpp"
@@ -223,15 +224,33 @@ void GameObject::AddBoxCollider(Vector3 localPosition, Vector3 dimensions)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GameObject::AddBoxCollider2D(Vector3 localPosition, Vector3 dimensions,Vector3 normal)
 {
-	dimensions = ClampVector3(dimensions,Vector3::ONE, Vector3::ONE * 1000);
 	BoxCollider2D *collider = new BoxCollider2D();
 	collider->SetPosition(localPosition);
-	collider->offsetX = dimensions.x;
+	Vector2 worldPosition = GetWorldPosition().GetXY() + localPosition.GetXY();
+	collider->m_aabb2 = AABB2(worldPosition, dimensions.x, dimensions.y);
+	/*collider->offsetX = dimensions.x;
 	collider->offsetY = dimensions.y;
 	collider->offsetZ = dimensions.z;
-	collider->SetNormal(normal);
+	collider->SetNormal(normal);*/
 	//collider->m_transform.RotateLocalByEuler(ConvertCartesianToSpherical(normal));
 	AddColliderComponent(BOX_COLLIDER2D, collider);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/08
+*@purpose : Adds circle collider
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void GameObject::AddCircleCollider(Vector3 localPosition, float radius)
+{
+	CircleCollider *circleCollider = new CircleCollider();
+	circleCollider->SetPosition(localPosition);
+	Vector2 worldPosition = GetWorldPosition().GetXY() + localPosition.GetXY();
+	circleCollider->m_transform.SetLocalPosition(localPosition);
+	circleCollider->m_disc.center = worldPosition;
+	circleCollider->m_disc.radius = radius;
+	AddColliderComponent(CIRCLE_COLLIDER, circleCollider);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -314,6 +333,17 @@ BoxCollider2D * GameObject::GetBoxCollider2D()
 BoxCollider * GameObject::GetBoxCollider()
 {
 	return (BoxCollider*)m_colliderComponents[BOX_COLLIDER];
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/08
+*@purpose : returns the circle collider
+*@param   : NIL
+*@return  : circle collider
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+CircleCollider* GameObject::GetCircleCollider()
+{
+	return (CircleCollider*)m_colliderComponents[CIRCLE_COLLIDER];
 }
 
 //////////////////////////////////////////////////////////////
