@@ -4,6 +4,7 @@
 #include "Engine/Physics/Collider/BoxCollider2D.hpp"
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Renderer/Camera/OrthographicCamera.hpp"
+#include "Engine/Debug/DebugDraw.hpp"
 
 #include "Game/GamePlay/Entity/Pipe.hpp"
 Map::Map(MapDefinition *mapDef)
@@ -26,7 +27,7 @@ void Map::InitCamera()
 {
 	int width  = Windows::GetInstance()->GetDimensions().x;
 	int height = Windows::GetInstance()->GetDimensions().y;
-	m_block = AABB2(Vector2::ZERO, 50, 50);
+	m_block = AABB2(Vector2::ZERO, 25, 25);
 	m_camera = new OrthographicCamera();
 	m_miniMapPosition = Vector2(width - 10 * (m_block.GetDimensions().x/2)*m_miniMapScaleFactor, height - 10 * (m_block.GetDimensions().y/2)*m_miniMapScaleFactor);
 	FrameBuffer *frameBuffer = new FrameBuffer();
@@ -44,14 +45,17 @@ void Map::InitCamera()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::CreateBricks(Vector2 position)
+void Map::CreateBricks(Vector2 position,Vector2 dimension)
 {
 	int size = m_bricks.size();
 	std::string name = ("brick_"+ToString(size));
 
 	Brick *brick = new Brick(name,EntityDefinition::GetDefinition("Brick"));
+	brick->m_length = dimension.x;
+	brick->m_height = dimension.y;
+
 	brick->SetPosition(position);
-	brick->AddBoxCollider2D(Vector3(0,0,0), Vector2(brick->m_definition->m_length/2.f, brick->m_definition->m_height/2.f), Vector3::FORWARD);
+	brick->AddBoxCollider2D(Vector3(0,0,0), Vector2(dimension.x/2.f, dimension.y/2.f), Vector3::FORWARD);
 	brick->GetBoxCollider2D()->m_isStatic = true;
 	m_bricks.push_back(brick);
 }
@@ -64,14 +68,16 @@ void Map::CreateBricks(Vector2 position)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::CreatePipes(Vector2 position, Vector2 dimensions)
 {
-	int size = m_bricks.size();
+	int size = m_pipes.size();
 	std::string name = ("pipe_" + ToString(size));
 
 	Pipe *pipe = new Pipe(name, EntityDefinition::GetDefinition("Pipe"));
 	pipe->SetPosition(position);
+	pipe->m_length = 2 * dimensions.x;
+	pipe->m_height = 2 * dimensions.y;
 	pipe->AddBoxCollider2D(Vector3(0, 0, 0), dimensions, Vector3::FORWARD);
 	pipe->GetBoxCollider2D()->m_isStatic = true;
-	m_pipe.push_back(pipe);
+	m_pipes.push_back(pipe);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,10 +89,10 @@ void Map::CreatePipes(Vector2 position, Vector2 dimensions)
 void Map::CreateGround()
 {
 	float stepSize = m_block.GetDimensions().x/2.f;
-	for(int posX = stepSize/2.f;posX<7000;posX+=stepSize)
+	for(int posX = stepSize/2.f;posX<7000;posX+=stepSize+20)
 	{
-		Vector2 position(posX, 35);
-		CreateBricks(position);
+		Vector2 position(posX, 38);
+		CreateBricks(position,m_block.GetDimensions());
 	}
 }
 
@@ -103,8 +109,8 @@ void Map::CreateCharacters()
 {
 	m_textureBackground = Texture::CreateOrGetTexture("Data//Images//level1.png", true, false);
 	InitCamera();
-	CreateGround();
-	CreateBricks(Vector2(200,200));
+	//CreateGround();
+	CreateBricks(Vector2(200,200),m_block.GetDimensions());
 	CreateMario();
 }
 
@@ -117,8 +123,10 @@ void Map::CreateCharacters()
 void Map::CreateMario()
 {
 	m_mario = new Mario(EntityDefinition::GetDefinition("Mario"));
-	m_mario->SetPosition(Vector2(100,400));
+	m_mario->SetPosition(Vector2(50,400));
 	m_mario->AddRigidBody3DComponent();
+	m_mario->m_length = m_mario->m_definition->m_length;
+	m_mario->m_height = m_mario->m_definition->m_height;
 	Vector2 colliderPosition(0, -m_mario->m_definition->m_height / 2 + m_mario->m_definition->m_physicsRadius);
 	m_mario->AddCircleCollider(Vector3(colliderPosition,0), m_mario->m_definition->m_physicsRadius);
 	((RigidBody3D*)m_mario->GetComponentByType(RIGID_BODY_3D))->m_friction = 0.8f;
@@ -188,11 +196,16 @@ void Map::Update(float deltaTime)
 	{
 		((OrthographicCamera*)m_camera)->MoveUp(deltaTime*120);
 	}
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_R))
+	{
+		Vector3 position = m_mario->GetWorldPosition();
+		m_mario->m_transform.SetLocalPosition(Vector3(position.x, 450, 0));
+	}
 	m_camera->SetOrthoProjection();
 	UpdateCamera();
 	UpdateMiniMap();
 	m_mario->Update(deltaTime);
-	UpdateMarioVsBrickCollision();
+	DebugDraw::GetInstance()->DebugRenderLogf("CREATED BY RAKHIL SOMAN", "");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -245,14 +258,17 @@ void Map::UpdateBrick(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/06/08
+/*DATE    : 2018/06/09
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::UpdateMarioVsBrickCollision()
+void Map::UpdatePipes(float deltaTime)
 {
-	
+	for (Pipe *pipe : m_pipes)
+	{
+		pipe->Update(deltaTime);
+	}
 }
 
 //////////////////////////////////////////////////////////////
@@ -275,7 +291,8 @@ void Map::Render()
 	g_theRenderer->DrawTexturedAABB(m_aabb2, m_textureBackground, Vector2(0,1), Vector2(1,0), Rgba::WHITE);
 	delete defaultMaterial;
 
-	RenderBricks();
+	//RenderBricks();
+	//RenderPipes();
 	RenderMario();
 	RenderMiniMap();
 	RenderGrid();
@@ -335,7 +352,29 @@ void Map::RenderBricks()
 {
 	for (size_t brickIndex = 0; brickIndex < m_bricks.size(); brickIndex++)
 	{
+		if(m_bricks.at(brickIndex)->m_isHidden)
+		{
+			continue;
+		}
 		m_bricks.at(brickIndex)->Render();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderPipes()
+{
+	for (size_t pipeIndex = 0; pipeIndex < m_pipes.size(); pipeIndex++)
+	{
+		if (m_pipes.at(pipeIndex)->m_isHidden)
+		{
+			continue;
+		}
+		m_pipes.at(pipeIndex)->Render();
 	}
 }
 

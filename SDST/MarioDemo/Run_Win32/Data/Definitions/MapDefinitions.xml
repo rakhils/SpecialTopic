@@ -2,14 +2,196 @@
 <MapDefinitions>
  <MapDefinition name ="level1" defaultTile="water" width="166" height="8" >
 <GenerationSteps>
+  
    <SpawnActor>
-     <Brick actor ="Brick" position="100,200"/>
-   </SpawnActor>
+     <Brick actor ="Brick" position="1103,50" dimension="2210,30"/>
+   </SpawnActor>                                                            
+  <SpawnActor>                               
+    <Brick actor ="Brick" position="2512,50"  dimension="480,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="3889,50"  dimension="2075,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5872,50"  dimension="1768,20"/>
+  </SpawnActor>
+  
+  
+    <SpawnActor>
+      <Brick actor ="Brick" position="2512,50"  dimension="485,20"/>
+    </SpawnActor>
+    <SpawnActor>
+    
+    <Brick actor ="Pipe" position="925,90"   dimension="31,40"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Pipe" position="1246,110" dimension="29,50"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Pipe" position="1505,115" dimension="32,75"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Pipe" position="1855,115" dimension="32,75"/>
+  </SpawnActor>
 
   <SpawnActor>
-    <Brick actor ="Brick" position="600,200"/>
+    <Brick actor ="Brick" position="4338,80"  dimension="30,30"/>
   </SpawnActor>
-</GenerationSteps>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4370,110" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4402,140" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4432,175" dimension="30,30"/>
+  </SpawnActor>                               
+  <SpawnActor>                                
+    <Brick actor ="Brick" position="4432,135" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4432,100" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4432,70"  dimension="30,30"/>
+  </SpawnActor>
+
+
+
+  <SpawnActor>
+  <Brick actor ="Brick" position  ="4532,175" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4532,135" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4532,100" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4532,70" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4562,140" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4592,110" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4622,80"  dimension="30,30"/>
+  </SpawnActor>
+
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="4790,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4820,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4850,140"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4880,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4910,175"  dimension="30,30"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="4910,140"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4910,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4910,80"  dimension="30,30"/>
+  </SpawnActor>
+
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="5010,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+  <Brick actor ="Brick"  position="5010,140"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5010,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5010,80"  dimension="30,30"/>
+  </SpawnActor>
+
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="5040,140"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5070,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5100,80"   dimension="30,30"/>
+  </SpawnActor>
+
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="5840,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5872,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5905,140"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5940,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5970,205"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6000,237"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6030,270"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6060,300"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6100,300"  dimension="30,30"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="6100,265"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6100,235"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6100,205"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6100,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6100,140"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6100,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6100,80"  dimension="30,30"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Pipe" position="5280,90"   dimension="31,40"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Pipe" position="5790,90"   dimension="31,40"/>
+  </SpawnActor>
+  
+  
+</GenerationSteps>                            
 
 </MapDefinition>
 

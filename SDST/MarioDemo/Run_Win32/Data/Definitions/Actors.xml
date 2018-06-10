@@ -36,6 +36,16 @@
     </SpriteAnimSet>
   </ActorDefinition>
 
+  <ActorDefinition name="Pipe" faction="neutral">
+    <RGB color="100,60,0,255"/>
+    <Size physicsRadius="50" length="50" height ="50"></Size>
+    <Health max="1" start="1"/>
+    <SpriteAnimSet spriteSheet="terrain.png" spriteLayout="1,1" fps="10">
+      <SpriteAnim name="BREAK"	    	spriteIndexes="0"/>
+      <SpriteAnim name="IDLE"         spriteIndexes="0"/>
+    </SpriteAnimSet>
+  </ActorDefinition>
+
 
   <ActorDefinition name="Balrog" faction="evil">
     <Size physicsRadius="0.8" drawRadius="0.8"/>

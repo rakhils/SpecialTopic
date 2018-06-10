@@ -42,14 +42,16 @@ public:
 class MapGenSteps_SpawnActor : public MapGenSteps
 {
 	std::string m_name;
-	std::string m_position;
+	Vector2	    m_position;
+	Vector2		m_dimensions;
 public:
 	MapGenSteps_SpawnActor::MapGenSteps_SpawnActor(XMLElement& generationStepElement)
 		: MapGenSteps(generationStepElement)
 	{
 		XMLElement *ChildElement = generationStepElement.FirstChildElement();
-		m_name     = ParseXmlAttribute(*ChildElement, "actor", m_name);
-		m_position = ParseXmlAttribute(*ChildElement, "position", m_position);
+		m_name       = ParseXmlAttribute(*ChildElement, "actor", m_name);
+		m_position   = ParseXmlAttribute(*ChildElement, "position", m_position);
+		m_dimensions = ParseXmlAttribute(*ChildElement, "dimension", m_dimensions);
 	}
 	virtual void Run(Map &newMap);
 };

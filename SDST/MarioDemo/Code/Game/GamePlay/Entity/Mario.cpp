@@ -79,7 +79,7 @@ void Mario::Update(float deltaTime)
 	float xVelocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->m_velocity.x;
 	DebugRenderOptions option;
 	DebugDraw::GetInstance()->DebugRenderQuad2D(Vector3(300, 700, 0), AABB2(Vector2(0, 0), 300, 150), 0, nullptr, Rgba::BLACK, DEBUG_RENDER_FILL, option);
-	DebugDraw::GetInstance()->DebugRenderLogf("VELOCITY %f", xVelocity);
+	//DebugDraw::GetInstance()->DebugRenderLogf("VELOCITY %f", xVelocity);
 	if( xVelocity > m_minVelocityForIdle)
 	{
 		m_spriteAnimSet->SetAnimation(m_characterTypeString + "WalkEast");
@@ -97,10 +97,11 @@ void Mario::Update(float deltaTime)
 	}
 	Vector3 prevTransform = GetRigidBody3DComponent()->m_previousTransform.GetWorldPosition();
 	Vector3 marioWorldPosition = m_transform.GetWorldPosition();
-	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f, %f, %f", marioWorldPosition.x, marioWorldPosition.y, marioWorldPosition.z);
-	DebugDraw::GetInstance()->DebugRenderLogf("Previous %f, %f, %f", prevTransform.x, prevTransform.y, prevTransform.z);
-	DebugDraw::GetInstance()->DebugRenderLogf("Diff %f, %f, %f"    , (marioWorldPosition.x - prevTransform.x), (marioWorldPosition.y - prevTransform.y), (marioWorldPosition.z - prevTransform.z));
+	//DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f, %f, %f", marioWorldPosition.x, marioWorldPosition.y, marioWorldPosition.z);
+	//DebugDraw::GetInstance()->DebugRenderLogf("Previous %f, %f, %f", prevTransform.x, prevTransform.y, prevTransform.z);
+	//DebugDraw::GetInstance()->DebugRenderLogf("Diff %f, %f, %f"    , (marioWorldPosition.x - prevTransform.x), (marioWorldPosition.y - prevTransform.y), (marioWorldPosition.z - prevTransform.z));
 	Entity::Update(deltaTime);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -335,7 +336,7 @@ void Mario::Render()
 
 	Disc2 colliderOutline = GetCircleCollider()->m_disc;
 	Renderer::GetInstance()->DrawCircle(colliderOutline.center,colliderOutline.radius);
-	DebugDraw::GetInstance()->DebugRenderLogf("COLLIDER POSITION %f, %f",colliderOutline.center.x, colliderOutline.center.y);
+	//DebugDraw::GetInstance()->DebugRenderLogf("COLLIDER POSITION %f, %f",colliderOutline.center.x, colliderOutline.center.y);
 
 	/*Vector2 entityPosition = m_transform.GetWorldPosition().GetXY();
 	AABB2 m_aabb2(entityPosition, GetDrawDimensions().x / 2, GetDrawDimensions().y / 2);

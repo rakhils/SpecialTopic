@@ -25,12 +25,12 @@ public:
 	Vector2 m_miniMapPosition;
 	float   m_miniMapScaleFactor = 1 / 5.f;
 	std::vector<Brick*> m_bricks;
-	std::vector<Pipe*>  m_pipe;
+	std::vector<Pipe*>  m_pipes;
 	Mario *m_mario;
 
 	Map(MapDefinition* def);
 	void InitCamera();
-	void CreateBricks(Vector2 position);
+	void CreateBricks(Vector2 position,Vector2 dimension);
 	void CreatePipes(Vector2 position, Vector2 dimensions);
 	void CreateGround();
 	void CreateTiles();
@@ -44,10 +44,12 @@ public:
 	void UpdateCamera();
 	void UpdateMiniMap();
 	void UpdateBrick(float deltaTime);
-	void UpdateMarioVsBrickCollision();
+	void UpdatePipes(float deltaTime);
+
 	void Render();
 	void RenderMiniMap();
 	void RenderMario();
 	void RenderBricks();
+	void RenderPipes();
 	void RenderGrid();
 };

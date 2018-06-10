@@ -40,14 +40,13 @@ void Pipe::Update(float deltaTime)
 //////////////////////////////////////////////////////////////
 void Pipe::Render()
 {
-	/*Material *defaultMaterial = Material::AquireResource("default");
-	m_texture = Texture::CreateOrGetTexture("Data\\Images\\pipe.jpg", true, true);
+	Material *defaultMaterial = Material::AquireResource("default");
+	m_texture = Texture::CreateOrGetTexture("Data\\Images\\terrain.png", true, true);
 	defaultMaterial->m_textures.at(0) = m_texture;
-	Texture::SetCurrentTexture(m_texture);
+	/*m_texture = Texture::CreateOrGetTexture("Data\\Images\\pipe.jpg", true, true);*/
+	//Texture::SetCurrentTexture(m_texture);
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Entity::Render();
-	Vector2 entityPosition = m_transform.GetWorldPosition().GetXY();
-	AABB2 m_aabb2(entityPosition, GetDrawDimensions().x / 2, GetDrawDimensions().y / 2);
-	Renderer::GetInstance()->DrawAABB(m_aabb2, Rgba::WHITE);
-	delete defaultMaterial;*/
+
+	delete defaultMaterial;
 }

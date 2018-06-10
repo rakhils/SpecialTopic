@@ -73,6 +73,6 @@ void Entity::SetPosition(Vector2 position)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Vector2 Entity::GetDrawDimensions()
 {
-	return Vector2(m_definition->m_length, m_definition->m_height);
+	return Vector2(m_length, m_height);
 }
 
