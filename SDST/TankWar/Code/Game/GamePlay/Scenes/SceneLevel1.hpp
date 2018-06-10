@@ -28,7 +28,7 @@ public:
 	SceneLevel1();
 	SceneLevel1(std::string str);
 	~SceneLevel1();
-	
+	 
 	void InitScene();
 	void CreatePlayer();
 	void CreateMap();

@@ -133,6 +133,7 @@ Vector3 GameObject::GetWorldRotation()
 *//////////////////////////////////////////////////////////////
 void GameObject::AddChild(GameObject *gameObject)
 {
+	gameObject->m_transform.m_parent = &(this->m_transform);
 	m_childObjects.push_back(gameObject);
 }
 

@@ -69,16 +69,17 @@ void SceneLevel1::InitScene()
 	lightDirectional->SetPointLightInnerOuterAngles(30.f, 60.f);
 	AddLight(lightDirectional);
 	// LOADING IT HERE
-	Material::CreateOrGetMaterial1("Data\\Materials\\Skybox.mat", Renderer::GetInstance());
+	
 	
 	//
 
 	CreatePlayer();
 	CreateMap();
 	
-	m_isSkyBoxEnabled = true;
+	m_isSkyBoxEnabled = false;
 	if(m_isSkyBoxEnabled)
 	{
+		Material::CreateOrGetMaterial1("Data\\Materials\\Skybox.mat", Renderer::GetInstance());
 		m_texturecube = new TextureCube();
 		m_texturecube->make_from_image("Data//Images//Galaxy.png");
 	}
@@ -92,20 +93,44 @@ void SceneLevel1::InitScene()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLevel1::CreatePlayer()
 {
-	Mesh *sphere = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3(0, 0, 0), .10f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
+	Mesh *turretHead = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3::ZERO, 0.5f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
+	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1, .25, 2), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1, .1, 5), Rgba::WHITE, FILL_MODE_FILL);
+	GameObject *turretHeadGO = new GameObject("turrethead");
+	GameObject *turretGunGO = new GameObject("turretgun");
+	turretHeadGO->SetScene(this);
+	turretHeadGO->m_renderable->SetMesh(turretHead);
+	turretHeadGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
+	turretHeadGO->m_transform.SetLocalPosition(Vector3(0, 0.4, 0));
+	
+	turretGunGO->SetScene(this);
+	turretGunGO->m_renderable->SetMesh(turretGun);
+	turretGunGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
+	turretGunGO->m_transform.SetLocalPosition(Vector3(0, .6, 5));
+
+
+
+
 	m_playerTank = new Tank();
 	m_playerTank->SetScene(this);
 	m_playerTank->AddRigidBody3DComponent();
-	m_playerTank->AddCameraComponent(Vector3(0, .10f, -2));
-	m_playerTank->m_renderable->SetMesh(sphere);
+	m_playerTank->AddCameraComponent(Vector3(0, 2.5f, -12));
+	m_playerTank->m_renderable->SetMesh(tankBody);
 	m_playerTank->AddRigidBody3DComponent();
 	m_playerTank->GetRigidBody3DComponent()->m_gravity = Vector3(0,-1,0);
 	m_playerTank->GetRigidBody3DComponent()->m_useGravity = false;
 	m_playerTank->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-	m_playerTank->m_transform.SetLocalPosition(Vector3(115, 30, 55));
+
+	m_playerTank->AddChild(turretHeadGO);
+	m_playerTank->AddChild(turretGunGO);
+
+	m_playerTank->m_transform.Translate(Vector3(115, 30, 55));
+
 	PerspectiveCamera *camera = (PerspectiveCamera*)(m_playerTank->GetComponentByType(CAMERA));
 	AddCamera(camera);
 	AddRenderable(m_playerTank->m_renderable);
+	AddRenderable(turretGunGO->m_renderable);
+	AddRenderable(turretHeadGO->m_renderable);
 	Camera::SetGameplayCamera(camera);
 	/*Mesh *grid = MeshBuilder::Create2DGrid<Vertex_3DPCU>(Vector3(0, 0, 0), Vector2(30, 30), Vector3(1, 0, 0), Vector3(0, 0, 1), Rgba::WHITE);
 	Renderable *renderable = new Renderable();

@@ -205,7 +205,17 @@ void Map::Update(float deltaTime)
 	UpdateCamera();
 	UpdateMiniMap();
 	m_mario->Update(deltaTime);
-	DebugDraw::GetInstance()->DebugRenderLogf("CREATED BY RAKHIL SOMAN", "");
+	if(m_mario->m_transform.GetWorldPosition().y < 0)
+	{
+		m_mario->m_transform.SetLocalPosition(Vector3(50, 100, 0));
+	}
+	if (m_mario->m_transform.GetWorldPosition().x > 6700)
+	{
+		m_mario->m_transform.SetLocalPosition(Vector3(50, 100, 0));
+
+	}
+
+	//DebugDraw::GetInstance()->DebugRenderLogf("CREATED BY RAKHIL SOMAN", "");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
