@@ -293,6 +293,14 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="GamePlay\Entity\EnemyBase.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Entity\EnemyTank.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="GamePlay\Entity\Entity.cpp" />
     <ClCompile Include="GamePlay\Entity\Tank.cpp">
       <SubType>
@@ -326,6 +334,14 @@
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="GameCommon.hpp" />
     <ClInclude Include="GamePlay\Entity\Bullet.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\EnemyBase.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\EnemyTank.hpp">
       <SubType>
       </SubType>
     </ClInclude>

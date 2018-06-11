@@ -83,7 +83,9 @@ int				 GetNextHigerMultiple(int currValue, int multipleValue);
 int				 GetNextLowerMultiple(int currValue, int multipleValue);
 float			 GetFraction(float value);
 int				 LoopValue(int value, int lowerBound, int upperBound);
-				 
+
+Vector2			 RangeMap(Vector2 value, Vector2 originalLowerBound, Vector2 originalUpperBound, Vector2 newLowerBound, Vector2 newUpperBound);
+Vector3          RangeMap(Vector3 value, Vector3 originalLowerBound, Vector3 originalUppperBound, Vector3 newLowerBound, Vector3 newUpperBound);
 float			 RangeMapFloat(float value, float OriginalLowerBound, float OriginalUpperBound, float NewLowerbound, float NewUpperBound);
 float			 RangeMapInt(int value, int OriginalLowerBound, int OriginalUpperBound, int NewLowerbound, int NewUpperBound);
 float			 GetFractionInRange(float inValue, float rangeStart, float rangeEnd);
@@ -141,6 +143,8 @@ const Vector4    Interpolate( const Vector4& start, const Vector4& end, float fr
 const FloatRange Interpolate( const FloatRange& start, const FloatRange& end, float fractionTowardEnd);
 const AABB2      Interpolate( const AABB2& start, const AABB2& end, float fractionTowardEnd);
 const Disc2      Interpolate( const Disc2& start, const Disc2& end, float fractionTowardEnd);
+Vector3			 Slerp(Vector3 &a, Vector3 &b, float t);
+Vector3			 SlerpUnit(Vector3 &a, Vector3 &b, float t);
 
 // EASING FUNCTIONS
 float			 SmoothStart2(float t); // 2nd-degree smooth start (a.k.a. “quadratic ease in”)

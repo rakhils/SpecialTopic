@@ -17,6 +17,7 @@ class AudioSystem;
 class AudioSystem
 {
 public:
+	std::map<std::string, std::vector<std::string>> m_audioGroupMap;
 	AudioSystem();
 	virtual ~AudioSystem();
 
@@ -32,7 +33,8 @@ public:
 	virtual void				SetSoundPlaybackVolume( SoundPlaybackID soundPlaybackID, float volume );	// volume is in [0,1]
 	virtual void				SetSoundPlaybackBalance( SoundPlaybackID soundPlaybackID, float balance );	// balance is in [-1,1], where 0 is L/R centered
 	virtual void				SetSoundPlaybackSpeed( SoundPlaybackID soundPlaybackID, float speed );		// speed is frequency multiplier (1.0 == normal)
-
+	void						LoadSoundGroup(std::string grpname, std::string filename);
+	void						PlaySoundFromGroup(std::string grpname);
 	virtual void				ValidateResult( FMOD_RESULT result );
 
 	static AudioSystem*			s_audioSystem;

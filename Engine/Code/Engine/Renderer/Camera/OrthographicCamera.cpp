@@ -30,10 +30,10 @@ void OrthographicCamera::Update(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void OrthographicCamera::ZoomIn(float deltaTime)
+void OrthographicCamera::ZoomIn(Vector2 value)
 {
-	m_xZoomIn += 50 * deltaTime;
-	m_yZoomIn += 50 * deltaTime;
+	m_xZoomIn += value.x;
+	m_yZoomIn += value.y;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,8 +42,8 @@ void OrthographicCamera::ZoomIn(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void OrthographicCamera::ZoomOut(float deltaTime)
+void OrthographicCamera::ZoomOut(Vector2 value)
 {
-	m_xZoomIn -= 50*deltaTime;
-	m_yZoomIn -= 50*deltaTime;
+	m_xZoomIn -= value.x;
+	m_yZoomIn -= value.y;
 }

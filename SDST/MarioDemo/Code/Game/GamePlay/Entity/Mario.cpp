@@ -78,7 +78,7 @@ void Mario::Update(float deltaTime)
 	}
 	float xVelocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->m_velocity.x;
 	DebugRenderOptions option;
-	DebugDraw::GetInstance()->DebugRenderQuad2D(Vector3(300, 700, 0), AABB2(Vector2(0, 0), 300, 150), 0, nullptr, Rgba::BLACK, DEBUG_RENDER_FILL, option);
+	//DebugDraw::GetInstance()->DebugRenderQuad2D(Vector3(300, 700, 0), AABB2(Vector2(0, 0), 300, 150), 0, nullptr, Rgba::BLACK, DEBUG_RENDER_FILL, option);
 	//DebugDraw::GetInstance()->DebugRenderLogf("VELOCITY %f", xVelocity);
 	if( xVelocity > m_minVelocityForIdle)
 	{
@@ -86,7 +86,7 @@ void Mario::Update(float deltaTime)
 		m_currentAction = WALK; 
 	}
 	else
-	if (xVelocity < m_minVelocityForIdle)
+	if (xVelocity < -m_minVelocityForIdle)
 	{
 		m_spriteAnimSet->SetAnimation(m_characterTypeString + "WalkWest");
 		m_currentAction = WALK;
@@ -334,8 +334,8 @@ void Mario::Render()
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Entity::Render();
 
-	Disc2 colliderOutline = GetCircleCollider()->m_disc;
-	Renderer::GetInstance()->DrawCircle(colliderOutline.center,colliderOutline.radius);
+	//Disc2 colliderOutline = GetCircleCollider()->m_disc;
+	//Renderer::GetInstance()->DrawCircle(colliderOutline.center,colliderOutline.radius);
 	//DebugDraw::GetInstance()->DebugRenderLogf("COLLIDER POSITION %f, %f",colliderOutline.center.x, colliderOutline.center.y);
 
 	/*Vector2 entityPosition = m_transform.GetWorldPosition().GetXY();

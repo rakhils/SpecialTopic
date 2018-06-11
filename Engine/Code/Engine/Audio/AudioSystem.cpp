@@ -3,7 +3,7 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/ErrorWarningAssert.hpp"
 #include "Engine/Core/StringUtils.hpp"
-
+#include "Engine/Math/MathUtil.hpp"
 //-----------------------------------------------------------------------------------------------
 // To disable audio entirely (and remove requirement for fmod.dll / fmod64.dll) for any game,
 //	#define ENGINE_DISABLE_AUDIO in your game's Code/Game/EngineBuildPreferences.hpp file.
@@ -232,6 +232,47 @@ void AudioSystem::SetSoundPlaybackSpeed( SoundPlaybackID soundPlaybackID, float 
 	channelAssignedToSound->setFrequency( frequency * speed );
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AudioSystem::LoadSoundGroup(std::string grpname, std::string filename)
+{
+	SoundID id = CreateOrGetSound(filename);
+	std::map<std::string, std::vector<std::string>>::iterator it;
+	it = m_audioGroupMap.find(grpname);
+	if(it == m_audioGroupMap.end())
+	{
+		std::vector<std::string> filenames;
+		filenames.push_back(filename);
+		m_audioGroupMap[grpname] =filenames;
+		return;
+	}
+	std::vector<std::string> filenames = it->second;
+	filenames.push_back(filename);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : Plays random song from group
+*@param   : group name
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AudioSystem::PlaySoundFromGroup(std::string grpname)
+{
+	std::map<std::string, std::vector<std::string>>::iterator it;
+	it = m_audioGroupMap.find(grpname);
+	if (it != m_audioGroupMap.end())
+	{
+		std::vector<std::string> filenames = it->second;
+		int random = GetRandomIntLessThan(filenames.size());
+		SoundID id = CreateOrGetSound(filenames.at(random));
+		PlaySound(id);
+	}
+}
 
 //-----------------------------------------------------------------------------------------------
 void AudioSystem::ValidateResult( FMOD_RESULT result )

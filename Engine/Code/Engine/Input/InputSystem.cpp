@@ -8,7 +8,7 @@
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Math/Vector2.hpp"
 #include "Engine/Core/Windows.hpp"
-
+#include "Engine/Renderer/Camera.hpp"
 //const unsigned char	InputSystem::KEYBOARD_ESCAPE	= VK_ESCAPE;
 //const unsigned char	InputSystem::KEYBOARD_F1		= VK_F1;
 
@@ -117,14 +117,14 @@ void InputSystem::UpdateMouse()
 
 	m_mouse.m_positionLastFrame = m_mouse.m_positionThisFrame;
 	m_mouse.m_positionThisFrame = GetMouseClientPosition();
-
+	ShowCursor(true);
 	// Relative mode -> I care about deltas - I reset to the center (meaning, mutually exclusive modes)
 	if (m_mouse.m_mouseMode == MOUSEMODE_RELATIVE) 
 	{
 		m_mouse.m_positionLastFrame = GetCenterOfClientWindow();
 		SetMousePosition(m_mouse.m_positionLastFrame);
+		ShowCursor(false);
 	}
-	ShowCursor(false);
 	MouseLockToScreen(true);
 
 }

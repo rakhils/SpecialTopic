@@ -15,6 +15,7 @@ Renderable::~Renderable()
 		delete m_mesh;
 		m_mesh = nullptr;
 	}
+	delete m_material;
 }
 
 //////////////////////////////////////////////////////////////

@@ -473,6 +473,33 @@ Vector2 GetAABBDiscOverlapDistance(const AABB2& aabb2, const Disc2& disk,Vector2
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : Rangemaps Vector2
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector2 RangeMap(Vector2 value, Vector2 originalLowerBound, Vector2 originalUpperBound, Vector2 newLowerBound, Vector2 newUpperBound)
+{
+	float xValue = RangeMapFloat(value.x, originalLowerBound.x, originalUpperBound.x, newLowerBound.x, newUpperBound.x);
+	float yValue = RangeMapFloat(value.y, originalLowerBound.y, originalUpperBound.y, newLowerBound.y, newUpperBound.y);
+	return Vector2(xValue, yValue);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector3 RangeMap(Vector3 value, Vector3 originalLowerBound, Vector3 originalUpperBound, Vector3 newLowerBound, Vector3 newUpperBound)
+{
+	float xValue = RangeMapFloat(value.x, originalLowerBound.x, originalUpperBound.x, newLowerBound.x, newUpperBound.x);
+	float yValue = RangeMapFloat(value.y, originalLowerBound.y, originalUpperBound.y, newLowerBound.y, newUpperBound.y);
+	float zValue = RangeMapFloat(value.z, originalLowerBound.z, originalUpperBound.z, newLowerBound.z, newUpperBound.z);
+	return Vector3(xValue, yValue,zValue);
+}
+
 float RangeMapFloat(float value,float OriginalLowerBound,float OriginalUpperBound,float NewLowerbound,float NewUpperBound)
 {
 	if(OriginalLowerBound == OriginalUpperBound)
@@ -1349,6 +1376,49 @@ const Vector4 Interpolate(const Vector4& start, const Vector4& end, float fracti
 	const Vector4& temp = start + (end - start);
 	const Vector4 finalVector(temp.x*fractionTowardEnd, temp.y*fractionTowardEnd, temp.z*fractionTowardEnd,temp.w*fractionTowardEnd);
 	return finalVector;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector3 Slerp(Vector3 &a, Vector3 &b, float t)
+{
+	float al	 = a.GetLength();
+	float bl	 = b.GetLength();
+
+	float len	 = Interpolate(al, bl, t);
+	Vector3 ad = a / al;
+	Vector3 bd = b / bl;
+	Vector3 u    = SlerpUnit(ad, bd, t);
+	return len * u;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector3 SlerpUnit(Vector3 &a, Vector3 &b, float t)
+{
+	float			 EPSILON = 0.001;
+	float cosangle = ClampFloat(DotProduct(a, b), -1.0f, 1.0f);
+	float angle = acosf(cosangle);
+	if (angle < EPSILON)
+	{
+		return Interpolate(a, b, t);
+	}
+	else 
+	{
+		float pos_num = sinf(t * angle);
+		float neg_num = sinf((1.0f - t) * angle);
+		float den	  = sinf(angle);
+
+		return (neg_num / den) * a + (pos_num / den) * b;
+	}
 }
 
 float SmoothStart2(float t)

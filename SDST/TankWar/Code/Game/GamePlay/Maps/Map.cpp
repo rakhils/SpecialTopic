@@ -196,13 +196,17 @@ float Map::GetHeight(Vector2 position)
 	int index1 = static_cast<int>((static_cast<int>(position.y) * m_extents.GetDimensions().x + static_cast<int>(position.x)));
 	int index2 = static_cast<int>((static_cast<int>(position.y) * m_extents.GetDimensions().x + static_cast<int>(position.x + 1)));
 	int index3 = static_cast<int>((static_cast<int>(position.y + 1) * m_extents.GetDimensions().x + static_cast<int>(position.x)));
+	int index4 = static_cast<int>((static_cast<int>(position.y + 1) * m_extents.GetDimensions().x + static_cast<int>(position.x + 1)));
 
-	float height1 = GetHeigthAtIndex(static_cast<int>(index1));
+
+	float height1  = GetHeigthAtIndex(static_cast<int>(index1));
 	float heightx1 = GetHeigthAtIndex(static_cast<int>(index2));
 	float heighty1 = GetHeigthAtIndex(static_cast<int>(index3));
+	float heightxy1 = GetHeigthAtIndex(static_cast<int>(index4));
+
 
 	float dx = Interpolate(height1, heightx1, GetFraction(position.x));
-	float dy = Interpolate(height1, heighty1, GetFraction(position.y));
+	float dy = Interpolate(heighty1, heightxy1, GetFraction(position.x));
 	float height = Interpolate(dx, dy, GetFraction(position.y));
 
 	//DebugDraw::GetInstance()->DebugRenderLogf("INDEX1 = %d INDEX2 = %d INDEX3 %d ", (index1),(index2),(index3));

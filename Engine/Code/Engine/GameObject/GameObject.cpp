@@ -52,13 +52,13 @@ GameObject::~GameObject()
 		m_renderable = nullptr;
 	}
 	std::map<COMPONENT_COLLIDER_TYPE, Collider*>::iterator it;
-	for (it = m_colliderComponents.end(); it != m_colliderComponents.begin(); it--)
+	for (it = m_colliderComponents.begin(); it != m_colliderComponents.end(); it++)
 	{
 		delete it->second;
 		it->second = nullptr;
 	}
 	std::map<COMPONENT_TYPE, Component*>::iterator itcomponent;
-	for (itcomponent = m_components.end(); itcomponent != m_components.begin(); it--)
+	for (itcomponent = m_components.begin(); itcomponent != m_components.end(); it++)
 	{
 		delete itcomponent->second;
 		itcomponent->second = nullptr;
@@ -68,6 +68,18 @@ GameObject::~GameObject()
 	{
 		m_light->DisablePointLight();
 	}
+
+	std::map<std::string , GameObject*>::iterator gmit;
+	for (gmit = s_gameObjects.begin(); gmit != s_gameObjects.end(); gmit++)
+	{
+		if(gmit->second == this)
+		{
+			s_gameObjects.erase(gmit);
+			return;
+		}
+	}
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -53,6 +53,7 @@ public:
 	Vector4 GetXComponent4();
 	Vector4 GetYComponent4();
 	Vector4 GetZComponent4();
+	Vector4 GetWComponent4();
 																	  // Mutators
 	void SetIdentity();
 	void SetValues( const float* sixteenValuesBasisMajor ); // float[16] array in order Ix, Iy...
@@ -81,6 +82,8 @@ public:
 	static Matrix44 MakePerspectiveMatrix(float fovDegrees,float aspect,float nearz,float farz);
 	static Matrix44 MakeRotationMatrixFromDirection(Vector3 direction);
 	static Matrix44 LookAt(Vector3 forward, Vector3 upvector);
+	static Matrix44 LerpTransform(Matrix44 &a, Matrix44 &b, float delta);
+	static Vector4  Multiply(Vector4 vec4, Matrix44 mat44);
 	void MultiplyAndSet(Matrix44 valueMatrix);
 	void InvertFast();
 };

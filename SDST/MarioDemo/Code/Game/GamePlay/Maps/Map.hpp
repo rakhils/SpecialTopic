@@ -30,7 +30,7 @@ public:
 
 	Map(MapDefinition* def);
 	void InitCamera();
-	void CreateBricks(Vector2 position,Vector2 dimension);
+	void CreateBricks(Vector2 position,Vector2 dimension,bool hidden);
 	void CreatePipes(Vector2 position, Vector2 dimensions);
 	void CreateGround();
 	void CreateTiles();

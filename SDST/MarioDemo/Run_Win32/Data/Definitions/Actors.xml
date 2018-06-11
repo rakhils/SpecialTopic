@@ -8,7 +8,7 @@
       <SpriteAnim name="SmallMarioWalkWest"   spriteIndexes="44,43,42"/>
       <SpriteAnim name="SmallMaroJumpEast"    spriteIndexes="3"/>
       <SpriteAnim name="SmallMaroJumpWest"    spriteIndexes="9"/>
-      <SpriteAnim name="SmallMarioEastIdle"   spriteIndexes="0"/>
+      <SpriteAnim name="SmallMarioEastIdle"   spriteIndexes="12"/>
       <SpriteAnim name="SmallMarioWestIdle"   spriteIndexes="6"/>
       
       <SpriteAnim name="BigMarioWalkEast"     spriteIndexes="13,14,13"/>

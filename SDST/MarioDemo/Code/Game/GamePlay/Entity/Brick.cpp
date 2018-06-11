@@ -50,9 +50,9 @@ void Brick::Render()
 	Texture::SetCurrentTexture(m_texture);
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Entity::Render();
-	Vector2 entityPosition = m_transform.GetWorldPosition().GetXY();
+	/*Vector2 entityPosition = m_transform.GetWorldPosition().GetXY();
 	AABB2 m_aabb2(entityPosition, GetDrawDimensions().x / 2, GetDrawDimensions().y / 2);
-	Renderer::GetInstance()->DrawAABB(m_aabb2, Rgba::WHITE);
+	Renderer::GetInstance()->DrawAABB(m_aabb2, Rgba::WHITE);*/
 	delete defaultMaterial;
 }
 

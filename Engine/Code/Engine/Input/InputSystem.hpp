@@ -38,7 +38,6 @@ struct MouseButtonState
 	int m_mouseXPosition;
 	int m_mouseYPosition;
 };
-
 class InputSystem
 {
 public:

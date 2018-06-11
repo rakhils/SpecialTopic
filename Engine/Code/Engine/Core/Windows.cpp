@@ -55,7 +55,7 @@ Windows::Windows( char const *app_name, float clientAspect )
    RegisterWindowClass(); 
    
 	// #SD1ToDo: Add support for fullscreen mode (requires different window style flags than windowed mode)
-	const DWORD windowStyleFlags   = WS_CAPTION | WS_BORDER | WS_THICKFRAME | WS_SYSMENU | WS_OVERLAPPED; // WS_POPUP
+	const DWORD windowStyleFlags   = WS_CAPTION  | WS_THICKFRAME | WS_SYSMENU | WS_OVERLAPPED; // WS_POPUP
 	//const DWORD windowStyleFlags   = WS_POPUP;
 	const DWORD windowStyleExFlags = WS_EX_APPWINDOW;
 

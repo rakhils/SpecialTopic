@@ -37,6 +37,7 @@ void Map::InitCamera()
 	m_camera->m_transform.SetLocalPosition(Vector3(static_cast<float>(width / 2), static_cast<float>(height / 2), 0));
 	Camera::SetGameplayCamera(m_camera);
 	Camera::SetCurrentCamera(m_camera);
+	((OrthographicCamera*)m_camera)->ZoomIn(Vector2(300,0));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,15 +46,15 @@ void Map::InitCamera()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::CreateBricks(Vector2 position,Vector2 dimension)
+void Map::CreateBricks(Vector2 position,Vector2 dimension,bool hidden)
 {
 	int size = m_bricks.size();
 	std::string name = ("brick_"+ToString(size));
 
-	Brick *brick = new Brick(name,EntityDefinition::GetDefinition("Brick"));
-	brick->m_length = dimension.x;
-	brick->m_height = dimension.y;
-
+	Brick *brick      = new Brick(name,EntityDefinition::GetDefinition("Brick"));
+	brick->m_length   = dimension.x;
+	brick->m_height   = dimension.y;
+	brick->m_isHidden = hidden;
 	brick->SetPosition(position);
 	brick->AddBoxCollider2D(Vector3(0,0,0), Vector2(dimension.x/2.f, dimension.y/2.f), Vector3::FORWARD);
 	brick->GetBoxCollider2D()->m_isStatic = true;
@@ -92,7 +93,7 @@ void Map::CreateGround()
 	for(int posX = stepSize/2.f;posX<7000;posX+=stepSize+20)
 	{
 		Vector2 position(posX, 38);
-		CreateBricks(position,m_block.GetDimensions());
+		//CreateBricks(position,m_block.GetDimensions());
 	}
 }
 
@@ -110,7 +111,7 @@ void Map::CreateCharacters()
 	m_textureBackground = Texture::CreateOrGetTexture("Data//Images//level1.png", true, false);
 	InitCamera();
 	//CreateGround();
-	CreateBricks(Vector2(200,200),m_block.GetDimensions());
+//	CreateBricks(Vector2(200,200),m_block.GetDimensions());
 	CreateMario();
 }
 
@@ -123,7 +124,7 @@ void Map::CreateCharacters()
 void Map::CreateMario()
 {
 	m_mario = new Mario(EntityDefinition::GetDefinition("Mario"));
-	m_mario->SetPosition(Vector2(50,400));
+	m_mario->SetPosition(Vector2(200,400));
 	m_mario->AddRigidBody3DComponent();
 	m_mario->m_length = m_mario->m_definition->m_length;
 	m_mario->m_height = m_mario->m_definition->m_height;
@@ -174,11 +175,11 @@ void Map::Update(float deltaTime)
 	}
 	if(InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_Z))
 	{
-		((OrthographicCamera*)m_camera)->ZoomIn(100*deltaTime);
+		((OrthographicCamera*)m_camera)->ZoomIn(Vector2(100*deltaTime,100*deltaTime));
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_X))
 	{
-		((OrthographicCamera*)m_camera)->ZoomOut(100*deltaTime);
+		((OrthographicCamera*)m_camera)->ZoomOut(Vector2(100*deltaTime,100*deltaTime));
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_A))
 	{
@@ -207,12 +208,11 @@ void Map::Update(float deltaTime)
 	m_mario->Update(deltaTime);
 	if(m_mario->m_transform.GetWorldPosition().y < 0)
 	{
-		m_mario->m_transform.SetLocalPosition(Vector3(50, 100, 0));
+		m_mario->m_transform.SetLocalPosition(Vector3(200, 100, 0));
 	}
 	if (m_mario->m_transform.GetWorldPosition().x > 6700)
 	{
-		m_mario->m_transform.SetLocalPosition(Vector3(50, 100, 0));
-
+		m_mario->m_transform.SetLocalPosition(Vector3(200, 100, 0));
 	}
 
 	//DebugDraw::GetInstance()->DebugRenderLogf("CREATED BY RAKHIL SOMAN", "");
@@ -293,6 +293,7 @@ void Map::UpdatePipes(float deltaTime)
 void Map::Render()
 {
 	Camera::SetCurrentCamera(m_camera);
+
 	Material *defaultMaterial = Material::AquireResource("default");
 	defaultMaterial->m_textures.at(0) = m_textureBackground;
 	Texture::SetCurrentTexture(m_textureBackground);
@@ -301,11 +302,11 @@ void Map::Render()
 	g_theRenderer->DrawTexturedAABB(m_aabb2, m_textureBackground, Vector2(0,1), Vector2(1,0), Rgba::WHITE);
 	delete defaultMaterial;
 
-	//RenderBricks();
+	RenderBricks();
 	//RenderPipes();
 	RenderMario();
-	RenderMiniMap();
-	RenderGrid();
+	//RenderMiniMap();
+	//RenderGrid();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

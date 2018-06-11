@@ -17,6 +17,7 @@
 #include "Game/GamePlay/Scenes/SceneLevel1.hpp"
 #include "Game/GamePlay/Entity/Tank.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
+#include "Game/GamePlay/Entity/EnemyBase.hpp"
 // CONSTRUCTOR
 SceneLevel1::SceneLevel1() : Scene()
 {
@@ -109,8 +110,6 @@ void SceneLevel1::CreatePlayer()
 	turretGunGO->m_transform.SetLocalPosition(Vector3(0, .6, 5));
 
 
-
-
 	m_playerTank = new Tank();
 	m_playerTank->SetScene(this);
 	m_playerTank->AddRigidBody3DComponent();
@@ -124,13 +123,16 @@ void SceneLevel1::CreatePlayer()
 	m_playerTank->AddChild(turretHeadGO);
 	m_playerTank->AddChild(turretGunGO);
 
-	m_playerTank->m_transform.Translate(Vector3(115, 30, 55));
+	m_playerTank->m_transform.Translate(Vector3(10, 30, 50));
 
 	PerspectiveCamera *camera = (PerspectiveCamera*)(m_playerTank->GetComponentByType(CAMERA));
 	AddCamera(camera);
 	AddRenderable(m_playerTank->m_renderable);
 	AddRenderable(turretGunGO->m_renderable);
 	AddRenderable(turretHeadGO->m_renderable);
+
+	EnemyBase::AddEnemyBase("enemybase_1", Vector3(10, 10, 10), Vector3(10, 10, 10), this);
+	EnemyBase::CreateEnemy("enemybase_1",this);
 	Camera::SetGameplayCamera(camera);
 	/*Mesh *grid = MeshBuilder::Create2DGrid<Vertex_3DPCU>(Vector3(0, 0, 0), Vector2(30, 30), Vector3(1, 0, 0), Vector3(0, 0, 1), Rgba::WHITE);
 	Renderable *renderable = new Renderable();
@@ -182,18 +184,7 @@ void SceneLevel1::Update(float deltaTime)
 	DebugRenderOptions options;
 	options.m_lifeTime = 0;
 	DebugDraw::GetInstance()->DebugRenderSphere(Vector3(0, 70, 100), 20, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL_WIRE, options);
-	float PI = 3.14f;
-	Vector3 minRotationValue(-PI / 2, 0, 0);
-	Vector3 maxRotationValue(PI / 2, 2 * PI, 0);
-	Vector2 delta = InputSystem::GetInstance()->GetMouseDelta();
-	delta.y += .5;
-	if (delta.x != 0)
-	{
-		m_playerTank->m_transform.RotateLocalByEuler(Vector3(0, 0.005f*delta.x, 0));
-		Vector3 rotation = m_playerTank->m_transform.GetLocalEulerAngles();
-		rotation.y = fmodf(rotation.y, 2 * PI);
-		m_playerTank->m_transform.SetLocalRotationEuler(rotation);
-	}
+	
 	/*if (delta.y != 0)
 	{
 		float rotateXAngle = 0.005f*delta.y;
@@ -202,7 +193,7 @@ void SceneLevel1::Update(float deltaTime)
 		rotation.x = ClampFloat(rotation.x, -PI / 2, PI / 2);
 		m_playerTank->m_transform.SetLocalRotationEuler(rotation);
 	}*/
-
+	
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_A))
 	{
 		Matrix44 worldMatrix = m_playerTank->m_transform.GetWorldMatrix();
@@ -248,6 +239,7 @@ void SceneLevel1::Update(float deltaTime)
 	m_playerTank->Update(deltaTime);
 	Vector3 playerWorldPosition = m_playerTank->m_transform.GetWorldPosition();
 	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f ,%f, %f", playerWorldPosition.x,playerWorldPosition.y,playerWorldPosition.z);
+	EnemyBase::UpdateEnemyBase(deltaTime);
 	//DebugDraw::GetInstance()->DebugRenderBasis(Vector3::ZERO, Vector3::ZERO, 0, 50);
 }
 

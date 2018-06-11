@@ -88,6 +88,12 @@
     <ClCompile Include="GamePlay\Scenes\SceneReadyUp.cpp">
       <Filter>General\GamePlay\Scenes</Filter>
     </ClCompile>
+    <ClCompile Include="GamePlay\Entity\EnemyBase.cpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Entity\EnemyTank.cpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -134,6 +140,12 @@
     </ClInclude>
     <ClInclude Include="GamePlay\Scenes\SceneReadyUp.hpp">
       <Filter>General\GamePlay\Scenes</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\EnemyBase.hpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\EnemyTank.hpp">
+      <Filter>General\GamePlay\Entity</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

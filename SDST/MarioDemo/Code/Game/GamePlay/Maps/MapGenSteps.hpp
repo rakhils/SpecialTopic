@@ -44,6 +44,7 @@ class MapGenSteps_SpawnActor : public MapGenSteps
 	std::string m_name;
 	Vector2	    m_position;
 	Vector2		m_dimensions;
+	bool        m_hidden = true;
 public:
 	MapGenSteps_SpawnActor::MapGenSteps_SpawnActor(XMLElement& generationStepElement)
 		: MapGenSteps(generationStepElement)
@@ -52,6 +53,7 @@ public:
 		m_name       = ParseXmlAttribute(*ChildElement, "actor", m_name);
 		m_position   = ParseXmlAttribute(*ChildElement, "position", m_position);
 		m_dimensions = ParseXmlAttribute(*ChildElement, "dimension", m_dimensions);
+		m_hidden	 = ParseXmlAttribute(*ChildElement,  "hidden"  , m_hidden);
 	}
 	virtual void Run(Map &newMap);
 };

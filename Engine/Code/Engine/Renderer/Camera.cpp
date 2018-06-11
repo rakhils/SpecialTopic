@@ -144,19 +144,28 @@ void Camera::SetModelMatrix(Matrix44 model)
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-Vector3 Camera::ScreenToWorld(Vector2 xy, float ndc_depth)
+Vector3 Camera::ScreenToWorld(Vector2 screen_xy, float ndc_depth)
 {
-	UNUSED(ndc_depth);
-	/*Vector3 NDC_XY = RangeMap(screen_xy, Vector2(0, 0), Vector2(resoulution_x(), resolution_y()), Vector2(-1, 1), Vector2(1, -1);
+	Vector2 resolution = Windows::GetInstance()->GetDimensions().GetAsVector2();
 
-	Vector3 NDC = Vector3(ndc_xy, ndc_depth);
+	Vector2 NDC_XY = RangeMap(screen_xy, Vector2(0, 0), resolution, Vector2(-1.f, 1.f), Vector2(1.f, -1.f));
 
-	Vector4 homogenious_world = Vector4(ndc, 1)*GetViewProjection().inverse();
+	Vector3 NDC = Vector3(NDC_XY, ndc_depth);
 
-	Vector3 worldPos = homogenius_world.xyz() / homogenuous_world.w;
+	Vector4 homogenious_world = Vector4(NDC, 1);
+	Matrix44 viewProjection = GetViewProjection();
 
-	return world_pos;*/
-	return Vector3::ONE;
+	viewProjection.Tx = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetIAxis());
+	viewProjection.Ty = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetJAxis());
+	//viewProjection.Tz = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetKAxis());
+
+
+	viewProjection.InvertFast();
+	homogenious_world = Matrix44::Multiply(homogenious_world,viewProjection);
+	
+	Vector3 worldPos = homogenious_world.XYZ() / homogenious_world.w;
+	worldPos.z = worldPos.z*-1;
+	return worldPos;
 }
 
 //////////////////////////////////////////////////////////////
@@ -185,6 +194,21 @@ void Camera::SetColorTarget(Texture *colorTarget)
 void Camera::SetDepthStencilTarget(Texture *stencilTarget)
 {
 	m_defaultFrameBuffer->SetDepthStencilTarget(stencilTarget);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+PickRay Camera::GetPickRayFromScreenCords(Vector2 screenXY)
+{
+	Vector3 start = ScreenToWorld(screenXY, -1);
+	Vector3 end   = ScreenToWorld(screenXY,  1);
+	Vector3 direction = end - start;
+	PickRay ray(start, direction.GetNormalized());
+	return ray;
 }
 
 //////////////////////////////////////////////////////////////
@@ -262,6 +286,20 @@ Vector3 Camera::GetCameraUpVector()
 	//Vector3 forwardVector(m_view.Jx, m_view.Jy, m_view.Jz);
 	Vector3 forwardVector(m_view.Iy, m_view.Jy, m_view.Ky);
 	return forwardVector;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Matrix44 Camera::GetViewProjection()
+{
+	Matrix44 result;
+	result.MultiplyAndSet(m_view);
+	result.MultiplyAndSet(m_projection);
+	return result;
 }
 
 //////////////////////////////////////////////////////////////

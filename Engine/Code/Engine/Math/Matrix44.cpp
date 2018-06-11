@@ -1,5 +1,5 @@
 #include "Engine/Math/Matrix44.hpp"
-
+#include "Engine/Math/MathUtil.hpp"
 Matrix44::Matrix44()
 {
 	Ix = 1;
@@ -230,6 +230,21 @@ Vector3 Matrix44::Multiply(Vector3 position)
 	return Vector3(X, Y, Z);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector4 Matrix44::Multiply(Vector4 vec4, Matrix44 mat44)
+{
+	float x = DotProduct(vec4, mat44.GetXComponent4());
+	float y = DotProduct(vec4, mat44.GetYComponent4());
+	float z = DotProduct(vec4, mat44.GetZComponent4());
+	float w = DotProduct(vec4, mat44.GetWComponent4());
+	return Vector4(x, y, z, w);
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/03/18
 *@purpose : NIL
@@ -440,6 +455,17 @@ Vector4 Matrix44::GetYComponent4()
 Vector4 Matrix44::GetZComponent4()
 {
 	return Vector4(Iz, Jz, Kz,Tz);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector4 Matrix44::GetWComponent4()
+{
+	return Vector4(Iw, Jw, Kw,Tw);
 }
 
 void Matrix44::SetIdentity()
@@ -969,6 +995,31 @@ Matrix44 Matrix44::LookAt(Vector3 forward, Vector3 worldUP)
 	return LookAtMatrix;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/10
+*@purpose : Lerps transforms from matrix a to b by deltatime
+*@param   : StartMatrix a End Matrix b , delta time
+*@return  : Lerped matrix
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Matrix44 Matrix44::LerpTransform(Matrix44 &a, Matrix44 &b, float delta)
+{
+	Vector3 aRight			= a.GetIAxis();
+	Vector3 bRight			= b.GetIAxis();
+	Vector3 aUp				= a.GetJAxis();
+	Vector3 bUp				= b.GetJAxis();
+	Vector3 aForward		= a.GetKAxis();
+	Vector3 bForward		= b.GetKAxis();
+	Vector3 aTranslation	= a.GetTAxis();
+	Vector3 bTranslation	= b.GetTAxis();
+	
+	Vector3 right			= Slerp(aRight, bRight, delta);
+	Vector3 up				= Slerp(aUp, bUp, delta);
+	Vector3 forward			= Slerp(aForward, bForward, delta);
+	Vector3 translation		= Interpolate(aTranslation, bTranslation, delta);
+
+	return Matrix44(right, up, forward, translation);
+}
+
 void Matrix44::MultiplyAndSet(Matrix44 valueMatrix)
 {
 	Vector4 IVector(Ix,Jx,Kx,Tx);
@@ -1029,6 +1080,5 @@ void Matrix44::InvertFast()
 	Tx = -1*Tx;
 	Ty = -1*Ty;
 	Tz = -1*Tz;
-
 
 }

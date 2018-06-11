@@ -14,7 +14,16 @@
 * \date   : 2/10/2018 4:32:51 PM
 * \contact: srsrakhil@gmail.com
 */
- 
+struct PickRay
+{
+	Vector3 m_position;
+	Vector3 m_direction;
+	PickRay(Vector3 pos, Vector3 dir)
+	{
+		m_position = pos;
+		m_direction = dir;
+	}
+};
 class Camera : public Component
 {
 
@@ -46,7 +55,6 @@ public:
 	Vector3		GetCameraRightVector();
 	Vector3		GetCameraForwardVector();
 	Vector3		GetCameraUpVector();
-	
 	void		SetProjection(Matrix44 const &proj);
 	void		SetViewMatrix(Matrix44 view);
 	void		SetModelMatrix(Matrix44 model);
@@ -55,7 +63,8 @@ public:
 	void		SetOrthoProjection(Vector2 bottomLeft,Vector2 topRigth, float nearZ, float farZ);
 	void		SetColorTarget(Texture *texture);
 	void		SetDepthStencilTarget(Texture *texture);
-	
+	PickRay     GetPickRayFromScreenCords(Vector2 screenXY);
+	Matrix44    GetViewProjection();
 	Matrix44	LookAt(Vector3 pos, Vector3 tartget, Vector3 worldUP);
 	//void		Update(float deltaTime);
 
@@ -78,8 +87,6 @@ public:
 	static void SetDefaultCamera (Camera *camera) { s_defaultCamera  = camera;}
 	static void SetCurrentCamera (Camera *camera) 
 	{ 
-		/*if (camera == s_currentCamera) 
-			//return;  */
 		camera->Finalize(); 
 		s_currentCamera = camera; 
 	}

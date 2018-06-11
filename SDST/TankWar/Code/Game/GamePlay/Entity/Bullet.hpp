@@ -26,13 +26,15 @@ class Bullet : public GameObject
 public:
 	//Member_Variables
 	int m_index = 0;
-	float m_lifeTime = 6;
+	float m_lifeTime = 5;
+	float m_radius   = 1;
+	float m_speed	 = 0;
 	//Static_Member_Variables
 
 	//Methods
 
-	Bullet();
-	Bullet(Vector3 position, Vector3 direction);
+	Bullet(std::string name);
+	Bullet(std::string name,Vector3 position, Vector3 direction,float speed);
 	~Bullet();
 	
 	void Update(float deltaTime);

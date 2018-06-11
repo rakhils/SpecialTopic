@@ -24,8 +24,8 @@ public:
 	OrthographicCamera();
 	~OrthographicCamera();
 	void Update(float deltaTime);
-	void ZoomIn(float deltaTime);
-	void ZoomOut(float deltaTime);
+	void ZoomIn(Vector2 value);
+	void ZoomOut(Vector2 value);
 	//Static_Methods
 
 protected:

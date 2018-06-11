@@ -11,7 +11,7 @@
 * \date   : 5/7/2018 12:25:55 AM
 * \contact: srsrakhil@gmail.com
 */
- 
+class Bullet;
 class Tank : public GameObject
 {
 
@@ -24,13 +24,20 @@ public:
 	bool  m_isAlive = true;
 	float m_timeElapsed = 0;
 	StopWatch			  m_stopWatch;
+
+	std::vector<Bullet*> m_bullets;
 	//Static_Member_Variables
 
 	//Methods
 
 	Tank();
 	~Tank();
+
+	Vector3 GetTurretForward();
+	void    FireBullet(float deltaTime);
 	void Update(float deltaTime);
+	void UpdateBullet(float deltaTime);
+	void UpdateProjectedLines(float deltaTime);
 	void OnCollisionEnter(Collider* collider);
 	//Static_Methods
 
