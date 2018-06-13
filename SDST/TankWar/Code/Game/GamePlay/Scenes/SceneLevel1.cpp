@@ -13,7 +13,10 @@
 #include "Engine/Physics/RigidBody3D.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
 #include "Engine/Logger/LogManager.hpp"
+#include "Engine/Physics/Raycast3D.hpp"
+#include "Engine/Physics/Terrain.hpp"
 
+#include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Scenes/SceneLevel1.hpp"
 #include "Game/GamePlay/Entity/Tank.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
@@ -94,9 +97,9 @@ void SceneLevel1::InitScene()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLevel1::CreatePlayer()
 {
-	Mesh *turretHead = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3::ZERO, 0.5f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
+	Mesh *turretHead = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3::ZERO, .75f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
 	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1, .25, 2), Rgba::WHITE, FILL_MODE_FILL);
-	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1, .1, 5), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1, .1, 2), Rgba::WHITE, FILL_MODE_FILL);
 	GameObject *turretHeadGO = new GameObject("turrethead");
 	GameObject *turretGunGO = new GameObject("turretgun");
 	turretHeadGO->SetScene(this);
@@ -107,7 +110,7 @@ void SceneLevel1::CreatePlayer()
 	turretGunGO->SetScene(this);
 	turretGunGO->m_renderable->SetMesh(turretGun);
 	turretGunGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-	turretGunGO->m_transform.SetLocalPosition(Vector3(0, .6, 5));
+	turretGunGO->m_transform.SetLocalPosition(Vector3(0, .5, 2));
 
 
 	m_playerTank = new Tank();
@@ -123,17 +126,19 @@ void SceneLevel1::CreatePlayer()
 	m_playerTank->AddChild(turretHeadGO);
 	m_playerTank->AddChild(turretGunGO);
 
-	m_playerTank->m_transform.Translate(Vector3(10, 30, 50));
+	m_playerTank->m_transform.Translate(Vector3(129, 20, 274));
 
-	PerspectiveCamera *camera = (PerspectiveCamera*)(m_playerTank->GetComponentByType(CAMERA));
-	AddCamera(camera);
+	m_camera = (PerspectiveCamera*)Camera::CreateOrGetCamera("level1cam", PERSPECTIVE);
+	m_camera->m_transform.SetLocalPosition(Vector3(59, 30, 174));
+	m_camera->m_transform.RotateLocalByEuler(Vector3(0, 90, 0));
+	AddCamera(m_camera);
 	AddRenderable(m_playerTank->m_renderable);
 	AddRenderable(turretGunGO->m_renderable);
 	AddRenderable(turretHeadGO->m_renderable);
-
+	m_playerTank->AddSphereCollider(Vector3::ZERO, 1.5f);
 	EnemyBase::AddEnemyBase("enemybase_1", Vector3(10, 10, 10), Vector3(10, 10, 10), this);
 	EnemyBase::CreateEnemy("enemybase_1",this);
-	Camera::SetGameplayCamera(camera);
+	Camera::SetGameplayCamera(m_camera);
 	/*Mesh *grid = MeshBuilder::Create2DGrid<Vertex_3DPCU>(Vector3(0, 0, 0), Vector2(30, 30), Vector3(1, 0, 0), Vector3(0, 0, 1), Rgba::WHITE);
 	Renderable *renderable = new Renderable();
 	renderable->m_name = "grid";
@@ -154,7 +159,7 @@ void SceneLevel1::CreateMap()
 	m_map = new Map();
 	Image *terrainImage = new Image("Data//Images//m6.png");
 	m_map->m_image = terrainImage;
-	m_map->LoadFromImage(*terrainImage, AABB2(Vector2(0, 0), terrainImage->texture->getDimensions().GetAsVector2()), 1, 25, Vector2::ONE);
+	m_map->LoadFromImage(this,terrainImage, AABB2(Vector2(0, 0),256,256), 1, 50, Vector2::ONE);
 
 	Renderable *renderable = new Renderable();
 	renderable->m_name = "terrain";
@@ -173,6 +178,7 @@ void SceneLevel1::CreateMap()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLevel1::Update(float deltaTime)
 {
+	m_camera->Update(deltaTime);
 	if (IsEnteringScene(deltaTime))
 	{
 		UpdateEnteringTime(deltaTime);
@@ -183,6 +189,7 @@ void SceneLevel1::Update(float deltaTime)
 	}
 	DebugRenderOptions options;
 	options.m_lifeTime = 0;
+	options.m_mode = DEBUG_RENDER_USE_DEPTH;
 	DebugDraw::GetInstance()->DebugRenderSphere(Vector3(0, 70, 100), 20, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL_WIRE, options);
 	
 	/*if (delta.y != 0)
@@ -194,53 +201,33 @@ void SceneLevel1::Update(float deltaTime)
 		m_playerTank->m_transform.SetLocalRotationEuler(rotation);
 	}*/
 	
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_A))
+	if (InputSystem::GetInstance()->IsLButtonDown())
 	{
-		Matrix44 worldMatrix = m_playerTank->m_transform.GetWorldMatrix();
-		Vector3 rigthDirection = worldMatrix.GetIAxis();
-		m_playerTank->m_transform.Translate(rigthDirection*(-1 * deltaTime * m_playerTank->m_velocity));
-	}
 
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_D))
-	{
-		Matrix44 worldMatrix = m_playerTank->m_transform.GetWorldMatrix();
-		Vector3 rigthDirection = worldMatrix.GetIAxis();
-		m_playerTank->m_transform.Translate(rigthDirection*(1 * deltaTime* m_playerTank->m_velocity));
+		Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
+		PickRay ray = Camera::GetGamePlayCamera()->GetPickRayFromScreenCords(screenXY);
+
+		Ray raycast;
+		raycast.m_direction = ray.m_direction;
+		raycast.m_start = m_playerTank->m_transform.GetWorldPosition();
+
+		RaycastHit result = m_map->m_terrainOrig->Raycast(raycast);
+		DebugDraw::GetInstance()->DebugRenderLogf("RAYCAST : POSITION :: %f,%f %f", result.m_position.x, result.m_position.y, result.m_position.z);
+		DebugDraw::GetInstance()->DebugRenderLine(raycast.m_start, result.m_position, Rgba::YELLOW, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
+		DebugDraw::GetInstance()->DebugRenderLine(result.m_position,result.m_position + ray.m_direction*1000 ,Rgba::RED, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
+
+		DebugDraw::GetInstance()->DebugRenderSphere(result.m_position, 1, 16, 16, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
+
+		
+
+
+
 	}
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_W))
-	{
-		Matrix44 worldMatrix = m_playerTank->m_transform.GetWorldMatrix();
-		Vector3 forwardDirection = worldMatrix.GetKAxis();
-		m_playerTank->m_transform.Translate(forwardDirection*(1 * deltaTime * m_playerTank->m_velocity));
-	}
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_S))
-	{
-		Matrix44 worldMatrix = m_playerTank->m_transform.GetWorldMatrix();
-		Vector3 forwardDirection = worldMatrix.GetKAxis();
-		m_playerTank->m_transform.Translate(forwardDirection*(-1 * deltaTime * m_playerTank->m_velocity));
-	}
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_SPACE))
-	{
-		Matrix44 worldMatrix = m_playerTank->m_transform.GetWorldMatrix();
-		Vector3 upDirection = worldMatrix.GetJAxis();
-		m_playerTank->m_transform.Translate(upDirection*(1 * deltaTime * m_playerTank->m_velocity));
-	}
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_ENTER))
-	{
-		Matrix44 worldMatrix = m_playerTank->m_transform.GetWorldMatrix();
-		Vector3 upDirection = worldMatrix.GetJAxis();
-		m_playerTank->m_transform.Translate(upDirection*(-1 * deltaTime * m_playerTank->m_velocity));
-	}
-	Vector3 position       = m_playerTank->m_transform.GetWorldPosition();
-	float   terrainHeight  = m_map->GetHeight(position.GetXZ());
-	//float   currentHeight  = Interpolate(position.y, terrainHeight + 2, deltaTime);
-	m_playerTank->m_transform.SetLocalPosition(Vector3(position.x, terrainHeight + 2, position.z));
 
 	m_playerTank->Update(deltaTime);
 	Vector3 playerWorldPosition = m_playerTank->m_transform.GetWorldPosition();
 	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f ,%f, %f", playerWorldPosition.x,playerWorldPosition.y,playerWorldPosition.z);
 	EnemyBase::UpdateEnemyBase(deltaTime);
-	//DebugDraw::GetInstance()->DebugRenderBasis(Vector3::ZERO, Vector3::ZERO, 0, 50);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -195,6 +195,8 @@ void Texture::clearAllData()
 
 void Texture::storeAllData()
 {
+	pixels.reserve(m_numOfComponents*m_dimensions.x*m_dimensions.y);
+	texels.reserve(m_numOfComponents*m_dimensions.x*m_dimensions.y);
 	for(int i = 0,j=0;i<m_numOfComponents*m_dimensions.x*m_dimensions.y;i+=m_numOfComponents,j++)
 	{
 		Rgba *rgba;

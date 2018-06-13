@@ -13,6 +13,8 @@ public:
 	Rgba::Rgba();
 	Rgba(Vector4 color);
 	Rgba(std::string text);
+	bool operator==(const Rgba color);
+	bool operator!=(const Rgba color);
 	explicit	Rgba::Rgba( unsigned char redByte, unsigned char greenByte,unsigned char blueByte, unsigned char alphaByte=255 );
 
 	void		SetAsBytes( unsigned char redByte, unsigned char greenByte, unsigned char blueByte, unsigned char alphaByte=255 );

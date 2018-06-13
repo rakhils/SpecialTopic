@@ -187,12 +187,15 @@ Transform::~Transform()
 		delete m_gameObject;
 		m_gameObject = nullptr;
 	}
-	for (int childIndex = static_cast<int>(m_children.size() - 1); childIndex > 0; childIndex--)
+	/*for (int childIndex = 0; childIndex < m_children.size(); childIndex++)
 	{
-		delete m_children.at(childIndex);
-		m_children.at(childIndex) = nullptr;
-		m_children.erase(m_children.begin() + childIndex);
-	}
+		if (m_children.at(childIndex) != nullptr)
+		{
+			delete m_children.at(childIndex);
+			m_children.at(childIndex) = nullptr;
+		}
+	}*/
+	m_children.clear();
 }
 
 //////////////////////////////////////////////////////////////

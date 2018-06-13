@@ -522,6 +522,8 @@ void DebugDraw::DebugRenderLine(Vector3 p0, Vector3 p1, Rgba const &color /*= Rg
 	DebugRenderOptions options;
 	options.m_mode = mode;
 	options.m_lifeTime = time;
+	options.m_startColor = color;
+	options.m_endColor = color;
 	DebugDrawElement debugDrawElement(line, 0, options);
 	debugDrawElement.m_type = ELEMENT;
 	debugDrawElement.SetTexture(Texture::GetDefaultTexture());

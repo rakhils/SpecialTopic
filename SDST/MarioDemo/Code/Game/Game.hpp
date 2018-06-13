@@ -17,11 +17,16 @@
 class Game
 {
 public:
-	bool isQuitTriggered = false;
-	Map *m_map = nullptr;
+	Map *  m_map = nullptr;
+	bool   isQuitTriggered = false;
+	int    m_numberOfIterations = 1;
+	static Game *s_game;
+	
 	Game();
 	void Update(float deltaTime);
 	void Render();
 
 	void GenerateMap(std::string,std::string);
+
+	static Game* GetInstance();
 };

@@ -16,12 +16,13 @@ Bullet::Bullet(std::string name,Vector3 position,Vector3 direction,float speed):
 	m_renderable->SetMesh(mesh);
 	m_renderable->SetMaterial(Material::AquireResource("default"));
 	m_speed = speed;
+	AddSphereCollider(Vector3::ZERO, 1.5f);
 }
 
 // DESTRUCTOR
 Bullet::~Bullet()
 {
-
+	int a = 1;
 }
 
 //////////////////////////////////////////////////////////////

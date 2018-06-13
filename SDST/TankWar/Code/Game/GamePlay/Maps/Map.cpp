@@ -1,11 +1,12 @@
 #include "Map.hpp"
-
+#include "Engine/SceneManagement/Scene.hpp"
 #include "Engine/GameObject/GameObject.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Math/Transform.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/Physics/Terrain.hpp"
 
 #include "Game/GameCommon.hpp"
 Map::Map()
@@ -19,8 +20,20 @@ Map::Map()
 *@param   : Image object, AABB2 for dimension, Min and max heights and chunkcount
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, float max_height, Vector2 chunk_counts)
+void Map::LoadFromImage(Scene*scene,Image *image, AABB2 const &extents, float min_height, float max_height, Vector2 chunk_counts)
 {
+	m_terrainOrig = new Terrain();
+	m_terrainOrig->LoadFromImage(image, extents, min_height, max_height, chunk_counts);
+	for (size_t renderableIndex = 0; renderableIndex < m_terrainOrig->m_renderables.size(); renderableIndex++)
+	{
+		scene->AddRenderable(m_terrainOrig->m_renderables.at(renderableIndex));
+	}
+
+	
+	if(true)
+	{
+		return;
+	}
 	m_extents    = extents;
 	m_min_height = min_height;
 	m_max_height = max_height;
@@ -34,37 +47,37 @@ void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, flo
 	bool isRepeatForUV = false;
 	bool isFirstLoop   = true;
 	int  totalCount    = 0;
-	for (int pixelIndex = 0; (pixelIndex + 4) < image.texture->pixels.size(); pixelIndex += 4)
+	for (int pixelIndex = 0; (pixelIndex + 4) < image->texture->pixels.size(); pixelIndex += 4)
 	{
 		totalCount+=4;
-		Rgba *color1 = image.texture->pixels.at(pixelIndex);
+		Rgba *color1 = image->texture->pixels.at(pixelIndex);
 		Vector4 values1 = color1->GetAsFloats();
 		int x1 = static_cast<int>(pixelIndex % maxsx);
 		int z1 = static_cast<int>(pixelIndex / maxsz);
 		Vector3 position1(static_cast<float>(x1), RangeMapFloat(values1.GetAverageValue(),0,1,min_height,max_height), static_cast<float>(z1));
 
-		Rgba *color2 = image.texture->pixels.at(pixelIndex + 1);
+		Rgba *color2 = image->texture->pixels.at(pixelIndex + 1);
 		Vector4 values2 = color2->GetAsFloats();
 		int x2 = static_cast<int>((pixelIndex + 1) % maxsx);
 		int z2 = static_cast<int>((pixelIndex + 1) / maxsz);
 		Vector3 position2(static_cast<float>(x2), RangeMapFloat(values2.GetAverageValue(),0,1,min_height,max_height), static_cast<float>(z2));
 
-		Rgba *color3 = image.texture->pixels.at(pixelIndex + 2);
+		Rgba *color3 = image->texture->pixels.at(pixelIndex + 2);
 		Vector4 values3 = color3->GetAsFloats();
 		int x3 = static_cast<int>((pixelIndex + 2) % maxsx);
 		int z3 = static_cast<int>((pixelIndex + 2) / maxsz);
 		Vector3 position3(static_cast<float>(x3), RangeMapFloat(values3.GetAverageValue(),0,1,min_height,max_height), static_cast<float>(z3));
 
-		Rgba *color4 = image.texture->pixels.at(pixelIndex + 3);
+		Rgba *color4 = image->texture->pixels.at(pixelIndex + 3);
 		Vector4 values4 = color4->GetAsFloats();
 		int x4 = static_cast<int>((pixelIndex + 3) % maxsx);
 		int z4 = static_cast<int>((pixelIndex + 3) / maxsz);
 		Vector3 position4(static_cast<float>(x4), RangeMapFloat(values4.GetAverageValue(),0,1,min_height,max_height), static_cast<float>(z4));
 		
 		Vector3 normal;
-		if(pixelIndex + maxsx < image.texture->pixels.size())
+		if(pixelIndex + maxsx < image->texture->pixels.size())
 		{
-			Rgba *color5 = image.texture->pixels.at(pixelIndex + maxsx);
+			Rgba *color5 = image->texture->pixels.at(pixelIndex + maxsx);
 			Vector4 values5 = color5->GetAsFloats();
 			int x5 = static_cast<int>((pixelIndex + maxsx) % maxsx);
 			int z5 = static_cast<int>((pixelIndex + maxsx) / maxsz);
@@ -166,13 +179,15 @@ void Map::LoadFromImage(Image image, AABB2 const &extents, float min_height, flo
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 float Map::GetHeigthAtIndex(int index)
 {
-	if (index >= 0 && index < m_image->texture->pixels.size())
+	
+	return m_terrainOrig->GetHeightAtDiscreteCordinate(index);
+	/*if (index >= 0 && index < m_image->texture->pixels.size())
 	{
 		Rgba *color1 = m_image->texture->pixels.at(index);
 		Vector4 values = color1->GetAsFloats();
 		return RangeMapFloat(values.GetAverageValue(), 0, 1, m_min_height, m_max_height);
 	}
-	return 0.f;
+	return 0.f;*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,6 +198,10 @@ float Map::GetHeigthAtIndex(int index)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 float Map::GetHeight(Vector2 position)
 {
+	if(true)
+	{
+		return m_terrainOrig->GetHeight(position);
+	}
 	// dx LERP in X with Fractx
 	// dy LERP in Y with Fracty
 	// LERP in dx fracty 

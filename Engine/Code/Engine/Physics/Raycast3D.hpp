@@ -12,12 +12,24 @@
 */
 class Collider;
 class RigidBody3D;
+class GameObject;
 struct RaycastHit
 {
 	Collider*		m_collider;
 	Vector3			m_position;
 	bool			m_hit;
 	//RigidBody3D*	m_rigidBody;
+};
+struct Ray
+{
+	Vector3 m_start;
+	Vector3 m_direction;
+	float   m_maxDistance = 500;
+	float   m_stepSize	  = 0.5;
+	Vector3 Evaluate(float delta)
+	{
+		return m_start + m_direction * delta;
+	}
 };
 class Raycast3D
 {
@@ -32,8 +44,8 @@ public:
 	Raycast3D();
 	~Raycast3D();
 	
-	static RaycastHit Raycast(Collider *collider,Vector3 startPosition, Vector3 direction, float maxDistance, float deltaLength);
-	static Collider*  GetColliderAtPosition(Vector3 positiono);
+	static RaycastHit Raycast(GameObject *gameObject,Ray ray);
+	static Collider*  GetColliderAtPosition(GameObject *currentGameobject,Vector3 position);
 	//Static_Methods
 
 protected:

@@ -11,6 +11,7 @@ Camera*		Camera::s_gamePlayCamera	= nullptr;
 Camera*		Camera::s_effectCamera		= nullptr;
 Camera*		Camera::s_uiCamera			= nullptr;
 
+std::map<std::string, Camera*> Camera::s_cameras;
 // CONSTRUCTOR
 Camera::Camera()
 {
@@ -137,34 +138,34 @@ void Camera::SetModelMatrix(Matrix44 model)
 
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/07
-*@purpose : NIL
-*
+*@purpose : Converts screen cords to world cords with respect to current camera
 *@param   : NIL
-*
 *@return  : NIL
-*/
-//////////////////////////////////////////////////////////////
+*//////////////////////////////////////////////////////////////
 Vector3 Camera::ScreenToWorld(Vector2 screen_xy, float ndc_depth)
 {
 	Vector2 resolution = Windows::GetInstance()->GetDimensions().GetAsVector2();
 
 	Vector2 NDC_XY = RangeMap(screen_xy, Vector2(0, 0), resolution, Vector2(-1.f, 1.f), Vector2(1.f, -1.f));
 
-	Vector3 NDC = Vector3(NDC_XY, ndc_depth);
+	Vector3 NDC    = Vector3(NDC_XY, ndc_depth);
 
 	Vector4 homogenious_world = Vector4(NDC, 1);
 	Matrix44 viewProjection = GetViewProjection();
 
-	viewProjection.Tx = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetIAxis());
-	viewProjection.Ty = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetJAxis());
+	// INverse then dot
+	viewProjection.Inverse();
+
+	//viewProjection.Tx = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetIAxis());
+	//viewProjection.Ty = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetJAxis());
 	//viewProjection.Tz = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetKAxis());
 
 
-	viewProjection.InvertFast();
+	//viewProjection.InvertFast();
 	homogenious_world = Matrix44::Multiply(homogenious_world,viewProjection);
 	
 	Vector3 worldPos = homogenious_world.XYZ() / homogenious_world.w;
-	worldPos.z = worldPos.z*-1;
+	//worldPos.z = worldPos.z*-1;
 	return worldPos;
 }
 
@@ -297,8 +298,8 @@ Vector3 Camera::GetCameraUpVector()
 Matrix44 Camera::GetViewProjection()
 {
 	Matrix44 result;
-	result.MultiplyAndSet(m_view);
 	result.MultiplyAndSet(m_projection);
+	result.MultiplyAndSet(m_view);
 	return result;
 }
 
@@ -520,6 +521,41 @@ void Camera::InitCamera()
 	//SetCurrentCamera(GetGamePlayCamera());
 	SetCurrentCamera(GetUICamera());
 	SetCurrentCamera(GetDefaultCamera());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/12
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Camera* Camera::CreateOrGetCamera(std::string name,CAMERA_TYPE type)
+{
+	if (s_cameras[name] != nullptr)
+	{
+		return s_cameras[name];
+	}
+	Camera *camera;
+	switch (type)
+	{
+	case ORTHOGRAPHIC:
+		camera = new OrthographicCamera();
+		break;
+	case ORBIT:
+		camera = new OrbitCamera();
+		break;
+	case PERSPECTIVE:
+		camera = new PerspectiveCamera();
+		break;
+	default:
+		camera = new PerspectiveCamera();
+		break;
+	}
+	FrameBuffer *cFrameBuffer = new FrameBuffer();
+	camera->m_defaultFrameBuffer = cFrameBuffer;
+	camera->SetColorTarget(Texture::GetDefaultColorTargetTexture());
+	camera->SetDepthStencilTarget(Texture::GetDefaultDepthTargetTexture());
+	return camera;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

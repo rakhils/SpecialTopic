@@ -43,11 +43,11 @@ void BoxCollider::Update(float deltaTime)
 bool BoxCollider::IsPointInside(Vector3 point)
 {
 	Vector3 centrePosition = GetCenterPosition();
-	Vector2 xMinMax(centrePosition.x - m_offsetX, centrePosition.x + m_offsetX);
-	Vector2 yMinMax(centrePosition.y - m_offsetY, centrePosition.y + m_offsetY);
-	Vector2 zMinMax(centrePosition.z - m_offsetZ, centrePosition.z + m_offsetZ);
+	//Vector2 xMinMax(centrePosition.x - m_offsetX, centrePosition.x + m_offsetX);
+	//Vector2 yMinMax(centrePosition.y - m_offsetY, centrePosition.y + m_offsetY);
+	//Vector2 zMinMax(centrePosition.z - m_offsetZ, centrePosition.z + m_offsetZ);
 
-	if (point.x > xMinMax.x && point.x < xMinMax.y)
+	/*if (point.x > xMinMax.x && point.x < xMinMax.y)
 	{
 		if (point.y > yMinMax.x && point.y < yMinMax.y)
 		{
@@ -56,7 +56,7 @@ bool BoxCollider::IsPointInside(Vector3 point)
 				return true;
 			}
 		}
-	}
+	}*/
 	return false;
 }
 

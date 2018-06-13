@@ -59,6 +59,17 @@ const Vector2 Vector2::operator-( const Vector2& vecToSubtract ) const
 }
 
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/11
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+const Vector2 Vector2::operator*(Vector2 vectora) const
+{
+	return Vector2(x*vectora.x, y*vectora.y);
+}
+
 //-----------------------------------------------------------------------------------------------
 const Vector2 Vector2::operator*( float uniformScale ) const
 {

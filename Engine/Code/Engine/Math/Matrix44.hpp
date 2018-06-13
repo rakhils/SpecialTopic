@@ -32,6 +32,7 @@ public:
 	Vector2 TransformDisplacement2D( const Vector2& displacement2D ); // Written assuming z=0, w=0
 	float   Get(int column, int row);
 	float	Get(int index);
+	void	Set(int index,float value);
 
 	Vector3 Multiply(Vector3 position);
 
@@ -65,6 +66,9 @@ public:
 	void Scale3D( float scaleX, float scaleY,float scaleZ);
 	void Scale2D( float scaleX, float scaleY );
 	void Transpose();
+	void Inverse();
+	void LocalLookAt(Vector3 position);
+	void WorldLookAt(Vector3 position);
 
 	Vector3 GetEulerFromMatrix();
 	// Producers
@@ -84,6 +88,7 @@ public:
 	static Matrix44 LookAt(Vector3 forward, Vector3 upvector);
 	static Matrix44 LerpTransform(Matrix44 &a, Matrix44 &b, float delta);
 	static Vector4  Multiply(Vector4 vec4, Matrix44 mat44);
+
 	void MultiplyAndSet(Matrix44 valueMatrix);
 	void InvertFast();
 };

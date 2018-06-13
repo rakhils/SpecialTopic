@@ -52,17 +52,20 @@ GameObject::~GameObject()
 		m_renderable = nullptr;
 	}
 	std::map<COMPONENT_COLLIDER_TYPE, Collider*>::iterator it;
-	for (it = m_colliderComponents.begin(); it != m_colliderComponents.end(); it++)
+	for (it = m_colliderComponents.begin(); it != m_colliderComponents.end();it++)
 	{
 		delete it->second;
 		it->second = nullptr;
 	}
+	m_colliderComponents.clear();
+	m_transform;
 	std::map<COMPONENT_TYPE, Component*>::iterator itcomponent;
 	for (itcomponent = m_components.begin(); itcomponent != m_components.end(); it++)
 	{
 		delete itcomponent->second;
 		itcomponent->second = nullptr;
 	}
+	m_components.clear();
 
 	if (m_light != nullptr)
 	{
@@ -74,12 +77,11 @@ GameObject::~GameObject()
 	{
 		if(gmit->second == this)
 		{
+			s_gameObjects[gmit->first] = nullptr;
 			s_gameObjects.erase(gmit);
 			return;
 		}
 	}
-
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -222,9 +224,9 @@ void GameObject::AddSphereCollider(Vector3 localPosition, float radius)
 void GameObject::AddBoxCollider(Vector3 localPosition, Vector3 dimensions)
 {
 	BoxCollider *collider = new BoxCollider();
-	collider->m_offsetX = dimensions.x;
-	collider->m_offsetY = dimensions.y;
-	collider->m_offsetZ = dimensions.z;
+	//collider->m_offsetX = dimensions.x;
+	//collider->m_offsetY = dimensions.y;
+	//collider->m_offsetZ = dimensions.z;
 	collider->SetPosition(localPosition);
 	AddColliderComponent(BOX_COLLIDER, collider);
 }

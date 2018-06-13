@@ -11,7 +11,7 @@ SphereCollider::SphereCollider()
 // DESTRUCTOR
 SphereCollider::~SphereCollider()
 {
-
+	int a = 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -37,6 +37,15 @@ void SphereCollider::Update(float deltaTime)
 			if(it->first == BOX_COLLIDER2D)
 			{
 				CheckSphereVsBox2DCollision(this, (BoxCollider2D*)it->second);
+			}
+			if(it->first == SPHERE_COLLIDER)
+			{
+				bool result = CheckSphereVsSphereCollision(this, (SphereCollider*)it->second);
+				if(result)
+				{
+					this->OnCollisionEnter((SphereCollider*)it->second);
+					it->second->OnCollisionEnter(this);
+				}
 			}
 		}
 	}

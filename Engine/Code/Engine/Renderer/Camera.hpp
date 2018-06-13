@@ -14,6 +14,12 @@
 * \date   : 2/10/2018 4:32:51 PM
 * \contact: srsrakhil@gmail.com
 */
+enum CAMERA_TYPE
+{
+	ORTHOGRAPHIC,
+	ORBIT,
+	PERSPECTIVE
+};
 struct PickRay
 {
 	Vector3 m_position;
@@ -44,7 +50,7 @@ public:
 	//Transform m_transform;
 
 	//Static_Member_Variables
-
+	static std::map<std::string, Camera*> s_cameras;
 	//Methods
 
 	Camera();
@@ -83,7 +89,7 @@ public:
 	//Static_Methods
 	static void	InitCamera();
 	static void SetCamera(Camera* camera);
-
+	static Camera* CreateOrGetCamera(std::string name,CAMERA_TYPE type = ORTHOGRAPHIC);
 	static void SetDefaultCamera (Camera *camera) { s_defaultCamera  = camera;}
 	static void SetCurrentCamera (Camera *camera) 
 	{ 

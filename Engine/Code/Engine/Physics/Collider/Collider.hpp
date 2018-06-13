@@ -45,6 +45,7 @@ public:
 	// ALL TYPE OF COLLISIONS
 	bool CheckSphereVsBox2DCollision(SphereCollider* sphereCollider, BoxCollider2D* boxCollider);
 	bool CheckBox2DVsCircleCollision(BoxCollider2D * box2dCollider, CircleCollider* circleCollider,DIRECTIONS &area);
+	bool CheckSphereVsSphereCollision(SphereCollider* sphereCollider1, SphereCollider* sphereCollider2);
 
 	void         GlobalCollisionCheck();
 

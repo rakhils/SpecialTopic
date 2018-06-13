@@ -32,6 +32,8 @@ public:
 	Vector2		 m_chunk_index;
 	Renderable*  m_renderable	= nullptr;
 };*/
+class Scene;
+class Terrain;
 class Map
 {
 public:
@@ -41,6 +43,7 @@ public:
 	Map();
 	std::vector<GameObject*> m_mapObjects;
 	Mesh *m_terrain = nullptr;
+	Terrain *m_terrainOrig = nullptr;
 	AABB2 m_extents;
 	float m_min_height;
 	float m_max_height;
@@ -50,7 +53,7 @@ public:
 	//GameMapChunk *m_chunks;
 	Vector2 m_chunk_counts;
 
-	void LoadFromImage(Image image,AABB2 const &extents,float min_height,float max_height,Vector2 chunk_counts);
+	void LoadFromImage(Scene *scene,Image *image,AABB2 const &extents,float min_height,float max_height,Vector2 chunk_counts);
 	void FreeAllChunks();
 	float GetHeigthAtIndex(int index);
 	float GetHeight(Vector2 xz);

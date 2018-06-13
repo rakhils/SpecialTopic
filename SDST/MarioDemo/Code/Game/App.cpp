@@ -15,10 +15,9 @@ App::App()
 	g_theGameClock = new Clock();
 
 	g_theRenderer = Renderer::GetInstance();
-	g_theInput = InputSystem::GetInstance();
-	g_audio = AudioSystem::GetInstance();
-	g_theGame = new Game();
-
+	g_theInput	  = InputSystem::GetInstance();
+	g_audio		  = AudioSystem::GetInstance();
+	g_theGame	  = Game::GetInstance();
 }
 
 App::~App()
@@ -34,7 +33,6 @@ App::~App()
 
 	delete g_theRenderer;
 	g_theRenderer = nullptr;
-
 }
 
 void App::RunFrame()

@@ -19,7 +19,7 @@ Collider::Collider()
 // DESTRUCTOR
 Collider::~Collider()
 {
-
+	int a = 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,7 +56,7 @@ bool Collider::CheckSphereVsBox2DCollision(SphereCollider* sphereCollider, BoxCo
 	float   radius		 = sphereCollider->m_radius;
 	Vector3 direction    = sphereCenter - boxCollider->m_transform.GetWorldPosition();
 	direction			 = direction.GetNormalized();
-	RaycastHit result    = Raycast3D::Raycast(sphereCollider,sphereCenter, direction*-1.f, radius, 0.10f);
+	RaycastHit result;// = Raycast3D::Raycast(sphereCollider, sphereCenter, direction*-1.f, radius, 0.10f);
 	if(result.m_hit)
 	{
 		sphereCollider->OnCollisionEnter(boxCollider);
@@ -214,6 +214,22 @@ bool Collider::CheckBox2DVsCircleCollision(BoxCollider2D * box2dCollider, Circle
 		}
 	}
 	
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/13
+*@purpose : Checks collision of sphere vs sphere
+*@param   : Colliders
+*@return  : True if collision exist
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Collider::CheckSphereVsSphereCollision(SphereCollider* sphereCollider1, SphereCollider* sphereCollider2)
+{
+	Vector3 distance = sphereCollider1->GetCenterPosition() - sphereCollider2->GetCenterPosition();
+	if(distance.GetLength() < sphereCollider1->m_radius + sphereCollider2->m_radius)
+	{
+		return true;
+	}
 	return false;
 }
 

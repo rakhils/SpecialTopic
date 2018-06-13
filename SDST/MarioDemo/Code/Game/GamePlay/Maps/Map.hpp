@@ -12,6 +12,15 @@
 #include "Game/GamePlay/Entity/Brick.hpp"
 #include "Game/GamePlay/Entity/Entity.hpp"
 #include "Game/GamePlay/Entity/Mario.hpp"
+struct MiniMapObject
+{
+	Rgba m_color;
+};
+struct Pit
+{
+	Vector2 m_position;
+	Rgba    m_color;
+};
 class Pipe;
 class Map
 {
@@ -23,14 +32,23 @@ public:
 	Texture *m_textureBackground;
 	Vector2 m_dimensions;
 	Vector2 m_miniMapPosition;
+
 	float   m_miniMapScaleFactor = 1 / 5.f;
 	std::vector<Brick*> m_bricks;
 	std::vector<Pipe*>  m_pipes;
+	std::vector<Pit>    m_pits;
+
 	Mario *m_mario;
+	//MINIMAP
+	AABB2					   m_minimapAABB;
+	std::vector<MiniMapObject> m_minimapObjs;
+	int m_minimapWidth  = 10;
+	int m_minimapHeight = 10;
 
 	Map(MapDefinition* def);
 	void InitCamera();
-	void CreateBricks(Vector2 position,Vector2 dimension,bool hidden);
+	void CreatePit(Vector2 position);
+	void CreateBricks(Vector2 position,Vector2 dimension,bool hidden,bool physics);
 	void CreatePipes(Vector2 position, Vector2 dimensions);
 	void CreateGround();
 	void CreateTiles();
@@ -43,6 +61,7 @@ public:
 	void Update(float deltaTime);
 	void UpdateCamera();
 	void UpdateMiniMap();
+	void SetMiniMapValues(IntVector2 pos, Rgba color);
 	void UpdateBrick(float deltaTime);
 	void UpdatePipes(float deltaTime);
 

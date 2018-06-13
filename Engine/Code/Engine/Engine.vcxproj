@@ -265,6 +265,22 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AI\GA\Chromosome.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="AI\GA\Gene.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="AI\GA\Population.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="AI\NeuralNetwork\Neuron.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Audio\AudioComponent.cpp">
       <SubType>
       </SubType>
@@ -312,13 +328,29 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="Math\AABB2.cpp" />
+    <ClCompile Include="Math\AABB3.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Math\CubicSpline2D.cpp" />
     <ClCompile Include="Math\Disc2.cpp" />
     <ClCompile Include="Math\FloatRange.cpp" />
+    <ClCompile Include="Math\Frustum.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Math\IntRange.cpp" />
     <ClCompile Include="Math\IntVector2.cpp" />
     <ClCompile Include="Math\MathUtil.cpp" />
     <ClCompile Include="Math\Matrix44.cpp" />
+    <ClCompile Include="Math\OBB3.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Math\Plane.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Math\Quaternion.cpp">
       <SubType>
       </SubType>
@@ -369,6 +401,10 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="Physics\RigidBody3D.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Physics\Terrain.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -543,6 +579,22 @@
     <ClCompile Include="TinyXml2\tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AI\GA\Chromosome.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="AI\GA\Gene.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="AI\GA\Population.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="AI\NeuralNetwork\Neuron.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Audio\AudioComponent.hpp">
       <SubType>
       </SubType>
@@ -592,13 +644,29 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Math\AABB2.hpp" />
+    <ClInclude Include="Math\AABB3.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Math\CubicSpline2D.hpp" />
     <ClInclude Include="Math\Disc2.hpp" />
     <ClInclude Include="Math\FloatRange.hpp" />
+    <ClInclude Include="Math\Frustum.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Math\IntRange.hpp" />
     <ClInclude Include="Math\IntVector2.hpp" />
     <ClInclude Include="Math\MathUtil.hpp" />
     <ClInclude Include="Math\Matrix44.hpp" />
+    <ClInclude Include="Math\OBB3.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Math\Plane.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Math\Quaternion.hpp">
       <SubType>
       </SubType>
@@ -649,6 +717,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Physics\RigidBody3D.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Physics\Terrain.hpp">
       <SubType>
       </SubType>
     </ClInclude>

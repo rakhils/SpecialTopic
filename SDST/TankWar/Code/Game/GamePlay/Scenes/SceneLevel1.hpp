@@ -22,6 +22,7 @@ public:
 	Tank				  *m_playerTank  = nullptr;
 	Map					  *m_map         = nullptr;
 	bool				   m_init = false;
+	PerspectiveCamera *m_camera = nullptr;
 	//Static_Member_Variables
 
 	//Methods

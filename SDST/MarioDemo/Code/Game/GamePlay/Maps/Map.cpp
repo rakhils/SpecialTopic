@@ -15,6 +15,16 @@ Map::Map(MapDefinition *mapDef)
 	{
 		mapDef->m_genSteps.at(index)->Run(*this);
 	}
+	for(int indexY = 0;indexY < m_minimapHeight;indexY++)
+	{
+		for(int indexX = 0;indexX < m_minimapWidth;indexX++)
+		{
+			MiniMapObject obj;
+			obj.m_color = Rgba::BLACK;
+			m_minimapObjs.push_back(obj);
+		}
+	}
+	m_minimapAABB = AABB2(Vector2(0, 0), 100, 100);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,9 +37,8 @@ void Map::InitCamera()
 {
 	int width  = Windows::GetInstance()->GetDimensions().x;
 	int height = Windows::GetInstance()->GetDimensions().y;
-	m_block = AABB2(Vector2::ZERO, 25, 25);
+	m_block = AABB2(Vector2::ZERO, 30, 30);
 	m_camera = new OrthographicCamera();
-	m_miniMapPosition = Vector2(width - 10 * (m_block.GetDimensions().x/2)*m_miniMapScaleFactor, height - 10 * (m_block.GetDimensions().y/2)*m_miniMapScaleFactor);
 	FrameBuffer *frameBuffer = new FrameBuffer();
 	m_camera->m_defaultFrameBuffer = frameBuffer;
 	m_camera->SetColorTarget(Texture::GetDefaultColorTargetTexture());
@@ -41,12 +50,26 @@ void Map::InitCamera()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/13
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::CreatePit(Vector2 position)
+{
+	Pit nPit;
+	nPit.m_position = position;
+	nPit.m_color    = Rgba::RED;
+	m_pits.push_back(nPit);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/08
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::CreateBricks(Vector2 position,Vector2 dimension,bool hidden)
+void Map::CreateBricks(Vector2 position,Vector2 dimension,bool hidden,bool physics)
 {
 	int size = m_bricks.size();
 	std::string name = ("brick_"+ToString(size));
@@ -56,8 +79,11 @@ void Map::CreateBricks(Vector2 position,Vector2 dimension,bool hidden)
 	brick->m_height   = dimension.y;
 	brick->m_isHidden = hidden;
 	brick->SetPosition(position);
-	brick->AddBoxCollider2D(Vector3(0,0,0), Vector2(dimension.x/2.f, dimension.y/2.f), Vector3::FORWARD);
-	brick->GetBoxCollider2D()->m_isStatic = true;
+	if(physics)
+	{
+		brick->AddBoxCollider2D(Vector3(0,0,0), Vector2(dimension.x/2.f, dimension.y/2.f), Vector3::FORWARD);
+		brick->GetBoxCollider2D()->m_isStatic = true;
+	}
 	m_bricks.push_back(brick);
 }
 
@@ -90,10 +116,10 @@ void Map::CreatePipes(Vector2 position, Vector2 dimensions)
 void Map::CreateGround()
 {
 	float stepSize = m_block.GetDimensions().x/2.f;
-	for(int posX = stepSize/2.f;posX<7000;posX+=stepSize+20)
+	for(int posX = stepSize/2.f;posX<7000;posX += stepSize)
 	{
-		Vector2 position(posX, 38);
-		//CreateBricks(position,m_block.GetDimensions());
+		Vector2 position(posX, 40);
+		CreateBricks(position,m_block.GetDimensions(),true,false);
 	}
 }
 
@@ -110,7 +136,7 @@ void Map::CreateCharacters()
 {
 	m_textureBackground = Texture::CreateOrGetTexture("Data//Images//level1.png", true, false);
 	InitCamera();
-	//CreateGround();
+	CreateGround();
 //	CreateBricks(Vector2(200,200),m_block.GetDimensions());
 	CreateMario();
 }
@@ -248,9 +274,72 @@ void Map::UpdateCamera()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::UpdateMiniMap()
 {
-	Vector2 position = m_mario->m_transform.GetWorldPosition().GetXY();
-	m_cameraQuads = AABB2(position, 5 * m_block.GetDimensions().x / 2 + m_block.GetDimensions().x / 2, 5 * m_block.GetDimensions().y / 2 + m_block.GetDimensions().y / 2);
-	
+	float width   = static_cast<float>(Windows::GetInstance()->GetDimensions().x);
+	float height  = static_cast<float>(Windows::GetInstance()->GetDimensions().y);
+
+	Vector2 marioWorldPosition    = m_mario->m_transform.GetWorldPosition().GetXY();
+	m_miniMapPosition.x			  = m_camera->m_transform.GetWorldPosition().x + width  / 2   - m_minimapAABB.GetDimensions().x;
+	m_miniMapPosition.y			  = m_camera->m_transform.GetWorldPosition().y + height / 2   - m_minimapAABB.GetDimensions().y;
+	m_minimapAABB				  = AABB2(m_miniMapPosition, m_minimapAABB.GetDimensions().x/2, m_minimapAABB.GetDimensions().y/2);
+	// SQUARE CAN TAKE X OR Y
+	Vector2 minBounds			  = marioWorldPosition - Vector2::ONE * (m_block.GetDimensions().x/2.f) * (m_minimapWidth / 2.f);
+	Vector2 maxBounds			  = marioWorldPosition + Vector2::ONE * (m_block.GetDimensions().x/2.f) * (m_minimapHeight/ 2.f);
+
+	// MAKE ALL BLACK IN MINIMAP
+	for(int index = 0;index < m_minimapObjs.size();index++)
+	{
+		m_minimapObjs.at(index).m_color = Rgba::CONSOLE_FADED_BLUE;
+	}
+
+	for(int index = 0;index < m_bricks.size();index++)
+	{
+		Vector2 brickPosition = m_bricks.at(index)->m_transform.GetWorldPosition().GetXY();
+		if(brickPosition.x > minBounds.x && brickPosition.y > minBounds.y)
+		{
+			int relativeX = RoundToNearestInt((brickPosition.x - minBounds.x) / (m_block.GetDimensions().x/2.f));
+			int relativeY = RoundToNearestInt((brickPosition.y - minBounds.y) / (m_block.GetDimensions().x/2.f));
+			relativeY++;
+			if(brickPosition.x < maxBounds.x && brickPosition.y < maxBounds.y)
+			{	
+				SetMiniMapValues(IntVector2(relativeX, relativeY), Rgba::WHITE);
+				DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE %d,%d", relativeX, relativeY);
+			}
+		}
+	}	
+	for (int index = 0; index < m_pits.size(); index++)
+	{
+		Vector2 pitPosition = m_pits.at(index).m_position;
+		if (pitPosition.x > minBounds.x && pitPosition.y > minBounds.y)
+		{
+			int relativeX = RoundToNearestInt((pitPosition.x - minBounds.x) / (m_block.GetDimensions().x / 2.f));
+			int relativeY = RoundToNearestInt((pitPosition.y - minBounds.y) / (m_block.GetDimensions().x / 2.f));
+			relativeY++;
+			if (pitPosition.x < maxBounds.x && pitPosition.y < maxBounds.y)
+			{
+				SetMiniMapValues(IntVector2(relativeX, relativeY), m_pits.at(index).m_color);
+				DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE PIT %d,%d", relativeX, relativeY);
+			}
+		}
+	}
+	int positionX = static_cast<int>((marioWorldPosition.x - minBounds.x) / (m_block.GetDimensions().x / 2.f));
+	int positionY = static_cast<int>((marioWorldPosition.y - minBounds.y) / (m_block.GetDimensions().x / 2.f));
+	DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE MARIO %d,%d", positionX, positionY);
+	SetMiniMapValues(IntVector2(positionX, positionY), Rgba::GREEN);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/11
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::SetMiniMapValues(IntVector2 pos, Rgba color)
+{
+	int index = static_cast<int>(pos.y)*m_minimapHeight + static_cast<int>(pos.x);
+	if(index < m_minimapObjs.size())
+	{
+		m_minimapObjs.at(index).m_color = color;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -293,6 +382,8 @@ void Map::UpdatePipes(float deltaTime)
 void Map::Render()
 {
 	Camera::SetCurrentCamera(m_camera);
+	Renderer::GetInstance()->BeginFrame();
+	AABB2 aabb(Vector2(0, 0), Vector2(6784, 1080));
 
 	Material *defaultMaterial = Material::AquireResource("default");
 	defaultMaterial->m_textures.at(0) = m_textureBackground;
@@ -302,10 +393,16 @@ void Map::Render()
 	g_theRenderer->DrawTexturedAABB(m_aabb2, m_textureBackground, Vector2(0,1), Vector2(1,0), Rgba::WHITE);
 	delete defaultMaterial;
 
+/*
+	Material *defaultMaterial1 = Material::AquireResource("default");
+	Renderer::GetInstance()->BindMaterial(defaultMaterial1);
+	Renderer::GetInstance()->DrawAABB(aabb, Rgba::BLACK);
+	delete defaultMaterial1;*/
+
 	RenderBricks();
 	//RenderPipes();
 	RenderMario();
-	//RenderMiniMap();
+	RenderMiniMap();
 	//RenderGrid();
 }
 
@@ -321,10 +418,29 @@ void Map::RenderMiniMap()
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 
 	Vector2 marioPosition = m_mario->m_transform.GetWorldPosition().GetXY();
-	AABB2 m_minimap(m_miniMapPosition, 10 * (m_block.GetDimensions().x/2)*m_miniMapScaleFactor, 10 * (m_block.GetDimensions().y/2)*m_miniMapScaleFactor);
-	Renderer::GetInstance()->DrawAABB(m_minimap,Rgba::BLACK);
-	Renderer::GetInstance()->DrawRectangle(m_minimap);
-	for (int brickIndex = 0; brickIndex < m_bricks.size(); brickIndex++)
+	//Renderer::GetInstance()->DrawAABB(m_minimapAABB,Rgba::BLACK);
+	Renderer::GetInstance()->DrawRectangle(m_minimapAABB);
+
+	Vector2 minPosition = m_minimapAABB.mins;
+	Vector2 marioMiniMapPosition = m_minimapAABB.GetCenter();
+	for(int indexY = 0;indexY < m_minimapHeight;indexY++)
+	{
+		for(int indexX = 0;indexX < m_minimapWidth;indexX++)
+		{
+			int index = indexY * m_minimapHeight + indexX;
+			Vector2 currentPos(indexX * 10, indexY * 10);
+			Rgba color = m_minimapObjs.at(index).m_color;
+			if(color == Rgba::BLACK)
+			{
+				continue;
+			}
+			AABB2 miniMapobj(minPosition + currentPos,5,5);
+			Renderer::GetInstance()->DrawAABB(miniMapobj,color);// , color);
+		}
+	}
+
+
+	/*for (int brickIndex = 0; brickIndex < m_bricks.size(); brickIndex++)
 	{
 		Vector2 brickPosition = m_bricks.at(brickIndex)->m_transform.GetWorldPosition().GetXY();
 		if (m_cameraQuads.IsPointInside(brickPosition))
@@ -335,7 +451,7 @@ void Map::RenderMiniMap()
 			AABB2 brickMiniMap(absolutePosition, 10, 10);
 			Renderer::GetInstance()->DrawAABB(brickMiniMap, Rgba::GREEN);
 		}
-	}
+	}*/
 	delete defaultMaterial;
 }
 

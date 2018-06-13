@@ -44,7 +44,9 @@ void Mario::Update(float deltaTime)
 {
 	Disc2 colliderOutline = GetCircleCollider()->m_disc;
 
-	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW))
+	float random = GetRandomIntInRange(0, 3);
+	random = -1;
+	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW) || random == 1)
 	{
 		WalkWest(deltaTime);
 	}
@@ -52,7 +54,7 @@ void Mario::Update(float deltaTime)
 	{
 		//StayIdle();
 	}
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_RIGHT_ARROW))
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_RIGHT_ARROW) || random == 2)
 	{
 		WalkEast(deltaTime);
 	}
@@ -65,7 +67,7 @@ void Mario::Update(float deltaTime)
 		((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->ApplyForce(Vector3(0, -2*m_jumpForce, 0), deltaTime);
 	}
 
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW))
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW)|| random == 0)
 	{
 		if(IsGrounded(deltaTime) || IsJumping())
 		{
@@ -97,7 +99,7 @@ void Mario::Update(float deltaTime)
 	}
 	Vector3 prevTransform = GetRigidBody3DComponent()->m_previousTransform.GetWorldPosition();
 	Vector3 marioWorldPosition = m_transform.GetWorldPosition();
-	//DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f, %f, %f", marioWorldPosition.x, marioWorldPosition.y, marioWorldPosition.z);
+	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f, %f, %f", marioWorldPosition.x, marioWorldPosition.y, marioWorldPosition.z);
 	//DebugDraw::GetInstance()->DebugRenderLogf("Previous %f, %f, %f", prevTransform.x, prevTransform.y, prevTransform.z);
 	//DebugDraw::GetInstance()->DebugRenderLogf("Diff %f, %f, %f"    , (marioWorldPosition.x - prevTransform.x), (marioWorldPosition.y - prevTransform.y), (marioWorldPosition.z - prevTransform.z));
 	Entity::Update(deltaTime);
@@ -330,7 +332,6 @@ void Mario::Render()
 	m_texture = Texture::CreateOrGetTexture("Data\\Images\\player.png",true,true);
 	defaultMaterial->m_textures.at(0) = m_texture;
 	Texture::SetCurrentTexture(m_texture);
-	defaultMaterial->m_textures.at(0) = m_texture;
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Entity::Render();
 

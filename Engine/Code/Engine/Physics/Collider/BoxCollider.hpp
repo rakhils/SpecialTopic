@@ -16,9 +16,7 @@ class BoxCollider : public Collider
 
 public:
 	//Member_Variables
-	float   m_offsetX = 1.f;
-	float	m_offsetY = 1.f;
-	float	m_offsetZ = 1.f;
+	AABB2 m_aabb2;
 	//Static_Member_Variables
 
 	//Methods
