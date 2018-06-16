@@ -25,6 +25,9 @@ class EnemyBase : public GameObject
 public:
 	//Member_Variables
 	std::vector<EnemyTank*> m_tanks;
+	int m_maxChildCount = 0;
+	int m_spawnRate     = 0;
+	int m_health		= 0;
 	//Static_Member_Variables
 
 	//Methods

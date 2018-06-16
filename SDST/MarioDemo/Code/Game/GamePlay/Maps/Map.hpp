@@ -12,6 +12,7 @@
 #include "Game/GamePlay/Entity/Brick.hpp"
 #include "Game/GamePlay/Entity/Entity.hpp"
 #include "Game/GamePlay/Entity/Mario.hpp"
+class GeneticAlgorithm;
 struct MiniMapObject
 {
 	Rgba m_color;
@@ -26,6 +27,7 @@ class Map
 {
 public:
 	bool m_init = false;
+	bool gafirstsample = false;
 	Camera *m_camera;
 	AABB2   m_cameraQuads;
 	AABB2   m_block;
@@ -44,9 +46,10 @@ public:
 	std::vector<MiniMapObject> m_minimapObjs;
 	int m_minimapWidth  = 10;
 	int m_minimapHeight = 10;
-
+	GeneticAlgorithm *m_ga = nullptr;
 	Map(MapDefinition* def);
 	void InitCamera();
+	void InitGA();
 	void CreatePit(Vector2 position);
 	void CreateBricks(Vector2 position,Vector2 dimension,bool hidden,bool physics);
 	void CreatePipes(Vector2 position, Vector2 dimensions);

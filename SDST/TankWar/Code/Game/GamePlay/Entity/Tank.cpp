@@ -138,7 +138,9 @@ void Tank::UpdateBullet(float deltaTime)
 	for(int index = 0;index < m_bullets.size();index++)
 	{
 		Bullet *bullet = m_bullets.at(index);
-		if(bullet->m_lifeTime < 0)
+		float   terrainHeight   = ((SceneLevel1*)m_scene)->m_map->m_terrainOrig->GetHeight(bullet->m_transform.GetWorldPosition().GetXZ());
+		terrainHeight = 0;
+		if(bullet->m_transform.GetWorldPosition().y < terrainHeight || bullet->m_lifeTime < 0)
 		{
 			delete m_bullets.at(index);
 			m_bullets.at(index) = nullptr;

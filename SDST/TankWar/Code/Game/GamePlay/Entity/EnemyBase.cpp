@@ -15,7 +15,7 @@ EnemyBase::EnemyBase(std::string name, Vector3 position,Vector3 dimensions) : Ga
 	Mesh *mesh = mb.CreateMesh();
 	m_renderable->SetMesh(mesh);
 	m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-
+	AddSphereCollider(Vector3::ZERO, dimensions.x);
 }
 
 // DESTRUCTOR

@@ -17,15 +17,18 @@ class Population
 
 public:
 	//Member_Variables
-	std::vector<Chromosome> m_chromosomes;
+	int m_chromosomeCount = 0;
+	std::vector<Chromosome*> m_chromosomes;
 	//Static_Member_Variables
 
 	//Methods
 
-	Population();
+	Population(int chromosomeCount,int genecount,float mutationChance);
 	~Population();
-	
 
+	bool		 IsFinished();
+	Chromosome*  GetBestOffspring();
+	Chromosome*  AcceptReject(int m_maxFitness);
 	//Static_Methods
 
 protected:

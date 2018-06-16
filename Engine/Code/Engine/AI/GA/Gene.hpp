@@ -19,13 +19,20 @@ public:
 	Neuron m_neuron;
 	char   m_char;
 	float  m_fitnessValue;
+	float  m_mutateChance;
 	//Static_Member_Variables
 
 	//Methods
+	bool operator==(const Gene& obj) const;
+	//bool		    operator	== (const Vector2& compare) const;			// vec2 == vec2
 
-	Gene();
+	Gene(float mutateChance);
+	Gene(const Gene& copy);
 	~Gene();
 	
+	void  Mutate();
+	Gene* Clone();
+	bool  IsAlmostEqual(Gene *gene);
 	//Static_Methods
 
 protected:

@@ -24,7 +24,9 @@ class EnemyTank : public GameObject
 
 public:
 	//Member_Variables
-	
+	Vector3 m_forward;
+	float   m_distanceToFollow = 10;
+	float   m_hitInterval = 0;
 	//Static_Member_Variables
 
 	//Methods
@@ -34,6 +36,9 @@ public:
 	~EnemyTank();
 
 	void Update(float deltatime);
+	void UpdateWanderBehaviour(float deltaTime);
+	void UpdateFollowBehaviour(float deltaTime);
+	void UpdateHitFeedBack(float deltatime);
 	void UpdateTankOrientation();
 	void OnCollisionEnter(Collider *collider);
 	

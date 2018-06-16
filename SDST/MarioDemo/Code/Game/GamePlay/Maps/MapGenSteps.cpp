@@ -67,7 +67,7 @@ void MapGenSteps_SpawnActor::Run(Map &newMap)
 {
 	if(m_name == "Brick")
 	{
-		newMap.CreateBricks(m_position,m_dimensions,m_hidden,true);
+		newMap.CreateBricks(m_position,m_dimensions,m_hidden,m_physicsEnabled);
 	}
 	if(m_name == "Pipe")
 	{

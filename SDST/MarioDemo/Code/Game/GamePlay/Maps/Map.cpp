@@ -5,6 +5,9 @@
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Renderer/Camera/OrthographicCamera.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/AI/GA/GeneticAlgorithm.hpp"
+#include "Engine/AI/GA/Chromosome.hpp"
+#include "Engine/AI/GA/Gene.hpp"
 
 #include "Game/GamePlay/Entity/Pipe.hpp"
 Map::Map(MapDefinition *mapDef)
@@ -25,6 +28,7 @@ Map::Map(MapDefinition *mapDef)
 		}
 	}
 	m_minimapAABB = AABB2(Vector2(0, 0), 100, 100);
+	InitGA();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -47,6 +51,26 @@ void Map::InitCamera()
 	Camera::SetGameplayCamera(m_camera);
 	Camera::SetCurrentCamera(m_camera);
 	((OrthographicCamera*)m_camera)->ZoomIn(Vector2(300,0));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitGA()
+{
+	m_ga = new GeneticAlgorithm(500, 14, 0.01f);
+	Chromosome *ch = new Chromosome(14, 0.01f);
+	std::string target = "hello world !!";
+	for(int index = 0;index < target.length();index++)
+	{
+		Gene *gene = new Gene(0.01f);
+		gene->m_char = target[index];
+		ch->m_genes.at(index) = (gene);
+	}
+	m_ga->SetTarget(ch);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,9 +124,9 @@ void Map::CreatePipes(Vector2 position, Vector2 dimensions)
 
 	Pipe *pipe = new Pipe(name, EntityDefinition::GetDefinition("Pipe"));
 	pipe->SetPosition(position);
-	pipe->m_length = 2 * dimensions.x;
-	pipe->m_height = 2 * dimensions.y;
-	pipe->AddBoxCollider2D(Vector3(0, 0, 0), dimensions, Vector3::FORWARD);
+	pipe->m_length = dimensions.x;
+	pipe->m_height = dimensions.y;
+	pipe->AddBoxCollider2D(Vector3(0, 0, 0), dimensions/2.f, Vector3::FORWARD);
 	pipe->GetBoxCollider2D()->m_isStatic = true;
 	m_pipes.push_back(pipe);
 }
@@ -194,6 +218,25 @@ void Map::SpawnEntities(Entity_Type type, Vector2 position, Vector2 orientation)
 
 void Map::Update(float deltaTime)
 {
+	//if(!gafirstsample)
+	m_ga->Epoch();
+	Chromosome *chr = m_ga->m_best;
+	std::string temp;
+	for(int index = 0;index < chr->m_genes.size();index++)
+	{
+		std::string ch(1,chr->m_genes.at(index)->m_char);
+		temp.append(ch);
+	}
+	gafirstsample = true;
+	DebugDraw::GetInstance()->DebugRenderLogf("Generation Count : %d", m_ga->m_currentGenerationCount);
+	DebugDraw::GetInstance()->DebugRenderLogf("TEXT			    : %s", temp.c_str());
+	DebugDraw::GetInstance()->DebugRenderLogf("Best Fitness     : %f", m_ga->m_best->GetTotalFitness(m_ga->m_target));
+	DebugDraw::GetInstance()->DebugRenderLogf("Avg Fitness      : %f", m_ga->m_averageFitnessValue);
+	DebugDraw::GetInstance()->DebugRenderLogf("Mutation Rate    : %f", m_ga->m_mutationRate);
+	DebugDraw::GetInstance()->DebugRenderLogf("=================================================", "");
+
+
+
 	if(!m_init)
 	{
 		CreateCharacters();

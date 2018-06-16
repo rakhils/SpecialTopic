@@ -5,7 +5,9 @@
 #include "Engine/Renderer/Renderable.hpp"
 #include "Engine/SceneManagement/Scene.hpp"
 #include "Engine/Physics/Terrain.hpp"
+#include "Engine/Renderer/ParticleSystem/ParticleEmitter.hpp"
 
+#include "Game/GamePlay/Entity/Bullet.hpp"
 #include "Game/GamePlay/Scenes/SceneLevel1.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,6 +45,7 @@ EnemyTank::EnemyTank(std::string name, Scene *scene,Vector3 position) : GameObje
 	scene->AddRenderable(turretHeadGO->m_renderable);
 
 	m_transform.SetLocalPosition(Vector3(129, 23, 277));
+	AddParticleComponent(Vector3::ZERO, Renderer::GetInstance());
 }
 
 // DESTRUCTOR
@@ -61,14 +64,74 @@ void EnemyTank::Update(float deltatime)
 {
 	//m_transform.SetLocalPosition(Vector3(129, 23, 277));
 	//m_transform.Translate(Vector3::FORWARD*(deltatime * 3));
-
+	Vector3 playerPosition  = ((SceneLevel1*)m_scene)->m_playerTank->m_transform.GetWorldPosition();
+	Vector3 distance = playerPosition - m_transform.GetWorldPosition();
+	if(distance.GetLength() < m_distanceToFollow)
+	{
+		UpdateFollowBehaviour(deltatime);
+	}
+	else
+	{
+		UpdateWanderBehaviour(deltatime);
+	}
+	UpdateTankOrientation();
+	UpdateHitFeedBack(deltatime);
 	Vector3 position	  = m_transform.GetWorldPosition();
 	float   terrainHeight = ((SceneLevel1*)m_scene)->m_map->m_terrainOrig->GetHeight(position.GetXZ());
 	m_transform.SetLocalPosition(Vector3(position.x, terrainHeight + 1, position.z));
 
 
-	UpdateTankOrientation();
 	GameObject::Update(deltatime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/13
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateWanderBehaviour(float deltaTime)
+{
+	float random = GetRandomFloatZeroToOne();
+	if(random > 0.95)
+	{
+		m_forward = GetRandomDirection();
+	}
+	m_forward.y = 0;
+	m_transform.Translate(m_forward*deltaTime);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/13
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateFollowBehaviour(float deltaTime)
+{
+	Vector3 playerPosition  = ((SceneLevel1*)m_scene)->m_playerTank->m_transform.GetWorldPosition();
+	m_forward				= playerPosition - m_transform.GetWorldPosition();
+	m_forward.y = 0;
+	m_transform.Translate(m_forward*deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/13
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateHitFeedBack(float deltatime)
+{
+	if(m_hitInterval > 0)
+	{
+		m_hitInterval -= deltatime;
+		ParticleEmitter *emitter = (ParticleEmitter*)GetComponentByType(PARTICLE);
+		emitter->m_size = 5;
+		emitter->SpawnParticles(4);
+		emitter->Update(deltatime);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,5 +159,9 @@ void EnemyTank::UpdateTankOrientation()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EnemyTank::OnCollisionEnter(Collider *collider)
 {
-	int a = 1;
+	GameObject *gameobject = collider->m_gameObject;
+	if(Bullet *bullet = dynamic_cast<Bullet*>(gameobject) )
+	{
+		m_hitInterval = 2.f;
+	}
 }

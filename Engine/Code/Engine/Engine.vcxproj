@@ -273,7 +273,15 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="AI\GA\GeneticAlgorithm.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="AI\GA\Population.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="AI\NeuralNetwork\NeuralNetworkGene.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -587,7 +595,15 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="AI\GA\GeneticAlgorithm.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="AI\GA\Population.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="AI\NeuralNetwork\NeuralNetworkGene.hpp">
       <SubType>
       </SubType>
     </ClInclude>

@@ -8,21 +8,22 @@
 Bullet::Bullet(std::string name,Vector3 position,Vector3 direction,float speed): GameObject(name)
 {
 	m_forward = direction;
+	m_transform.SetLocalPosition(position);
 	MeshBuilder mb;
 	MeshBuilder::Create3DPlane(mb, position, Vector3(1, 0, 0), Vector3(0, 1, 0), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
 	MeshBuilder::Create3DPlane(mb, position, Vector3(0, 1, 0), Vector3(0, 0, 1), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
 	MeshBuilder::Create3DPlane(mb, position, Vector3(0, 0, 1), Vector3(1, 0, 0), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
 	Mesh *mesh = mb.CreateMesh();
 	m_renderable->SetMesh(mesh);
-	m_renderable->SetMaterial(Material::AquireResource("default"));
+	m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
 	m_speed = speed;
-	AddSphereCollider(Vector3::ZERO, 1.5f);
+	//AddSphereCollider(Vector3::ZERO, 1.5f);
+	//AddLightComponent(position,Rgba::RED);
 }
 
 // DESTRUCTOR
 Bullet::~Bullet()
 {
-	int a = 1;
 }
 
 //////////////////////////////////////////////////////////////
@@ -40,18 +41,4 @@ void Bullet::Update(float deltaTime)
 	m_lifeTime -= deltaTime;
 	m_transform.Translate(m_forward*m_speed);
 	GameObject::Update(deltaTime);
-}
-
-//////////////////////////////////////////////////////////////
-/*DATE    : 2018/05/04
-*@purpose : NIL
-*
-*@param   : NIL
-*
-*@return  : NIL
-*/
-//////////////////////////////////////////////////////////////
-void Bullet::Render()
-{
-
 }

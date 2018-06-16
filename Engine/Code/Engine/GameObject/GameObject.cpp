@@ -60,7 +60,7 @@ GameObject::~GameObject()
 	m_colliderComponents.clear();
 	m_transform;
 	std::map<COMPONENT_TYPE, Component*>::iterator itcomponent;
-	for (itcomponent = m_components.begin(); itcomponent != m_components.end(); it++)
+	for (itcomponent = m_components.begin(); itcomponent != m_components.end(); itcomponent++)
 	{
 		delete itcomponent->second;
 		itcomponent->second = nullptr;
