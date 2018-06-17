@@ -1,5 +1,5 @@
 #include "Engine/Math/OBB3.hpp"
-
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 OBB3::OBB3()
 {
@@ -20,6 +20,7 @@ OBB3::~OBB3()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OBB3::DoContains(Vector3 point)
 {
+	UNUSED(point);
 	/*Vector3 localPoint = (point - center) * orient.getInverse();
 	return Abs(localPoint) < half_extents;*/
 	return true;

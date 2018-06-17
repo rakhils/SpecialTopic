@@ -212,7 +212,7 @@ const Vector3 Vector3::operator=(const Vector2& vectorb) const
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-const Vector3 Vector3::operator/(float uniformScale)
+const Vector3 Vector3::operator/(float uniformScale) const
 {
 	return Vector3(x/uniformScale, y/uniformScale, z/uniformScale); 
 }
@@ -231,6 +231,66 @@ void Vector3::operator/=(const float uniformScale)
 const Vector3 operator *(float uniformScale, const Vector3& vecToScale)
 {
 	return Vector3(vecToScale.x*uniformScale, vecToScale.y*uniformScale,vecToScale.z*uniformScale);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Checks if given vector is greater than the current one
+*@param   : Give vector
+*@return  : true if less than equal to given vector else false
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Vector3::operator>=(const Vector3& vectorA) const
+{
+	if(x >= vectorA.x && y >= vectorA.y && z >= vectorA.z)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Checks if given vector is less the current
+*@param   : Given vec3
+*@return  : true if less than else false
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Vector3::operator<=(const Vector3& vectorA) const
+{
+	if (x <= vectorA.x && y <= vectorA.y && z <= vectorA.z)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Checks if given vector is greater than the current one
+*@param   : Give vector
+*@return  : true if less than equal to given vector else false
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Vector3::operator>(const Vector3& vectorA) const
+{
+	if(x > vectorA.x && y > vectorA.y && z > vectorA.z)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Checks if given vector is less the current
+*@param   : Given vec3
+*@return  : true if less than else false
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Vector3::operator<(const Vector3& vectorA) const
+{
+	if(x < vectorA.x && y < vectorA.y && z < vectorA.z)
+	{
+		return true;
+	}
+	return false;
 }
 
 //////////////////////////////////////////////////////////////

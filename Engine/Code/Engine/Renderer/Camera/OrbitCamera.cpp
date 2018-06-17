@@ -1,6 +1,7 @@
 #include "Engine/Renderer/Camera/OrbitCamera.hpp"
 #include "Engine/Math/Matrix44.hpp"
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Math/MathUtil.hpp"
 // CONSTRUCTOR
 OrbitCamera::OrbitCamera()
 {

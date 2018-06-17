@@ -1,22 +1,14 @@
 #pragma once
 #include "Engine/AI/GA/Chromosome.hpp"
 #include "Engine/AI/GA/Population.hpp"
-/*\class  : GeneticAlgorithm
-*		   
-* \group  : <GroupName>
-*		   
-* \brief  :
-*		   
-* \TODO:  :
-*		   
-* \note   :
-*		   
-* \author : Rakhil Soman
-*		   
-* \version: 1.0
-*		   
+/*\class  : GeneticAlgorithm   
+* \group  : <GroupName>   
+* \brief  :		   
+* \TODO:  :		   
+* \note   :		   
+* \author : Rakhil Soman		   
+* \version: 1.0		   
 * \date   : 6/13/2018 5:52:14 PM
-*
 * \contact: srsrakhil@gmail.com
 */
  
@@ -29,8 +21,8 @@ public:
 	Chromosome*				 m_target					 = nullptr;
 	Chromosome*				 m_best						 = nullptr;
 	int						 m_currentGenerationCount  	 = 0;
-	float					 m_initPopulation;
-	float					 m_geneLength;
+	int 					 m_initPopulation;
+	int 					 m_geneLength;
 	float					 m_mutationRate;
 	bool					 m_isFinished				 = false;
 	float					 m_averageFitnessValue		 = 0.f;

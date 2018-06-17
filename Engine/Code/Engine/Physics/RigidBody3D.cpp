@@ -1,5 +1,6 @@
 #include "Engine/Physics/RigidBody3D.hpp"
 #include "Engine/GameObject/GameObject.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 RigidBody3D::RigidBody3D()
 {
@@ -38,6 +39,7 @@ void RigidBody3D::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void RigidBody3D::ApplyFriction(float deltaTime)
 {
+	UNUSED(deltaTime);
 	if(m_velocity == Vector3::ZERO)
 	{
 		return;
@@ -69,6 +71,7 @@ void RigidBody3D::ApplyGravity(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void RigidBody3D::AddForce(Vector3 force, float deltaTime)
 {
+	UNUSED(deltaTime);
 	m_acceleration += (force / m_mass );
 }
 
@@ -80,6 +83,7 @@ void RigidBody3D::AddForce(Vector3 force, float deltaTime)
 */////////////////////////////////////////////////////////////
 void RigidBody3D::ApplyForce(Vector3 forceDirection, float deltaTime)
 {
+	UNUSED(deltaTime);
 	/*
 	Vector3 acceleration = forceDirection * (forceMagnitude / m_mass);
 	m_velocity           += acceleration*deltaTime;

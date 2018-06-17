@@ -142,6 +142,71 @@ float getDistanceOfVectors(Vector2 *vector1,Vector2* vector2)
 	return sqrtf((float)(((dist->x)*(dist->x))+((dist->y)*(dist->y))));
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Gets max point to contain both vec2s
+*@param   : 2 vec2s
+*@return  : Max point 
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector2 GetMax(Vector2 a, Vector2 b)
+{
+	Vector2 returnValue;
+	if (a.x > b.x)
+	{
+		returnValue.x = a.x;
+	}
+	else
+	{
+		returnValue.x = b.x;
+	}
+	if (a.y > b.y)
+	{
+		returnValue.y = a.y;
+	}
+	else
+	{
+		returnValue.y = b.y;
+	}
+	return returnValue;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Gets max point to contain 2 vec3s
+*@param   : 2 vec3
+*@return  : Max point
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector3 GetMax(Vector3 a, Vector3 b)
+{
+	Vector3 returnValue;
+	if (a.x > b.x)
+	{
+		returnValue.x = a.x;
+	}
+	else
+	{
+		returnValue.x = b.x;
+	}
+	if (a.y > b.y)
+	{
+		returnValue.y = a.y;
+	}
+	else
+	{
+		returnValue.y = b.y;
+	}
+	if (a.z > b.z)
+	{
+		returnValue.z = a.z;
+	}
+	else
+	{
+		returnValue.z = b.z;
+	}
+	return returnValue;
+
+}
+
 float GetMaxOf2(float val1, float val2)
 {
 	if(val1 > val2)
@@ -403,6 +468,17 @@ bool IsAlmostEqual(float value1, float comparison, float diff /*= 0.001*/)
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Checks if the values is near to 0
+*@param   : NIL
+*@return  : if near 0 returns true else false
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool IsNearZero(float value)
+{
+	return IsAlmostEqual(value, 0.0f);
+}
+
 float GetLargestOf4(float value1, float value2, float value3, float value4)
 {
 	float greatest = value1;
@@ -580,6 +656,71 @@ float RangeMapInt(int value, int OriginalLowerBound, int OriginalUpperBound, int
 float Atan2Degrees(float y,float x)
 {
 	return ConvertRadiansToDegrees(atan2f(y,x));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : gets the minimum point to contain both vec2s
+*@param   : 2 Vector2s
+*@return  : Min
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector2 GetMin(Vector2 a, Vector2 b)
+{
+	Vector2 returnValue;
+	if(a.x < b.x)
+	{
+		returnValue.x = a.x;
+	}
+	else
+	{
+		returnValue.x = b.x;
+	}
+
+	if (a.y < b.y)
+	{
+		returnValue.y = a.y;
+	}
+	else
+	{
+		returnValue.y = b.y;
+	}
+	return returnValue;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Gets minimum point to contain both vec3s
+*@param   : 2 vec3s
+*@return  : Min value
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector3 GetMin(Vector3 a, Vector3 b)
+{
+	Vector3 returnValue;
+	if (a.x < b.x)
+	{
+		returnValue.x = a.x;
+	}
+	else
+	{
+		returnValue.x = b.x;
+	}
+	if (a.y < b.y)
+	{
+		returnValue.y = a.y;
+	}
+	else
+	{
+		returnValue.y = b.y;
+	}
+	if (a.z < b.z)
+	{
+		returnValue.z = a.z;
+	}
+	else
+	{
+		returnValue.x = b.z;
+	}
+	return returnValue;
 }
 
 float ClampZeroOrToOne(float value)
@@ -1442,7 +1583,7 @@ Vector3 Slerp(Vector3 &a, Vector3 &b, float t)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Vector3 SlerpUnit(Vector3 &a, Vector3 &b, float t)
 {
-	float			 EPSILON = 0.001;
+	float			 EPSILON = 0.001f;
 	float cosangle = ClampFloat(DotProduct(a, b), -1.0f, 1.0f);
 	float angle = acosf(cosangle);
 	if (angle < EPSILON)

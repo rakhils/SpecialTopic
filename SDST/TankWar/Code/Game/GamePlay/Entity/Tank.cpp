@@ -12,6 +12,7 @@
 #include "Engine/Renderer/Camera/PerspectiveCamera.hpp"
 #include "Engine/Renderer/Lights/Light.hpp"
 #include "Engine/Renderer/ParticleSystem/ParticleEmitter.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Entity/EnemyTank.hpp"
 
@@ -52,6 +53,7 @@ Vector3 Tank::GetTurretForward()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::FireBullet(float deltaTime)
 {
+	UNUSED(deltaTime);
 	ParticleEmitter* pEmitter = (ParticleEmitter*)GetComponentByType(PARTICLE);
 	pEmitter->SpawnParticles(5);
 	Vector3 bulletSpawnPosition = m_transform.GetWorldPosition();
@@ -223,6 +225,7 @@ void Tank::UpdateBullet(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::UpdateCameraPosition(float deltaTime)
 {
+	UNUSED(deltaTime);
 	Vector3 tankPosition = m_transform.GetWorldPosition();
 	Vector3 tankForward  = m_transform.GetWorldMatrix().GetKAxis();
 	Vector3 camPosition  = tankPosition - tankForward * 25;
@@ -240,6 +243,7 @@ void Tank::UpdateCameraPosition(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::UpdateCameraOrientation(float deltaTime)
 {
+	UNUSED(deltaTime);
 	Vector2 delta = InputSystem::GetInstance()->GetMouseDelta();
 	PerspectiveCamera *m_camera = ((SceneLevel1*)m_scene)->m_camera;
 	if (delta.x != 0)
@@ -276,6 +280,7 @@ void Tank::UpdateTankOrientation()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::UpdateBreadCrumb(float deltatime)
 {
+	UNUSED(deltatime);
 	m_stopWatch.Decrement();
 	if (m_stopWatch.CheckAndReset())
 	{
@@ -296,7 +301,7 @@ void Tank::UpdateBreadCrumb(float deltatime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::UpdateTurretOrientation(float deltaTime)
 {
-
+	UNUSED(deltaTime);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

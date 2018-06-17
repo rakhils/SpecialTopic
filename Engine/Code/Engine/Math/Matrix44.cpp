@@ -1,5 +1,7 @@
 #include "Engine/Math/Matrix44.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/Core/EngineCommon.hpp"
+
 Matrix44::Matrix44()
 {
 	Ix = 1;
@@ -153,6 +155,19 @@ Matrix44::Matrix44(const Vector4 R1, const Vector4 R2, const Vector4 R3, const V
 	Kw = R4.z;
 	Tw = R4.w;
 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Matrix multiplication
+*@param   : Second matrix to multiply
+*@return  : Multiplied matrix
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Matrix44 Matrix44::operator*(const Matrix44& matrix) const
+{
+	Matrix44 multipliedMatrix =  *this;
+	multipliedMatrix.MultiplyAndSet(matrix);
+	return multipliedMatrix;
 }
 
 Vector2 Matrix44::TransformPosition2D(const Vector2& position2D)
@@ -352,6 +367,17 @@ Vector4 Matrix44::GetJAxis4()
 Vector4 Matrix44::GetKAxis4()
 {
 	return Vector4(Kx, Ky, Kz,Kw);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector4 Matrix44::GetTAxis4()
+{
+	return Vector4(Tx, Ty, Tz, Tw);
 }
 
 //////////////////////////////////////////////////////////////
@@ -796,6 +822,7 @@ void Matrix44::Inverse()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Matrix44::WorldLookAt(Vector3 position)
 {
+	UNUSED(position);
 	/*Matrix44 lookAt = Matrix44::LookAt(GetWorldPosition(), worldPos, worldUp);
 	SetWorldMatrix(lookAt);*/
 }
@@ -1019,8 +1046,8 @@ Matrix44 Matrix44::MakeScale2D(float scaleX, float scaleY)
 
 Matrix44 Matrix44::MakeOrtho2D(const Vector2& bottomLeft, const Vector2& topRight)
 {
-	float far = 0.0f;
-	float near = -1.0f;
+	float farz = 0.0f;
+	float nearz = -1.0f;
 	Vector2 centre = (bottomLeft + topRight)/2.0f;
 	Matrix44 translateMatrix44 = MakeTranslation2D(-1.0f*centre);
 	Matrix44 scaleMatrix44 = MakeScale2D(2.0f/(topRight.x-bottomLeft.x),2.0f/(topRight.y-bottomLeft.y));
@@ -1029,8 +1056,8 @@ Matrix44 Matrix44::MakeOrtho2D(const Vector2& bottomLeft, const Vector2& topRigh
 	
 	orthoMatrix.MultiplyAndSet(scaleMatrix44);
 	orthoMatrix.MultiplyAndSet(translateMatrix44);
-	orthoMatrix.Kz = -2.0f/(far - near);
-	orthoMatrix.Tz = near;
+	orthoMatrix.Kz = -2.0f/(farz - nearz);
+	orthoMatrix.Tz = nearz;
 	
 	return orthoMatrix;
 }
@@ -1063,28 +1090,7 @@ Matrix44 Matrix44::MatrixFromEuler(Vector3 angles)
 		0.f,					0.f,		0.f,					1.f
 	};
 	Matrix44 matrix(points);
-	/*float points1[16]
-	{
-		cz*cy + sx * sy*sz,		-sz*cy + cz*sx*sy,		-1*cx*sy,					0.f,
-
-		sz*cx,					cx*cz,					 sx,					0.f,
-		
-		-1*sz*sx*cy + cz*sy,	-1*(sx*cy*cz + sy*sz),	cx*cy,					0.f,
-		
-		0.f,					0.f,					0.f,					1.f
-	};*/
-	//matrix.Transpose();
 	return matrix;
-
-
-	//return Matrix44::MakeRotationDegreesInY(angles.y);
-/*
-	Matrix44 Xrotate = Matrix44::MakeRotationDegreesInX(angles.x * 215);
-	Matrix44 Yrotate = Matrix44::MakeRotationDegreesInY(angles.y * 215);
-
-	Xrotate.MultiplyAndSet(Yrotate);
-	return Xrotate;*/
-
 }
 
 //////////////////////////////////////////////////////////////

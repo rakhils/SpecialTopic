@@ -97,14 +97,14 @@ void SceneLevel1::InitScene()
 void SceneLevel1::CreatePlayer()
 {
 	Mesh *turretHead = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3::ZERO, .75f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
-	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1, .25, 2), Rgba::WHITE, FILL_MODE_FILL);
-	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1, .1, 2), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1.f, .25f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
 	GameObject *turretHeadGO = new GameObject("turrethead");
 	GameObject *turretGunGO = new GameObject("turretgun");
 	turretHeadGO->SetScene(this);
 	turretHeadGO->m_renderable->SetMesh(turretHead);
 	turretHeadGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-	turretHeadGO->m_transform.SetLocalPosition(Vector3(0, 0.4, 0));
+	turretHeadGO->m_transform.SetLocalPosition(Vector3(0, 0.4f, 0));
 	
 	turretGunGO->SetScene(this);
 	turretGunGO->m_renderable->SetMesh(turretGun);
@@ -177,7 +177,7 @@ void SceneLevel1::CreateMap()
 	m_map->LoadFromImage(this,terrainImage, AABB2(Vector2(0, 0),256,256), 1, 50, Vector2::ONE);
 
 	Game::SetMinBounds(Vector3(0, 1, 0));
-	Game::SetMaxBounds(Vector3(m_map->m_image->GetDimensions().x, 50, m_map->m_image->GetDimensions().y));
+	Game::SetMaxBounds(Vector3(static_cast<float>(m_map->m_image->GetDimensions().x), 50, static_cast<float>(m_map->m_image->GetDimensions().y)));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -272,8 +272,8 @@ void SceneLevel1::Render()
 	{
 		Material *def = Material::AquireResource("Data\\Materials\\text.mat");
 		Renderer::GetInstance()->BindMaterial(def);
-		std::string text = ToString(m_playerTank->m_timeLeftToRespawn) + " SECONDS";
-		Renderer::GetInstance()->DrawText2D(Vector2(300, 500), "YOU DIED WAIT FOR "+text, 30, Rgba::WHITE, 1, nullptr);
+		std::string text1 = ToString(m_playerTank->m_timeLeftToRespawn) + " SECONDS";
+		Renderer::GetInstance()->DrawText2D(Vector2(300, 500), "YOU DIED WAIT FOR "+text1, 30, Rgba::WHITE, 1, nullptr);
 		delete def;
 	}
 }

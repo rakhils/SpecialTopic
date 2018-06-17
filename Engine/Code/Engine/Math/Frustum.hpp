@@ -1,7 +1,9 @@
 #pragma once
+#pragma warning (disable : 4201)
 #include "Engine/Math/Plane.hpp"
 #include "Engine/Math/Vector3.hpp"
-#include "Engine/Math/Matrix44.hpp"
+
+//#include "Engine/Math/Matrix44.hpp"
 /*\class  : Frustum		   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -18,15 +20,27 @@ class Frustum
 
 public:
 	//Member_Variables
-	Plane m_left;
+	/*Plane m_left;
 	Plane m_right;
 	Plane m_bottom;
 	Plane m_top;
 	Plane m_back;
-	Plane m_front;
+	Plane m_front;*/
 
-	void IsContained(Vector3 point);
-	static Frustum FromMatrix(Matrix44 mat);
+	union {
+		Plane m_planes[6];
+		struct {
+			Plane m_left;
+			Plane m_right;
+			Plane m_bottom;
+			Plane m_top;
+			Plane m_back;
+			Plane m_front;
+		};
+	};
+
+	bool DoContainPoint(Vector3 point);
+	//static Frustum FromMatrix(Matrix44 mat);
 	//Static_Member_Variables
 
 	//Methods

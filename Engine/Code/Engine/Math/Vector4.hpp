@@ -18,6 +18,7 @@ public:
 	const Vector4	 operator - (const Vector4& vecToSubtract) const;
 	const Vector4	 operator + (const Vector4& vectora) const;
 	const Vector4	 operator * (float uniformScale);
+	//const Vector4	 operator * (Matrix44 matrix) const;
 	const Vector4	 operator / (float uniformScale);
 	void			 operator -=(const Vector4& vecToSubtract);
 	void			 operator +=(const Vector4& VectorToAdd);

@@ -16,20 +16,33 @@ class AABB3
 
 public:
 	//Member_Variables
-	Vector3 mins;
-	Vector3 maxs;
+	Vector3 m_mins;
+	Vector3 m_maxs;
 	//Static_Member_Variables
 	//Methods
 
 	AABB3();
+	AABB3(Vector3 mins, Vector3 maxs);
 	~AABB3();
 	
+	// ALL CORNERS
+	Vector3 GetBackBottomLeft();
+	Vector3 GetBackBottomRight();
+	Vector3 GetBackTopLeft();
+	Vector3 GetBackTopRight();
+	Vector3 GetFrontBottomLeft();
+	Vector3 GetFrontBottomRight();
+	Vector3 GetFrontTopLeft();
+	Vector3 GetFrontTopRight();
+
+	Vector3 GetCentre();
+
 	void GrowToContain(Vector3 point);
 	bool DoContains(Vector3 point);
 	bool GetCorners(Vector3 *out);
 	void Invalidate();
 	//Static_Methods
-
+	static AABB3 Center(Vector3 center, Vector3 dimensions);
 protected:
 	//Member_Variables
 

@@ -8,6 +8,7 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/Windows.hpp"
 #include "Engine/Renderer/Camera.hpp"
+#include "Engine/Math/MathUtil.hpp"
 
 bool					 DebugDraw::s_debugRender		= true;
 DebugDraw*				 DebugDraw::s_defaultDraw		= nullptr;

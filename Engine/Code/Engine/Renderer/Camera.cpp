@@ -4,6 +4,7 @@
 #include "Engine/Renderer/Camera/OrthographicCamera.hpp"
 #include "Engine/Renderer/Camera/PerspectiveCamera.hpp"
 #include "Engine/Core/Windows.hpp"
+#include "Engine/Math/MathUtil.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Camera*		Camera::s_defaultCamera		= nullptr;
 Camera*		Camera::s_currentCamera		= nullptr;
@@ -68,10 +69,10 @@ void Camera::SetProjection(Matrix44 const &proj)
 }
 void Camera::SetOrthoProjection()
 {
-	int width  = Windows::GetInstance()->GetDimensions().x;
-	int height = Windows::GetInstance()->GetDimensions().y;
+	float width  = static_cast<float>(Windows::GetInstance()->GetDimensions().x);
+	float height = static_cast<float>(Windows::GetInstance()->GetDimensions().y);
 
-	width  -= m_xZoomIn;
+	width -= m_xZoomIn;
 	height -= m_yZoomIn;
 
 	Vector3 cameraPosition = m_transform.GetWorldPosition();
@@ -463,6 +464,19 @@ void Camera::RotateZ(float angle)
 	//SetModelMatrix(m_transform.GetLocalMatrix());
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Get camera's frustum object
+*@param   : NIL
+*@return  : Frustum
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Frustum Camera::GetFrustum()
+{
+	Frustum f;
+	return f;
+	//return Frustum::FromMatrix(m_projection*m_view);
+}
 
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/02/19

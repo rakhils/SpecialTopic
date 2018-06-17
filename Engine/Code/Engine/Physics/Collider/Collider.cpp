@@ -19,7 +19,6 @@ Collider::Collider()
 // DESTRUCTOR
 Collider::~Collider()
 {
-	int a = 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,14 +52,13 @@ void Collider::SetPosition(Vector3 position)
 bool Collider::CheckSphereVsBox2DCollision(SphereCollider* sphereCollider, BoxCollider2D* boxCollider)
 {
 	Vector3 sphereCenter = sphereCollider->GetCenterPosition();
-	float   radius		 = sphereCollider->m_radius;
 	Vector3 direction    = sphereCenter - boxCollider->m_transform.GetWorldPosition();
 	direction			 = direction.GetNormalized();
 	RaycastHit result;// = Raycast3D::Raycast(sphereCollider, sphereCenter, direction*-1.f, radius, 0.10f);
 	if(result.m_hit)
 	{
 		sphereCollider->OnCollisionEnter(boxCollider);
-		GameObject *gameObject = sphereCollider->m_gameObject;
+		//GameObject *gameObject = sphereCollider->m_gameObject;
 		//gameObject->m_transform.Translate(box2DNormal*radius);
 
 		/*Vector3 closestDirection;
@@ -83,7 +81,7 @@ bool Collider::CheckSphereVsBox2DCollision(SphereCollider* sphereCollider, BoxCo
 
 
 
-		RigidBody3D * rigidBody = gameObject->GetRigidBody3DComponent();
+		//RigidBody3D * rigidBody = gameObject->GetRigidBody3DComponent();
 		TODO("DELTA TIME FOR SPHEREvsBOX COLLISION");
 		//rigidBody->ApplyForce(closestDirection.GetNormalized()*(-1*rigidBody->m_mass*50.f), 0.016f);
 		//boxCollider->OnCollisionEnter(sphereCollider);

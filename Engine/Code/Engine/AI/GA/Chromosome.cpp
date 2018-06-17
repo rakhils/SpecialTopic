@@ -15,7 +15,7 @@ Chromosome::Chromosome(int geneCount,float mutationChance)
 // DESTRUCTOR
 Chromosome::~Chromosome()
 {
-	for(int index = m_genes.size() - 1;index >=0; index--)
+	for(int index = static_cast<int>(m_genes.size()) - 1;index >=0; index--)
 	{
 		delete m_genes.at(index);
 		m_genes.at(index) = nullptr;
@@ -30,7 +30,7 @@ Chromosome::~Chromosome()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 float Chromosome::GetTotalFitness(Chromosome* taget)
 {
-	m_totalFitness = 0.01;
+	m_totalFitness = 0.01f;
 	for (int geneIndex = 0; geneIndex < m_genes.size(); geneIndex++)
 	{
 		if (geneIndex < taget->m_genes.size())

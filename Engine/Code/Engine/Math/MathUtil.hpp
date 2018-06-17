@@ -33,6 +33,10 @@ float		     CosDegrees( float degrees );
 float		     SinDegrees( float degrees );
 float		     Atan2Degrees(float y,float x);
 			     
+Vector2			 GetMin(Vector2 a, Vector2 b);
+Vector3			 GetMin(Vector3 a, Vector3 b);
+Vector2			 GetMax(Vector2 a, Vector2 b);
+Vector3			 GetMax(Vector3 a, Vector3 b);
 float		     GetMaxOf2 (float value1, float value2);
 float		     GetMinOf2 (float value1, float value2);
 bool		     IsInRangeOf(int value,int lowerLimit,int upperLimit);
@@ -45,6 +49,7 @@ float		     GetDistanceSquared( const Vector2 a, const Vector2 b );
 float		     DoAngleCorrection(float &angle);
 bool		     IsAngleWithinRangeOf(float angle, float baseAngle, float range, float direction);
 bool			 IsAlmostEqual(float value1, float comparison, float diff = 0.001);
+bool			 IsNearZero(float value);
 bool		     IsVectorAlmostEqual(Vector2 value1, Vector2 value2, float diff);
 bool			 IsAlmostEqual(Vector3 value1, Vector3 comparion, float diff = 0.001);
 float		     GetLargestOf4(float value1, float value2, float value3, float value4);

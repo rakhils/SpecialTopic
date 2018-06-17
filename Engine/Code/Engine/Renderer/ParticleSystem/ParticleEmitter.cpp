@@ -5,6 +5,7 @@
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/SceneManagement/Scene.hpp"
 #include "Engine/Time/Clock.hpp"
+#include "Engine/Math/MathUtil.hpp"
 
 // CONSTRUCTOR
 ParticleEmitter::ParticleEmitter(Renderer *renderer, Scene *scene)

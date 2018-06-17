@@ -33,7 +33,7 @@ public:
 	std::vector<float> m_heights;
 	//Static_Member_Variables
 	void		LoadFromImage(Image *image, AABB2 const &extents, float min_height, float max_height, Vector2 chunk_counts);
-	void		CreateTerrainChunk(Image *image, Vector2 startPosition, Vector2 chunkStart);
+	void		CreateTerrainChunk(Vector2 startPosition, Vector2 chunkStart);
 	float		GetHeight(Vector2 position);
 	float		GetHeightAtDiscreteCordinate(IntVector2 cords);
 	float		GetHeightAtDiscreteCordinate(int index);

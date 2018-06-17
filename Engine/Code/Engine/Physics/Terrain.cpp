@@ -3,6 +3,7 @@
 #include "Engine/Mesh/Mesh.hpp"
 #include "Engine/Renderer/Renderable.hpp"
 #include "Engine/Renderer/Materials/Material.hpp"
+#include "Engine/Math/MathUtil.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Terrain::Terrain()
@@ -36,12 +37,12 @@ void Terrain::LoadFromImage(Image *image, AABB2 const &extents, float min_height
 
 	Vector2 chunkDimension(m_dimensions.x / chunk_counts.x, m_dimensions.y/chunk_counts.y);
 	Vector3 startWorldPosition = Vector3::ZERO;
-	for (int chunkIndexY = 0; chunkIndexY < m_dimensions.y;)
+	for (float chunkIndexY = 0; chunkIndexY < m_dimensions.y;)
 	{
-		for(int chunkIndexX = 0;chunkIndexX < m_dimensions.x;)
+		for(float chunkIndexX = 0;chunkIndexX < m_dimensions.x;)
 		{
 			Vector2 startChunkPosition(chunkIndexX, chunkIndexY);
-			CreateTerrainChunk(image, startWorldPosition.GetXY(), startChunkPosition);
+			CreateTerrainChunk(startWorldPosition.GetXY(), startChunkPosition);
 			startWorldPosition.x += m_cellSize.x*chunkDimension.x;
 			chunkIndexX += chunkDimension.x;
 		}
@@ -57,19 +58,18 @@ void Terrain::LoadFromImage(Image *image, AABB2 const &extents, float min_height
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Terrain::CreateTerrainChunk(Image *image, Vector2 startPosition, Vector2 chunkStart)
+void Terrain::CreateTerrainChunk(Vector2 startPosition, Vector2 chunkStart)
 {
-	int startIndex = chunkStart.y * m_chunkDimensions.x + chunkStart.x;
 	Vector2 tempStartPosition = startPosition;
 	Vector2 chunkDimension(m_dimensions.x / m_chunkDimensions.x, m_dimensions.y/m_chunkDimensions.y);
-	for(int indexY = 0;indexY < chunkDimension.y;indexY++)
+	for(float indexY = 0;indexY < chunkDimension.y;indexY++)
 	{
-		for(int indexX = 0;indexX < chunkDimension.x;indexX++)
+		for(float indexX = 0;indexX < chunkDimension.x;indexX++)
 		{
-			float height = GetHeightAtDiscreteCordinate(IntVector2(chunkStart.x + indexX, chunkStart.y + indexY));
+			float height = GetHeightAtDiscreteCordinate(Vector2(chunkStart.x + indexX, chunkStart.y + indexY).ToIntVector2());
 			Vector3 position(startPosition.x, height, startPosition.y);
 			Vector2 UV(indexX, indexY);
-			Vector3 normal = GetNormalAtDiscreteCordinate(IntVector2(chunkStart.x + indexX, chunkStart.y + indexY));
+			Vector3 normal = GetNormalAtDiscreteCordinate(Vector2(chunkStart.x + indexX, chunkStart.y + indexY).ToIntVector2());
 			m_meshBuilder.SetColor(Rgba::WHITE);
 			m_meshBuilder.SetUV(UV);
 			m_meshBuilder.SetNormal(normal);
@@ -81,14 +81,14 @@ void Terrain::CreateTerrainChunk(Image *image, Vector2 startPosition, Vector2 ch
 		startPosition.y += m_cellSize.y;
 	}
 
-	for (int z = 0; z < (chunkDimension.y - 1); z++)
+	for (int z = 0; z < (static_cast<int>(chunkDimension.y) - 1); z++)
 	{
-		for (int x = 0; x < (chunkDimension.x - 1); x++)
+		for (int x = 0; x < (static_cast<int>(chunkDimension.x) - 1); x++)
 		{
-			int ll = chunkDimension.y * z + x;
+			int ll = static_cast<int>(chunkDimension.y) * z + x;
 			int lr = ll + 1;
 
-			int ul = ll + chunkDimension.y;
+			int ul = ll + static_cast<int>(chunkDimension.y);
 			int ur = ul + 1;
 			m_meshBuilder.AddQuadIndex(ll, lr, ul, ur);
 		}
@@ -136,7 +136,7 @@ float Terrain::GetHeight(Vector2 position)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 float Terrain::GetHeightAtDiscreteCordinate(IntVector2 cords)
 {
-	int idx = cords.y * m_dimensions.x + cords.x;
+	int idx = cords.y * static_cast<int>(m_dimensions.x) + cords.x;
 	if(idx < m_heights.size())
 	{
 		return m_heights[idx];
@@ -153,7 +153,7 @@ float Terrain::GetHeightAtDiscreteCordinate(IntVector2 cords)
 float Terrain::GetHeightAtDiscreteCordinate(int index)
 {
 	int Xpos = index % static_cast<int>(m_dimensions.x);
-	int Ypos = index / m_dimensions.y;
+	int Ypos = index / static_cast<int>(m_dimensions.y);
 	return GetHeightAtDiscreteCordinate(IntVector2(Xpos, Ypos));
 }
 

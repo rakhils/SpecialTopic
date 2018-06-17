@@ -17,9 +17,9 @@ class Chromosome
 public:
 	//Member_Variables
 	std::vector<Gene*> m_genes;
-	float			   m_totalFitness   = 0.01;
+	float			   m_totalFitness   = 0.01f;
 	int				   m_geneCount		= 0;
-	float			   m_mutationChance = 0;
+	float			   m_mutationChance = 0.f;
 	//Static_Member_Variables
 
 	//Methods

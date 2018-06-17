@@ -60,7 +60,7 @@ void GeneticAlgorithm::UpdateFitnessValue()
 		m_averageFitnessValue += ch->m_totalFitness;
 		if(ch->m_totalFitness == 0.f)
 		{
-			ch->m_totalFitness = 0.01;
+			ch->m_totalFitness = 0.01f;
 		}
 	}
 	m_averageFitnessValue /= m_population->m_chromosomes.size();
@@ -93,7 +93,7 @@ bool GeneticAlgorithm::Epoch()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GeneticAlgorithm::GenerateNewPopulation()
 {
-	int maxFitness = 0;
+	float maxFitness = 0.f;
 	for (int index = 0; index < m_population->m_chromosomes.size(); index++)
 	{
 		maxFitness += m_population->m_chromosomes.at(index)->GetTotalFitness(m_target);
@@ -102,14 +102,14 @@ void GeneticAlgorithm::GenerateNewPopulation()
 	newpopulation.reserve(m_initPopulation);
 	for(int index = 0;index < m_population->m_chromosomes.size();index++)
 	{
-		Chromosome *ch1 = m_population->AcceptReject(maxFitness);
-		Chromosome *ch2 = m_population->AcceptReject(maxFitness);
+		Chromosome *ch1 = m_population->AcceptReject(static_cast<int>(maxFitness));
+		Chromosome *ch2 = m_population->AcceptReject(static_cast<int>(maxFitness));
 		Chromosome *ch3 = ch1->CrossOver(ch2);
 		ch3->Mutate();
 		ch3->GetTotalFitness(m_target);
 		newpopulation.push_back(ch3);
 	}
-	for(int index = m_population->m_chromosomes.size() -1;index >=0 ;index--)
+	for(int index = static_cast<int>(m_population->m_chromosomes.size()) -1;index >=0 ;index--)
 	{
 		delete m_population->m_chromosomes.at(index);
 	}
@@ -123,18 +123,17 @@ void GeneticAlgorithm::GenerateNewPopulation()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GeneticAlgorithm::Evaluate()
 {
-	int maxFitness = -1;
-	Chromosome *best = nullptr;
+	float maxFitness = -1;
 	for (int index = 0; index < m_population->m_chromosomes.size(); index++)
 	{
 		Chromosome *ch = m_population->m_chromosomes.at(index);
-		int fitness = ch->GetTotalFitness(m_target);
+		float fitness = ch->GetTotalFitness(m_target);
 		if(fitness > maxFitness)
 		{
 			maxFitness = fitness;
 			m_best = ch;
 		}
-		if(fitness == ch->m_genes.size())
+		if(static_cast<int>(fitness) == static_cast<int>(ch->m_genes.size()))
 		{
 			m_isFinished = true;
 			m_best = ch;

@@ -227,6 +227,22 @@ const Vector4 operator *(float uniformscale,const Vector4& value)
 	return Vector4(value.x*uniformscale, value.y*uniformscale, value.z*uniformscale, value.w*uniformscale);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Multiplies pos with matrix
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+const Vector4 Vector4::operator*(Matrix44 matrix) const
+{
+	float x = DotProduct(this, matrix.GetIAxis());
+	float y = DotProduct(this, matrix.GetJAxis4());
+	float z = DotProduct(this, matrix.GetKAxis4());
+	float w = DotProduct(this, matrix.GetTAxis4());
+	return Vector4 (x, y, z, w);
+}*/
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/04/18
 *@purpose : NIL

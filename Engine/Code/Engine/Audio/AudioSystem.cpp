@@ -241,7 +241,7 @@ void AudioSystem::SetSoundPlaybackSpeed( SoundPlaybackID soundPlaybackID, float 
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void AudioSystem::LoadSoundGroup(std::string grpname, std::string filename)
 {
-	SoundID id = CreateOrGetSound(filename);
+	CreateOrGetSound(filename);
 	std::map<std::string, std::vector<std::string>>::iterator it;
 	it = m_audioGroupMap.find(grpname);
 	if(it == m_audioGroupMap.end())
@@ -268,7 +268,7 @@ void AudioSystem::PlaySoundFromGroup(std::string grpname)
 	if (it != m_audioGroupMap.end())
 	{
 		std::vector<std::string> filenames = it->second;
-		int random = GetRandomIntLessThan(filenames.size());
+		int random = GetRandomIntLessThan(static_cast<int>(filenames.size()));
 		SoundID id = CreateOrGetSound(filenames.at(random));
 		PlaySound(id);
 	}

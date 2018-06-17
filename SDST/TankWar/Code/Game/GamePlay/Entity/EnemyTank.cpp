@@ -16,20 +16,20 @@
 EnemyTank::EnemyTank(std::string name, Scene *scene,Vector3 position) : GameObject(name)
 {
 	Mesh *turretHead = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3::ZERO, 0.75f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
-	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1, .25, 2), Rgba::WHITE, FILL_MODE_FILL);
-	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1, .1, 3), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1.f, .25f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 3.f), Rgba::WHITE, FILL_MODE_FILL);
 	GameObject *turretHeadGO = new GameObject("turrethead");
 	GameObject *turretGunGO  = new GameObject("turretgun");
 	
 	turretHeadGO->SetScene(scene);
 	turretHeadGO->m_renderable->SetMesh(turretHead);
 	turretHeadGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-	turretHeadGO->m_transform.SetLocalPosition(Vector3(0, 0.4, 0));
+	turretHeadGO->m_transform.SetLocalPosition(Vector3(0.f, 0.4f, 0.f));
 
 	turretGunGO->SetScene(scene);
 	turretGunGO->m_renderable->SetMesh(turretGun);
 	turretGunGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-	turretGunGO->m_transform.SetLocalPosition(Vector3(0, .5, 3));
+	turretGunGO->m_transform.SetLocalPosition(Vector3(0.f, .5f, 3.f));
 
 	SetScene(scene);
 	m_renderable->SetMesh(tankBody);

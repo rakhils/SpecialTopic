@@ -1,6 +1,7 @@
 #pragma once
 #include "Engine/Math/Vector2.hpp"
-#include "Engine/Math/MathUtil.hpp"
+#include "Engine/Math/Vector3.hpp"
+#include "Engine/Math/Vector4.hpp"
 
 class Matrix44
 {
@@ -27,6 +28,8 @@ public:
 	explicit Matrix44( const Vector2& iBasis, const Vector2& jBasis, const Vector2& translation=Vector2(0.f,0.f) );
 	explicit Matrix44(const Vector3 R1,const Vector3 R2,const Vector3 R3);
 	explicit Matrix44(const Vector4 R1,const Vector4 R2,const Vector4 R3,const Vector4 R4);
+
+	Matrix44 operator *(const Matrix44& matrix) const;
 	// Accessors
 	Vector2 TransformPosition2D( const Vector2& position2D ); // Written assuming z=0, w=1
 	Vector2 TransformDisplacement2D( const Vector2& displacement2D ); // Written assuming z=0, w=0
@@ -44,6 +47,7 @@ public:
 	Vector4 GetIAxis4();
 	Vector4 GetJAxis4();
 	Vector4 GetKAxis4();
+	Vector4 GetTAxis4();
 
 	Vector3 GetXComponent();
 	Vector3 GetYComponent();

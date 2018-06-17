@@ -14,7 +14,7 @@ Population::Population(int chromosomeCount,int genecount,float mutationChance)
 // DESTRUCTOR
 Population::~Population()
 {
-	for(int index = m_chromosomes.size();index >=0 ;index--)
+	for(int index = static_cast<int>(m_chromosomes.size());index >=0 ;index--)
 	{
 		delete m_chromosomes.at(index);
 		m_chromosomes.at(index) = nullptr;
@@ -33,7 +33,7 @@ Chromosome* Population::AcceptReject(int m_maxFitness)
 	int currentIteration = 0;
 	while(true)
 	{
-		int index			= GetRandomIntLessThan(m_chromosomes.size());
+		int index			= GetRandomIntLessThan(static_cast<int>(m_chromosomes.size()));
 		Chromosome *partner = m_chromosomes.at(index);
 		int r			    = GetRandomIntLessThan(m_maxFitness);
 
@@ -47,7 +47,7 @@ Chromosome* Population::AcceptReject(int m_maxFitness)
 			break;
 		}
 	}
-	int index			= GetRandomIntLessThan(m_chromosomes.size());
+	int index			= GetRandomIntLessThan(static_cast<int>(m_chromosomes.size()));
 	Chromosome *partner = m_chromosomes.at(index);
 	return partner;
 }

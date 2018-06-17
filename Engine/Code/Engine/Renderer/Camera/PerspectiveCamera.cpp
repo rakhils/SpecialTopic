@@ -1,6 +1,7 @@
 #include "Engine/Renderer/Camera/PerspectiveCamera.hpp"
 #include "Engine/Core/Windows.hpp"
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Math/MathUtil.hpp"
 // CONSTRUCTOR
 PerspectiveCamera::PerspectiveCamera()
 {

@@ -7,6 +7,7 @@
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Math/MathUtil.hpp"
 // CONSTRUCTOR
 
 DevConsole* DevConsole::s_devConsole = nullptr;

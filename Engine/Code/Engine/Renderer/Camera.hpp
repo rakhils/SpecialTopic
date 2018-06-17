@@ -4,6 +4,7 @@
 #include "Engine/Renderer/FrameBuffer.hpp"
 #include "Engine/Math/Transform.hpp"
 #include "Engine/Core/Component.hpp"
+#include "Engine/Math/Frustum.hpp"
 /*\class  : Camera		  
 * \group  : <GroupName>		   
 * \brief  : Camera class to view screen		   
@@ -84,11 +85,10 @@ public:
 	void		RotateX(float angle);
 	void		RotateY(float angle);
 	void		RotateZ(float angle);
-
+	Frustum		GetFrustum();
 	void		Finalize();
 	//Static_Methods
 	static void	InitCamera();
-	static void SetCamera(Camera* camera);
 	static Camera* CreateOrGetCamera(std::string name,CAMERA_TYPE type = ORTHOGRAPHIC);
 	static void SetDefaultCamera (Camera *camera) { s_defaultCamera  = camera;}
 	static void SetCurrentCamera (Camera *camera) 

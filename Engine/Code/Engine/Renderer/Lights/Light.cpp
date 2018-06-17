@@ -3,6 +3,7 @@
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Renderer/Camera.hpp"
+#include "Engine/Math/MathUtil.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::vector<Light*> Light::s_lights;
 UniformBuffer*		Light::m_PointlightUBuffer   = nullptr;

@@ -42,6 +42,7 @@ void BoxCollider::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool BoxCollider::IsPointInside(Vector3 point)
 {
+	UNUSED(point);
 	Vector3 centrePosition = GetCenterPosition();
 	//Vector2 xMinMax(centrePosition.x - m_offsetX, centrePosition.x + m_offsetX);
 	//Vector2 yMinMax(centrePosition.y - m_offsetY, centrePosition.y + m_offsetY);

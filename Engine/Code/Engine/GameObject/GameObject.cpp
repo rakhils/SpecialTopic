@@ -72,7 +72,7 @@ GameObject::~GameObject()
 	}
 	m_components.clear();
 
-	for(int index = m_childObjects.size() - 1;index >=0;index--)
+	for(int index = static_cast<int>(m_childObjects.size()) - 1;index >=0;index--)
 	{
 		delete m_childObjects.at(index);
 		m_childObjects.at(index) = nullptr;
@@ -243,6 +243,7 @@ void GameObject::AddSphereCollider(Vector3 localPosition, float radius)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GameObject::AddBoxCollider(Vector3 localPosition, Vector3 dimensions)
 {
+	UNUSED(dimensions);
 	BoxCollider *collider = new BoxCollider();
 	//collider->m_offsetX = dimensions.x;
 	//collider->m_offsetY = dimensions.y;
@@ -259,6 +260,7 @@ void GameObject::AddBoxCollider(Vector3 localPosition, Vector3 dimensions)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GameObject::AddBoxCollider2D(Vector3 localPosition, Vector3 dimensions,Vector3 normal)
 {
+	UNUSED(normal);
 	BoxCollider2D *collider = new BoxCollider2D();
 	collider->SetPosition(localPosition);
 	Vector2 worldPosition = GetWorldPosition().GetXY() + localPosition.GetXY();

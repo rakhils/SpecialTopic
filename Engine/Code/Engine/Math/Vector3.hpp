@@ -21,7 +21,7 @@ public:
 	const Vector3		 operator - (const Vector3& vecToSubtract) const;
 	const Vector3		 operator + (const Vector3 vectora) const;
 	const Vector3		 operator * (float uniformScale);
-	const Vector3		 operator / (float uniformScale);
+	const Vector3		 operator / (float uniformScale) const;
 	void				 operator -=(const Vector3& vecToSubtract);
 	void				 operator +=(const Vector3 vectorA);
 	void				 operator *=(const float uniformScale);
@@ -29,6 +29,10 @@ public:
 	bool				 operator ==(const Vector3 vectorA);
 	bool				 operator !=(const Vector3 vectorA);
 	const Vector3		 operator = (const Vector2& vectorb) const;
+	bool				 operator >=(const Vector3& vectorA) const;
+	bool				 operator <=(const Vector3& vectorA) const;
+	bool				 operator > (const Vector3& vectorA) const;
+	bool				 operator < (const Vector3& vectorA) const;
 
 	friend const Vector3 operator*(float uniformScale, const Vector3& vecToScale);
 
