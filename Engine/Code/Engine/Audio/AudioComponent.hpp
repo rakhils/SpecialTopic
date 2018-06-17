@@ -18,12 +18,16 @@ class AudioComponent : public Component
 
 public:
 	//Member_Variables
-	SoundID m_soundID;
-	SoundPlaybackID m_soundPlayBackID;
-	bool    m_hasBegunPlaying = false;
-	bool    m_isPlaying       = false;
-	bool    m_isPaused        = false;
-	bool    m_isStopped       = false;
+	SoundID				m_soundID;
+	SoundPlaybackID		m_soundPlayBackID;
+	bool				m_hasBegunPlaying		= false;
+	bool				m_isPlaying				= false;
+	bool				m_isPaused				= false;
+	bool				m_isStopped				= false;
+	bool				m_is3DSound				= false;
+	float				m_maxDistanceFor0Sound  = 100;
+	Vector3				m_position;
+
 	//Static_Member_Variables
 
 	//Methods

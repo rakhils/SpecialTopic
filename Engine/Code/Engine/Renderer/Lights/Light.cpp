@@ -346,7 +346,7 @@ void Light::Initialize()
 
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/02
-*@purpose : Create a new ligth object and push to static container
+*@purpose : Create a new light object and push to static container
 *@param   : NIL
 *@return  : Light class pointer
 *//////////////////////////////////////////////////////////////
@@ -448,7 +448,10 @@ void Light::BindAllLightsToShader(Renderer *renderer, std::vector<Light*> lights
 		switch (lights.at(index)->m_type)
 		{
 		case POINT_LIGHT:
-			pLights[pointLightIndex++] = lights.at(index)->m_pointLightObj;
+			if(pointLightIndex < MAX_LIGHTS)
+			{
+				pLights[pointLightIndex++] = lights.at(index)->m_pointLightObj;
+			}
 			break;
 		case AMBIENT_LIGHT:
 			ambientLight = lights.at(index)->m_ambientLight;

@@ -1,5 +1,8 @@
 #include "Engine/Audio/AudioComponent.hpp"
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Renderer/Camera.hpp"
+#include "Engine/Math/MathUtil.hpp"
+#include "Engine/Debug/DebugDraw.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 AudioComponent::AudioComponent(std::string filename)
@@ -95,5 +98,15 @@ void AudioComponent::StopSound()
 void AudioComponent::Update(float deltatime)
 {
 	UNUSED(deltatime);
-	//update
+	if(m_is3DSound)
+	{
+		Vector3 currentCameraPosition = Camera::GetGamePlayCamera()->m_transform.GetWorldPosition();
+		Vector3 distance = m_transform.GetWorldPosition() - currentCameraPosition;
+		float   distanceValue = distance.GetLength();
+		float   volume = RangeMapFloat(distanceValue, 0.f, m_maxDistanceFor0Sound, 1.f, 0.f);
+		volume = ClampFloat(volume,0.f, 1.f);
+		AudioSystem::GetInstance()->SetSoundPlaybackVolume(m_soundPlayBackID, volume);
+		DebugDraw::GetInstance()->DebugRenderLogf("SOUND Distance %f VOL %f", distanceValue,volume);
+	}
+	
 }

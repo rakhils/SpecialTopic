@@ -144,12 +144,12 @@ void ParticleEmitter::SpawnParticle()
 	Particle particle;
 	particle.m_position  = m_transform.GetWorldPosition();
 	particle.m_velocity  = Vector3::GetRandomValueOnUnitSphere();
-	particle.m_size		 = GetRandomFloatInRange(0.4f,0.9f);
+	particle.m_size		 = GetRandomFloatInRange(0.2f,0.6f);
 	particle.m_lifeTime  = GetRandomFloatInRange(2.f, 3.f);
 
 	particle.m_startTime = static_cast<float>(Clock::g_theMasterClock->total.m_seconds);
 	particle.m_endTime   = particle.m_startTime + particle.m_lifeTime;
-	particle.m_force     = Vector3::ZERO;
+	particle.m_force     = Vector3::ONE;
 	particle.m_mass		 = 1.f;
 	m_particles.push_back(particle);
 }

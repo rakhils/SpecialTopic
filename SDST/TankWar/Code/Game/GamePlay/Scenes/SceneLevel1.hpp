@@ -20,6 +20,7 @@ class SceneLevel1 : public Scene
 public:
 	//Member_Variables
 	Tank				  *m_playerTank  = nullptr;
+	GameObject			  *m_soundTestObj = nullptr;
 	Map					  *m_map         = nullptr;
 	bool				   m_init = false;
 	PerspectiveCamera *m_camera = nullptr;

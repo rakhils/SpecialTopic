@@ -38,8 +38,10 @@ public:
 	Scene				   *m_sceneReadyUp	       = nullptr;
 	Scene				   *m_sceneLevel1	       = nullptr;
 
-
 	ForwardRenderingPath   *m_forwardRenderingPath = nullptr;
+
+	static Vector3			s_minBounds;
+	static Vector3			s_maxBounds;
 
 	Game();
 	void Init();
@@ -50,4 +52,10 @@ public:
 	void CreateTerrain();
 	void Update(float deltaTime);
 	void Render();
+
+	static bool		IsAlly(int team1, int team2);
+	static Vector3  GetMinBounds();
+	static void     SetMinBounds(Vector3 bounds);
+	static Vector3  GetMaxBounds();
+	static void     SetMaxBounds(Vector3 bounds);
 };

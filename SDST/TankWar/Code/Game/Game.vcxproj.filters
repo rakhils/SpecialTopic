@@ -94,6 +94,9 @@
     <ClCompile Include="GamePlay\Entity\EnemyTank.cpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClCompile>
+    <ClCompile Include="GamePlay\Entity\AllyTank.cpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -145,6 +148,9 @@
       <Filter>General\GamePlay\Entity</Filter>
     </ClInclude>
     <ClInclude Include="GamePlay\Entity\EnemyTank.hpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\AllyTank.hpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClInclude>
   </ItemGroup>

@@ -24,10 +24,12 @@ class EnemyBase : public GameObject
 
 public:
 	//Member_Variables
-	std::vector<EnemyTank*> m_tanks;
-	int m_maxChildCount = 0;
-	int m_spawnRate     = 0;
-	int m_health		= 0;
+	//std::vector<EnemyTank*> m_tanks;
+	float m_maxChildCount = 5.f;
+	float m_spawnInterval = 10.f;
+	float m_health		  = 10.f;
+	float m_currentTime   = 0.0f;
+	bool  m_markForDelete = false;
 	//Static_Member_Variables
 
 	//Methods
@@ -36,12 +38,14 @@ public:
 	~EnemyBase();
 	void SpawnEnemy(Scene *scene);
 	void Update(float deltaTime);
+	void OnCollisionEnter(Collider *collider);
 
 	static void AddEnemyBase(std::string name,Vector3 position,Vector3 dimensions,Scene *scene);
 	static void CreateEnemy(std::string baseName,Scene *scene);
 	static void UpdateEnemyBase(float deltaTime);
+	static void UpdateEnemyTanks(float deltatime);
 	static std::map<std::string, EnemyBase*> s_enemyBases;
-	
+	static std::vector<EnemyTank*> s_enemyTanks;
 	//Static_Methods
 
 protected:

@@ -47,7 +47,6 @@ public:
 	Renderable*									   m_renderable				= nullptr;
 	Transform									   m_transform;
 	Vector3										   m_forward;
-	Light*										   m_light					= nullptr;
 	GameObject*									   m_parent					= nullptr;
 	std::vector<GameObject*>					   m_childObjects;
 	std::map<COMPONENT_TYPE, Component*>		   m_components;
@@ -71,6 +70,7 @@ public:
 	void								AddComponent(COMPONENT_TYPE componentType,Component *component);
 	void								AddRigidBody3DComponent();
 	void								AddAudioComponent(std::string filename);
+	void								Add3DAudioComponent(std::string filename,Vector3 localPosition);
 	void								AddParticleComponent(Vector3 position, Renderer *renderer);
 	void								AddLightComponent(Vector3 position, Rgba color);
 	void								AddCameraComponent(Vector3 localPosition);

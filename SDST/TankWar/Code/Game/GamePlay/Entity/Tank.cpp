@@ -10,12 +10,16 @@
 #include "Engine/SceneManagement/Scene.hpp"
 #include "Engine/Physics/Terrain.hpp"
 #include "Engine/Renderer/Camera/PerspectiveCamera.hpp"
+#include "Engine/Renderer/Lights/Light.hpp"
+#include "Engine/Renderer/ParticleSystem/ParticleEmitter.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
+#include "Game/GamePlay/Entity/EnemyTank.hpp"
 
-
+#include "Game/GamePlay/Entity/EnemyBase.hpp"
 #include "Game/GamePlay/Scenes/SceneLevel1.hpp"
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Entity/Bullet.hpp"
+#include "Game/Game.hpp"
 // CONSTRUCTOR
 Tank::Tank() : GameObject("default")
 {
@@ -48,10 +52,64 @@ Vector3 Tank::GetTurretForward()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::FireBullet(float deltaTime)
 {
-	Bullet *bullet = new Bullet("bullet_" + ToString(static_cast<int>(m_bullets.size())), m_transform.GetWorldPosition(), GetTurretForward(), 1);
+	ParticleEmitter* pEmitter = (ParticleEmitter*)GetComponentByType(PARTICLE);
+	pEmitter->SpawnParticles(5);
+	Vector3 bulletSpawnPosition = m_transform.GetWorldPosition();
+	Bullet *bullet = new Bullet("bullet_" + ToString((m_bullets.size())),1, bulletSpawnPosition + Vector3(0,3,0), GetTurretForward(), 1);
+	Light *light = (Light*)bullet->GetComponentByType(LIGHT);
+	//LIGHT IS NULL IF IT EXCEED MAX LIMIT
+	if(light != nullptr)
+	{
+		light->SetPointLightAttenutaion(Vector3(1, 1, 1));
+		light->SetPointLigthSpecAttenuation(Vector3(1, 1, 1));
+		m_scene->AddLight(light);
+	}
 	bullet->SetScene(m_scene);
+	//bullet->AddParticleComponent(Vector3::ZERO, Renderer::GetInstance());
 	m_scene->AddRenderable(bullet->m_renderable);
 	m_bullets.push_back(bullet);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Respawn at position where min distance from all enemy tanks and bases are min 5
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Tank::Respawn(int retryCount)
+{
+	if (retryCount > 10)
+	{
+		Vector3 position = GetRandomPoint(Game::GetMinBounds(), Game::GetMaxBounds());
+		m_health = 10;
+		m_transform.SetLocalPosition(position);
+		return;
+	}
+	Vector3 position = GetRandomPoint(Game::GetMinBounds(), Game::GetMaxBounds());
+	for(int index = 0;index < EnemyBase::s_enemyTanks.size();index++)
+	{
+		Vector3 tankPosition = EnemyBase::s_enemyTanks.at(index)->m_transform.GetWorldPosition();
+		Vector3 distance = tankPosition - position;
+		if(distance.GetLength() < 5)
+		{
+			Respawn(++retryCount);
+			return;
+		}
+	}
+	std::map<std::string, EnemyBase*>::iterator it;
+	for(it = EnemyBase::s_enemyBases.begin();it != EnemyBase::s_enemyBases.end();it++)
+	{
+
+		Vector3 basePosition = it->second->m_transform.GetWorldPosition();
+		Vector3 distance	 = position - basePosition;
+		if(distance.GetLength() < 5)
+		{
+			Respawn(++retryCount);
+			return;
+		}
+	}
+	m_health = 10;
+	m_transform.SetLocalPosition(position);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,10 +120,20 @@ void Tank::FireBullet(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::Update(float deltaTime)
 {
+	if(m_markForDead)
+	{
+		m_timeLeftToRespawn -= deltaTime;
+		if(m_timeLeftToRespawn < 0)
+		{
+			m_markForDead = false;
+			Respawn(0);
+		}
+		return;
+	}
+
 	float PI = 3.14f;
 	Vector3 minRotationValue(-PI / 2, 0, 0);
-	Vector3 maxRotationValue(PI / 2, 2 * PI, 0);
-	
+	Vector3 maxRotationValue(PI / 2, 2 * PI, 0);	
 	if (InputSystem::GetInstance()->IsLButtonDown())
 	{
 		Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
@@ -80,10 +148,6 @@ void Tank::Update(float deltaTime)
 		raycast.m_direction = ray.m_direction;
 		raycast.m_start = m_transform.GetWorldPosition();
 		m_mousePosForward = raycast.m_direction;
-
-
-		//Collider *collider = Raycast3D::Raycast(this, raycast);
-		//Raycast3D::Raycast()
 
 		FireBullet(deltaTime);
 	}
@@ -115,7 +179,7 @@ void Tank::Update(float deltaTime)
 	}
 
 	Vector3 position		= m_transform.GetWorldPosition();
-	float   terrainHeight   = ((SceneLevel1*)m_scene)->m_map->m_terrainOrig->GetHeight(position.GetXZ());
+	float   terrainHeight   = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetHeight(position.GetXZ());
 	m_transform.SetLocalPosition(Vector3(position.x, terrainHeight + 1, position.z));
 
 	UpdateTurretOrientation(deltaTime);
@@ -138,9 +202,8 @@ void Tank::UpdateBullet(float deltaTime)
 	for(int index = 0;index < m_bullets.size();index++)
 	{
 		Bullet *bullet = m_bullets.at(index);
-		float   terrainHeight   = ((SceneLevel1*)m_scene)->m_map->m_terrainOrig->GetHeight(bullet->m_transform.GetWorldPosition().GetXZ());
-		terrainHeight = 0;
-		if(bullet->m_transform.GetWorldPosition().y < terrainHeight || bullet->m_lifeTime < 0)
+		float   terrainHeight   = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetHeight(bullet->m_transform.GetWorldPosition().GetXZ());
+		if(bullet->m_transform.GetWorldPosition().y < terrainHeight || bullet->m_lifeTime < 0 || bullet->m_markForDelete)
 		{
 			delete m_bullets.at(index);
 			m_bullets.at(index) = nullptr;
@@ -196,8 +259,8 @@ void Tank::UpdateCameraOrientation(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::UpdateTankOrientation()
 {
-	Vector3 terrainNormal = ((SceneLevel1*)m_scene)->m_map->m_terrainOrig->GetNormalAtXZ(m_transform.GetWorldPosition().GetXZ());
-	Vector3 tangent       = ((SceneLevel1*)m_scene)->m_map->m_terrainOrig->GetTangentAtXZ(m_transform.GetWorldPosition().GetXZ());
+	Vector3 terrainNormal = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetNormalAtXZ(m_transform.GetWorldPosition().GetXZ());
+	Vector3 tangent       = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetTangentAtXZ(m_transform.GetWorldPosition().GetXZ());
 	Vector3 bitangent     = CrossProduct(terrainNormal,tangent);
 
 	Matrix44 matrix(Vector4(tangent.GetNormalized()), Vector4(terrainNormal.GetNormalized()), Vector4(bitangent.GetNormalized()), Vector4(0, 0, 0, 1));
@@ -244,5 +307,12 @@ void Tank::UpdateTurretOrientation(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::OnCollisionEnter(Collider* collider)
 {
-	UNUSED(collider);
+	if (EnemyTank *tank = dynamic_cast<EnemyTank*>(collider->m_gameObject))
+	{
+		m_health -= 1;
+		m_markForDead = true;
+		m_timeLeftToRespawn = 5.f;
+		ParticleEmitter* pEmitter = (ParticleEmitter*)GetComponentByType(PARTICLE);
+		pEmitter->SpawnParticles(5);
+	}
 }

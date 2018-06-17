@@ -26,19 +26,22 @@ class Bullet : public GameObject
 public:
 	//Member_Variables
 	int m_index = 0;
-	float m_lifeTime = 5;
-	float m_radius   = 1;
-	float m_speed	 = 0;
+	float m_lifeTime	= 5;
+	float m_radius		= 1;
+	float m_speed		= 0;
+	int   m_teamNumber  = 0;
+	bool  m_markForDelete = false;
 	//Static_Member_Variables
 
 	//Methods
 
 	Bullet(std::string name);
-	Bullet(std::string name,Vector3 position, Vector3 direction,float speed);
+	Bullet(std::string name,int team,Vector3 position, Vector3 direction,float speed);
 	~Bullet();
 	
 	void Update(float deltaTime);
 	void Render();
+	void OnCollisionEnter(Collider *collider);
 	//Static_Methods
 
 protected:

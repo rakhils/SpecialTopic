@@ -42,8 +42,7 @@ public:
 	DebugDraw *debugDraw = nullptr;
 	Map();
 	std::vector<GameObject*> m_mapObjects;
-	Mesh *m_terrain = nullptr;
-	Terrain *m_terrainOrig = nullptr;
+	Terrain *m_terrain = nullptr;
 	AABB2 m_extents;
 	float m_min_height;
 	float m_max_height;

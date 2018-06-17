@@ -21,7 +21,7 @@ struct Particle
 {
 	Vector3 m_position;
 	Vector3 m_velocity;
-	Vector3 m_force;
+	Vector3 m_force = 5;
 	float   m_size;
 	float   m_mass;
 
@@ -35,7 +35,7 @@ struct Particle
 		m_velocity += acceleration * deltaTime;
 		m_position += m_velocity * deltaTime;
 
-		m_force = Vector3::ZERO;
+		//m_force = Vector3::ZERO;
 	}
 
 	bool isAlive(float time) 

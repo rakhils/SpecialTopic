@@ -62,16 +62,22 @@ GameObject::~GameObject()
 	std::map<COMPONENT_TYPE, Component*>::iterator itcomponent;
 	for (itcomponent = m_components.begin(); itcomponent != m_components.end(); itcomponent++)
 	{
+		if(itcomponent->first == LIGHT)
+		{
+			((Light*)itcomponent->second)->DisablePointLight();
+			continue;
+		}
 		delete itcomponent->second;
 		itcomponent->second = nullptr;
 	}
 	m_components.clear();
 
-	if (m_light != nullptr)
+	for(int index = m_childObjects.size() - 1;index >=0;index--)
 	{
-		m_light->DisablePointLight();
+		delete m_childObjects.at(index);
+		m_childObjects.at(index) = nullptr;
 	}
-
+	m_childObjects.clear();
 	std::map<std::string , GameObject*>::iterator gmit;
 	for (gmit = s_gameObjects.begin(); gmit != s_gameObjects.end(); gmit++)
 	{
@@ -189,6 +195,20 @@ void GameObject::AddAudioComponent(std::string filename)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Adds 3D audio sound to the component
+*@param   : Sound file name, Local position w.r.t gameobject
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void GameObject::Add3DAudioComponent(std::string filename,Vector3 localPosition)
+{
+	AudioComponent *audioComponent = new AudioComponent(filename);
+	audioComponent->m_is3DSound = true;
+	audioComponent->m_position = localPosition;
+	AddComponent(AUDIO, audioComponent);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/17
 *@purpose : Adds a new collider component
 *@param   : NIL
@@ -294,8 +314,10 @@ void GameObject::AddLightComponent(Vector3 position, Rgba color)
 	{
 		return;
 	}
-	light->SetPointLightColor(color);
 	light->m_transform.SetLocalPosition(position);
+	light->EnablePointLight(color.GetAsFloats(), position, Vector3(1, 0, 0));
+	light->SetPointLightDirection(Vector3(0,1,0));
+	//light->SetPointLightInnerOuterAngles(30.f, 60.f);
 	AddComponent(LIGHT, light);
 }
 
@@ -388,13 +410,10 @@ void GameObject::SetScene(Scene *scene)
 
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/05
-*@purpose : NIL
-*
+*@purpose : Updates gameobject its components and its children
 *@param   : NIL
-*
 *@return  : NIL
-*/
-//////////////////////////////////////////////////////////////
+*//////////////////////////////////////////////////////////////
 void GameObject::Update(float deltaTime)
 {
 	m_renderable->m_modelMatrix = m_transform.GetWorldMatrix();
@@ -465,7 +484,12 @@ void GameObject::UpdateChildren(float deltaTime)
 */////////////////////////////////////////////////////////////
 Component* GameObject::GetComponentByType(COMPONENT_TYPE type)
 {
-	return m_components[type];
+	std::map<COMPONENT_TYPE, Component*>::iterator it = m_components.find(type);
+	if(it != m_components.end())
+	{
+		return m_components[type];
+	}
+	return nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

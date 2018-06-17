@@ -20,9 +20,10 @@ public:
 	float m_lastBulletSpawnTime;
 	float m_bulletSpawnInterval  = 0.25;
 	float m_health = 10; 
-	float m_velocity = 12.f;
-	bool  m_isAlive = true;
+	float m_velocity = 50.f;
+	bool  m_markForDead = false;
 	float m_timeElapsed = 0;
+	float m_timeLeftToRespawn = 5;
 	StopWatch			  m_stopWatch;
 	Vector3				  m_mousePosForward;
 	std::vector<Bullet*> m_bullets;
@@ -35,6 +36,7 @@ public:
 
 	Vector3 GetTurretForward();
 	void    FireBullet(float deltaTime);
+	void	Respawn(int tryCount);
 	void Update(float deltaTime);
 	void UpdateBullet(float deltaTime);
 	void UpdateCameraPosition(float deltaTime);

@@ -17,6 +17,7 @@ class AudioSystem;
 class AudioSystem
 {
 public:
+
 	std::map<std::string, std::vector<std::string>> m_audioGroupMap;
 	AudioSystem();
 	virtual ~AudioSystem();

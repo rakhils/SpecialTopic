@@ -144,19 +144,10 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	for (int index = 0; index < drawCalls.size(); index++)
 	{
 		m_renderer->BindMaterial(drawCalls.at(index).m_material);
-		std::vector<Light*> lights = scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTAxis());//but not using exactly
+		std::vector<Light*> lights = scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTAxis());
 		Light::BindAllLightsToShader(m_renderer,lights);
 		DrawCall dc = drawCalls.at(index);
-		if(drawCalls.at(index).m_mesh == nullptr)
-		{
-			Vector3 position = dc.m_modelMatrix.GetTAxis();
-			m_renderer->DrawText2D(position.GetXY(), dc.m_name, 20, Rgba::WHITE, 1, nullptr);
-		}
-		else
-		{
-			m_renderer->DrawMesh(dc.m_mesh,dc.m_modelMatrix);
-			GL_CHECK_ERROR();
-		}
+		m_renderer->DrawMesh(dc.m_mesh,dc.m_modelMatrix);
 	}
 }
 

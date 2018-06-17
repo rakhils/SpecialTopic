@@ -25,8 +25,12 @@ class EnemyTank : public GameObject
 public:
 	//Member_Variables
 	Vector3 m_forward;
+	float   m_velocity = 10;
 	float   m_distanceToFollow = 10;
 	float   m_hitInterval = 0;
+	int     m_teamNumber;
+	bool    m_markAsDead = false;
+	float   m_timeLeftForNextDirectionChange = 10.f;
 	//Static_Member_Variables
 
 	//Methods
@@ -40,8 +44,11 @@ public:
 	void UpdateFollowBehaviour(float deltaTime);
 	void UpdateHitFeedBack(float deltatime);
 	void UpdateTankOrientation();
+	void UpdateBounds(float deltaTime);
+	void UpdateDirectionBasedOnAllies();
 	void OnCollisionEnter(Collider *collider);
 	
+	void ChangeForwardDirection(Vector3 direction);
 	//Static_Methods
 
 protected:
