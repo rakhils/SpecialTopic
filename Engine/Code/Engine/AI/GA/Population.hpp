@@ -28,7 +28,7 @@ public:
 
 	bool		 IsFinished();
 	Chromosome*  GetBestOffspring();
-	Chromosome*  AcceptReject(int m_maxFitness);
+	Chromosome*  PickRandomChromosomeByWeight(int m_maxFitness);
 	//Static_Methods
 
 protected:

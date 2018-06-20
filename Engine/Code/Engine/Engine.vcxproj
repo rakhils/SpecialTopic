@@ -364,6 +364,10 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="Math\RawNoise.cpp" />
+    <ClCompile Include="Math\Segment.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Math\SmoothNoise.cpp" />
     <ClCompile Include="Math\Transform.cpp">
       <SubType>
@@ -688,6 +692,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Math\RawNoise.hpp" />
+    <ClInclude Include="Math\Segment.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Math\SmoothNoise.hpp" />
     <ClInclude Include="Math\Transform.hpp">
       <SubType>

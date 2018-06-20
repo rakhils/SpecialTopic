@@ -1,7 +1,7 @@
 #include "Engine/AI/NeuralNetwork/NeuralNetworkGene.hpp"
 
 // CONSTRUCTOR
-NeuralNetworkGene::NeuralNetworkGene()
+NeuralNetworkGene::NeuralNetworkGene(float mutateChance) : Gene(mutateChance)
 {
 
 }

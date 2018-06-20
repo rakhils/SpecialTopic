@@ -13,11 +13,6 @@ GeneticAlgorithm::GeneticAlgorithm(int initialPopulation, int geneLength, float 
 // DESTRUCTOR
 GeneticAlgorithm::~GeneticAlgorithm()
 {
-	/*for(int index = m_currentPopulation.size();index >=0 ;index--)
-	{
-		delete m_currentPopulation.at(index);
-		m_currentPopulation.at(index) = nullptr;
-	}*/
 	delete m_population;
 	m_population = nullptr;
 }
@@ -41,7 +36,8 @@ void GeneticAlgorithm::SetTarget(Chromosome* chromosome)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GeneticAlgorithm::CreateInitialPopulation()
 {
-	m_population = new Population(m_initPopulation, m_geneLength, m_mutationRate);
+	m_population	= new Population(m_initPopulation, m_geneLength, m_mutationRate);
+	m_newPopulation = new Population(m_initPopulation, m_geneLength, m_mutationRate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,27 +89,25 @@ bool GeneticAlgorithm::Epoch()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void GeneticAlgorithm::GenerateNewPopulation()
 {
-	float maxFitness = 0.f;
-	for (int index = 0; index < m_population->m_chromosomes.size(); index++)
+	float maxFitness   = 0.f;
+	int populationSize = m_population->m_chromosomes.size();
+	for (int index = 0; index < populationSize; index++)
 	{
 		maxFitness += m_population->m_chromosomes.at(index)->GetTotalFitness(m_target);
 	}
-	std::vector<Chromosome*> newpopulation;
-	newpopulation.reserve(m_initPopulation);
-	for(int index = 0;index < m_population->m_chromosomes.size();index++)
+	
+	for( int index = 0; index < populationSize; index++)
 	{
-		Chromosome *ch1 = m_population->AcceptReject(static_cast<int>(maxFitness));
-		Chromosome *ch2 = m_population->AcceptReject(static_cast<int>(maxFitness));
-		Chromosome *ch3 = ch1->CrossOver(ch2);
+		Chromosome *ch1 = m_population->PickRandomChromosomeByWeight(static_cast<int>(maxFitness));
+		Chromosome *ch2 = m_population->PickRandomChromosomeByWeight(static_cast<int>(maxFitness));
+		Chromosome *ch3 = ch1->CreateAndSetCrossOverToNewPopulation(ch2,m_newPopulation,index);
 		ch3->Mutate();
 		ch3->GetTotalFitness(m_target);
-		newpopulation.push_back(ch3);
 	}
-	for(int index = static_cast<int>(m_population->m_chromosomes.size()) -1;index >=0 ;index--)
-	{
-		delete m_population->m_chromosomes.at(index);
-	}
-	m_population->m_chromosomes = newpopulation;
+
+	Population* tempPopulation = m_population;
+	m_population = m_newPopulation;
+	m_newPopulation = tempPopulation;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/15
@@ -138,21 +132,5 @@ void GeneticAlgorithm::Evaluate()
 			m_isFinished = true;
 			m_best = ch;
 		}
-		/*bool isDone = true;
-		for (int geneIndex = 0; geneIndex < ch->m_genes.size(); geneIndex++)
-		{
-			if (geneIndex < m_taget->m_genes.size())
-			{
-				if (ch->m_genes.at(geneIndex) != m_taget->m_genes.at(geneIndex))
-				{
-					isDone = false;
-				}
-			}
-		}
-		if(isDone)
-		{
-			m_isFinished = true;
-			m_best = ch;
-		}*/
 	}
 }

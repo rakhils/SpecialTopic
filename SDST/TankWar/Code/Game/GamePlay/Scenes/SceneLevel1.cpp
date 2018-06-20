@@ -17,6 +17,7 @@
 #include "Engine/Physics/Terrain.hpp"
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Audio/AudioComponent.hpp"
+#include "Engine/Renderer/Camera/OrbitCamera.hpp"
 
 #include "Game/Game.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
@@ -117,20 +118,34 @@ void SceneLevel1::CreatePlayer()
 	m_playerTank->AddRigidBody3DComponent();
 	m_playerTank->m_renderable->SetMesh(tankBody);
 	m_playerTank->AddRigidBody3DComponent();
-	m_playerTank->GetRigidBody3DComponent()->m_gravity = Vector3(0,-1,0);
-	m_playerTank->GetRigidBody3DComponent()->m_useGravity = false;
 	m_playerTank->AddParticleComponent(Vector3::ZERO, Renderer::GetInstance());
 	m_playerTank->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-
+	m_playerTank->m_turret = turretGunGO;
 	m_playerTank->AddChild(turretHeadGO);
 	m_playerTank->AddChild(turretGunGO);
 
-	m_playerTank->m_transform.Translate(Vector3(120, 20, 274));
-
-	m_camera = (PerspectiveCamera*)Camera::CreateOrGetCamera("level1cam", PERSPECTIVE);
-	m_camera->m_transform.SetLocalPosition(Vector3(59, 30, 174));
-	m_camera->m_transform.RotateLocalByEuler(Vector3(0, 90, 0));
+	//m_playerTank->m_transform.Translate(Vector3(120, 20, 274));
+	m_playerTank->m_transform.Translate(Vector3(10, 0, 10));
+/*
+	m_camera = (OrbitCamera*)Camera::CreateOrGetCamera("level1cam", ORBIT);
+	m_camera->m_transform.SetLocalPosition(Vector3(0, 50, -10));
 	AddCamera(m_camera);
+	Camera::SetGameplayCamera(m_camera);*/
+
+	m_ocamera = (OrbitCamera*)Camera::CreateOrGetCamera("level1cam", ORBIT);
+	//m_ocamera->m_transform.SetLocalPosition(Vector3(20, 60, 0));
+	//m_ocamera->m_transform.RotateLocalByEuler(Vector3(0, 0, 0));
+	float PI = 3.14f;
+	float width  = static_cast<float>(Windows::GetInstance()->GetDimensions().x);
+	float heigth = static_cast<float>(Windows::GetInstance()->GetDimensions().y);
+	float aspect = width / heigth;
+	Matrix44 perspectiveMatrix = Matrix44::MakePerspectiveMatrix(60.f, aspect, 0.1f, 300.f);
+	m_ocamera->SetProjection(perspectiveMatrix);
+	
+
+	AddCamera(m_ocamera);
+	Camera::SetGameplayCamera(m_ocamera);
+
 	AddRenderable(m_playerTank->m_renderable);
 	AddRenderable(turretGunGO->m_renderable);
 	AddRenderable(turretHeadGO->m_renderable);
@@ -148,7 +163,6 @@ void SceneLevel1::CreatePlayer()
 	height = m_map->GetHeight(Vector2(500, 500));
 	EnemyBase::AddEnemyBase("enemybase_4", Vector3(500, height+ 5, 500), Vector3(10, 10, 10), this);
 
-	Camera::SetGameplayCamera(m_camera);
 
 
 	m_soundTestObj = new GameObject("soundtest");
@@ -188,7 +202,6 @@ void SceneLevel1::CreateMap()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLevel1::Update(float deltaTime)
 {
-	m_camera->Update(deltaTime);
 	if (IsEnteringScene(deltaTime))
 	{
 		UpdateEnteringTime(deltaTime);
@@ -200,9 +213,47 @@ void SceneLevel1::Update(float deltaTime)
 	DebugRenderOptions options;
 	options.m_lifeTime = 0;
 	options.m_mode = DEBUG_RENDER_USE_DEPTH;
-	DebugDraw::GetInstance()->DebugRenderSphere(Vector3(0, 70, 100), 20, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL_WIRE, options);
+	//DebugDraw::GetInstance()->DebugRenderSphere(Vector3(0, 70, 100), 20, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL_WIRE, options);
 
 	
+	if(InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_Z))
+	{
+		m_cameraTheta += 50*deltaTime;
+	}
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_X))
+	{
+		m_cameraTheta -= 50*deltaTime;
+	}
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_C))
+	{
+		m_cameraPhi += 50*deltaTime;
+	}
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_V))
+	{
+		m_cameraPhi -= 50*deltaTime;
+	}
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_T))
+	{
+		m_cameraRadius += 50*deltaTime;
+	}
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_R))
+	{
+		m_cameraRadius -= 50*deltaTime;
+	}
+
+	Vector3 position(-m_cameraRadius, m_cameraPhi, m_cameraTheta);
+
+	((OrbitCamera*)m_ocamera)->SetTargetPosition(m_playerTank->m_transform.GetWorldPosition());
+	((OrbitCamera*)m_ocamera)->SetSphericalCords(position);
+
+	Vector3 cameraPosition = m_ocamera->m_transform.GetWorldPosition();
+	Vector3 cameraAngle	   = m_ocamera->m_transform.GetWorldRotation();
+	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::RED, "CAM POSITION %f, %f, %f", cameraPosition.x, cameraPosition.y, cameraPosition.z);
+	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::RED, "CAM ANGLE    %f, %f, %f", cameraAngle.x, cameraAngle.y, cameraAngle.z);
+
+
+	//m_ocamera->Update(deltaTime);
+
 	if (InputSystem::GetInstance()->IsLButtonDown())
 	{
 		Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
@@ -217,7 +268,7 @@ void SceneLevel1::Update(float deltaTime)
 		DebugDraw::GetInstance()->DebugRenderLine(raycast.m_start, result.m_position, Rgba::YELLOW, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
 		DebugDraw::GetInstance()->DebugRenderLine(result.m_position,result.m_position + ray.m_direction*1000 ,Rgba::RED, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
 
-		DebugDraw::GetInstance()->DebugRenderSphere(result.m_position, 1, 16, 16, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
+		//DebugDraw::GetInstance()->DebugRenderSphere(result.m_position, 1, 16, 16, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
 	}
 
 	m_playerTank->Update(deltaTime);

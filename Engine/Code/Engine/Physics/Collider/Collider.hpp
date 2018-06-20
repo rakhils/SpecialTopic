@@ -4,6 +4,8 @@
 #include "Engine/Math/Transform.hpp"
 #include "Engine/Math/Vector3.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/Math/Segment.hpp"
+#include "Engine/Math/Plane.hpp"
 /*\class  : Collider
 * \group  : <GroupName>  
 * \brief  :
@@ -44,11 +46,11 @@ public:
 	Vector3 GetCenterPosition();
 	void	SetPosition(Vector3 position);
 	// ALL TYPE OF COLLISIONS
-	bool CheckSphereVsBox2DCollision(SphereCollider* sphereCollider, BoxCollider2D* boxCollider);
-	bool CheckBox2DVsCircleCollision(BoxCollider2D * box2dCollider, CircleCollider* circleCollider,DIRECTIONS &area);
+	bool CheckSphereVsBox2DCollision (SphereCollider* sphereCollider, BoxCollider2D* boxCollider);
+	bool CheckBox2DVsCircleCollision (BoxCollider2D * box2dCollider, CircleCollider* circleCollider,DIRECTIONS &area);
 	bool CheckSphereVsSphereCollision(SphereCollider* sphereCollider1, SphereCollider* sphereCollider2);
-
-	void         GlobalCollisionCheck();
+	bool CheckSegmentVsPlane		 (Segment segment, Plane plane);
+	void GlobalCollisionCheck();
 
 	virtual void Update(float deltaTime) = 0;
 	virtual bool IsPointInside(Vector3 point) = 0;

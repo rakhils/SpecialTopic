@@ -22,7 +22,7 @@ public:
 	PerspectiveCamera();
 	~PerspectiveCamera();
 	void Update(float deltaTime);
-	void SetPerspectiveCamera(float fovDegrees, float aspect, float nearz, float farz);
+	//void SetPerspectiveCamera(float fovDegrees, float aspect, float nearz, float farz);
 	
 	//Static_Methods
 

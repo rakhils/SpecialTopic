@@ -24,11 +24,11 @@ Gene::Gene(float mutateChance)
 }
 
 Gene::Gene(const Gene& copy)
+	: m_char( copy.m_char )
+	, m_mutateChance( copy.m_mutateChance )
+	, m_fitnessValue( copy.m_fitnessValue )
 {
-	m_neuron		= copy.m_neuron;
-	m_char			= copy.m_char;
-	m_mutateChance  = copy.m_mutateChance;
-	m_fitnessValue  = copy.m_fitnessValue;
+
 }
 
 // DESTRUCTOR
@@ -47,7 +47,7 @@ void Gene::Mutate()
 {
 	if(GetRandomFloatZeroToOne() < m_mutateChance)
 	{
-		m_char = GetRandomCharacter();
+		m_char = GetRandomCharacter();//GetRandomIntInRange(-5, 5);
 	}
 }
 

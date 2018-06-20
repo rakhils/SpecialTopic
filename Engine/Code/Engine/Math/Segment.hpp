@@ -1,39 +1,29 @@
 #pragma once
 #include "Engine/Math/Vector3.hpp"
-/*\class  : OBB3		   
-* \group  : <GroupName>		   
+/*\class  : Segment   
+* \group  : <GroupName>	   
 * \brief  :		   
 * \TODO:  :		   
 * \note   :		   
-* \author : Rakhil Soman		   
+* \author : Rakhil Soman	   
 * \version: 1.0		   
-* \date   : 6/12/2018 2:29:00 PM
+* \date   : 6/17/2018 10:58:51 PM
 * \contact: srsrakhil@gmail.com
 */
-//   6 --- 7
-//  /|    /|
-// 2 +-- 3 |
-// | 4 --| 5
-// |/    |/
-// 0 --- 1
-class OBB3
+class Segment
 {
 
 public:
 	//Member_Variables
-	Vector3 m_center;
-	Vector3 m_right;
-	Vector3 m_up;
-	Vector3 m_forward;
+	Vector3 m_start;
+	Vector3 m_end;
 	//Static_Member_Variables
 
 	//Methods
 
-	OBB3();
-	~OBB3();
+	Segment();
+	~Segment();
 	
-	bool DoContainsPoint(Vector3 point);
-	bool GetCorners(Vector3* out_corners);
 	//Static_Methods
 
 protected:

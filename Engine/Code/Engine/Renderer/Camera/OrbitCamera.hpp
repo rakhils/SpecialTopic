@@ -17,12 +17,13 @@ public:
 	//Member_Variables
 	//Static_Member_Variables
 	//Methods
-
+	Vector3 m_position;
 	OrbitCamera();
 	~OrbitCamera();
 	void Update(float deltaTime);
 	void SetTargetPosition(Vector3 targetPosition);
 	void SetSphericalCords(Vector3 cameraPosition);
+	void SetCameraPositionInSpherical(Vector3 position);
 	//Static_Methods
 
 protected:

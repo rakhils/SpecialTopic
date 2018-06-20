@@ -80,6 +80,9 @@ public:
 	void			SetLocalScale(Vector3 scale);
 	Vector3			GetLocalScale() const													 { return m_localTransform.GetScale(); }
 
+	void			LocalLookAt(Vector3 localPosition, Vector3 localUp = Vector3::UP);
+	void			WorldLookAt(Vector3 worldPosition, Vector3 worldUP = Vector3::UP);
+
 	Matrix44		GetWorldMatrix();
 	Vector3			GetWorldPosition();
 	Vector3			GetWorldRotation();

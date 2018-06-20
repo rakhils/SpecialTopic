@@ -59,22 +59,21 @@ public:
 	Vector4 GetYComponent4();
 	Vector4 GetZComponent4();
 	Vector4 GetWComponent4();
-																	  // Mutators
-	void SetIdentity();
-	void SetValues( const float* sixteenValuesBasisMajor ); // float[16] array in order Ix, Iy...
-	void Append( const Matrix44& matrixToAppend ); // a.k.a. Concatenate (right-multiply)
-	void RotateDegrees2D( float rotationDegreesAboutZ ); // 
-	void Translate2D( const Vector2& translation );
-	void Translate3D( const Vector3& translation );
-	void ScaleUniform2D( float scaleXY );
-	void Scale3D( float scaleX, float scaleY,float scaleZ);
-	void Scale2D( float scaleX, float scaleY );
-	void Transpose();
-	void Inverse();
-	void LocalLookAt(Vector3 position);
-	void WorldLookAt(Vector3 position);
-
+																	 
+	void	SetIdentity();
+	void	SetValues( const float* sixteenValuesBasisMajor ); // float[16] array in order Ix, Iy...
+	void	Append( const Matrix44& matrixToAppend ); // a.k.a. Concatenate (right-multiply)
+	void	RotateDegrees2D( float rotationDegreesAboutZ ); // 
+	void	Translate2D( const Vector2& translation );
+	void	Translate3D( const Vector3& translation );
+	void	ScaleUniform2D( float scaleXY );
+	void	Scale3D( float scaleX, float scaleY,float scaleZ);
+	void	Scale2D( float scaleX, float scaleY );
+	void	Transpose();
+	void	InvertFast();
+	void	Inverse();
 	Vector3 GetEulerFromMatrix();
+	void	MultiplyAndSet(Matrix44 valueMatrix);
 	// Producers
 	static Matrix44 MakeRotationDegrees2D( float rotationDegreesAboutZ );
 	static Matrix44 MakeRotationDegreesInY( float rotationDegreesAboutZ );
@@ -90,9 +89,9 @@ public:
 	static Matrix44 MakePerspectiveMatrix(float fovDegrees,float aspect,float nearz,float farz);
 	static Matrix44 MakeRotationMatrixFromDirection(Vector3 direction);
 	static Matrix44 LookAt(Vector3 forward, Vector3 upvector);
+	static Matrix44 LookAt(Vector3 position,Vector3 lookAtPos, Vector3 upvector);
 	static Matrix44 LerpTransform(Matrix44 &a, Matrix44 &b, float delta);
 	static Vector4  Multiply(Vector4 vec4, Matrix44 mat44);
 
-	void MultiplyAndSet(Matrix44 valueMatrix);
-	void InvertFast();
+
 };

@@ -26,7 +26,9 @@ public:
 	float m_timeLeftToRespawn = 5;
 	StopWatch			  m_stopWatch;
 	Vector3				  m_mousePosForward;
-	std::vector<Bullet*> m_bullets;
+	Vector3				  m_mouseWorldPos;
+	std::vector<Bullet*>  m_bullets;
+	GameObject			 *m_turret = nullptr;
 	//Static_Member_Variables
 
 	//Methods

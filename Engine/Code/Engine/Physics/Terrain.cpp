@@ -29,6 +29,7 @@ void Terrain::LoadFromImage(Image *image, AABB2 const &extents, float min_height
 		Rgba color = image->texture->texels.at(index);
 		float height = color.GetAsFloats().GetAverageValue();
 		height = RangeMapFloat(height,0.f,1.f,m_minHeight, m_maxHeight);
+		//height = 0;
 		m_heights.push_back(height);
 	}
 	m_dimensions = image->GetDimensions().GetAsVector2();

@@ -392,7 +392,7 @@ bool DoDiscAndAABBOverlap(const AABB2& aabb2, const Disc2& disk,Vector2 position
 }
 
 
-float GetModulus(float value)
+float GetAbsolute(float value)
 {
 	if (value < 0)
 	{
@@ -401,18 +401,51 @@ float GetModulus(float value)
 	return value;
 }
 
-int GetModulus(int value)
+int GetAbsolute(int value)
 {
 	if (value < 0)
 	{
 		value = value * -1;
 	}
 	return value;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/18
+*@purpose : retrives absolute(only positive)
+*@param   : Vec2 value
+*@return  : Abs value
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector2 GetAbsolute(Vector2 value)
+{
+	return Vector2(GetAbsolute(value.x), GetAbsolute(value.y));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/18
+*@purpose : retrives absolute(only positive)
+*@param   : Vec3 value
+*@return  : Abs value
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector3 GetAbsolute(Vector3 value)
+{
+	return Vector3(GetAbsolute(value.x), GetAbsolute(value.y), GetAbsolute(value.z));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/18
+*@purpose : retrives absolute(only positive)
+*@param   : Vec3 value
+*@return  :Abs value
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector4 GetAbsolute(Vector4 value)
+{
+	return Vector4(GetAbsolute(value.x), GetAbsolute(value.y), GetAbsolute(value.z), GetAbsolute(value.w));
 }
 
 bool IsVectorAlmostEqual(Vector2 value1, Vector2 value2,float diff)
 {
-	float modulusValue = GetModulus(GetDistance(value1,value2));
+	float modulusValue = GetAbsolute(GetDistance(value1,value2));
 	if(modulusValue < diff)
 	{
 		return true;
@@ -576,7 +609,7 @@ Vector2 GetAABBDiscOverlapDistance(const AABB2& aabb2, const Disc2& disk,Vector2
 
 
 	Vector2 unitDistanceVector = distanceVector.GetNormalized();
-	Vector2 radiusVectorTowardsAABB2 = Vector2(GetModulus(unitDistanceVector.x)*positionVector.x,GetModulus(unitDistanceVector.y)*positionVector.y);
+	Vector2 radiusVectorTowardsAABB2 = Vector2(GetAbsolute(unitDistanceVector.x)*positionVector.x,GetAbsolute(unitDistanceVector.y)*positionVector.y);
 	radiusVectorTowardsAABB2 = radiusVectorTowardsAABB2*disk.radius;
 	radiusVectorTowardsAABB2+=disk.center;
 	Vector2 tempVector = tileVector + positionVector/2;

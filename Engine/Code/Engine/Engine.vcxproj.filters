@@ -400,6 +400,9 @@
     <ClCompile Include="AI\NeuralNetwork\NeuralNetworkGene.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Math\Segment.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -680,6 +683,7 @@
     <ClInclude Include="AI\GA\GeneticAlgorithm.hpp" />
     <ClInclude Include="AI\NeuralNetwork\NeuralNetworkGene.hpp" />
     <ClInclude Include="AI\GA\Gene.hpp" />
+    <ClInclude Include="Math\Segment.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

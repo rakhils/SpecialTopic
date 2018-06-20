@@ -41,8 +41,11 @@ float		     GetMaxOf2 (float value1, float value2);
 float		     GetMinOf2 (float value1, float value2);
 bool		     IsInRangeOf(int value,int lowerLimit,int upperLimit);
 bool		     isInRangeOf(float value,float lowerLimit,float upperLimit);
-float		     GetModulus(float value);
-int			     GetModulus(int value);
+float		     GetAbsolute(float value);
+int			     GetAbsolute(int value);
+Vector2			 GetAbsolute(Vector2 value);
+Vector3          GetAbsolute(Vector3 value);
+Vector4			 GetAbsolute(Vector4 value);
 			     
 float		     GetDistance( const Vector2 a, const Vector2 b );
 float		     GetDistanceSquared( const Vector2 a, const Vector2 b );

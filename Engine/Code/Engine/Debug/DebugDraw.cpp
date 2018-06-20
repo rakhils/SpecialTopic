@@ -1080,6 +1080,22 @@ void DebugDraw::DebugRenderLogf(char const *format, ...)
 	DebugRenderLogf(std::string(buffer),0.01f, Rgba::WHITE, Rgba::WHITE);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/18
+*@purpose : Displays matrix values as logs
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DebugDraw::DebugRenderMatrix(Matrix44 value)
+{
+	DebugRenderLogf("MATRIX ", "");
+	DebugRenderLogf("%f , %f , %f , %f", value.GetIAxis4());
+	DebugRenderLogf("%f , %f , %f , %f", value.GetJAxis4());
+	DebugRenderLogf("%f , %f , %f , %f", value.GetKAxis4());
+	DebugRenderLogf("%f , %f , %f , %f", value.GetTAxis4());
+
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/03/30
 *@purpose : Creates new instance and push to debug draw array

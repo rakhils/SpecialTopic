@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Math/Vector3.hpp"
+#include "Engine/Math/Plane.hpp"
 /*\class  : Raycast3D
 * \group  : <GroupName>
 * \brief  :
@@ -46,6 +47,7 @@ public:
 	
 	static RaycastHit Raycast(GameObject *gameObject,Ray ray);
 	static Collider*  GetColliderAtPosition(GameObject *currentGameobject,Vector3 position);
+	static RaycastHit RaycastOnPlane(Ray ray, Plane plane);
 	//Static_Methods
 
 protected:

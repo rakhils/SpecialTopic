@@ -6,7 +6,7 @@ Population::Population(int chromosomeCount,int genecount,float mutationChance)
 	m_chromosomeCount = chromosomeCount;
 	for(int chIndex = 0;chIndex < chromosomeCount;chIndex++)
 	{
-		Chromosome *chromosome = new Chromosome(genecount,mutationChance);
+		Chromosome *chromosome = new Chromosome(genecount,mutationChance );
 		m_chromosomes.push_back(chromosome);
 	}
 }
@@ -27,7 +27,8 @@ Population::~Population()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Chromosome* Population::AcceptReject(int m_maxFitness)
+// Build chromosome as you go in the list of chromosomes 
+Chromosome* Population::PickRandomChromosomeByWeight(int maxFitness)
 {
 	int maxIteration     = 1000;
 	int currentIteration = 0;
@@ -35,7 +36,7 @@ Chromosome* Population::AcceptReject(int m_maxFitness)
 	{
 		int index			= GetRandomIntLessThan(static_cast<int>(m_chromosomes.size()));
 		Chromosome *partner = m_chromosomes.at(index);
-		int r			    = GetRandomIntLessThan(m_maxFitness);
+		int r			    = GetRandomIntLessThan(maxFitness);
 
 		if(static_cast<float>(r) < partner->m_totalFitness)
 		{

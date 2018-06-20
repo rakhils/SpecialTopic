@@ -19,11 +19,16 @@ class SceneLevel1 : public Scene
 
 public:
 	//Member_Variables
-	Tank				  *m_playerTank  = nullptr;
-	GameObject			  *m_soundTestObj = nullptr;
-	Map					  *m_map         = nullptr;
+	Tank * m_playerTank = nullptr;
+	GameObject			    *m_soundTestObj = nullptr;
+	Map					    *m_map = nullptr;
 	bool				   m_init = false;
-	PerspectiveCamera *m_camera = nullptr;
+	OrbitCamera			   *m_ocamera = nullptr;
+	PerspectiveCamera	   *m_pcamera = nullptr;
+
+	float					m_cameraRadius = 30;
+	float					m_cameraPhi	   = 0;
+	float					m_cameraTheta  = 20;
 	//Static_Member_Variables
 
 	//Methods

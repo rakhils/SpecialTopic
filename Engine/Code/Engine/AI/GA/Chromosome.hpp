@@ -11,6 +11,7 @@
 * \date   : 6/13/2018 2:26:21 PM
 * \contact: srsrakhil@gmail.com
 */
+class Population;
 class Chromosome
 {
 
@@ -27,7 +28,7 @@ public:
 	Chromosome(int geneCount,float mutationChance);
 	~Chromosome();
 	float		 GetTotalFitness(Chromosome* target);
-	Chromosome*  CrossOver(Chromosome* ch1);
+	Chromosome*  CreateAndSetCrossOverToNewPopulation(Chromosome* ch1,Population *m_newPopulation,int index);
 	void		 Mutate();
 	//Static_Methods
 

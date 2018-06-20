@@ -18,6 +18,7 @@ class GeneticAlgorithm
 public:
 	//Member_Variables
 	Population*				 m_population				 = nullptr;
+	Population*				 m_newPopulation			 = nullptr;
 	Chromosome*				 m_target					 = nullptr;
 	Chromosome*				 m_best						 = nullptr;
 	int						 m_currentGenerationCount  	 = 0;

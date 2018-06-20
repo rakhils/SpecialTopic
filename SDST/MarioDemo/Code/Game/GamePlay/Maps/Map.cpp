@@ -61,12 +61,15 @@ void Map::InitCamera()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitGA()
 {
-	m_ga = new GeneticAlgorithm(500, 14, 0.01f);
-	Chromosome *ch = new Chromosome(14, 0.01f);
-	std::string target = "hello world !!";
+	std::string target   = "hello world !!!";
+	int geneCount		 = target.length();
+	float mutationChance = 0.01f;
+	int totalPopulation  = 1000;
+	m_ga			= new GeneticAlgorithm(totalPopulation, geneCount, mutationChance);
+	Chromosome *ch  = new Chromosome(geneCount, mutationChance);
 	for(int index = 0;index < target.length();index++)
 	{
-		Gene *gene = new Gene(0.01f);
+		Gene *gene = new Gene(mutationChance);
 		gene->m_char = target[index];
 		ch->m_genes.at(index) = (gene);
 	}

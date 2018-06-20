@@ -42,7 +42,7 @@ Matrix44 Camera::LookAt(Vector3 pos, Vector3 target, Vector3 worldUP)
 	Vector3 right =  CrossProduct(worldUP,forward);
 	right = right.GetNormalized();
 
-	Vector3 Up = CrossProduct(forward, right);
+	Vector3 Up = CrossProduct(forward,right);
 	Up = Up.GetNormalized();
 
 	Matrix44 LookAtMatrix = Matrix44(right, Up, forward);
@@ -102,11 +102,30 @@ void Camera::SetOrthoProjection(Vector2 bottomLeft,Vector2 topRigth, float nearZ
 	m_projection.Ty = -1 * (topRigth.y + bottomLeft.y) / (topRigth.y - bottomLeft.y);
 	m_projection.Tz = -1 * (farZ + nearZ) / (farZ - nearZ);
 
-
 	m_projection.Ix = 2/horizontalDistance;
 	m_projection.Jy = 2/verticalDistance,
 	m_projection.Kz = 2/zDistance;
-	
+}
+
+//////////////////////////////////////////////////////////////
+/*DATE    : 2018/03/30
+*@purpose : Set perspective view. Sets model and projection matrix of camera
+*@param   : FovDegrees, aspect, nearZ and farZ
+*@return  : NIL
+*//////////////////////////////////////////////////////////////
+void Camera::SetPerspective(float fovDegrees, float aspect, float nearz, float farz)
+{
+	Matrix44 modelMatrix = m_transform.GetWorldMatrix();
+	m_model = modelMatrix;
+	modelMatrix.Tx = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetIAxis());
+	modelMatrix.Ty = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetJAxis());
+	modelMatrix.Tz = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetKAxis());
+
+	modelMatrix.InvertFast();
+	SetViewMatrix(modelMatrix);
+
+	Matrix44 perspectiveMatrix = Matrix44::MakePerspectiveMatrix(fovDegrees, aspect, nearz, farz);
+	SetProjection(perspectiveMatrix);
 }
 
 //////////////////////////////////////////////////////////////
@@ -135,6 +154,7 @@ void Camera::SetViewMatrix(Matrix44 view)
 void Camera::SetModelMatrix(Matrix44 model)
 {
 	m_model = model;
+	m_transform.SetLocalMatrix(model);
 }
 
 //////////////////////////////////////////////////////////////

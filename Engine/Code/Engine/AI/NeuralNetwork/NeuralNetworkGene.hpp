@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Engine/AI/GA/Gene.hpp"
 /*\class  : NeuralNetworkGene		   
 * \group  : <GroupName>	   
 * \brief  :	   
@@ -11,18 +11,25 @@
 * \contact: srsrakhil@gmail.com
 */
  
-class NeuralNetworkGene
+class NeuralNetworkGene : public Gene
 {
 
 public:
 	//Member_Variables
-	
+
 	//Static_Member_Variables
 
 	//Methods
+	bool operator==(const NeuralNetworkGene& obj) const;
+	//bool		    operator	== (const Vector2& compare) const;
 
-	NeuralNetworkGene();
+	NeuralNetworkGene(float mutateChance);
+	NeuralNetworkGene(const NeuralNetworkGene& copy);
 	~NeuralNetworkGene();
+
+	void				Mutate();
+	NeuralNetworkGene*  Clone();
+	bool				IsAlmostEqual(NeuralNetworkGene *gene);
 	
 	//Static_Methods
 

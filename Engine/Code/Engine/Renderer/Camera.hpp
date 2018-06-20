@@ -73,6 +73,7 @@ public:
 	PickRay     GetPickRayFromScreenCords(Vector2 screenXY);
 	Matrix44    GetViewProjection();
 	Matrix44	LookAt(Vector3 pos, Vector3 tartget, Vector3 worldUP);
+	void		SetPerspective(float fovDegrees, float aspect, float nearz, float farz);
 	//void		Update(float deltaTime);
 
 	void		MoveRigth    (float deltaTime);

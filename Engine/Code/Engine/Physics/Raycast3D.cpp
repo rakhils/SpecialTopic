@@ -105,3 +105,33 @@ Collider* Raycast3D::GetColliderAtPosition(GameObject *currentGameobject ,Vector
 	}
 	return nullptr;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/17
+*@purpose : Check whether ray hits plane
+*@param   : Ray , plane object
+*@return  : Raycast hit result
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+RaycastHit Raycast3D::RaycastOnPlane(Ray ray, Plane plane)
+{
+	RaycastHit resultHit;
+	float velocity = DotProduct(ray.m_direction, plane.m_normal);
+	if (IsNearZero(velocity)) 
+	{
+		resultHit.m_hit = false;
+		return resultHit;
+	}
+
+	float direction = DotProduct(plane.m_normal, ray.m_direction);
+	float dist	    = plane.GetDistance(ray.m_start);
+	if ((direction * dist) > 0.0f) 
+	{
+		resultHit.m_hit = false;
+		return resultHit;
+	}
+
+	float time		= -dist / velocity;
+	resultHit.m_hit = true;
+	resultHit.m_position = ray.Evaluate(time);
+	return resultHit;
+}

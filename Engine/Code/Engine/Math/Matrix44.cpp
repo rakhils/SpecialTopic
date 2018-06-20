@@ -813,20 +813,6 @@ void Matrix44::Inverse()
 		Set(i,(float)(inv[i] * det));
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/06/12
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Matrix44::WorldLookAt(Vector3 position)
-{
-	UNUSED(position);
-	/*Matrix44 lookAt = Matrix44::LookAt(GetWorldPosition(), worldPos, worldUp);
-	SetWorldMatrix(lookAt);*/
-}
-
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/03/30
 *@purpose : NIL
@@ -1141,26 +1127,38 @@ Matrix44 Matrix44::MakeRotationMatrixFromDirection(Vector3 direction)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/24
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
+*@purpose : Calculates a matrix to look to a direction
+*@param   : Direction to look at,world up
+*@return  : Look At Matrix
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Matrix44 Matrix44::LookAt(Vector3 forward, Vector3 worldUP)
 {
 	Vector3 right = CrossProduct(worldUP, forward);
 	right = right.GetNormalized();
 
-	Vector3 Up = CrossProduct(forward, right);
+	Vector3 Up = CrossProduct(right,forward);
 	Up = Up.GetNormalized();
 
 	Matrix44 LookAtMatrix = Matrix44(right, Up, forward);
 
-	LookAtMatrix.Tx = 1 * DotProduct(Vector3::ZERO, right);
+	/*LookAtMatrix.Tx = 1 * DotProduct(Vector3::ZERO, right);
 	LookAtMatrix.Ty = 1 * DotProduct(Vector3::ZERO, Up);
 	LookAtMatrix.Tz = 1 * DotProduct(Vector3::ZERO, forward);
-	LookAtMatrix.Tw = 1;
+	LookAtMatrix.Tw = 1;*/
 
 	return LookAtMatrix;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/18
+*@purpose : Calculates a matrix to look to a direction
+*@param   : Direction to look at,world up
+*@return  : Look At Matrix
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Matrix44 Matrix44::LookAt(Vector3 position, Vector3 lookAtPos, Vector3 upvector)
+{
+	Vector3 direction = (lookAtPos - position);
+	return LookAt(direction.GetNormalized(), upvector);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1233,7 +1231,7 @@ void Matrix44::MultiplyAndSet(Matrix44 valueMatrix)
 void Matrix44::InvertFast()
 {
 
-	float temp = Jx;
+	/*float temp = Jx;
 	Jx = Iy;
 	Iy = temp;
 
@@ -1243,7 +1241,7 @@ void Matrix44::InvertFast()
 
 	temp = Ky;
 	Ky = Jz;
-	Jz = temp;
+	Jz = temp;*/
 
 	Tx = -1*Tx;
 	Ty = -1*Ty;

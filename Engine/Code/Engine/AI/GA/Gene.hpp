@@ -16,7 +16,6 @@ class Gene
 
 public:
 	//Member_Variables
-	Neuron m_neuron;
 	char   m_char;
 	float  m_fitnessValue;
 	float  m_mutateChance;

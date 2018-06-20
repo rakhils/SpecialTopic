@@ -1,4 +1,5 @@
 #include "Engine/AI/GA/Chromosome.hpp"
+#include "Engine/AI/GA/Population.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Chromosome::Chromosome(int geneCount,float mutationChance)
@@ -50,9 +51,9 @@ float Chromosome::GetTotalFitness(Chromosome* taget)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Chromosome * Chromosome::CrossOver(Chromosome* ch1)
+Chromosome * Chromosome::CreateAndSetCrossOverToNewPopulation(Chromosome* ch1,Population* PopulationNew,int newChromosomeIndex)
 {
-	Chromosome *chr = new Chromosome(m_geneCount,m_mutationChance);
+	Chromosome *chr = PopulationNew->m_chromosomes.at(newChromosomeIndex);
 	for (int index = 0; index < m_genes.size(); index++)
 	{
 		if(index < m_genes.size()/2.f)

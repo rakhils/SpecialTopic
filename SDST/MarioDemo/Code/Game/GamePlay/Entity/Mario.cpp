@@ -45,7 +45,7 @@ void Mario::Update(float deltaTime)
 	Disc2 colliderOutline = GetCircleCollider()->m_disc;
 
 	float random = GetRandomIntInRange(0, 3);
-	random = -1;
+	//random = -1;
 	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW) || random == 1)
 	{
 		WalkWest(deltaTime);

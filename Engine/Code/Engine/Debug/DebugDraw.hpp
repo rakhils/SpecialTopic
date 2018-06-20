@@ -186,6 +186,7 @@ public:
 	void DebugRenderLogf(Rgba const &color, char const *format, ...);
 	void DebugRenderLogf(float lifetime, char const *format, ...);
 	void DebugRenderLogf(char const *format, ...);
+	void DebugRenderMatrix(Matrix44 value);
 	//////////////////////////////////////////////////////////////////////////
 
 	//Static_Methods

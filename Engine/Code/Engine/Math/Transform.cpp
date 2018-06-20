@@ -40,7 +40,7 @@ Matrix44 Transform_t::GetMatrix()
 //////////////////////////////////////////////////////////////
 void Transform_t::SetMatrix(Matrix44 &matrix)
 {
-	m_local = matrix;
+	m_local    = matrix;
 
 	m_euler    = matrix.GetEulerFromMatrix();
 	m_position = matrix.GetTAxis();
@@ -318,15 +318,35 @@ void Transform::SetLocalScale(Vector3 scale)
 	MakeChildrenDirty();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/18
+*@purpose : Transform local matrix to look at position
+*@param   : local position to look at
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Transform::LocalLookAt(Vector3 localLookAtPosition, Vector3 localUp /*= Vector3::UP*/)
+{
+	Matrix44 lookAt = Matrix44::LookAt(GetLocalPosition(), localLookAtPosition, localUp);
+	SetLocalMatrix(lookAt);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/18
+*@purpose : Transform matrix to look at position
+*@param   : local position to look at
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Transform::WorldLookAt(Vector3 worldPosition, Vector3 worldUP /*= Vector3::UP*/)
+{
+	Matrix44 lookat = Matrix44::LookAt(GetWorldPosition(), worldPosition, worldUP);
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/16
 *@purpose : Calculates world matrix and returns
-*
 *@param   : NIL
-*
 *@return  : returns world matrix
-*/
-//////////////////////////////////////////////////////////////
+*//////////////////////////////////////////////////////////////
 Matrix44 Transform::GetWorldMatrix()
 {
 	if (m_parent == nullptr)
