@@ -117,9 +117,9 @@ void Camera::SetPerspective(float fovDegrees, float aspect, float nearz, float f
 {
 	Matrix44 modelMatrix = m_transform.GetWorldMatrix();
 	m_model = modelMatrix;
-	modelMatrix.Tx = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetIAxis());
-	modelMatrix.Ty = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetJAxis());
-	modelMatrix.Tz = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetKAxis());
+	modelMatrix.Tx = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetIVector());
+	modelMatrix.Ty = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetJVector());
+	modelMatrix.Tz = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetKVector());
 
 	modelMatrix.InvertFast();
 	SetViewMatrix(modelMatrix);
@@ -154,7 +154,7 @@ void Camera::SetViewMatrix(Matrix44 view)
 void Camera::SetModelMatrix(Matrix44 model)
 {
 	m_model = model;
-	m_transform.SetLocalMatrix(model);
+	//m_transform.SetLocalMatrix(model);
 }
 
 //////////////////////////////////////////////////////////////
@@ -183,7 +183,7 @@ Vector3 Camera::ScreenToWorld(Vector2 screen_xy, float ndc_depth)
 
 
 	//viewProjection.InvertFast();
-	homogenious_world = Matrix44::Multiply(homogenious_world,viewProjection);
+	homogenious_world = Matrix44::Multiply(viewProjection,homogenious_world);
 	
 	Vector3 worldPos = homogenious_world.XYZ() / homogenious_world.w;
 	//worldPos.z = worldPos.z*-1;
@@ -336,7 +336,7 @@ Matrix44 Camera::GetViewProjection()
 void Camera::MoveRigth(float deltaTime)
 {
 	Matrix44 localTransform = m_transform.GetLocalMatrix();
-	Vector3 rigthDirection = localTransform.GetIAxis();
+	Vector3 rigthDirection = localTransform.GetIVector();
 
 	m_transform.Translate(rigthDirection*deltaTime);
 	SetModelMatrix(m_transform.GetLocalMatrix());
@@ -355,7 +355,7 @@ void Camera::MoveRigth(float deltaTime)
 void Camera::MoveLeft(float deltaTime)
 {
 	Matrix44 localTransform = m_transform.GetLocalMatrix();
-	Vector3 rigthDirection = localTransform.GetIAxis();
+	Vector3 rigthDirection = localTransform.GetIVector();
 	deltaTime = -1 * deltaTime;
 	m_transform.Translate(rigthDirection*deltaTime);
 	SetModelMatrix(m_transform.GetLocalMatrix());
@@ -375,7 +375,7 @@ void Camera::MoveUp(float deltaTime)
 {
 	UNUSED(deltaTime);
 	Matrix44 localTransform = m_transform.GetLocalMatrix();
-	Vector3 upDirection = localTransform.GetJAxis();
+	Vector3 upDirection = localTransform.GetJVector();
 
 	m_transform.Translate(upDirection);
 	SetModelMatrix(m_transform.GetLocalMatrix());
@@ -395,7 +395,7 @@ void Camera::MoveDown(float deltaTime)
 {
 	UNUSED(deltaTime);
 	Matrix44 localTransform = m_transform.GetLocalMatrix();
-	Vector3 upDirection = localTransform.GetJAxis();
+	Vector3 upDirection = localTransform.GetJVector();
 
 	m_transform.Translate(upDirection*-1);
 	SetModelMatrix(m_transform.GetLocalMatrix());
@@ -414,7 +414,7 @@ void Camera::MoveDown(float deltaTime)
 void Camera::MoveForward(float deltaTime)
 {
 	Matrix44 localTransform  = m_transform.GetLocalMatrix();
-	Vector3 forwardDirection = localTransform.GetKAxis();
+	Vector3 forwardDirection = localTransform.GetKVector();
 
 	m_transform.Translate(forwardDirection*deltaTime);
 	SetModelMatrix(m_transform.GetLocalMatrix());
@@ -433,7 +433,7 @@ void Camera::MoveForward(float deltaTime)
 void Camera::MoveBackward(float deltaTime)
 {
 	Matrix44 localTransform = m_transform.GetLocalMatrix();
-	Vector3 forwardDirection = localTransform.GetKAxis();
+	Vector3 forwardDirection = localTransform.GetKVector();
 	deltaTime = -1 * deltaTime;
 	m_transform.Translate(forwardDirection*deltaTime);
 	SetModelMatrix(m_transform.GetLocalMatrix());

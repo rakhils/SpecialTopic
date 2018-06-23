@@ -13,7 +13,7 @@ Entity::Entity(std::string name,Vector2 position) : GameObject(name)
 
 Vector2 Entity::GetForwardUnitVector()
 {
-	return m_transform.GetWorldMatrix().GetIAxis().GetXY();
+	return m_transform.GetWorldMatrix().GetIVector().GetXY();
 }
 
 Vector2 Entity::GetCenter()

@@ -438,19 +438,19 @@ void Renderer::DrawCircle(float centreX,float centreY,float nradius,float numofS
 	const int MAX_NUM_VERTEX = 31;
 	Vertex_3DPCU line[MAX_NUM_VERTEX];
 	float nangle = 360.0f/(MAX_NUM_VERTEX -1);
-	for(int i = 0;i < (MAX_NUM_VERTEX - 1); i+=2)
+	for(int i = 0;i < (MAX_NUM_VERTEX - 1); i++)
 	{
 		float startX =  centreX + (nradius)*CosDegrees(i*nangle);
 		float startY =  centreY + (nradius)*SinDegrees(i*nangle);
 
-		float endX =  centreX + (nradius)*CosDegrees((i+1)*nangle);
-		float endY =  centreY + (nradius)*SinDegrees((i+1)*nangle);
+		float endX   =  centreX + (nradius)*CosDegrees((i+1)*nangle);
+		float endY   =  centreY + (nradius)*SinDegrees((i+1)*nangle);
 		line[i].setRGBA(Rgba::RED);
 		line[i].setPoint(startX,startY);
 		line[i + 1].setRGBA(Rgba::WHITE);
 		line[i + 1].setPoint(endX,endY);
 	}
-	DrawMeshImmediate(PRIMITIVE_LINES,static_cast<int>(MAX_NUM_VERTEX/2),line);
+	DrawMeshImmediate(PRIMITIVE_LINES,static_cast<int>(MAX_NUM_VERTEX),line);
 }
 
 void Renderer::DrawCircle(Vector2 centre, float nradius)

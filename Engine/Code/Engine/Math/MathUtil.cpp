@@ -994,9 +994,9 @@ Vector3 RotateOnYAxis(Vector3 direction, float angle)
 {	
 	Matrix44 yAxisRotation = Matrix44::MakeRotationDegreesInY(angle);
 	Matrix44 position(Vector3(direction.x, 0, 0), Vector3(0, direction.y, 0), Vector3(0, 0, direction.z));
-	float IValue = DotProduct(direction, Vector3(yAxisRotation.GetIAxis()));
-	float JValue = DotProduct(direction, Vector3(yAxisRotation.GetJAxis()));
-	float KValue = DotProduct(direction, Vector3(yAxisRotation.GetKAxis()));
+	float IValue = DotProduct(direction, Vector3(yAxisRotation.GetIVector()));
+	float JValue = DotProduct(direction, Vector3(yAxisRotation.GetJVector()));
+	float KValue = DotProduct(direction, Vector3(yAxisRotation.GetKVector()));
 
 	return Vector3(IValue, JValue, KValue);
 }
@@ -1014,9 +1014,9 @@ Vector3 RotateOnZAxis(Vector3 direction, float angle)
 {
 	Matrix44 yAxisRotation = Matrix44::MakeRotationDegrees2D(angle);
 	Matrix44 position(Vector3(direction.x, 0, 0), Vector3(0, direction.y, 0), Vector3(0, 0, direction.z));
-	float IValue = DotProduct(direction, Vector3(yAxisRotation.GetIAxis()));
-	float JValue = DotProduct(direction, Vector3(yAxisRotation.GetJAxis()));
-	float KValue = DotProduct(direction, Vector3(yAxisRotation.GetKAxis()));
+	float IValue = DotProduct(direction, Vector3(yAxisRotation.GetIVector()));
+	float JValue = DotProduct(direction, Vector3(yAxisRotation.GetJVector()));
+	float KValue = DotProduct(direction, Vector3(yAxisRotation.GetKVector()));
 
 	return Vector3(IValue,JValue,KValue);
 }
@@ -1618,16 +1618,16 @@ Vector3 SlerpUnit(Vector3 &a, Vector3 &b, float t)
 {
 	float			 EPSILON = 0.001f;
 	float cosangle = ClampFloat(DotProduct(a, b), -1.0f, 1.0f);
-	float angle = acosf(cosangle);
+	float angle    = ACosDegrees(cosangle);
 	if (angle < EPSILON)
 	{
 		return Interpolate(a, b, t);
 	}
 	else 
 	{
-		float pos_num = sinf(t * angle);
-		float neg_num = sinf((1.0f - t) * angle);
-		float den	  = sinf(angle);
+		float pos_num = SinDegrees(t * angle);
+		float neg_num = SinDegrees((1.0f - t) * angle);
+		float den	  = SinDegrees(angle);
 
 		return (neg_num / den) * a + (pos_num / den) * b;
 	}

@@ -4,11 +4,12 @@
 #include "Engine/Debug/DebugDraw.hpp"
 #include "Engine/Physics/Collider/CircleCollider.hpp"
 #include "Engine/Physics/Collider/BoxCollider2D.hpp"
+#include "Engine/AI/NeuralNetwork/NeuralNetwork.hpp"
+
 #include "Game/GamePlay/Entity/Mario.hpp"
 // CONSTRUCTOR
 Mario::Mario():Entity("mario")
 {
-	
 }
 
 //////////////////////////////////////////////////////////////
@@ -25,6 +26,7 @@ Mario::Mario(EntityDefinition *definition) :Entity("mario")
 	m_transform.Translate(Vector3(200, 200, 0));
 	m_spriteAnimSet = new SpriteAnimSet(definition->m_spriteAnimSetDef);
 	m_spriteAnimSet->SetAnimation(m_characterTypeString + "EastIdle");
+	m_neuralNet = new NeuralNetwork(100, 36, 2);
 	StayIdle();
 }
 
@@ -43,10 +45,18 @@ Mario::~Mario()
 void Mario::Update(float deltaTime)
 {
 	Disc2 colliderOutline = GetCircleCollider()->m_disc;
+	std::vector<float> NNOutputs;
+	for (int index = 0; index < m_neuralNet->m_outputs->m_neurons.size(); index++)
+	{
+		float value = m_neuralNet->m_outputs->m_neurons.at(index).m_value;
+		NNOutputs.push_back(value);
+	}
+	
+	DebugDraw::GetInstance()->DebugRenderLogf("NN OUTPUT %f, %f", NNOutputs.at(0), NNOutputs.at(1));
 
 	float random = GetRandomIntInRange(0, 3);
 	//random = -1;
-	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW) || random == 1)
+	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW))// || NNOutputs.at(0) < 0)
 	{
 		WalkWest(deltaTime);
 	}
@@ -54,7 +64,7 @@ void Mario::Update(float deltaTime)
 	{
 		//StayIdle();
 	}
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_RIGHT_ARROW) || random == 2)
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_RIGHT_ARROW) || NNOutputs.at(0) > 0)
 	{
 		WalkEast(deltaTime);
 	}
@@ -67,7 +77,7 @@ void Mario::Update(float deltaTime)
 		((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->ApplyForce(Vector3(0, -2*m_jumpForce, 0), deltaTime);
 	}
 
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW)|| random == 0)
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW)|| NNOutputs.at(1) > 0.5f )
 	{
 		if(IsGrounded(deltaTime) || IsJumping())
 		{

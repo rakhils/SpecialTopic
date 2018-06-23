@@ -1,28 +1,35 @@
 #pragma once
-
-/*\class  : Neuron		   
-* \group  : <GroupName>	   
+#include "Engine/AI/GA/Gene.hpp"
+/*\class  : SimpleCharGene		   
+* \group  : <GroupName>		   
 * \brief  :		   
 * \TODO:  :		   
-* \note   :		   
+* \note   :	   
 * \author : Rakhil Soman		   
 * \version: 1.0		   
-* \date   : 6/13/2018 2:31:23 PM
+* \date   : 6/22/2018 7:17:41 PM
 * \contact: srsrakhil@gmail.com
 */
  
-class Neuron
+class SimpleCharGene : public Gene
 {
 
 public:
 	//Member_Variables
-	
+	char   m_char;
 	//Static_Member_Variables
 
 	//Methods
 
-	Neuron();
-	~Neuron();
+	SimpleCharGene(float mutationChance);
+	SimpleCharGene(const SimpleCharGene &copy);
+	~SimpleCharGene();
+
+	void  Mutate();
+	Gene* Clone();
+	float GetFitnessValue(Gene *target);
+	bool  IsAlmostEqual  (Gene *gene);
+
 	
 	//Static_Methods
 

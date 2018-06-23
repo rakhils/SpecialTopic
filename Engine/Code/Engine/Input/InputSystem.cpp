@@ -117,7 +117,7 @@ void InputSystem::UpdateMouse()
 
 	m_mouse.m_positionLastFrame = m_mouse.m_positionThisFrame;
 	m_mouse.m_positionThisFrame = GetMouseClientPosition();
-	ShowCursor(true);
+	//ShowCursor(true);
 	// Relative mode -> I care about deltas - I reset to the center (meaning, mutually exclusive modes)
 	if (m_mouse.m_mouseMode == MOUSEMODE_RELATIVE) 
 	{

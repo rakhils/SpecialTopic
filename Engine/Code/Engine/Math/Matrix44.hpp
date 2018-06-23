@@ -36,18 +36,19 @@ public:
 	float   Get(int column, int row);
 	float	Get(int index);
 	void	Set(int index,float value);
+	float   GetTrace3();
 
 	Vector3 Multiply(Vector3 position);
 
-	Vector3 GetIAxis();
-	Vector3 GetJAxis();
-	Vector3 GetKAxis();
-	Vector3 GetTAxis();
+	Vector3 GetIVector();
+	Vector3 GetJVector();
+	Vector3 GetKVector();
+	Vector3 GetTVector();
 
-	Vector4 GetIAxis4();
-	Vector4 GetJAxis4();
-	Vector4 GetKAxis4();
-	Vector4 GetTAxis4();
+	Vector4 GetIVector4();
+	Vector4 GetJVector4();
+	Vector4 GetKVector4();
+	Vector4 GetTVector4();
 
 	Vector3 GetXComponent();
 	Vector3 GetYComponent();
@@ -62,6 +63,8 @@ public:
 																	 
 	void	SetIdentity();
 	void	SetValues( const float* sixteenValuesBasisMajor ); // float[16] array in order Ix, Iy...
+	void    SetTranslation(Vector4 translation);
+	Vector4 GetTranslation();
 	void	Append( const Matrix44& matrixToAppend ); // a.k.a. Concatenate (right-multiply)
 	void	RotateDegrees2D( float rotationDegreesAboutZ ); // 
 	void	Translate2D( const Vector2& translation );
@@ -71,6 +74,7 @@ public:
 	void	Scale2D( float scaleX, float scaleY );
 	void	Transpose();
 	void	InvertFast();
+	void	InvertFast1();
 	void	Inverse();
 	Vector3 GetEulerFromMatrix();
 	void	MultiplyAndSet(Matrix44 valueMatrix);
@@ -91,7 +95,8 @@ public:
 	static Matrix44 LookAt(Vector3 forward, Vector3 upvector);
 	static Matrix44 LookAt(Vector3 position,Vector3 lookAtPos, Vector3 upvector);
 	static Matrix44 LerpTransform(Matrix44 &a, Matrix44 &b, float delta);
-	static Vector4  Multiply(Vector4 vec4, Matrix44 mat44);
+	static Matrix44 TurnTowards(Matrix44 &current, Matrix44 &target, float maxTurnPerFrame);
+	static Vector4  Multiply(Matrix44 mat44,Vector4 vec4);
 
 
 };

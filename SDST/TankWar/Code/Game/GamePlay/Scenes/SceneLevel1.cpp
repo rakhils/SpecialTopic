@@ -98,19 +98,19 @@ void SceneLevel1::InitScene()
 void SceneLevel1::CreatePlayer()
 {
 	Mesh *turretHead = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3::ZERO, .75f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
-	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1.f, .25f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
-	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1.f, .5f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 1.5f), Rgba::WHITE, FILL_MODE_FILL);
 	GameObject *turretHeadGO = new GameObject("turrethead");
 	GameObject *turretGunGO = new GameObject("turretgun");
 	turretHeadGO->SetScene(this);
 	turretHeadGO->m_renderable->SetMesh(turretHead);
 	turretHeadGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-	turretHeadGO->m_transform.SetLocalPosition(Vector3(0, 0.4f, 0));
+	turretHeadGO->m_transform.SetLocalPosition(Vector3(0, 0.75f, 0));
 	
 	turretGunGO->SetScene(this);
 	turretGunGO->m_renderable->SetMesh(turretGun);
 	turretGunGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-	turretGunGO->m_transform.SetLocalPosition(Vector3(0, .5, 2));
+	turretGunGO->m_transform.SetLocalPosition(Vector3(0, 0.5, 0.5));
 
 
 	m_playerTank = new Tank();
@@ -251,23 +251,40 @@ void SceneLevel1::Update(float deltaTime)
 	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::RED, "CAM POSITION %f, %f, %f", cameraPosition.x, cameraPosition.y, cameraPosition.z);
 	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::RED, "CAM ANGLE    %f, %f, %f", cameraAngle.x, cameraAngle.y, cameraAngle.z);
 
-
-	//m_ocamera->Update(deltaTime);
+	float PI = 3.14f;
+	Vector2 delta = g_theInput->GetMouseDelta();
+	delta.y += .5;
+	if (delta.x != 0)
+	{
+		m_cameraPhi += delta.x/5.f;
+		m_cameraPhi  = fmodf(m_cameraPhi, 360);
+	}
+	if (delta.y != 0)
+	{
+		m_cameraTheta += delta.y / 5.f;
+		m_cameraTheta = ClampFloat(m_cameraTheta, -90, 90);
+	}
 
 	if (InputSystem::GetInstance()->IsLButtonDown())
 	{
 		Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
-		PickRay ray = Camera::GetGamePlayCamera()->GetPickRayFromScreenCords(screenXY);
+		PickRay ray      = Camera::GetGamePlayCamera()->GetPickRayFromScreenCords(screenXY);
 
 		Ray raycast;
 		raycast.m_direction = ray.m_direction;
-		raycast.m_start = m_playerTank->m_transform.GetWorldPosition();
+		raycast.m_start     = m_playerTank->m_transform.GetWorldPosition() + Vector3(0,1,0);
 
 		RaycastHit result = m_map->m_terrain->Raycast(raycast);
 		DebugDraw::GetInstance()->DebugRenderLogf("RAYCAST : POSITION :: %f,%f %f", result.m_position.x, result.m_position.y, result.m_position.z);
 		DebugDraw::GetInstance()->DebugRenderLine(raycast.m_start, result.m_position, Rgba::YELLOW, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
 		DebugDraw::GetInstance()->DebugRenderLine(result.m_position,result.m_position + ray.m_direction*1000 ,Rgba::RED, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
 
+		Vector3 cameraRight		= Camera::GetCurrentCamera()->GetCameraRightVector();
+		Vector3 cameraUp		= Camera::GetCurrentCamera()->GetCameraUpVector();
+		Vector2 terrainCellSize = m_map->m_terrain->m_cellSize;
+		terrainCellSize = terrainCellSize / 2.f;
+
+		DebugDraw::GetInstance()->DebugRenderQuad(result.m_position, AABB2(Vector2(0, 0), terrainCellSize.x, terrainCellSize.y), cameraRight, cameraUp, nullptr, Rgba::BLUE, DEBUG_RENDER_FILL, options);
 		//DebugDraw::GetInstance()->DebugRenderSphere(result.m_position, 1, 16, 16, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
 	}
 

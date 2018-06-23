@@ -46,6 +46,7 @@ public:
 	void UpdateTankOrientation();
 	void UpdateBreadCrumb(float deltatime);
 	void UpdateTurretOrientation(float deltaTime);
+	void UpdateTurretOrientation1(float deltaTime);
 	void UpdateProjectedLines(float deltaTime);
 	void OnCollisionEnter(Collider* collider);
 	//Static_Methods

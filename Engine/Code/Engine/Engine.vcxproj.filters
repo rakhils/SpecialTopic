@@ -391,16 +391,25 @@
     <ClCompile Include="AI\GA\Gene.cpp">
       <Filter>General</Filter>
     </ClCompile>
-    <ClCompile Include="AI\NeuralNetwork\Neuron.cpp">
-      <Filter>General</Filter>
-    </ClCompile>
-    <ClCompile Include="AI\GA\GeneticAlgorithm.cpp">
-      <Filter>General</Filter>
-    </ClCompile>
     <ClCompile Include="AI\NeuralNetwork\NeuralNetworkGene.cpp">
       <Filter>General</Filter>
     </ClCompile>
     <ClCompile Include="Math\Segment.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\NeuralNetwork\NeuralNetwork.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\GA\SimpleCharGene.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\GA\Abstract\GeneticAlgorithm.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\GA\StringGeneticAlgorithm.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\NeuralNetwork\NeuralNetGA.cpp">
       <Filter>General</Filter>
     </ClCompile>
   </ItemGroup>
@@ -679,11 +688,16 @@
     <ClInclude Include="Math\Plane.hpp" />
     <ClInclude Include="AI\GA\Chromosome.hpp" />
     <ClInclude Include="AI\GA\Population.hpp" />
-    <ClInclude Include="AI\NeuralNetwork\Neuron.hpp" />
-    <ClInclude Include="AI\GA\GeneticAlgorithm.hpp" />
     <ClInclude Include="AI\NeuralNetwork\NeuralNetworkGene.hpp" />
     <ClInclude Include="AI\GA\Gene.hpp" />
     <ClInclude Include="Math\Segment.hpp" />
+    <ClInclude Include="AI\NeuralNetwork\NeuralNetwork.hpp" />
+    <ClInclude Include="AI\NeuralNetwork\NeuralNetworkConstants.h" />
+    <ClInclude Include="AI\GA\GA_Constants.h" />
+    <ClInclude Include="AI\GA\SimpleCharGene.hpp" />
+    <ClInclude Include="AI\GA\Abstract\GeneticAlgorithm.hpp" />
+    <ClInclude Include="AI\GA\StringGeneticAlgorithm.hpp" />
+    <ClInclude Include="AI\NeuralNetwork\NeuralNetGA.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

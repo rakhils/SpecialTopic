@@ -5,11 +5,18 @@
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Renderer/Camera/OrthographicCamera.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
-#include "Engine/AI/GA/GeneticAlgorithm.hpp"
+#include "Engine/AI/GA/StringGeneticAlgorithm.hpp"
+#include "Engine/AI/GA/Abstract/GeneticAlgorithm.hpp"
 #include "Engine/AI/GA/Chromosome.hpp"
 #include "Engine/AI/GA/Gene.hpp"
-
+#include "Engine/AI/GA/SimpleCharGene.hpp"
+#include "Engine/AI/NeuralNetwork/NeuralNetGA.hpp"
+#include "Engine/AI/NeuralNetwork/NeuralNetworkConstants.h"
+#include "Engine/AI/NeuralNetwork/NeuralNetwork.hpp"
+#include "Engine/AI/NeuralNetwork/NeuralNetworkGene.hpp"
+#include "Engine/AI/GA/Gene.hpp"
 #include "Game/GamePlay/Entity/Pipe.hpp"
+#include "Game/GamePlay/Entity/Mario.hpp"
 Map::Map(MapDefinition *mapDef)
 {
 	m_dimensions.x = mapDef->m_width;
@@ -18,17 +25,10 @@ Map::Map(MapDefinition *mapDef)
 	{
 		mapDef->m_genSteps.at(index)->Run(*this);
 	}
-	for(int indexY = 0;indexY < m_minimapHeight;indexY++)
-	{
-		for(int indexX = 0;indexX < m_minimapWidth;indexX++)
-		{
-			MiniMapObject obj;
-			obj.m_color = Rgba::BLACK;
-			m_minimapObjs.push_back(obj);
-		}
-	}
-	m_minimapAABB = AABB2(Vector2(0, 0), 100, 100);
+	CreateCharacters();
+	InitMiniMap();
 	InitGA();
+	m_ga;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -54,6 +54,27 @@ void Map::InitCamera()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/20
+*@purpose : Inits the minimap
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitMiniMap()
+{
+	m_minimapAABB = AABB2(Vector2(0, 0), 100, 100);
+	for (int indexY = 0; indexY < m_minimapHeight; indexY++)
+	{
+		for (int indexX = 0; indexX < m_minimapWidth; indexX++)
+		{
+			MiniMapObject obj;
+			obj.m_color = Rgba::BLACK;
+			obj.m_value = 0.f;
+			m_minimapObjs.push_back(obj);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/15
 *@purpose : NIL
 *@param   : NIL
@@ -61,19 +82,28 @@ void Map::InitCamera()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitGA()
 {
-	std::string target   = "hello world !!!";
-	int geneCount		 = target.length();
-	float mutationChance = 0.01f;
-	int totalPopulation  = 1000;
-	m_ga			= new GeneticAlgorithm(totalPopulation, geneCount, mutationChance);
-	Chromosome *ch  = new Chromosome(geneCount, mutationChance);
+	std::string target    = "hello world !!!";
+	int geneCount		  = 1;
+	float mutationChance  = 0.01f;
+	float crossOverChance = 1.f;
+	int totalPopulation   = 1;
+	INPUT_NEURON_COUNT    = m_minimapObjs.size();
+	HIDDEN_NEURON_COUNT   = m_minimapObjs.size() * 2.f / 3.f;
+	OUTPUT_NEURON_COUNT	  = 2;
+	std::vector<Gene*> inputs;
+	Gene* gene = new NeuralNetworkGene(0.01f);
+	((NeuralNetworkGene*)gene)->m_neuralNet = m_mario->m_neuralNet;
+	inputs.push_back(gene);
+	m_ga				  = new NeuralNetGA(totalPopulation, geneCount,crossOverChance, mutationChance,inputs);
+	int a = 1;
+	/*Chromosome *ch  = new Chromosome(geneCount, mutationChance,SIMPLE_CHAR);
 	for(int index = 0;index < target.length();index++)
 	{
-		Gene *gene = new Gene(mutationChance);
-		gene->m_char = target[index];
+		Gene *gene = new SimpleCharGene(mutationChance);
+		((SimpleCharGene*)gene)->m_char = target[index];
 		ch->m_genes.at(index) = (gene);
 	}
-	m_ga->SetTarget(ch);
+	m_ga->SetTarget(ch);*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -161,10 +191,8 @@ void Map::CreateGround()
 //////////////////////////////////////////////////////////////
 void Map::CreateCharacters()
 {
-	m_textureBackground = Texture::CreateOrGetTexture("Data//Images//level1.png", true, false);
 	InitCamera();
 	CreateGround();
-//	CreateBricks(Vector2(200,200),m_block.GetDimensions());
 	CreateMario();
 }
 
@@ -188,62 +216,51 @@ void Map::CreateMario()
 	((RigidBody3D*)m_mario->GetComponentByType(RIGID_BODY_3D))->m_gravity = Vector3(0, -12000, 0);
 }
 
-//////////////////////////////////////////////////////////////
-/*DATE    : 2018/03/04
-*@purpose : Spawn entities at given postion and orientation
-*
-*@param   : Entity type,Positoin,Orientation
-*
-*@return  : NIL
-*/
-//////////////////////////////////////////////////////////////
-void Map::SpawnEntities(Entity_Type type, Vector2 position, Vector2 orientation)
-{
-	switch (type)
-	{
-	case BRICK:
-	{
-		/*Brick * brick = new Brick(EntityDefinition::GetDefinition("Brick"));
-		brick->SetPosition(position);
-		m_bricks.push_back(brick);*/
-	}
-		break;
-	case COIN_BOX:
-		break;
-	case PIPE:
-		break;
-	case POWER_UP:
-		break;
-	default:
-		break;
-	}
-}
-
 void Map::Update(float deltaTime)
 {
-	//if(!gafirstsample)
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	// ========== GA ============
+	std::vector<float> inputs;
+	for (int index = 0; index < m_minimapObjs.size(); index++)
+	{
+		inputs.push_back(m_minimapObjs.at(index).m_value);
+	}
+	((NeuralNetGA*)m_ga)->UpdateWithInputs(inputs);
 	m_ga->Epoch();
-	Chromosome *chr = m_ga->m_best;
+	
+	/*Chromosome *chr = m_ga->m_best;
 	std::string temp;
 	for(int index = 0;index < chr->m_genes.size();index++)
 	{
-		std::string ch(1,chr->m_genes.at(index)->m_char);
+		std::string ch(1,((SimpleCharGene*)(chr->m_genes.at(index)))->m_char);
 		temp.append(ch);
-	}
-	gafirstsample = true;
-	DebugDraw::GetInstance()->DebugRenderLogf("Generation Count : %d", m_ga->m_currentGenerationCount);
+	}*/
+	//std::vector<float> outputs = ((NeuralNetGA*)m_ga)->
+	//gafirstsample = true;
+	/*DebugDraw::GetInstance()->DebugRenderLogf("Generation Count : %d", m_ga->m_currentGenerationCount);
 	DebugDraw::GetInstance()->DebugRenderLogf("TEXT			    : %s", temp.c_str());
 	DebugDraw::GetInstance()->DebugRenderLogf("Best Fitness     : %f", m_ga->m_best->GetTotalFitness(m_ga->m_target));
 	DebugDraw::GetInstance()->DebugRenderLogf("Avg Fitness      : %f", m_ga->m_averageFitnessValue);
-	DebugDraw::GetInstance()->DebugRenderLogf("Mutation Rate    : %f", m_ga->m_mutationRate);
+	DebugDraw::GetInstance()->DebugRenderLogf("Mutation Rate    : %f", m_ga->m_mutationChance);*/
 	DebugDraw::GetInstance()->DebugRenderLogf("=================================================", "");
-
-
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	m_textureBackground = Texture::CreateOrGetTexture("Data//Images//level1.png", true, false);
 
 	if(!m_init)
 	{
-		CreateCharacters();
+		//CreateCharacters();
 		m_init = true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_D))
+	{
+		if(m_isDebugMode)
+		{
+			m_isDebugMode = false;
+		}
+		else
+		{
+			m_isDebugMode = true;
+		}
 	}
 	if(InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_Z))
 	{
@@ -274,18 +291,13 @@ void Map::Update(float deltaTime)
 		Vector3 position = m_mario->GetWorldPosition();
 		m_mario->m_transform.SetLocalPosition(Vector3(position.x, 450, 0));
 	}
-	m_camera->SetOrthoProjection();
+	
+	m_mario->Update(deltaTime);
 	UpdateCamera();
 	UpdateMiniMap();
-	m_mario->Update(deltaTime);
-	if(m_mario->m_transform.GetWorldPosition().y < 0)
-	{
-		m_mario->m_transform.SetLocalPosition(Vector3(200, 100, 0));
-	}
-	if (m_mario->m_transform.GetWorldPosition().x > 6700)
-	{
-		m_mario->m_transform.SetLocalPosition(Vector3(200, 100, 0));
-	}
+	QueryAndDie(deltaTime);
+	CheckForMarioOutOfBounds();
+	
 
 	//DebugDraw::GetInstance()->DebugRenderLogf("CREATED BY RAKHIL SOMAN", "");
 }
@@ -298,6 +310,7 @@ void Map::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::UpdateCamera()
 {
+	m_camera->SetOrthoProjection();
 	float minX = Windows::GetInstance()->GetDimensions().x / 2.f;
 	float minY = Windows::GetInstance()->GetDimensions().y / 2.f;
 
@@ -371,6 +384,7 @@ void Map::UpdateMiniMap()
 	int positionY = static_cast<int>((marioWorldPosition.y - minBounds.y) / (m_block.GetDimensions().x / 2.f));
 	DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE MARIO %d,%d", positionX, positionY);
 	SetMiniMapValues(IntVector2(positionX, positionY), Rgba::GREEN);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -385,7 +399,39 @@ void Map::SetMiniMapValues(IntVector2 pos, Rgba color)
 	if(index < m_minimapObjs.size())
 	{
 		m_minimapObjs.at(index).m_color = color;
+		if(color == Rgba::WHITE)
+		{
+			m_minimapObjs.at(index).m_value = 1;
+		}else
+		if (color == Rgba::RED)
+		{
+			m_minimapObjs.at(index).m_value = -1;
+		}else
+		if (color == Rgba::GREEN)
+		{
+			m_minimapObjs.at(index).m_value = 0.1;
+		}
+		else
+		{
+			m_minimapObjs.at(index).m_value = 0.5;
+		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/23
+*@purpose : Gets float value from minimap
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<float>& Map::GetInputsFromMiniMap()
+{
+	std::vector<float> inputs;
+	for(int index = 0;index < m_minimapObjs.size();index++)
+	{
+		inputs.push_back(m_minimapObjs.at(index).m_value);
+	}
+	return inputs;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -416,6 +462,68 @@ void Map::UpdatePipes(float deltaTime)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/20
+*@purpose : Updates NN
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::UpdateNN()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/20
+*@purpose : Checks if mario is out of bounds and respawn
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::CheckForMarioOutOfBounds()
+{
+	if (m_mario->m_transform.GetWorldPosition().y < 0)
+	{
+		EndOnePlay();
+	}
+	if (m_mario->m_transform.GetWorldPosition().x > 6700)
+	{
+		EndOnePlay();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/20
+*@purpose : Checks condition and Let mario die
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::QueryAndDie(float deltaTime)
+{
+	m_timeElapsedAfterKnownLocation += deltaTime;
+	if(m_timeElapsedAfterKnownLocation > 2)
+	{
+		Vector2 distance = (m_mario->m_transform.GetWorldPosition().GetXY() - m_lastKnownPosition);
+		if(distance.GetLength() < m_block.GetDimensions().x * 2)
+		{
+			EndOnePlay();
+		}
+		m_lastKnownPosition = m_mario->m_transform.GetWorldPosition().GetXY();
+		m_timeElapsedAfterKnownLocation = 0.f;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/20
+*@purpose : Ends the play and make AI learn from results
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::EndOnePlay()
+{
+	UpdateNN();
+	m_mario->m_transform.SetLocalPosition(Vector3(200, 100, 0));
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/01/22
 *@purpose : NIL
@@ -429,6 +537,14 @@ void Map::Render()
 {
 	Camera::SetCurrentCamera(m_camera);
 	Renderer::GetInstance()->BeginFrame();
+
+	if(m_isDebugMode)
+	{
+		RenderNN();
+		return;
+	}
+
+
 	AABB2 aabb(Vector2(0, 0), Vector2(6784, 1080));
 
 	Material *defaultMaterial = Material::AquireResource("default");
@@ -438,12 +554,6 @@ void Map::Render()
 	AABB2 m_aabb2(Vector2(0, 0), Vector2(6784.f,480.f));
 	g_theRenderer->DrawTexturedAABB(m_aabb2, m_textureBackground, Vector2(0,1), Vector2(1,0), Rgba::WHITE);
 	delete defaultMaterial;
-
-/*
-	Material *defaultMaterial1 = Material::AquireResource("default");
-	Renderer::GetInstance()->BindMaterial(defaultMaterial1);
-	Renderer::GetInstance()->DrawAABB(aabb, Rgba::BLACK);
-	delete defaultMaterial1;*/
 
 	RenderBricks();
 	//RenderPipes();
@@ -570,6 +680,79 @@ void Map::RenderGrid()
 	{
 		Renderer::GetInstance()->DrawLine(Vector2(0, y), Vector2(1000, y));
 	}
+	delete defaultMaterial;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderNN()
+{
+	Vector2 inputStart (500, 100);
+	Vector2 hiddenStart(1000,100);
+	Vector2 outputStart(1500,100);
+	float   fontSize = 5;
+	float   radius = 20;
+	float   distanceBetweenNodes = 50;
+
+	Material *defaultMaterial = Material::AquireResource("default");
+	Renderer::GetInstance()->BindMaterial(defaultMaterial);
+
+	for(int inputIndex = 0;inputIndex < m_mario->m_neuralNet->m_inputs->m_neurons.size();inputIndex++)
+	{
+		Renderer::GetInstance()->DrawCircle(inputStart, radius);
+		inputStart.y += distanceBetweenNodes;
+	}
+	for (int hiddenINdex = 0; hiddenINdex < m_mario->m_neuralNet->m_hiddenLayers->m_neurons.size(); hiddenINdex++)
+	{
+		Renderer::GetInstance()->DrawCircle(hiddenStart, radius);
+		inputStart = Vector2(500, 100);
+		for (int inputIndex = 0; inputIndex < m_mario->m_neuralNet->m_inputs->m_neurons.size(); inputIndex++)
+		{
+			Renderer::GetInstance()->DrawLine(inputStart, hiddenStart);
+			inputStart.y += distanceBetweenNodes;
+		}
+		hiddenStart.y += distanceBetweenNodes;
+	}
+	for (int outputIndex = 0; outputIndex < m_mario->m_neuralNet->m_outputs->m_neurons.size(); outputIndex++)
+	{
+		Renderer::GetInstance()->DrawCircle(outputStart, radius);
+		hiddenStart = Vector2(1000, 100);
+		for (int hiddenINdex = 0; hiddenINdex < m_mario->m_neuralNet->m_hiddenLayers->m_neurons.size(); hiddenINdex++)
+		{
+			Renderer::GetInstance()->DrawLine(hiddenStart, outputStart);
+			hiddenStart.y += distanceBetweenNodes;
+		}
+		outputStart.y += distanceBetweenNodes;
+	}
+	inputStart  = Vector2(500, 100);
+	hiddenStart = Vector2(1000, 100);
+	outputStart = Vector2(1500, 100);
+
+	Material *defaulttextMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	Renderer::GetInstance()->BindMaterial(defaulttextMaterial);
+	for (int inputIndex = 0; inputIndex < m_mario->m_neuralNet->m_inputs->m_neurons.size(); inputIndex++)
+	{
+		float value = m_mario->m_neuralNet->m_inputs->m_neurons.at(inputIndex).m_value;
+		Renderer::GetInstance()->DrawTextOnPoint(ToString(value).c_str(), 0, 3, inputStart - Vector2(fontSize,0), fontSize,Rgba::YELLOW);
+		inputStart.y += distanceBetweenNodes;
+	}
+	for (int hiddenINdex = 0; hiddenINdex < m_mario->m_neuralNet->m_hiddenLayers->m_neurons.size(); hiddenINdex++)
+	{
+		float value = m_mario->m_neuralNet->m_hiddenLayers->m_neurons.at(hiddenINdex).m_value;
+		Renderer::GetInstance()->DrawTextOnPoint(ToString(value).c_str(), 0, 3, hiddenStart - Vector2(fontSize, 0), fontSize, Rgba::YELLOW);
+		hiddenStart.y += distanceBetweenNodes;
+	}
+	for (int outputIndex = 0; outputIndex < m_mario->m_neuralNet->m_outputs->m_neurons.size(); outputIndex++)
+	{
+		float value = m_mario->m_neuralNet->m_outputs->m_neurons.at(outputIndex).m_value;
+		Renderer::GetInstance()->DrawTextOnPoint(ToString(value).c_str(), 0, 3, outputStart - Vector2(fontSize, 0), fontSize, Rgba::YELLOW);
+		outputStart.y += distanceBetweenNodes;
+	}
+	delete defaulttextMaterial;
 	delete defaultMaterial;
 }
 

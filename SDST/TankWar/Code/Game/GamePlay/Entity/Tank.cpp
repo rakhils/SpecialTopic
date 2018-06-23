@@ -141,13 +141,15 @@ void Tank::Update(float deltaTime)
 	Vector3 maxRotationValue(PI / 2, 2 * PI, 0);	
 	if (InputSystem::GetInstance()->IsLButtonDown())
 	{
-		Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
-		PickRay ray = Camera::GetGamePlayCamera()->GetPickRayFromScreenCords(screenXY);
+		Vector2 screenXY = Vector2(1960 / 2.f, 1080 / 2.f);
+		//Vector2 screenXY = InputSystem::GetInstance()->GetMousePosition();
+		PickRay ray      = Camera::GetGamePlayCamera()->GetPickRayFromScreenCords(screenXY);
 
-
+		Vector3 worldPosition = ray.m_position;
 		Ray raycast;
 		raycast.m_direction = ray.m_direction;
-		raycast.m_start		= m_transform.GetWorldPosition() + Vector3(0,2,0);
+
+		raycast.m_start		= m_transform.GetWorldPosition() + Vector3(0,1.5,0);
 
 		RaycastHit result   = ((SceneLevel1*)m_scene)->m_map->m_terrain->Raycast(raycast);
 
@@ -157,40 +159,44 @@ void Tank::Update(float deltaTime)
 		DebugDraw::GetInstance()->DebugRenderLogf("MOUSE XY %f, %f", screenXY.x, screenXY.y);
 		DebugDraw::GetInstance()->DebugRenderLogf("MOUSESTART %f, %f, %f"    , ray.m_position.x,ray.m_position.y,ray.m_position.z);
 		DebugDraw::GetInstance()->DebugRenderLogf("MOUSEDIRECTION %f, %f, %f", ray.m_direction.x, ray.m_direction.y, ray.m_direction.z);
-		DebugRenderOptions options;
-		m_mouseWorldPos = m_transform.GetWorldPosition() + ray.m_direction*10;
-		//m_mouseWorldPos = result.m_position;
+		DebugDraw::GetInstance()->DebugRenderLogf("WORLD POS  %f, %f, %f", worldPosition.x, worldPosition.y, worldPosition.z);
+
+		m_mouseWorldPos = result.m_position;
 		//m_mouseWorldPos.y = m_mouseWorldPos.y*-1;
 		DebugDraw::GetInstance()->DebugRenderLogf("MOUSE WORLD POS %f,%f,%f", m_mouseWorldPos.x, m_mouseWorldPos.y, m_mouseWorldPos.z);
 		
 	
-		//FireBullet(deltaTime);
-		UpdateTurretOrientation(deltaTime);
+		FireBullet(deltaTime);
+		//UpdateTurretOrientation1(deltaTime);
 	}
+
+
+
+
 
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_A))
 	{
 		Matrix44 worldMatrix = m_transform.GetWorldMatrix();
-		Vector3 rigthDirection = worldMatrix.GetIAxis();
+		Vector3 rigthDirection = worldMatrix.GetIVector();
 		m_transform.Translate(rigthDirection*(-1 * deltaTime * m_velocity));
 	}
 
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_D))
 	{
 		Matrix44 worldMatrix = m_transform.GetWorldMatrix();
-		Vector3 rigthDirection = worldMatrix.GetIAxis();
+		Vector3 rigthDirection = worldMatrix.GetIVector();
 		m_transform.Translate(rigthDirection*(1 * deltaTime* m_velocity));
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_W))
 	{
 		Matrix44 worldMatrix = m_transform.GetWorldMatrix();
-		Vector3 forwardDirection = worldMatrix.GetKAxis();
+		Vector3 forwardDirection = worldMatrix.GetKVector();
 		m_transform.Translate(forwardDirection*(1 * deltaTime * m_velocity));
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_S))
 	{
 		Matrix44 worldMatrix = m_transform.GetWorldMatrix();
-		Vector3 forwardDirection = worldMatrix.GetKAxis();
+		Vector3 forwardDirection = worldMatrix.GetKVector();
 		m_transform.Translate(forwardDirection*(-1 * deltaTime * m_velocity));
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_Q))
@@ -206,9 +212,7 @@ void Tank::Update(float deltaTime)
 	float   terrainHeight   = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetHeight(position.GetXZ());
 	m_transform.SetLocalPosition(Vector3(position.x, terrainHeight + 1, position.z));
 
-	//UpdateTurretOrientation(deltaTime);
-	//UpdateCameraPosition(deltaTime);
-	//UpdateCameraOrientation(deltaTime);
+	UpdateTurretOrientation1(deltaTime);
 	UpdateTankOrientation();
 	UpdateBreadCrumb(deltaTime);
 	UpdateBullet(deltaTime);
@@ -245,61 +249,20 @@ void Tank::UpdateBullet(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Tank::UpdateCameraPosition(float deltaTime)
-{
-	UNUSED(deltaTime);
-	Vector3 tankPosition = m_transform.GetWorldPosition();
-	Vector3 tankForward  = m_transform.GetWorldMatrix().GetKAxis();
-	Vector3 camPosition  = tankPosition - tankForward * 15;
-/*
-	PerspectiveCamera *m_camera = ((SceneLevel1*)m_scene)->m_pcamera;
-	camPosition.y = 25;
-	//m_camera->m_transform.SetLocalRotationEuler(Vector3(0, 45, 0));
-	m_camera->m_transform.SetLocalPosition(camPosition);*/
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/06/12
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Tank::UpdateCameraOrientation(float deltaTime)
-{
-	UNUSED(deltaTime);
-	Vector2 delta = InputSystem::GetInstance()->GetMouseDelta();
-	/*PerspectiveCamera *m_camera = ((SceneLevel1*)m_scene)->m_pcamera;
-	if (delta.x != 0)
-	{
-		m_camera->m_transform.RotateLocalByEuler(Vector3(0, 0.005f*delta.x, 0));
-		Vector3 rotation = m_camera->m_transform.GetLocalEulerAngles();
-		rotation.y = fmodf(rotation.y, 2.f * 3.14f);
-		m_camera->m_transform.SetLocalRotationEuler(rotation);
-	}*/
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/06/12
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::UpdateTankOrientation()
 {
 	Vector3 terrainNormal    = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetNormalAtXZ(m_transform.GetWorldPosition().GetXZ()).GetNormalized();
-	Vector3 forward          = m_transform.GetWorldMatrix().GetKAxis().GetNormalized();
+	Vector3 forward          = m_transform.GetWorldMatrix().GetKVector().GetNormalized();
 	
 	Vector3 right		     = CrossProduct(terrainNormal,forward);
 	right					 = right.GetNormalized();
 
 	Vector3	correctedForward = CrossProduct(right,terrainNormal);
 	
-
 	Matrix44 matrix(Vector4(right.GetNormalized()), Vector4(terrainNormal.GetNormalized()), Vector4(correctedForward.GetNormalized()), Vector4(0, 0, 0, 1));
-	matrix.Transpose();
+	matrix.InvertFast1();
 	Vector3 euler = matrix.GetEulerFromMatrix();
 	m_transform.SetLocalRotationEuler(euler);
-	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,18 +296,42 @@ void Tank::UpdateTurretOrientation(float deltaTime)
 {
 	Matrix44 worldMatrix   = m_transform.GetWorldMatrix();
 	worldMatrix.Inverse();
+	Vector3  localPosition    = Matrix44::Multiply(worldMatrix,Vector4(m_mouseWorldPos,1)).XYZ();
+	Matrix44 targetTransform  = Matrix44::LookAt(m_turret->m_transform.GetLocalPosition(), localPosition, Vector3::UP);
+	targetTransform.InvertFast1();
+	m_turret->m_transform.SetLocalMatrix(targetTransform);
+	//m_turret->m_transform.GetLocalMatrix().InvertFast();
+	//m_turret->m_transform.SetLocalRotationEuler(m_turret->m_transform.GetLocalEulerAngles()*-1);
 
-	Vector3  localPosition = Matrix44::Multiply(Vector4(m_mouseWorldPos,1), worldMatrix).XYZ();
-	Matrix44 lookAt        = Matrix44::LookAt(m_turret->m_transform.GetLocalPosition(),localPosition,Vector3::UP);
-	//lookAt.SetIdentity();
-
-	Matrix44 turretModel   = m_turret->GetWorldMatrix();
-	m_turret->m_transform.SetLocalMatrix(lookAt);
-	m_turret->m_transform.Translate(Vector3(0, 1.5f, 0));
+	m_turret->m_transform.SetLocalPosition(Vector3(0, 1, 0));
 	Vector3 angle = m_turret->m_transform.GetWorldRotation();
 	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::BLUE,"LocalPos %f, %f, %f", localPosition.x, localPosition.y, localPosition.z);
 	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::YELLOW,"EULER ANGLE %f, %f, %f" , angle.x, angle.y, angle.z);
 	UNUSED(deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/19
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Tank::UpdateTurretOrientation1(float deltaTime)
+{
+	Matrix44 worldMatrix = m_transform.GetWorldMatrix();
+	worldMatrix.Inverse();
+	Vector3  localPosition = Matrix44::Multiply(worldMatrix,Vector4(m_mouseWorldPos, 1)).XYZ();
+
+	Matrix44 currentTransform = m_turret->m_transform.GetLocalMatrix();
+	Vector3  angleCurrent     = currentTransform.GetEulerFromMatrix();
+	Matrix44 targetTransform  = Matrix44::LookAt(m_turret->m_transform.GetLocalPosition(), localPosition, Vector3::UP);
+	targetTransform.InvertFast1();
+	Vector3  targetAngle	  = targetTransform.GetEulerFromMatrix();
+
+	float turn_this_frame = 1;
+
+	Matrix44 local = Matrix44::TurnTowards(currentTransform, targetTransform, turn_this_frame);
+	m_turret->m_transform.SetLocalMatrix(local);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

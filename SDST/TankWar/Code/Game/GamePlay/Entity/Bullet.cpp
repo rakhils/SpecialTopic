@@ -11,12 +11,14 @@ Bullet::Bullet(std::string name,int team,Vector3 position,Vector3 direction,floa
 	m_forward = direction;
 	m_transform.SetLocalPosition(position);
 	MeshBuilder mb;
-	MeshBuilder::Create3DPlane(mb, Vector3::ZERO, Vector3(0.5f, 0, 0), Vector3(0, 0.5f, 0), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
-	MeshBuilder::Create3DPlane(mb, Vector3::ZERO, Vector3(0, 0.5f, 0), Vector3(0, 0, 0.5f), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
-	MeshBuilder::Create3DPlane(mb, Vector3::ZERO, Vector3(0, 0, 0.5f), Vector3(0.5f, 0, 0), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
+	MeshBuilder::CreateUVSpehere(mb,Vector3::ZERO, 1, 8, 8, Rgba::RED, FILL_MODE_FILL);
+	//MeshBuilder::Create3DPlane(mb, Vector3::ZERO, Vector3(0.5f, 0, 0), Vector3(0, 0.5f, 0), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
+	//MeshBuilder::Create3DPlane(mb, Vector3::ZERO, Vector3(0, 0.5f, 0), Vector3(0, 0, 0.5f), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
+	//MeshBuilder::Create3DPlane(mb, Vector3::ZERO, Vector3(0, 0, 0.5f), Vector3(0.5f, 0, 0), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
 	Mesh *mesh = mb.CreateMesh();
 	m_renderable->SetMesh(mesh);
-	m_renderable->SetMaterial(Material::AquireResource("default"));
+	m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
+	m_renderable->m_material->m_textures.at(0) = Texture::GetDefaultTexture();
 
 	m_speed = speed;
 	AddSphereCollider(Vector3::ZERO, 1.5f);

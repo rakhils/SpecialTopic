@@ -1,5 +1,4 @@
 #pragma once
-#include "Engine/AI/NeuralNetwork/Neuron.hpp"
 /*\class  : Gene		   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -16,22 +15,20 @@ class Gene
 
 public:
 	//Member_Variables
-	char   m_char;
 	float  m_fitnessValue;
 	float  m_mutateChance;
 	//Static_Member_Variables
 
 	//Methods
-	bool operator==(const Gene& obj) const;
-	//bool		    operator	== (const Vector2& compare) const;			// vec2 == vec2
-
+	
 	Gene(float mutateChance);
 	Gene(const Gene& copy);
 	~Gene();
 	
-	void  Mutate();
-	Gene* Clone();
-	bool  IsAlmostEqual(Gene *gene);
+	virtual	void  Mutate()					    = 0;
+	virtual	Gene* Clone()					    = 0;
+	virtual float GetFitnessValue(Gene *target) = 0;
+	virtual bool  IsAlmostEqual  (Gene *gene)   = 0;
 	//Static_Methods
 
 protected:

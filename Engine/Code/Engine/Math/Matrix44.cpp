@@ -73,51 +73,21 @@ Matrix44::Matrix44(const Vector2& iBasis, const Vector2& jBasis, const Vector2& 
 //////////////////////////////////////////////////////////////
 Matrix44::Matrix44(const Vector3 R1, const Vector3 R2, const Vector3 R3)
 {
-	
-	/*Ix = R1.x;
-	Iy = R1.y;
-	Iz = R1.z;
-	Iw = 0;
-
-	Jx = R2.x;
-	Jy = R2.y;
-	Jz = R2.z;
-	Jw = 0;
-
-	Kx = R3.x;
-	Ky = R3.y;
-	Kz = R3.z;
-	Kw = 0;
-
-	Tx = 0;
-	Ty = 0;
-	Tz = 0;
-	Tw = 1;*/
-
 	Ix = R1.x;
 	Jx = R1.y;
 	Kx = R1.z;
+	Tx = 0;
 		
 	Iy = R2.x;
 	Jy = R2.y;
 	Ky = R2.z;
+	Ty = 0;
 	
 	Iz = R3.x;
 	Jz = R3.y;
 	Kz = R3.z;
-	
-	//Tx = R4.x;
-	//Ty = R4.y;
-	//Tz = R4.z;
-
-	//Tx = 0;
-	//Ty = 0;
-	//Tz = 0;
-	// 
-	Tx = 0;
-	Ty = 0;
 	Tz = 0;
-
+	
 	Iw = 0;
 	Jw = 0;
 	Kw = 0;
@@ -154,7 +124,6 @@ Matrix44::Matrix44(const Vector4 R1, const Vector4 R2, const Vector4 R3, const V
 	Jw = R4.y;
 	Kw = R4.z;
 	Tw = R4.w;
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,6 +206,17 @@ void Matrix44::Set(int index,float value)
 	*(&Ix + index) = value;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/19
+*@purpose : return Sum of diagonals
+*@param   : NIL
+*@return  : Sum
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Matrix44::GetTrace3()
+{
+	return (Ix + Jy + Kz );
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/03/29
 *@purpose : NIL
@@ -250,9 +230,9 @@ Vector3 Matrix44::Multiply(Vector3 position)
 {
 	Vector4 pos(position.x, position.y, position.z, 1);
 
-	float X = DotProduct(pos, GetXComponent4());
-	float Y = DotProduct(pos, GetYComponent4());
-	float Z = DotProduct(pos, GetZComponent4());
+	float X = DotProduct(GetXComponent4(), pos );
+	float Y = DotProduct(GetYComponent4(), pos );
+	float Z = DotProduct(GetZComponent4(), pos );
 	return Vector3(X, Y, Z);
 }
 
@@ -262,12 +242,12 @@ Vector3 Matrix44::Multiply(Vector3 position)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Vector4 Matrix44::Multiply(Vector4 vec4, Matrix44 mat44)
+Vector4 Matrix44::Multiply(Matrix44 mat44,Vector4 vec4)
 {
-	float x = DotProduct(vec4, mat44.GetXComponent4());
-	float y = DotProduct(vec4, mat44.GetYComponent4());
-	float z = DotProduct(vec4, mat44.GetZComponent4());
-	float w = DotProduct(vec4, mat44.GetWComponent4());
+	float x = DotProduct(mat44.GetXComponent4(),vec4 );
+	float y = DotProduct(mat44.GetYComponent4(),vec4 );
+	float z = DotProduct(mat44.GetZComponent4(),vec4 );
+	float w = DotProduct(mat44.GetWComponent4(),vec4 );
 	return Vector4(x, y, z, w);
 }
 
@@ -280,7 +260,7 @@ Vector4 Matrix44::Multiply(Vector4 vec4, Matrix44 mat44)
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-Vector3 Matrix44::GetIAxis()
+Vector3 Matrix44::GetIVector()
 {
 	return Vector3(Ix, Iy, Iz);
 }
@@ -294,7 +274,7 @@ Vector3 Matrix44::GetIAxis()
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-Vector3 Matrix44::GetJAxis()
+Vector3 Matrix44::GetJVector()
 {
 	return Vector3(Jx, Jy, Jz);
 }
@@ -308,7 +288,7 @@ Vector3 Matrix44::GetJAxis()
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-Vector3 Matrix44::GetKAxis()
+Vector3 Matrix44::GetKVector()
 {
 	return Vector3(Kx, Ky, Kz);
 }
@@ -322,7 +302,7 @@ Vector3 Matrix44::GetKAxis()
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-Vector3 Matrix44::GetTAxis()
+Vector3 Matrix44::GetTVector()
 {
 	return Vector3(Tx, Ty, Tz);
 }
@@ -336,7 +316,7 @@ Vector3 Matrix44::GetTAxis()
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-Vector4 Matrix44::GetIAxis4()
+Vector4 Matrix44::GetIVector4()
 {
 	return Vector4(Ix, Iy, Iz,Iw);
 }
@@ -350,7 +330,7 @@ Vector4 Matrix44::GetIAxis4()
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-Vector4 Matrix44::GetJAxis4()
+Vector4 Matrix44::GetJVector4()
 {
 	return Vector4(Jx, Jy, Jz,Jw);
 }
@@ -364,7 +344,7 @@ Vector4 Matrix44::GetJAxis4()
 *@return  : NIL
 */
 //////////////////////////////////////////////////////////////
-Vector4 Matrix44::GetKAxis4()
+Vector4 Matrix44::GetKVector4()
 {
 	return Vector4(Kx, Ky, Kz,Kw);
 }
@@ -375,7 +355,7 @@ Vector4 Matrix44::GetKAxis4()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Vector4 Matrix44::GetTAxis4()
+Vector4 Matrix44::GetTVector4()
 {
 	return Vector4(Tx, Ty, Tz, Tw);
 }
@@ -543,6 +523,31 @@ void Matrix44::SetValues(const float* sixteenValuesBasisMajor)
 	Ty = sixteenValuesBasisMajor[13];
 	Tz = sixteenValuesBasisMajor[14];
 	Tw = sixteenValuesBasisMajor[15]; 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/19
+*@purpose : Sets the translation part of marix
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Matrix44::SetTranslation(Vector4 translation)
+{
+	Tx = translation.x;
+	Ty = translation.y;
+	Tz = translation.z;
+	Tw = translation.w;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/19
+*@purpose : Returns the translation values
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector4 Matrix44::GetTranslation()
+{
+	return GetTVector4();
 }
 
 void Matrix44::Append(const Matrix44& matrixToAppend)
@@ -1136,7 +1141,7 @@ Matrix44 Matrix44::LookAt(Vector3 forward, Vector3 worldUP)
 	Vector3 right = CrossProduct(worldUP, forward);
 	right = right.GetNormalized();
 
-	Vector3 Up = CrossProduct(right,forward);
+	Vector3 Up = CrossProduct(forward,right);
 	Up = Up.GetNormalized();
 
 	Matrix44 LookAtMatrix = Matrix44(right, Up, forward);
@@ -1169,14 +1174,14 @@ Matrix44 Matrix44::LookAt(Vector3 position, Vector3 lookAtPos, Vector3 upvector)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Matrix44 Matrix44::LerpTransform(Matrix44 &a, Matrix44 &b, float delta)
 {
-	Vector3 aRight			= a.GetIAxis();
-	Vector3 bRight			= b.GetIAxis();
-	Vector3 aUp				= a.GetJAxis();
-	Vector3 bUp				= b.GetJAxis();
-	Vector3 aForward		= a.GetKAxis();
-	Vector3 bForward		= b.GetKAxis();
-	Vector3 aTranslation	= a.GetTAxis();
-	Vector3 bTranslation	= b.GetTAxis();
+	Vector3 aRight			= a.GetIVector();
+	Vector3 bRight			= b.GetIVector();
+	Vector3 aUp				= a.GetJVector();
+	Vector3 bUp				= b.GetJVector();
+	Vector3 aForward		= a.GetKVector();
+	Vector3 bForward		= b.GetKVector();
+	Vector3 aTranslation	= a.GetTVector();
+	Vector3 bTranslation	= b.GetTVector();
 	
 	Vector3 right			= Slerp(aRight, bRight, delta);
 	Vector3 up				= Slerp(aUp, bUp, delta);
@@ -1184,6 +1189,38 @@ Matrix44 Matrix44::LerpTransform(Matrix44 &a, Matrix44 &b, float delta)
 	Vector3 translation		= Interpolate(aTranslation, bTranslation, delta);
 
 	return Matrix44(right, up, forward, translation);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/19
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Matrix44 Matrix44::TurnTowards(Matrix44 &current, Matrix44 &target, float maxTurnPerFrame)
+{
+	Matrix44 currentCopy  = current;
+	Matrix44 currentCopy1 = current;
+	currentCopy.Inverse();
+
+	Matrix44 r = currentCopy * target;
+
+	// trace is 1 + 2 cos(theta) == sum of diagonal
+	float trace = r.GetTrace3();
+
+	// trace = 1 + 2.* cos(theta)
+	// theta = acos( (trace - 1) *.5f ); 
+	float inner = (trace - 1.0f) * .5f;
+	inner		= ClampFloat(inner, -1.0f, 1.0f);
+	float theta = ACosDegrees(inner);
+
+	float t = GetMinOf2(theta / maxTurnPerFrame, 1.0f);
+	t = 0.1;
+	Matrix44 ret = LerpTransform(currentCopy1, target, t);
+	ret.Transpose();
+	ret.SetTranslation(currentCopy1.GetTranslation());
+
+	return ret;
 }
 
 void Matrix44::MultiplyAndSet(Matrix44 valueMatrix)
@@ -1247,4 +1284,29 @@ void Matrix44::InvertFast()
 	Ty = -1*Ty;
 	Tz = -1*Tz;
 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/20
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Matrix44::InvertFast1()
+{
+	float temp = Jx;
+	Jx = Iy;
+	Iy = temp;
+
+	temp = Kx;
+	Kx = Iz;
+	Iz = temp;
+
+	temp = Ky;
+	Ky = Jz;
+	Jz = temp;
+
+	Tx = -1*Tx;
+	Ty = -1*Ty;
+	Tz = -1*Tz;
 }

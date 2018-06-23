@@ -21,21 +21,24 @@ enum Action
 {
 	IDLE,WALK,RUN,FIRE,JUMP
 };
+class NeuralNetwork;
 class Mario : public Entity
 {
 
 public:
 	//Member_Variables
-	int m_framesOnJump = 0;
-	CharacterType m_currentCharacter = SmallMario;
-	Action m_currentAction = IDLE;
-	bool   m_hasReachedMaxHeight = false;
-	float  m_maxJumpForce		 = 0.3f;
-	float  m_currentJumpForce	 = 0;
-	float  m_minVelocityForIdle = 0.5;
-	float  m_movementForce = 15000;
-	float  m_jumpForce	   = 40000;
-	std::string m_characterTypeString = "SmallMario";
+	int					m_framesOnJump				= 0;
+	CharacterType		m_currentCharacter			= SmallMario;
+	Action				m_currentAction				= IDLE;
+	bool				m_hasReachedMaxHeight		= false;
+	float				m_maxJumpForce				= 0.3f;
+	float				m_currentJumpForce			= 0;
+	float				m_minVelocityForIdle		= 0.5;
+	float				m_movementForce				= 15000;
+	float				m_jumpForce					= 40000;
+	std::string			m_characterTypeString		= "SmallMario";
+	NeuralNetwork	    *m_neuralNet = nullptr;
+
 	//Static_Member_Variables
 
 	//Methods

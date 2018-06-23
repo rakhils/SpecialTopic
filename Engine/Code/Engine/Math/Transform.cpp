@@ -43,7 +43,7 @@ void Transform_t::SetMatrix(Matrix44 &matrix)
 	m_local    = matrix;
 
 	m_euler    = matrix.GetEulerFromMatrix();
-	m_position = matrix.GetTAxis();
+	m_position = matrix.GetTVector();
 	m_scale    = Vector3(matrix.Ix, matrix.Jy, matrix.Kz);
 }
 
@@ -372,7 +372,7 @@ Vector3 Transform::GetWorldPosition()
 	{
 		return GetLocalPosition();
 	}
-	return GetWorldMatrix().GetTAxis();
+	return GetWorldMatrix().GetTVector();
 }
 
 //////////////////////////////////////////////////////////////

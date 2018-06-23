@@ -1,0 +1,5 @@
+#pragma once
+
+int INPUT_NEURON_COUNT  = 100;
+int HIDDEN_NEURON_COUNT = 36;
+int OUTPUT_NEURON_COUNT = 2;

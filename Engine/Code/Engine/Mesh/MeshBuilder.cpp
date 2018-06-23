@@ -971,9 +971,9 @@ void MeshBuilder::CreateBasis(MeshBuilder &meshBuilder, Vector3 position, Vector
 	Transform basisTransform;
 	basisTransform.RotateLocalByEuler(rotation);
 
-	Vector3 rigthDirection   = basisTransform.GetLocalMatrix().GetIAxis();
-	Vector3 UpDirection      = basisTransform.GetLocalMatrix().GetJAxis();
-	Vector3 forwardDirection = basisTransform.GetLocalMatrix().GetKAxis();
+	Vector3 rigthDirection   = basisTransform.GetLocalMatrix().GetIVector();
+	Vector3 UpDirection      = basisTransform.GetLocalMatrix().GetJVector();
+	Vector3 forwardDirection = basisTransform.GetLocalMatrix().GetKVector();
 
 	meshBuilder.SetUV(Vector2(0, 0));
 	meshBuilder.SetColor(Rgba::RED);

@@ -311,8 +311,8 @@ void DebugDraw::DebugRenderText2DElements(DebugDrawElement element)
 	Transform textTransform;
 	textTransform.RotateLocalByEuler(element.m_transform.GetWorldRotation());
 
-	Vector3 rigthDirection = textTransform.GetLocalMatrix().GetIAxis();
-	Vector3 upDirection    = textTransform.GetLocalMatrix().GetJAxis();
+	Vector3 rigthDirection = textTransform.GetLocalMatrix().GetIVector();
+	Vector3 upDirection    = textTransform.GetLocalMatrix().GetJVector();
 	m_renderer->DrawTextOn3DPoint(element.m_transform.GetWorldPosition(), rigthDirection, upDirection, element.m_text, element.m_fontSize, element.m_color);
 	delete material;
 	ResetDepth();
@@ -328,8 +328,8 @@ void DebugDraw::DebugRenderTextElements(DebugDrawElement element)
 	Material *material		= Material::AquireResource("Data\\Materials\\text.mat");
 	m_renderer->BindMaterial(material);
 	Matrix44 rotationMatrix = Matrix44::MatrixFromEuler(element.m_transform.GetLocalEulerAngles());
-	Vector3 rigthDirection  = rotationMatrix.GetIAxis();
-	Vector3 upDirection     = rotationMatrix.GetJAxis();
+	Vector3 rigthDirection  = rotationMatrix.GetIVector();
+	Vector3 upDirection     = rotationMatrix.GetJVector();
 	SetDepth(element.m_renderOptions.m_mode);
 	m_renderer->DrawTextOn3DPoint(element.m_transform.GetWorldPosition(), rigthDirection, upDirection, element.m_text, element.m_fontSize, element.m_color);
 	ResetDepth();
@@ -356,8 +356,8 @@ void DebugDraw::DebugRenderTextTagElements(DebugDrawElement element)
 	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
 	m_renderer->BindMaterial(material);
 	Camera::SetCurrentCamera(m_camera);
-	Vector3 rigthDirection = m_camera->m_model.GetIAxis();
-	Vector3 upDirection    = m_camera->m_model.GetJAxis();
+	Vector3 rigthDirection = m_camera->m_model.GetIVector();
+	Vector3 upDirection    = m_camera->m_model.GetJVector();
 	rigthDirection         = rigthDirection.GetNormalized();
 	upDirection			   = upDirection.GetNormalized();
 	SetDepth(element.m_renderOptions.m_mode);
@@ -689,8 +689,8 @@ void DebugDraw::DebugRenderPlane(Vector3 position, Vector2 dimensions, Vector3 r
 	transform.SetLocalRotationEuler(rotation);
 	Matrix44 modelMatrix = transform.GetLocalMatrix();
 
-	Vector3 rigthVector = modelMatrix.GetIAxis();
-	Vector3 upVector    = modelMatrix.GetJAxis();
+	Vector3 rigthVector = modelMatrix.GetIVector();
+	Vector3 upVector    = modelMatrix.GetJVector();
 
 	Mesh *plane = MeshBuilder::Create3DPlane<Vertex_3DPCUN>(position, rigthVector, upVector, dimensions, color,GetFillMode(fill_type));
 	DebugDrawElement debugDrawElement(plane, 0.0f, options);
@@ -1089,10 +1089,10 @@ void DebugDraw::DebugRenderLogf(char const *format, ...)
 void DebugDraw::DebugRenderMatrix(Matrix44 value)
 {
 	DebugRenderLogf("MATRIX ", "");
-	DebugRenderLogf("%f , %f , %f , %f", value.GetIAxis4());
-	DebugRenderLogf("%f , %f , %f , %f", value.GetJAxis4());
-	DebugRenderLogf("%f , %f , %f , %f", value.GetKAxis4());
-	DebugRenderLogf("%f , %f , %f , %f", value.GetTAxis4());
+	DebugRenderLogf("%f , %f , %f , %f", value.GetIVector4());
+	DebugRenderLogf("%f , %f , %f , %f", value.GetJVector4());
+	DebugRenderLogf("%f , %f , %f , %f", value.GetKVector4());
+	DebugRenderLogf("%f , %f , %f , %f", value.GetTVector4());
 
 }
 

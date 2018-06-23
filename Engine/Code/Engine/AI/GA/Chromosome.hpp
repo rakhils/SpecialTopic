@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "Engine/AI/GA/Gene.hpp"
+#include "Engine/AI/GA/GA_Constants.h"
 /*\class  : Chromosome		   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -18,17 +19,21 @@ class Chromosome
 public:
 	//Member_Variables
 	std::vector<Gene*> m_genes;
-	float			   m_totalFitness   = 0.01f;
-	int				   m_geneCount		= 0;
-	float			   m_mutationChance = 0.f;
+	float			   m_totalFitness    = 0.01f;
+	int				   m_geneCount		 = 0;
+	float			   m_mutationChance  = 0.f;
 	//Static_Member_Variables
 
 	//Methods
 
-	Chromosome(int geneCount,float mutationChance);
+	Chromosome(int geneCount, float mutationChance, GA_TYPE type);
+	Chromosome(int geneCount, float mutationChance, GA_TYPE type,std::vector<Gene*>& inputs);
 	~Chromosome();
+
+	void		 CreateInitialRandomChromosome(int geneCount, float mutationChance, GA_TYPE type);
+	void		 CreateInitialRandomChromosome(int geneCount, float mutationChance, GA_TYPE type,std::vector<Gene*>& inputs);
 	float		 GetTotalFitness(Chromosome* target);
-	Chromosome*  CreateAndSetCrossOverToNewPopulation(Chromosome* ch1,Population *m_newPopulation,int index);
+	void		 CrossOverAndSet(Chromosome* ch1,Chromosome *chnewPopulation);
 	void		 Mutate();
 	//Static_Methods
 

@@ -41,6 +41,7 @@ public:
 	Vector3		GetNormalAtDiscreteCordinate(IntVector2 cords);
 	Vector3		GetNormalAtXZ(Vector2 cords);
 	Vector3		GetTangentAtXZ(Vector2 cords);
+	bool		GetQuadFromWorldPosition(Vector2 position,Vector3* positions);
 	RaycastHit	Raycast(Ray &ray);
 	//Methods
 

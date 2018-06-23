@@ -1,16 +1,17 @@
 #include "Engine/AI/GA/Chromosome.hpp"
 #include "Engine/AI/GA/Population.hpp"
+#include "Engine/AI/GA/SimpleCharGene.hpp"
+#include "Engine/AI/NeuralNetwork/NeuralNetworkGene.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-Chromosome::Chromosome(int geneCount,float mutationChance)
+Chromosome::Chromosome(int geneCount,float mutationChance, GA_TYPE type)
 {
-	m_geneCount		 = geneCount;
-	m_mutationChance = mutationChance;
-	for(int geneIndex = 0;geneIndex < geneCount;geneIndex++)
-	{
-		Gene *gene = new Gene(mutationChance);
-		m_genes.push_back(gene);
-	}
+	CreateInitialRandomChromosome(geneCount, mutationChance, type);
+}
+
+Chromosome::Chromosome(int geneCount, float mutationChance, GA_TYPE type, std::vector<Gene*>& inputs)
+{
+	CreateInitialRandomChromosome(geneCount, mutationChance, type,inputs);
 }
 
 // DESTRUCTOR
@@ -24,22 +25,63 @@ Chromosome::~Chromosome()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/20
+*@purpose : Creates a random chromosome(consist of genes with random value)
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Chromosome::CreateInitialRandomChromosome(int geneCount,float mutationChance,GA_TYPE type)
+{
+	m_geneCount		  = geneCount;
+	m_mutationChance  = mutationChance;
+	for (int geneIndex = 0; geneIndex < geneCount; geneIndex++)
+	{
+		Gene *gene;
+		switch (type)
+		{
+		case SIMPLE_CHAR:
+			gene = new SimpleCharGene(mutationChance);
+			break;
+		case NEURAL_NET:
+			gene = new NeuralNetworkGene(mutationChance);
+			break;
+		default:
+			break;
+		}
+		m_genes.push_back(gene);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Chromosome::CreateInitialRandomChromosome(int geneCount, float mutationChance, GA_TYPE type, std::vector<Gene*>& inputs)
+{
+	m_geneCount = geneCount;
+	m_mutationChance = mutationChance;
+	for (int geneIndex = 0; geneIndex < geneCount; geneIndex++)
+	{
+		m_genes.push_back(inputs.at(geneIndex));
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/15
 *@purpose : returns the total fitness of the current offspring
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Chromosome::GetTotalFitness(Chromosome* taget)
+float Chromosome::GetTotalFitness(Chromosome* target)
 {
 	m_totalFitness = 0.01f;
 	for (int geneIndex = 0; geneIndex < m_genes.size(); geneIndex++)
 	{
-		if (geneIndex < taget->m_genes.size())
+		if (geneIndex < target->m_genes.size())
 		{
-			if (m_genes.at(geneIndex)->IsAlmostEqual(taget->m_genes.at(geneIndex)))
-			{
-				m_totalFitness++;
-			}
+			m_totalFitness += m_genes.at(geneIndex)->GetFitnessValue(target->m_genes.at(geneIndex));
 		}
 	}
 	return m_totalFitness;
@@ -47,30 +89,28 @@ float Chromosome::GetTotalFitness(Chromosome* taget)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/15
-*@purpose : NIL
-*@param   : NIL
+*@purpose : Do the crossover and set it to the next generation of population
+*@param   : 2ndchromosome , new population pointer, new population's chromosome index
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Chromosome * Chromosome::CreateAndSetCrossOverToNewPopulation(Chromosome* ch1,Population* PopulationNew,int newChromosomeIndex)
+void Chromosome::CrossOverAndSet(Chromosome* ch1,Chromosome *chnewPopulation)
 {
-	Chromosome *chr = PopulationNew->m_chromosomes.at(newChromosomeIndex);
 	for (int index = 0; index < m_genes.size(); index++)
 	{
 		if(index < m_genes.size()/2.f)
 		{
 			Gene *gene = m_genes.at(index)->Clone();
-			chr->m_genes.at(index) = gene;
+			chnewPopulation->m_genes.at(index) = gene;
 		}
 		else
 		{
 			if (index < ch1->m_genes.size())
 			{
 				Gene *gene = ch1->m_genes.at(index)->Clone();
-				chr->m_genes.at(index) = gene;
+				chnewPopulation->m_genes.at(index) = gene;
 			}
 		}
 	}
-	return chr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

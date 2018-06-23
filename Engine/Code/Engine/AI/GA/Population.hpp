@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include "Engine/AI/GA/Chromosome.hpp"
+#include "Engine/AI/GA/GA_Constants.h"
 /*\class  : Population		   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -17,14 +18,20 @@ class Population
 
 public:
 	//Member_Variables
-	int m_chromosomeCount = 0;
+	int   m_chromosomeCount = 0;
+	float m_crossOverChance = 0.f;
 	std::vector<Chromosome*> m_chromosomes;
 	//Static_Member_Variables
 
 	//Methods
 
-	Population(int chromosomeCount,int genecount,float mutationChance);
+	Population(int chromosomeCount, int genecount, float crossOverChance, float mutationChance, GA_TYPE type);
+	Population(int chromosomeCount, int genecount, float crossOverChance, float mutationChance, GA_TYPE type, std::vector<Gene*>& inputs);
+
 	~Population();
+
+	void		 CreatesNewPopulation(int chromosomeCount, int genecount, float crossOverChance, float mutationChance, GA_TYPE type);
+	void		 CreatesNewPopulation(int chromosomeCount, int genecount, float crossOverChance, float mutationChance, GA_TYPE type,std::vector<Gene*>& inputs);
 
 	bool		 IsFinished();
 	Chromosome*  GetBestOffspring();

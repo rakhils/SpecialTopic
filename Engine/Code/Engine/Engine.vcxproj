@@ -265,6 +265,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="AI\GA\Abstract\GeneticAlgorithm.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="AI\GA\Chromosome.cpp">
       <SubType>
       </SubType>
@@ -273,7 +277,7 @@
       <SubType>
       </SubType>
     </ClCompile>
-    <ClCompile Include="AI\GA\GeneticAlgorithm.cpp">
+    <ClCompile Include="AI\GA\StringGeneticAlgorithm.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -281,11 +285,19 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="AI\GA\SimpleCharGene.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="AI\NeuralNetwork\NeuralNetGA.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="AI\NeuralNetwork\NeuralNetworkGene.cpp">
       <SubType>
       </SubType>
     </ClCompile>
-    <ClCompile Include="AI\NeuralNetwork\Neuron.cpp">
+    <ClCompile Include="AI\NeuralNetwork\NeuralNetwork.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -591,15 +603,20 @@
     <ClCompile Include="TinyXml2\tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="AI\GA\Abstract\GeneticAlgorithm.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="AI\GA\Chromosome.hpp">
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="AI\GA\GA_Constants.h" />
     <ClInclude Include="AI\GA\Gene.hpp">
       <SubType>
       </SubType>
     </ClInclude>
-    <ClInclude Include="AI\GA\GeneticAlgorithm.hpp">
+    <ClInclude Include="AI\GA\StringGeneticAlgorithm.hpp">
       <SubType>
       </SubType>
     </ClInclude>
@@ -607,11 +624,20 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="AI\GA\SimpleCharGene.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="AI\NeuralNetwork\NeuralNetGA.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="AI\NeuralNetwork\NeuralNetworkConstants.h" />
     <ClInclude Include="AI\NeuralNetwork\NeuralNetworkGene.hpp">
       <SubType>
       </SubType>
     </ClInclude>
-    <ClInclude Include="AI\NeuralNetwork\Neuron.hpp">
+    <ClInclude Include="AI\NeuralNetwork\NeuralNetwork.hpp">
       <SubType>
       </SubType>
     </ClInclude>

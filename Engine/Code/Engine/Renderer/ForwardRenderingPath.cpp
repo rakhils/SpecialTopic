@@ -123,8 +123,8 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 			DrawCall drawCallJ = drawCalls.at(indexj);
 			if (drawCallI.m_material->m_shader->m_renderQueue == drawCallJ.m_material->m_shader->m_renderQueue)
 			{
-				Vector3 distanceI = Camera::GetCurrentCamera()->m_transform.GetLocalPosition() - drawCallI.m_modelMatrix.GetTAxis();
-				Vector3 distanceJ = Camera::GetCurrentCamera()->m_transform.GetLocalPosition() - drawCallJ.m_modelMatrix.GetTAxis();
+				Vector3 distanceI = Camera::GetCurrentCamera()->m_transform.GetLocalPosition() - drawCallI.m_modelMatrix.GetTVector();
+				Vector3 distanceJ = Camera::GetCurrentCamera()->m_transform.GetLocalPosition() - drawCallJ.m_modelMatrix.GetTVector();
 				float depthZI = distanceI.GetLength();
 				float depthZJ = distanceJ.GetLength();
 
@@ -144,7 +144,7 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	for (int index = 0; index < drawCalls.size(); index++)
 	{
 		m_renderer->BindMaterial(drawCalls.at(index).m_material);
-		std::vector<Light*> lights = scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTAxis());
+		std::vector<Light*> lights = scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTVector());
 		Light::BindAllLightsToShader(m_renderer,lights);
 		DrawCall dc = drawCalls.at(index);
 		m_renderer->DrawMesh(dc.m_mesh,dc.m_modelMatrix);
