@@ -48,8 +48,8 @@ void CircleCollider::Update(float deltaTime)
 				{
 					((BoxCollider2D*)collider)->m_colliderDirection = areaOfContact;
 					OnCollisionEnter(collider);
-					DebugDraw::GetInstance()->DebugRenderLogf("HIT12234   %i",(int)areaOfContact);
-					DebugDraw::GetInstance()->DebugRenderLogf("HITTT "+GetDirectionNameFromType(areaOfContact),"");
+					//DebugDraw::GetInstance()->DebugRenderLogf("HIT12234   %i",(int)areaOfContact);
+					//DebugDraw::GetInstance()->DebugRenderLogf("HITTT "+GetDirectionNameFromType(areaOfContact),"");
 				}
 			}
 		}

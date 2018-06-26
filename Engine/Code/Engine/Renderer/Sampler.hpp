@@ -29,6 +29,8 @@ public:
 	static Sampler *s_defaultSampler;
 	static Sampler *s_currentSampler;
 	static Sampler *s_effectSampler; 
+	float    m_nearValue = -1000;
+	float	   m_farValue  = 1000;
 	//Methods
 
 	Sampler();

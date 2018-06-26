@@ -39,7 +39,11 @@ void EnemyBase::SpawnEnemy(Scene *scene)
 {
 	std::string name(m_name + "tank_" + ToString(s_enemyTanks.size()));
 	Vector3 position = m_transform.GetWorldPosition();
-	EnemyTank *enemyTank = new EnemyTank(name, scene,position );
+	float randomX = GetRandomFloatInRange(30, 60);
+	float randomZ = GetRandomFloatInRange(30, 60);
+
+	EnemyTank *enemyTank = new EnemyTank(name, scene,Vector3(randomX,10,randomZ) );
+	enemyTank->AddRigidBody3DComponent();
 	s_enemyTanks.push_back(enemyTank);
 	std::string text("Enemy Spawned at " + m_name +" TANK NUM "+name);
 	DebugDraw::GetInstance()->DebugRenderLogf(2,text.c_str());
@@ -64,6 +68,7 @@ void EnemyBase::Update(float deltaTime)
 		}
 		m_currentTime = 0.f;
 	}
+
 	GameObject::Update(deltaTime);
 }
 

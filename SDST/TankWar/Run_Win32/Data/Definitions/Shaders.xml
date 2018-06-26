@@ -100,11 +100,24 @@
     <vertex   file="Data//Shaders//Skybox" />
     <fragment file="Data//Shaders//Skybox" />
   </program>
-
-
     <cull mode="cullmode_none"></cull>
-
   <depth compare="compare_always" write="false" />
+  </Shaders>
+
+  <Shaders name ="watershader">
+    <program define="AMBIENT">
+      <vertex   file="Data//Shaders//Water" />
+      <fragment file="Data//Shaders//Water" />
+    </program>
+    <blend>
+      <color operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+      <alpha operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+    </blend>
+    <fill mode="fillmode_solid"></fill>
+    <cull mode="cullmode_back"></cull>
+    <windorder order="wind_clockwise"></windorder>
+
+    <depth compare="compare_less" write="true" />
 
   </Shaders>
 

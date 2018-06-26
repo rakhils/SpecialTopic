@@ -3,7 +3,7 @@
 // CONSTRUCTOR
 NeuralNetwork::NeuralNetwork()
 {
-	CreateNeuralNetwork(100,36,2);
+	CreateNeuralNetwork(100,144,2);
 }
 
 NeuralNetwork::NeuralNetwork(int numberOfInputNeurons, int numberOfHiidenNeurons, int numberOfOutputNeuron)
@@ -15,6 +15,18 @@ NeuralNetwork::NeuralNetwork(int numberOfInputNeurons, int numberOfHiidenNeurons
 NeuralNetwork::~NeuralNetwork()
 {
 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/25
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NeuralNetwork::SetRandomWeight()
+{
+	m_inputs->SetRandomWeights();
+	m_hiddenLayers->SetRandomWeights();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,7 +80,7 @@ void NeuralNetwork::Update()
 		{
 			sum += (m_inputs->m_neurons.at(index).m_value)*(m_inputs->m_neurons.at(index).m_weights.at(hiddenIndex));		
 		}
-		m_hiddenLayers->m_neurons.at(hiddenIndex).m_value = GetActivationValue(sum);
+		m_hiddenLayers->m_neurons.at(hiddenIndex).m_value = (sum);
 	}
 
 	for (int outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)

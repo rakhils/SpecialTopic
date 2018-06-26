@@ -142,6 +142,14 @@ public:
 	}
 
 	template <typename  VERTEX_TYPE>
+	static Mesh* Create3DPlaneChunk(Vector3 position, Vector3 rigthDirection, Vector3 upDirection, Vector2 dimensions, Vector2 chunkSize,Rgba color, FillMode mode)
+	{
+		MeshBuilder meshbuilder;
+		Create3DPlaneChunk(meshbuilder, position, rigthDirection, upDirection, dimensions,chunkSize, color, mode);
+		return meshbuilder.CreateMesh<VERTEX_TYPE>();
+	}
+
+	template <typename  VERTEX_TYPE>
 	static Mesh* Create3DLine(Vector3 position1, Vector3 position2, Rgba color1, Rgba color2)
 	{
 		MeshBuilder meshbuilder;
@@ -194,7 +202,8 @@ public:
 	static void CreateDistortedUVSpehere         (MeshBuilder &meshbuilder, Vector3 position, float radius, int wedges, int slices, float distortlength, Rgba color, FillMode mode);
 	static void CreateQuad						 (MeshBuilder &meshbuilder, Vector3 position, Vector3 rigthDirection, Vector3 upDirection, Vector2 dimension, Rgba color, FillMode mode);							   
 	static void CreateCube						 (MeshBuilder &meshbuilder, Vector3 position, Vector3 size, Rgba color,FillMode FillMode);
-	static void Create3DPlane					 (MeshBuilder &meshbuilder, Vector3 position, Vector3 rigthDirection, Vector3 upDirection, Vector2 dimensions, Rgba color,FillMode mode);					   
+	static void Create3DPlane					 (MeshBuilder &meshbuilder, Vector3 position, Vector3 rigthDirection, Vector3 upDirection, Vector2 dimensions, Rgba color,FillMode mode);
+	static void Create3DPlaneChunk					 (MeshBuilder &meshbuilder, Vector3 position, Vector3 rigthDirection, Vector3 upDirection, Vector2 dimensions, Vector2 chunkSize,Rgba color,FillMode mode);
 	static void Create3DLine					 (MeshBuilder &meshbuilder, Vector3 position1, Vector3 position2, Rgba color1, Rgba color2);
 	static void Create3DPoint					 (MeshBuilder &meshbuilder, Vector3 position, Rgba color);
 	static void Create3DWireMesh				 (MeshBuilder &meshbuilder, Vector3 position, Vector3 size, Rgba color);

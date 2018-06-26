@@ -21,7 +21,7 @@ StringGeneticAlgorithm::~StringGeneticAlgorithm()
 void StringGeneticAlgorithm::DoCrossOverAndSetNewPopulation()
 {
 	float maxFitness = 0.f;
-	int populationSize = m_population->m_chromosomes.size();
+	int populationSize = static_cast<int>(m_population->m_chromosomes.size());
 	for (int index = 0; index < populationSize; index++)
 	{
 		maxFitness += m_population->m_chromosomes.at(index)->GetTotalFitness(m_target);
@@ -46,7 +46,7 @@ void StringGeneticAlgorithm::DoCrossOverAndSetNewPopulation()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void StringGeneticAlgorithm::DoMutation()
 {
-	int populationSize = m_newPopulation->m_chromosomes.size();
+	int populationSize = static_cast<int>(m_newPopulation->m_chromosomes.size());
 	for (int index = 0; index < populationSize; index++)
 	{
 		Chromosome *ch = m_newPopulation->m_chromosomes.at(index);

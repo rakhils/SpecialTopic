@@ -87,3 +87,4 @@ vec3 ComputeDot3(in vec3 lightposition,in vec3 lightcolor,in vec3 worldposition,
 	vec3 lightColor = max(dot3, 0.0f) * lightcolor.xyz; 
 	return lightColor; 
 }
+

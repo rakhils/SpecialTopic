@@ -33,10 +33,12 @@ PFNGLGETUNIFORMLOCATIONPROC 	  glGetUniformLocation        = nullptr;
 PFNGLUNIFORMMATRIX4FVPROC	      glUniformMatrix4fv		  = nullptr;
 PFNGLGENSAMPLERSPROC		      glGenSamplers			      = nullptr;
 PFNGLSAMPLERPARAMETERIPROC		  glSamplerParameteri		  = nullptr;
+PFNGLSAMPLERPARAMETERIPROC		  glSamplerParameterf		  = nullptr;
 PFNGLDELETESAMPLERSPROC			  glDeleteSamplers			  = nullptr;
 PFNGLBINDSAMPLERPROC			  glBindSampler				  = nullptr;
 PFNGLACTIVETEXTUREPROC			  glActiveTexture			  = nullptr;
 PFNGLBINDTEXTUREPROC			  glBindTexture				  = nullptr;
+PFNGLGENERATEMIPMAPPROC			  glGenerateMipmap			  = nullptr;
 PFNGLGENTEXTURESPROC			  glGenTextures				  = nullptr;
 PFNGLTEXPARAMETERIPROC		      glTexParameteri			  = nullptr;
 PFNGLPIXELSTOREIPROC		      glPixelStorei				  = nullptr;
@@ -79,6 +81,7 @@ PFNGLDELETETEXTURESPROC			  glDeleteTextures			  = nullptr;
 PFNGLTEXSTORAGE2DPROC			  glTexStorage2D			  = nullptr;
 PFNGLTEXSUBIMAGE2DPROC			  glTexSubImage2D			  = nullptr;
 PFNGLCLEARCOLORPROC				  glClearColor				  = nullptr;
+PFNGLVIEWPORTPROC				  glViewport				  = nullptr;
 
 glfunctions::glfunctions()
 {
@@ -131,6 +134,7 @@ void glfunctions::BindGLFunctions()
 	GL_BIND_FUNCTION(glUniformMatrix4fv);
 	GL_BIND_FUNCTION(glGenSamplers);
 	GL_BIND_FUNCTION(glSamplerParameteri);
+	GL_BIND_FUNCTION(glSamplerParameterf);
 	GL_BIND_FUNCTION(glDeleteSamplers);
 	GL_BIND_FUNCTION(glBindSampler);
 	GL_BIND_FUNCTION(glBindTexture);
@@ -177,5 +181,7 @@ void glfunctions::BindGLFunctions()
 	GL_BIND_FUNCTION(glTexStorage2D);
 	GL_BIND_FUNCTION(glTexSubImage2D);
 	GL_BIND_FUNCTION(glClearColor);
+	GL_BIND_FUNCTION(glGenerateMipmap);
+	GL_BIND_FUNCTION(glViewport);
 
 }

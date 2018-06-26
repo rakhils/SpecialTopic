@@ -92,7 +92,10 @@ bool FrameBuffer::Finalize()
 
 	// Bind a color target to an attachment point
 	// and keep track of which locations to to which attachments. 
-	glFramebufferTexture(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0 + 0,m_color_target->GetHandle(),0);
+	if(m_color_target != nullptr)
+	{
+		glFramebufferTexture(GL_FRAMEBUFFER,GL_COLOR_ATTACHMENT0 + 0,m_color_target->GetHandle(),0);
+	}
 	// 0 to to attachment 0
 	targets[0] = GL_COLOR_ATTACHMENT0 + 0;
 
@@ -108,7 +111,10 @@ bool FrameBuffer::Finalize()
 	{
 		glFramebufferTexture(GL_FRAMEBUFFER,GL_DEPTH_STENCIL_ATTACHMENT,m_depth_stencil_target->GetHandle(),0);
 	}
-
+/*
+	Vector3 cameraPos = Camera "m_transform.GetWorldRotation();
+	//Vector2 res       = camera->m_re
+	glViewport(cameraPos.x, cameraPos.y, 400, 400);*/
 	GLCheckError(__FILE__, __LINE__);
 
 	// Error Check - recommend only doing in debug

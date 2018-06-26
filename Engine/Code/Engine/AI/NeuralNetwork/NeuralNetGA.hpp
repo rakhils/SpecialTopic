@@ -24,6 +24,7 @@ public:
 	//Methods
 	
 	NeuralNetGA(int chromosomeCount, int geneLength, float crossOverChance, float mutationRate,std::vector<Gene*>& inputs);
+
 	~NeuralNetGA();
 
 	void				CreatePopulation(int chromosomeCount,int geneLength,std::vector<Gene*>& inputs);

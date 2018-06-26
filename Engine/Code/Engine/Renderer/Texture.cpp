@@ -2,12 +2,14 @@
 #include "Engine/Renderer/GL/glfunctions.hpp"
 #include "Engine/ThirdParty/stb/stb_image.h"
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Math/MathUtil.hpp"
 //#include "Engine/Renderer/Renderer.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Texture *Texture::s_currentTexture		= nullptr;
 Texture *Texture::s_defaultTexture		= nullptr;
 Texture *Texture::s_defaultColorTarget	= nullptr;
 Texture *Texture::s_defaultDepthTarget	= nullptr;
+Texture *Texture::s_defaultShadowDepth  = nullptr;
 Texture *Texture::s_effectCurrentTarget = nullptr;
 Texture *Texture::s_effectScratch		= nullptr;
 
@@ -96,7 +98,7 @@ void Texture::PopulateFromData( unsigned char* imgData, const IntVector2& texelS
 	//glEnable( GL_TEXTURE_2D );
 
 	// Tell OpenGL that our pixel data is single-byte aligned
-	glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
+	//glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
 
 	// Ask OpenGL for an unused texName (ID number) to use for this texture
 	glGenTextures( 1, (GLuint*) &m_textureID );
@@ -112,13 +114,26 @@ void Texture::PopulateFromData( unsigned char* imgData, const IntVector2& texelS
 	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ); // one of: GL_NEAREST, GL_LINEAR
 	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); // one of: GL_NEAREST, GL_LINEAR, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_LINEAR
 
-	GLenum bufferFormat = GL_RGBA; // the format our source pixel data is in; any of: GL_RGB, GL_RGBA, GL_LUMINANCE, GL_LUMINANCE_ALPHA, ...
+	GLenum bufferFormat = GL_RGBA8; // the format our source pixel data is in; any of: GL_RGB, GL_RGBA, GL_LUMINANCE, GL_LUMINANCE_ALPHA, ...
 	if( numComponents == 3 )
-		bufferFormat = GL_RGB;
+		bufferFormat = GL_RGB8;
 
 	GLenum internalFormat = bufferFormat; // the format we want the texture to be on the card; allows us to translate into a different texture format as we upload to OpenGL
+	unsigned int mipmapCount = CalculateMipCount(GetMax(m_dimensions.x, m_dimensions.y));
+	GL_CHECK_ERROR();
 
-	glTexImage2D(			// Upload this pixel data to our new OpenGL texture
+	glTexStorage2D(GL_TEXTURE_2D,mipmapCount,internalFormat,m_dimensions.x, m_dimensions.y); 
+	GL_CHECK_ERROR();
+
+	bufferFormat = GL_RGBA;
+	if (numComponents == 3)
+		bufferFormat = GL_RGB;
+	glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_dimensions.x,m_dimensions.y,bufferFormat,GL_UNSIGNED_BYTE,imgData);
+	GL_CHECK_ERROR();
+
+	GenerateMipMaps();
+	GL_CHECK_ERROR();
+	/*glTexImage2D(			// Upload this pixel data to our new OpenGL texture
 		GL_TEXTURE_2D,		// Creating this as a 2d texture
 		0,					// Which mipmap level to use as the "root" (0 = the highest-quality, full-res image), if mipmaps are enabled
 		internalFormat,		// Type of texel format we want OpenGL to use for this texture internally on the video card
@@ -127,7 +142,40 @@ void Texture::PopulateFromData( unsigned char* imgData, const IntVector2& texelS
 		0,					// Border size, in texels (must be 0 or 1, recommend 0)
 		bufferFormat,		// Pixel format describing the composition of the pixel data in buffer
 		GL_UNSIGNED_BYTE,	// Pixel color components are unsigned bytes (one byte per color channel/component)
-		imgData );		// Address of the actual pixel data bytes/buffer in system memory
+		imgData );*/		// Address of the actual pixel data bytes/buffer in system memory
+	GL_CHECK_ERROR();
+	//GenerateMipMaps();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/23
+*@purpose : Generates mipmap
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Texture::GenerateMipMaps()
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, m_textureID); 
+	glGenerateMipmap(GL_TEXTURE_2D);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/23
+*@purpose : Calculates mip count
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+unsigned int Texture::CalculateMipCount(int value)
+{
+	int mipCount = 0;
+	while(value > 0)
+	{
+		//int result = static_cast<int>(pow<int,int>(2, mipCount));
+		value >>= 1;
+		mipCount++;
+	}
+	return static_cast<unsigned int>(mipCount);
 }
 
 //////////////////////////////////////////////////////////////
@@ -246,10 +294,12 @@ bool Texture::CreateRenderTarget(int width, int height, eTextureFormat fmt)
 	}
 
 	// Copy the texture - first, get use to be using texture unit 0 for this; 
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, m_textureID);    // bind our texture to our current texture unit (0)
+	GLCheckError(__FILE__, __LINE__);
 
-												 // Copy data into it;
+	/*glTexStorage2D(GL_TEXTURE_2D,CalculateMipCount(GetMax(width, height)),internal_format,width, height);
+	GLCheckError(__FILE__, __LINE__);
+
 	glTexImage2D(GL_TEXTURE_2D, 0,
 		internal_format, // what's the format OpenGL should use
 		width,
@@ -257,11 +307,43 @@ bool Texture::CreateRenderTarget(int width, int height, eTextureFormat fmt)
 		0,             // border, use 0
 		channels,      // how many channels are there?
 		pixel_layout,  // how is the data laid out
-		nullptr);     // don't need to pass it initialization data 
+		nullptr);    */ // don't need to pass it initialization data 
 
-					   // make sure it suceeded
-	
-	// cleanup after myself; 
+/*
+	unsigned int mipmapCount = CalculateMipCount(GetMax(m_dimensions.x, m_dimensions.y));
+
+
+	glTexStorage2D(GL_TEXTURE_2D, mipmapCount, internal_format, m_dimensions.x, m_dimensions.y);
+	GL_CHECK_ERROR();
+
+	GLenum bufferFormat = GL_RGBA;
+	if (m_numOfComponents == 3)
+		bufferFormat = GL_RGB;
+	glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_dimensions.x, m_dimensions.y, bufferFormat, GL_UNSIGNED_BYTE, nullptr);
+	GL_CHECK_ERROR();
+
+	GenerateMipMaps();*/
+
+	GLenum bufferFormat = GL_RGBA;
+	if (m_numOfComponents == 3)
+		bufferFormat = GL_RGB;
+	//glTexStorage2D(GL_TEXTURE_2D, 1, internal_format, m_dimensions.x, m_dimensions.y);
+	//glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, m_dimensions.x, m_dimensions.y, bufferFormat, GL_UNSIGNED_BYTE, nullptr);
+
+
+	glTexImage2D(GL_TEXTURE_2D, 0,
+		internal_format, // what's the format OpenGL should use
+		width,
+		height,
+		0,             // border, use 0
+		channels,      // how many channels are there?
+		pixel_layout,  // how is the data laid out
+		nullptr);
+
+
+	//glTexSubImage2D(GL_TEXTURE_2D, CalculateMipCount(GetMax(width, height)), 0U, 0U, m_dimensions.x, m_dimensions.y, internal_format, GL_UNSIGNED_BYTE, nullptr);
+	GLCheckError(__FILE__, __LINE__);
+
 	GLCheckError(__FILE__,__LINE__);
 	glBindTexture(GL_TEXTURE_2D, NULL); // unset it; 
 

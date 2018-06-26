@@ -1214,8 +1214,7 @@ Matrix44 Matrix44::TurnTowards(Matrix44 &current, Matrix44 &target, float maxTur
 	inner		= ClampFloat(inner, -1.0f, 1.0f);
 	float theta = ACosDegrees(inner);
 
-	float t = GetMinOf2(theta / maxTurnPerFrame, 1.0f);
-	t = 0.1;
+	float t = GetMinOf2(theta / maxTurnPerFrame, .5f);
 	Matrix44 ret = LerpTransform(currentCopy1, target, t);
 	ret.Transpose();
 	ret.SetTranslation(currentCopy1.GetTranslation());

@@ -5,7 +5,7 @@
 #include "Engine/Physics/Collider/CircleCollider.hpp"
 #include "Engine/Physics/Collider/BoxCollider2D.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetwork.hpp"
-
+#include "Engine/AI/NeuralNetwork/NeuralNetworkConstants.h"
 #include "Game/GamePlay/Entity/Mario.hpp"
 // CONSTRUCTOR
 Mario::Mario():Entity("mario")
@@ -26,7 +26,7 @@ Mario::Mario(EntityDefinition *definition) :Entity("mario")
 	m_transform.Translate(Vector3(200, 200, 0));
 	m_spriteAnimSet = new SpriteAnimSet(definition->m_spriteAnimSetDef);
 	m_spriteAnimSet->SetAnimation(m_characterTypeString + "EastIdle");
-	m_neuralNet = new NeuralNetwork(100, 36, 2);
+	m_neuralNet = new NeuralNetwork(INPUT_NEURON_COUNT, HIDDEN_NEURON_COUNT, OUTPUT_NEURON_COUNT);
 	StayIdle();
 }
 
@@ -56,7 +56,7 @@ void Mario::Update(float deltaTime)
 
 	float random = GetRandomIntInRange(0, 3);
 	//random = -1;
-	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW))// || NNOutputs.at(0) < 0)
+	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW) || NNOutputs.at(0) < 0)
 	{
 		WalkWest(deltaTime);
 	}
@@ -72,12 +72,13 @@ void Mario::Update(float deltaTime)
 	{
 		ResetJump();
 	}
+	
 	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_DOWN_ARROW))
 	{
 		((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->ApplyForce(Vector3(0, -2*m_jumpForce, 0), deltaTime);
 	}
 
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW)|| NNOutputs.at(1) > 0.5f )
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW)|| NNOutputs.at(1) > 0.75f )
 	{
 		if(IsGrounded(deltaTime) || IsJumping())
 		{
@@ -155,6 +156,17 @@ void Mario::UpdateJump(float deltaTime)
 	{
 		ResetJump();
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/25
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::ResetWeight()
+{
+	m_neuralNet->SetRandomWeight();
 }
 
 /*DATE    : 2018/02/25/////////////////////////////////////////

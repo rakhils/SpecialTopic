@@ -12,7 +12,69 @@ struct VertexMaster
 	Vector3 m_tangent   = Vector3(1,0,0);
 	Vector3 m_bitangent = Vector3(0,0,1);
 	Rgba    m_rgba;
+	float   m_time;
 
+	static VertexAttribute  s_ATTRIBUTES[];
+	static VertexLayout     s_LAYOUT;
+};
+
+struct Vertex_3DPCUNTBT
+{
+	Vector3 m_position;
+	Vector2 m_uvs;
+	Vector3 m_normal;
+	Vector3 m_tangent;
+	Vector3 m_bitangent;
+	Rgba    m_rgba;
+	float   m_time;
+
+	Vertex_3DPCUNTBT() {};
+	Vertex_3DPCUNTBT(VertexMaster vertexMaster)
+	{
+		m_position = vertexMaster.m_position;
+		m_rgba = vertexMaster.m_rgba;
+		m_uvs = vertexMaster.m_uvs;
+		m_normal = vertexMaster.m_normal;
+		m_bitangent = vertexMaster.m_bitangent;
+		m_tangent = vertexMaster.m_tangent;
+		m_time = vertexMaster.m_time;
+	}
+
+	Vertex_3DPCUNTBT(Vector3 point)
+	{
+		m_position = point;
+	}
+	void SetPoint(Vector3 point)
+	{
+		m_position = point;
+	}
+	void SetPoint(float x, float y, float z)
+	{
+		m_position.x = x;
+		m_position.y = y;
+		m_position.z = z;
+	}
+	void SetPoint(float x, float y)
+	{
+		m_position.x = x;
+		m_position.y = y;
+		m_position.z = 0;
+	}
+
+	void SetRGBA(Rgba rgba)
+	{
+		m_rgba = rgba;
+	}
+
+	void SetUV(Vector2 uv)
+	{
+		m_uvs = uv;
+	}
+
+	void SetNormal(Vector3 normal)
+	{
+		m_normal = normal;
+	}
 	static VertexAttribute  s_ATTRIBUTES[];
 	static VertexLayout     s_LAYOUT;
 };

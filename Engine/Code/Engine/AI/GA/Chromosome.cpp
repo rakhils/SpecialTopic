@@ -2,6 +2,7 @@
 #include "Engine/AI/GA/Population.hpp"
 #include "Engine/AI/GA/SimpleCharGene.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetworkGene.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 Chromosome::Chromosome(int geneCount,float mutationChance, GA_TYPE type)
@@ -60,6 +61,7 @@ void Chromosome::CreateInitialRandomChromosome(int geneCount,float mutationChanc
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Chromosome::CreateInitialRandomChromosome(int geneCount, float mutationChance, GA_TYPE type, std::vector<Gene*>& inputs)
 {
+	UNUSED(type);
 	m_geneCount = geneCount;
 	m_mutationChance = mutationChance;
 	for (int geneIndex = 0; geneIndex < geneCount; geneIndex++)

@@ -52,6 +52,7 @@ public:
 	int m_minimapWidth  = 10;
 	int m_minimapHeight = 10;
 	GeneticAlgorithm *m_ga = nullptr;
+	GeneticAlgorithm *m_gaString = nullptr;
 	Map(MapDefinition* def);
 
 	void InitCamera();

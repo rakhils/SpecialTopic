@@ -4,6 +4,8 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/Renderer/Texture.hpp"
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::vector<Light*> Light::s_lights;
 UniformBuffer*		Light::m_PointlightUBuffer   = nullptr;
@@ -60,6 +62,17 @@ void Light::DisableAmbientLight()
 	m_ambientLight.SetAmbientLightColor(Vector4(0,0,0,0));
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : Sets shadow texture
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Light::SetShadowTexture()
+{
+	
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/04/18
 *@purpose : Checks if light is active
@@ -112,6 +125,17 @@ void Light::DisablePointLight()
 	m_pointLightObj.DisablePointLight();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Light::EnableShadow()
+{
+	m_pointLightObj.m_useShadow = 1.f;
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/01
 *@purpose : Calculate intensity with distance and attenuation factor
@@ -129,7 +153,7 @@ float Light::CalculateIntensityOnAttenutation(float distance,Vector3 attenuation
 *@param   : NIL
 *@return  : NIL
 *//////////////////////////////////////////////////////////////
-Vector3 Light::GetPointLightPosition()
+Vector3 Light::GetPosition()
 {
 	return m_pointLightObj.m_position;
 }
@@ -140,7 +164,7 @@ Vector3 Light::GetPointLightPosition()
 *@param   : NIL
 *@return  : Direction unit vector
 *//////////////////////////////////////////////////////////////
-Vector3 Light::GetPointLightDirection()
+Vector3 Light::GetDirection()
 {
 	return m_pointLightObj.m_direction;
 }
@@ -151,7 +175,7 @@ Vector3 Light::GetPointLightDirection()
 *@param   : NIL
 *@return  : Attentuation factor
 *//////////////////////////////////////////////////////////////
-Vector3 Light::GetPointLightAttenuationFactor()
+Vector3 Light::GetAttenuationFactor()
 {
 	return m_pointLightObj.m_attenuation;
 }
@@ -162,7 +186,7 @@ Vector3 Light::GetPointLightAttenuationFactor()
 *@param   : NIL
 *@return  : Color
 *//////////////////////////////////////////////////////////////
-Rgba Light::GetPointLightColor()
+Rgba Light::GetColor()
 {
 	return Rgba(m_pointLightObj.m_colorIntensity);
 }
@@ -173,7 +197,7 @@ Rgba Light::GetPointLightColor()
 *@param   : NIL
 *@return  : Spec values
 *//////////////////////////////////////////////////////////////
-float Light::GetPointLightSpecFactor()
+float Light::GetSpecFactor()
 {
 	return 1;// m_pointLightObj.m_specularFactor;
 }
@@ -184,7 +208,7 @@ float Light::GetPointLightSpecFactor()
 *@param   : NIL
 *@return  : Spec power
 *//////////////////////////////////////////////////////////////
-float Light::GetPointLightSpecPower()
+float Light::GetSpecPower()
 {
 	return 1;/// m_pointLightObj.m_specularPower;
 }
@@ -195,7 +219,7 @@ float Light::GetPointLightSpecPower()
 *@param   : NIL
 *@return  : Inner angle values 
 */////////////////////////////////////////////////////////////
-float Light::GetPointLightInnerAngle()
+float Light::GetInnerAngle()
 {
 	return m_pointLightObj.m_dotInnerAngle;
 }
@@ -209,6 +233,17 @@ float Light::GetPointLightInnerAngle()
 float Light::GetPointLightOuterAngle()
 {
 	return m_pointLightObj.m_dotOuterAngle;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Light::SetViewProjection(Matrix44 mat)
+{
+	m_pointLightObj.m_vp = mat;
 }
 
 //////////////////////////////////////////////////////////////
@@ -228,7 +263,7 @@ void Light::SetAsPointLight()
 *@param   : Direction
 *@return  : NIL
 *//////////////////////////////////////////////////////////////
-void Light::SetPointLightDirection(Vector3 direction)
+void Light::SetLightDirection(Vector3 direction)
 {
 	m_pointLightObj.m_direction = direction;
 }
@@ -250,7 +285,7 @@ void Light::SetPointLightInnerOuterAngles(float innerAngle, float outerAngle)
 *@param   : Position
 *@return  : NIL
 *//////////////////////////////////////////////////////////////
-void Light::SetPointLightPosition(Vector3 position)
+void Light::SetLightPosition(Vector3 position)
 {
 	m_pointLightObj.m_position = position;
 }

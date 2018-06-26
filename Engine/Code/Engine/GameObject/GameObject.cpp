@@ -318,7 +318,7 @@ void GameObject::AddLightComponent(Vector3 position, Rgba color)
 	}
 	light->m_transform.SetLocalPosition(position);
 	light->EnablePointLight(color.GetAsFloats(), position, Vector3(1, 0, 0));
-	light->SetPointLightDirection(Vector3(0,1,0));
+	light->SetLightDirection(Vector3(0,1,0));
 	//light->SetPointLightInnerOuterAngles(30.f, 60.f);
 	AddComponent(LIGHT, light);
 }

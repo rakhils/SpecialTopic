@@ -405,9 +405,13 @@
     <None Include="..\..\Run_Win32\Data\Materials\default.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\default_light.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\Particles.mat" />
+    <None Include="..\..\Run_Win32\Data\Materials\Shadow.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\ship.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\Skybox.mat" />
+    <None Include="..\..\Run_Win32\Data\Materials\Tank.mat" />
+    <None Include="..\..\Run_Win32\Data\Materials\Terrain.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\text.mat" />
+    <None Include="..\..\Run_Win32\Data\Materials\Water.mat" />
     <None Include="..\..\Run_Win32\Data\Shaders\Additive.fs" />
     <None Include="..\..\Run_Win32\Data\Shaders\Additive.vs" />
     <None Include="..\..\Run_Win32\Data\Shaders\BasicLighting.fs" />
@@ -421,6 +425,8 @@
     <None Include="..\..\Run_Win32\Data\Shaders\PASSTHROUGH.vs" />
     <None Include="..\..\Run_Win32\Data\Shaders\Skybox.fs" />
     <None Include="..\..\Run_Win32\Data\Shaders\Skybox.vs" />
+    <None Include="..\..\Run_Win32\Data\Shaders\Water.fs" />
+    <None Include="..\..\Run_Win32\Data\Shaders\Water.vs" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Run_Win32\Data\Shaders\glsl\light.glsl" />

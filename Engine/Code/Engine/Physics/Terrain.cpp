@@ -4,6 +4,7 @@
 #include "Engine/Renderer/Renderable.hpp"
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Terrain::Terrain()
@@ -35,7 +36,7 @@ void Terrain::LoadFromImage(Image *image, AABB2 const &extents, float min_height
 	m_dimensions = image->GetDimensions().GetAsVector2();
 	m_cellSize.x = m_dimensions.x / extents.GetDimensions().x;
 	m_cellSize.y = m_dimensions.y / extents.GetDimensions().y;
-
+	
 	Vector2 chunkDimension(m_dimensions.x / chunk_counts.x, m_dimensions.y/chunk_counts.y);
 	Vector3 startWorldPosition = Vector3::ZERO;
 	for (float chunkIndexY = 0; chunkIndexY < m_dimensions.y;)
@@ -98,9 +99,10 @@ void Terrain::CreateTerrainChunk(Vector2 startPosition, Vector2 chunkStart)
 	Mesh* mesh = m_meshBuilder.CreateMesh<Vertex_3DPCUN>();
 	m_meshBuilder.Reset();
 	Renderable *renderable = new Renderable();
+	renderable->m_name = "Terrain";
 	renderable->SetMesh(mesh);
-	renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-	renderable->m_material->m_textures.at(0) = Texture::CreateOrGetTexture("Data\\Images\\terrain_grass.jpg");
+	renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Terrain.mat"));
+	//renderable->m_material->m_textures.at(0) = Texture::CreateOrGetTexture("Data\\Images\\terrain_grass.jpg");
 	m_renderables.push_back(renderable);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -231,6 +233,7 @@ Vector3 Terrain::GetTangentAtXZ(Vector2 cords)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Terrain::GetQuadFromWorldPosition(Vector2 position,Vector3* positions)
 {
+	UNUSED(positions);
 	return true;
 }
 

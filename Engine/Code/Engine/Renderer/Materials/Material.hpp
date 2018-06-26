@@ -37,6 +37,7 @@ class Material
 public:
 	//Member_Variables
 	Shader * m_shader = nullptr;
+	bool     m_isOpaque = false;
 	std::vector<Texture*> m_textures;
 	std::vector<Sampler*> m_samplers;
 	std::map<std::string,MaterialProperty*> m_properties;

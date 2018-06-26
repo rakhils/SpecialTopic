@@ -22,7 +22,14 @@ struct Neuron
 		m_weights.reserve(numberOfWeights);
 		for(int weightIndex = 0;weightIndex < m_numberOfWeights;weightIndex++)
 		{
-			m_weights.push_back(GetRandomFloatInRange(-0.5,0.5));
+			m_weights.push_back(GetRandomFloatInRange(-1,1));
+		}
+	}
+	void SetRandomWeights()
+	{
+		for (int weightIndex = 0; weightIndex < m_numberOfWeights; weightIndex++)
+		{
+			m_weights.at(weightIndex) = GetRandomFloatInRange(-1, 1);
 		}
 	}
 	
@@ -39,6 +46,14 @@ struct NeuronLayer
 		{
 			Neuron neuron(numberOfWeights);
 			m_neurons.push_back(neuron);
+		}
+	}
+
+	void SetRandomWeights()
+	{
+		for (int neuronIndex = 0; neuronIndex < m_numberOfNeurons; neuronIndex++)
+		{
+			m_neurons.at(neuronIndex).SetRandomWeights();
 		}
 	}
 };
@@ -58,6 +73,7 @@ public:
 	NeuralNetwork(int numberOfInputNeuron,int numberOfHiidenNeurons,int numberOfOutputNeuron);
 	~NeuralNetwork();
 	
+	void				 SetRandomWeight();
 	void				 CreateNeuralNetwork(int numberOfInputNeuron, int numberOfHiidenNeurons, int numberOfOutputNeuron);
 	std::vector<float>&  GetOutputs();
 	void				 Update();

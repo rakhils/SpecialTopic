@@ -25,8 +25,8 @@ class EnemyBase : public GameObject
 public:
 	//Member_Variables
 	//std::vector<EnemyTank*> m_tanks;
-	float m_maxChildCount = 5.f;
-	float m_spawnInterval = 10.f;
+	float m_maxChildCount = 30.f;
+	float m_spawnInterval = 2.f;
 	float m_health		  = 10.f;
 	float m_currentTime   = 0.0f;
 	bool  m_markForDelete = false;

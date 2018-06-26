@@ -750,17 +750,14 @@ void MeshBuilder::CreateCube(MeshBuilder &meshBuilder,Vector3 position, Vector3 
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/03/27
 *@purpose : Creates a plane mesh and returns
-*
 *@param   : Position of mesh. mesh rigth vector in world,mesh up vector in world, 2diementions color
-*
 *@return  : returns mesh obj
-*/
-//////////////////////////////////////////////////////////////
+*//////////////////////////////////////////////////////////////
 void MeshBuilder::Create3DPlane(MeshBuilder &meshBuilder,Vector3 position, Vector3 rigthDirection, Vector3 upDirection, Vector2 dimensions, Rgba color,FillMode mode)
 {
 	UNUSED(mode);
 	meshBuilder.Begin(PRIMITIVE_TRIANGES, true);
-	int index = static_cast<int>(meshBuilder.m_indices.size());
+	int index = static_cast<int>(meshBuilder.m_vertices.size());
 	Vector3 BottomLeftCorner  = position - rigthDirection * dimensions.x - upDirection * dimensions.y;
 	Vector3 BottomRigthCorner = position + rigthDirection * dimensions.x - upDirection * dimensions.y;
 	Vector3 TopLeftCorner	  = position - rigthDirection * dimensions.x + upDirection * dimensions.y;
@@ -797,6 +794,28 @@ void MeshBuilder::Create3DPlane(MeshBuilder &meshBuilder,Vector3 position, Vecto
 	meshBuilder.AddQuadIndex(index, index + 1, index + 2, index + 3);
 
 	meshBuilder.End();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/25
+*@purpose : Create plane with chunks of UVs
+*@param   : Position of mesh. mesh rigth vector in world,mesh up vector in world, 2diementions color
+*@return  : returns mesh obj
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MeshBuilder::Create3DPlaneChunk(MeshBuilder &meshbuilder, Vector3 position, Vector3 rigthDirection, Vector3 upDirection, Vector2 dimensions, Vector2 chunkSize, Rgba color, FillMode mode)
+{
+	Vector3 copyPosition = position;
+	for(int indexX = 0;indexX < static_cast<int>(dimensions.y/chunkSize.y);indexX++)
+	{
+		for(int indexY = 0;indexY < static_cast<int>(dimensions.x/chunkSize.x);indexY++)
+		{
+			Create3DPlane(meshbuilder, copyPosition, rigthDirection, upDirection, chunkSize,color, mode);
+			copyPosition.x += (chunkSize.x*2);
+		}
+		copyPosition = position;
+		copyPosition.z += chunkSize.y*2*(indexX+1);
+
+	}
 }
 
 //////////////////////////////////////////////////////////////

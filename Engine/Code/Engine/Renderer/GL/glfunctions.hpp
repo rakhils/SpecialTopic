@@ -55,6 +55,7 @@ extern PFNGLGETUNIFORMLOCATIONPROC 		 glGetUniformLocation;
 extern PFNGLUNIFORMMATRIX4FVPROC	     glUniformMatrix4fv;
 extern PFNGLGENSAMPLERSPROC				 glGenSamplers;
 extern PFNGLSAMPLERPARAMETERIPROC		 glSamplerParameteri;
+extern PFNGLSAMPLERPARAMETERIPROC		 glSamplerParameterf;
 extern PFNGLDELETESAMPLERSPROC			 glDeleteSamplers;
 extern PFNGLBINDSAMPLERPROC				 glBindSampler;
 extern PFNGLACTIVETEXTUREPROC			 glActiveTexture;
@@ -102,6 +103,8 @@ extern PFNGLDELETETEXTURESPROC			 glDeleteTextures;
 extern PFNGLTEXSTORAGE2DPROC			 glTexStorage2D;
 extern PFNGLTEXSUBIMAGE2DPROC			 glTexSubImage2D;
 extern PFNGLCLEARCOLORPROC				 glClearColor;
+extern PFNGLGENERATEMIPMAPPROC			 glGenerateMipmap;
+extern PFNGLVIEWPORTPROC				 glViewport;
 
 //extern PFNGLPUSHMA
 

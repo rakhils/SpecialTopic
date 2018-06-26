@@ -98,13 +98,13 @@ void Camera::SetOrthoProjection(Vector2 bottomLeft,Vector2 topRigth, float nearZ
 
 	m_projection.SetIdentity();
 
-	m_projection.Tx = -1 * (topRigth.x + bottomLeft.x) / (topRigth.x - bottomLeft.x);
-	m_projection.Ty = -1 * (topRigth.y + bottomLeft.y) / (topRigth.y - bottomLeft.y);
-	m_projection.Tz = -1 * (farZ + nearZ) / (farZ - nearZ);
+	m_projection.Tx = -1.f * (topRigth.x + bottomLeft.x) / (topRigth.x - bottomLeft.x);
+	m_projection.Ty = -1.f * (topRigth.y + bottomLeft.y) / (topRigth.y - bottomLeft.y);
+	m_projection.Tz = -1.f * (farZ + nearZ) / (farZ - nearZ);
 
-	m_projection.Ix = 2/horizontalDistance;
-	m_projection.Jy = 2/verticalDistance,
-	m_projection.Kz = 2/zDistance;
+	m_projection.Ix = 2.f/horizontalDistance;
+	m_projection.Jy = 2.f/verticalDistance,
+	m_projection.Kz = 2.f/zDistance;
 }
 
 //////////////////////////////////////////////////////////////
@@ -202,6 +202,7 @@ Vector3 Camera::ScreenToWorld(Vector2 screen_xy, float ndc_depth)
 void Camera::SetColorTarget(Texture *colorTarget)
 {
 	m_defaultFrameBuffer->SetColorTarget(colorTarget);
+	m_viewPort = AABB2(Vector2(0, 0), colorTarget->getDimensions().GetAsVector2());
 }
 
 //////////////////////////////////////////////////////////////
@@ -510,6 +511,7 @@ Frustum Camera::GetFrustum()
 void Camera::Finalize()
 {
 	m_defaultFrameBuffer->Finalize();
+	glViewport(0, 0, m_viewPort.maxs.x, m_viewPort.maxs.y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,6 +6,8 @@
 #include "Engine/SceneManagement/Scene.hpp"
 #include "Engine/Physics/Terrain.hpp"
 #include "Engine/Renderer/ParticleSystem/ParticleEmitter.hpp"
+#include "Engine/Physics/RigidBody3D.hpp"
+#include "Engine/Debug/DebugDraw.hpp"
 
 #include "Game/GamePlay/Entity/EnemyBase.hpp"
 #include "Game/GamePlay/Entity/Bullet.hpp"
@@ -17,7 +19,7 @@ EnemyTank::EnemyTank(std::string name, Scene *scene,Vector3 position) : GameObje
 {
 	Mesh *turretHead = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3::ZERO, 0.75f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
 	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1.f, .25f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
-	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 3.f), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
 	GameObject *turretHeadGO = new GameObject("turrethead");
 	GameObject *turretGunGO  = new GameObject("turretgun");
 	
@@ -53,7 +55,18 @@ EnemyTank::EnemyTank(std::string name, Scene *scene,Vector3 position) : GameObje
 // DESTRUCTOR
 EnemyTank::~EnemyTank()
 {
+	int a = 1;
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector3 EnemyTank::GetCurrentForward()
+{
+	return m_transform.GetWorldMatrix().GetKVector();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,59 +78,25 @@ EnemyTank::~EnemyTank()
 void EnemyTank::Update(float deltatime)
 {
 	m_timeLeftForNextDirectionChange -= deltatime;
-	Vector3 playerPosition  = ((SceneLevel1*)m_scene)->m_playerTank->m_transform.GetWorldPosition();
-	Vector3 distance = playerPosition - m_transform.GetWorldPosition();
-	if(distance.GetLength() < m_distanceToFollow)
-	{
-		UpdateFollowBehaviour(deltatime);
-	}
-	else
-	{
-		UpdateWanderBehaviour(deltatime);
-	}
+	Vector3 pos = m_transform.GetWorldPosition();
+	//DebugDraw::GetInstance()->DebugRenderLogf("TANK POS %f %f %f", pos.x, pos.y, pos.z);
+
+	UpdateSeekDirection(2);
+	UpdateSeperationDirection(10);
+	UpdateCohesionDirection(1);
+	UpdateAlignmentDirection(1);
+	UpdateRandomDirection(1);
+
+	UpdateTankTurn();
 	UpdateTankOrientation();
-	UpdateHitFeedBack(deltatime);
-	Vector3 position	  = m_transform.GetWorldPosition();
-	float   terrainHeight = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetHeight(position.GetXZ());
-	m_transform.SetLocalPosition(Vector3(position.x, terrainHeight + 1, position.z));
-	UpdateDirectionBasedOnAllies();
-	UpdateBounds(deltatime);
+	UpdateTankHeightOnTerrain();
+	UpdateForceOnTank(deltatime);
+	//UpdateHitFeedBack(deltatime);
+	//UpdateBounds(deltatime);
+	
+	DebugDraw::GetInstance()->DebugRenderLine(pos + Vector3(0,2,0), pos + m_forward * 10,Rgba::YELLOW);
 	GameObject::Update(deltatime);
-}
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/06/13
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EnemyTank::UpdateWanderBehaviour(float deltaTime)
-{
-	float random = GetRandomFloatZeroToOne();
-	if(random > 0.95)
-	{
-		if(m_timeLeftForNextDirectionChange <= 0)
-		{
-			ChangeForwardDirection(GetRandomDirection());
-		}
-	}
-	m_forward.y = 0;
-	m_transform.Translate(m_forward*(deltaTime*m_velocity));
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/06/13
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EnemyTank::UpdateFollowBehaviour(float deltaTime)
-{
-	Vector3 playerPosition  = ((SceneLevel1*)m_scene)->m_playerTank->m_transform.GetWorldPosition();
-	m_forward				= playerPosition - m_transform.GetWorldPosition();
-	m_forward.y = 0;
-	m_transform.Translate(m_forward*(deltaTime*m_velocity));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -146,13 +125,54 @@ void EnemyTank::UpdateHitFeedBack(float deltatime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EnemyTank::UpdateTankOrientation()
 {
-	Vector3 terrainNormal = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetNormalAtXZ(m_transform.GetWorldPosition().GetXZ());
-	Vector3 tangent		  = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetTangentAtXZ(m_transform.GetWorldPosition().GetXZ());
-	Vector3 bitangent	  = CrossProduct(terrainNormal, tangent);
+	Vector3 terrainNormal = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetNormalAtXZ(m_transform.GetWorldPosition().GetXZ()).GetNormalized();
+	Vector3 forward = m_transform.GetWorldMatrix().GetKVector().GetNormalized();
 
-	Matrix44 matrix(Vector4(tangent.GetNormalized()), Vector4(terrainNormal.GetNormalized()), Vector4(bitangent.GetNormalized()), Vector4(0, 0, 0, 1));
+	Vector3 right = CrossProduct(terrainNormal, forward);
+	right = right.GetNormalized();
+
+	Vector3	correctedForward = CrossProduct(right, terrainNormal);
+
+	Matrix44 matrix(Vector4(right.GetNormalized()), Vector4(terrainNormal.GetNormalized()), Vector4(correctedForward.GetNormalized()), Vector4(0, 0, 0, 1));
+	matrix.InvertFast1();
 	Vector3 euler = matrix.GetEulerFromMatrix();
 	m_transform.SetLocalRotationEuler(euler);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateTankHeightOnTerrain()
+{
+	Vector3 position = m_transform.GetWorldPosition();
+	float   terrainHeight = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetHeight(position.GetXZ());
+	m_transform.SetLocalPosition(Vector3(position.x, terrainHeight + 1, position.z));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateForceOnTank(float deltaTime)
+{
+	m_forward = m_forward.GetNormalized();
+	if(DotProduct(m_forward,m_transform.GetWorldMatrix().GetKVector()) < 0.25)
+	{
+		return;
+	}
+	m_forward.y = 0;
+	if(m_forward.x && m_forward.z == 0)
+	{
+		m_forward.x = 1;
+		m_forward.z = 1;
+	}
+	GetRigidBody3DComponent()->AddForce(m_velocity*m_forward,deltaTime);
+	m_forward = Vector3::ZERO;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,26 +197,159 @@ void EnemyTank::UpdateBounds(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/06/16
-*@purpose : if allies near by change direction to opposite side
+/*DATE    : 2018/06/24
+*@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EnemyTank::UpdateDirectionBasedOnAllies()
+void EnemyTank::UpdateSeekDirection(float weight)
 {
-	for(int index = 0;index < EnemyBase::s_enemyTanks.size();index++)
+	Vector3 playerLocation = ((SceneLevel1*)m_scene)->m_playerTank->m_transform.GetWorldPosition();
+	Vector3 distanceVec3   = playerLocation - m_transform.GetWorldPosition();
+	if((distanceVec3).GetLength() < m_minDistanceToFollow)
 	{
-		if(EnemyBase::s_enemyTanks.at(index) == this)
+		m_forward = distanceVec3.GetNormalized() * weight;
+		return;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateSeperationDirection(float weight)
+{
+	Vector3 averageDirection;
+	int     vehicleCount = 0;
+	for (int index = 0; index < EnemyBase::s_enemyTanks.size(); index++)
+	{
+		if (EnemyBase::s_enemyTanks.at(index) == this)
 		{
 			continue;
 		}
 		EnemyTank *tank = EnemyBase::s_enemyTanks.at(index);
 		Vector3 distance = tank->m_transform.GetWorldPosition() - m_transform.GetWorldPosition();
-		if(distance.GetLength() < 5 || distance.GetLength() > 100)
+		if (distance.GetLength() < m_minDistanceForSeperation)
 		{
-			ChangeForwardDirection(-1 * m_forward);
+			averageDirection += (distance);
+			vehicleCount++;
 		}
 	}
+	if(vehicleCount <= 0)
+	{
+		return;
+	}
+	averageDirection /= vehicleCount;
+	m_forward +=  averageDirection*(-1 * weight);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateCohesionDirection(float weight)
+{
+	Vector3 averagePosition;
+	int     vehicleCount = 0;
+	for (int index = 0; index < EnemyBase::s_enemyTanks.size(); index++)
+	{
+		if (EnemyBase::s_enemyTanks.at(index) == this)
+		{
+			continue;
+		}
+		EnemyTank *tank = EnemyBase::s_enemyTanks.at(index);
+		Vector3 distance = tank->m_transform.GetWorldPosition() - m_transform.GetWorldPosition();
+		if (distance.GetLength() < m_minDistanceForCohesion)
+		{
+			averagePosition += tank->m_transform.GetWorldPosition();
+			vehicleCount++;
+		}
+	}
+	if (vehicleCount <= 0)
+	{
+		return;
+	}
+	averagePosition /= vehicleCount;
+	Vector3 direction = averagePosition - m_transform.GetWorldPosition();
+	m_forward += direction * weight;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateAlignmentDirection(float weight)
+{
+	Vector3 averageDirection;
+	int     vehicleCount = 0;
+	for (int index = 0; index < EnemyBase::s_enemyTanks.size(); index++)
+	{
+		if (EnemyBase::s_enemyTanks.at(index) == this)
+		{
+			continue;
+		}
+		EnemyTank *tank = EnemyBase::s_enemyTanks.at(index);
+		Vector3 distance = tank->m_transform.GetWorldPosition() - m_transform.GetWorldPosition();
+		if (distance.GetLength() < m_minDistanceForAlignment)
+		{
+			averageDirection += tank->GetCurrentForward();
+			vehicleCount++;
+		}
+	}
+	if (vehicleCount <= 0)
+	{
+		return;
+	}
+	averageDirection /= vehicleCount;
+	m_forward += averageDirection * weight;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/25
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateRandomDirection(float weight)
+{
+	if(m_forward != Vector3::ZERO)
+	{
+		return;
+	}
+	if (m_timeLeftForNextDirectionChange <= 0)
+	{
+		m_seekPosition = GetRandomPoint(Vector3::ONE, Vector3::ONE * 512);
+		m_timeLeftForNextDirectionChange = 5;
+	}
+	Vector3 direction = m_transform.GetWorldPosition() - m_seekPosition;
+	m_forward = direction.GetNormalized()*weight;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EnemyTank::UpdateTankTurn()
+{
+
+	Matrix44 currentTransform = m_transform.GetLocalMatrix();
+	Matrix44 targetTransform = Matrix44::LookAt(m_transform.GetLocalPosition(), m_transform.GetLocalPosition() + m_forward , Vector3::UP);
+	targetTransform.InvertFast1();
+	//Vector3  targetAngle = targetTransform.GetEulerFromMatrix();
+
+	float turn_this_frame = 5000;
+
+	Matrix44 local = Matrix44::TurnTowards(currentTransform, targetTransform, turn_this_frame);
+	m_transform.SetLocalMatrix(local);
+	m_transform.SetLocalScale(Vector3(1, 1, 1));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

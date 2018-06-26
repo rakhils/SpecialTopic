@@ -93,11 +93,17 @@ Material* Material::CreateOrGetMaterial1(std::string filepath,bool isNewResource
 			}
 		}
 
+		if (childValueStr == "opaque")
+		{
+			material->m_isOpaque = ParseXmlAttribute(*childElement, "value", false); 
+		}
+
 		if (childValueStr == "texture")
 		{
 			const int bindId     = ParseXmlAttribute(*childElement, "bind", 0);
 			std::string srcImage = childElement->Attribute("src");
 			Texture *texture     = Texture::CreateOrGetTexture(srcImage.c_str());
+			texture->m_slot = bindId;
 			material->SetTexture2D(bindId,texture);
 			material->SetSampler(bindId, Sampler::GetDefaultSampler());
 		}
@@ -352,6 +358,7 @@ Material * Material::Clone()
 	materialClone->m_shader = new Shader(*m_shader);
 	materialClone->m_textures = m_textures;
 	materialClone->m_samplers = m_samplers;
+	materialClone->m_isOpaque = m_isOpaque;
 
 	std::map<std::string, MaterialProperty*>::iterator it = m_properties.begin();
 	for (; it != m_properties.end(); it++)

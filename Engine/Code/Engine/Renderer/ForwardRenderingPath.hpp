@@ -22,12 +22,14 @@ class Scene;
 class Camera;
 class Renderer;
 class TextureCube;
+class Light;
 class ForwardRenderingPath
 {
 
 public:
 	//Member_Variables
 	Renderer * m_renderer;
+	Camera   * m_shadowCamera = nullptr;
 	//Static_Member_Variables
 
 	//Methods
@@ -38,6 +40,7 @@ public:
 	
 	void RenderScene(Scene *scene);
 	void RenderSceneForCamera(Camera *camera, Scene *scene);
+	void RenderShadowCastingObjects(Light *light, Scene *scene);
 	void UpdateLigthBuffer(Scene *scene, int lightCount);
 	//Static_Methods
 

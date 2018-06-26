@@ -11,7 +11,7 @@
 #include "Engine/AI/GA/Gene.hpp"
 #include "Engine/AI/GA/SimpleCharGene.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetGA.hpp"
-#include "Engine/AI/NeuralNetwork/NeuralNetworkConstants.h"
+//#include "Engine/AI/NeuralNetwork/NeuralNetworkConstants.h"
 #include "Engine/AI/NeuralNetwork/NeuralNetwork.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetworkGene.hpp"
 #include "Engine/AI/GA/Gene.hpp"
@@ -82,28 +82,31 @@ void Map::InitMiniMap()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitGA()
 {
+	RandomSRAND();
 	std::string target    = "hello world !!!";
 	int geneCount		  = 1;
 	float mutationChance  = 0.01f;
 	float crossOverChance = 1.f;
 	int totalPopulation   = 1;
-	INPUT_NEURON_COUNT    = m_minimapObjs.size();
-	HIDDEN_NEURON_COUNT   = m_minimapObjs.size() * 2.f / 3.f;
-	OUTPUT_NEURON_COUNT	  = 2;
+
 	std::vector<Gene*> inputs;
 	Gene* gene = new NeuralNetworkGene(0.01f);
 	((NeuralNetworkGene*)gene)->m_neuralNet = m_mario->m_neuralNet;
 	inputs.push_back(gene);
 	m_ga				  = new NeuralNetGA(totalPopulation, geneCount,crossOverChance, mutationChance,inputs);
-	int a = 1;
-	/*Chromosome *ch  = new Chromosome(geneCount, mutationChance,SIMPLE_CHAR);
+
+	
+	int totalGeneCountForString = target.length();
+	int totalPopulationForString = 500;
+	m_gaString = new StringGeneticAlgorithm(totalPopulationForString, totalGeneCountForString, crossOverChance, mutationChance);
+	Chromosome *ch  = new Chromosome(totalGeneCountForString, mutationChance,SIMPLE_CHAR);
 	for(int index = 0;index < target.length();index++)
 	{
 		Gene *gene = new SimpleCharGene(mutationChance);
 		((SimpleCharGene*)gene)->m_char = target[index];
 		ch->m_genes.at(index) = (gene);
 	}
-	m_ga->SetTarget(ch);*/
+	m_gaString->SetTarget(ch);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -226,22 +229,21 @@ void Map::Update(float deltaTime)
 		inputs.push_back(m_minimapObjs.at(index).m_value);
 	}
 	((NeuralNetGA*)m_ga)->UpdateWithInputs(inputs);
-	m_ga->Epoch();
+	m_gaString->Epoch();
 	
-	/*Chromosome *chr = m_ga->m_best;
+	Chromosome *chr = m_gaString->m_best;
 	std::string temp;
 	for(int index = 0;index < chr->m_genes.size();index++)
 	{
 		std::string ch(1,((SimpleCharGene*)(chr->m_genes.at(index)))->m_char);
 		temp.append(ch);
-	}*/
-	//std::vector<float> outputs = ((NeuralNetGA*)m_ga)->
+	}	//std::vector<float> outputs = ((NeuralNetGA*)m_ga)->
 	//gafirstsample = true;
-	/*DebugDraw::GetInstance()->DebugRenderLogf("Generation Count : %d", m_ga->m_currentGenerationCount);
+	DebugDraw::GetInstance()->DebugRenderLogf("Generation Count : %d", m_gaString->m_currentGenerationCount);
 	DebugDraw::GetInstance()->DebugRenderLogf("TEXT			    : %s", temp.c_str());
-	DebugDraw::GetInstance()->DebugRenderLogf("Best Fitness     : %f", m_ga->m_best->GetTotalFitness(m_ga->m_target));
-	DebugDraw::GetInstance()->DebugRenderLogf("Avg Fitness      : %f", m_ga->m_averageFitnessValue);
-	DebugDraw::GetInstance()->DebugRenderLogf("Mutation Rate    : %f", m_ga->m_mutationChance);*/
+	DebugDraw::GetInstance()->DebugRenderLogf("Best Fitness     : %f", m_gaString->m_best->GetTotalFitness(m_gaString->m_target));
+	DebugDraw::GetInstance()->DebugRenderLogf("Avg Fitness      : %f", m_gaString->m_averageFitnessValue);
+	DebugDraw::GetInstance()->DebugRenderLogf("Mutation Rate    : %f", m_gaString->m_mutationChance);
 	DebugDraw::GetInstance()->DebugRenderLogf("=================================================", "");
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	m_textureBackground = Texture::CreateOrGetTexture("Data//Images//level1.png", true, false);
@@ -261,6 +263,10 @@ void Map::Update(float deltaTime)
 		{
 			m_isDebugMode = true;
 		}
+	}
+	if (g_theInput->wasKeyJustReleased(InputSystem::KEYBOARD_Q))
+	{
+		EndOnePlay();
 	}
 	if(InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_Z))
 	{
@@ -348,6 +354,7 @@ void Map::UpdateMiniMap()
 	for(int index = 0;index < m_minimapObjs.size();index++)
 	{
 		m_minimapObjs.at(index).m_color = Rgba::CONSOLE_FADED_BLUE;
+		m_minimapObjs.at(index).m_value = 0.75f;
 	}
 
 	for(int index = 0;index < m_bricks.size();index++)
@@ -361,7 +368,7 @@ void Map::UpdateMiniMap()
 			if(brickPosition.x < maxBounds.x && brickPosition.y < maxBounds.y)
 			{	
 				SetMiniMapValues(IntVector2(relativeX, relativeY), Rgba::WHITE);
-				DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE %d,%d", relativeX, relativeY);
+				//DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE %d,%d", relativeX, relativeY);
 			}
 		}
 	}	
@@ -376,13 +383,13 @@ void Map::UpdateMiniMap()
 			if (pitPosition.x < maxBounds.x && pitPosition.y < maxBounds.y)
 			{
 				SetMiniMapValues(IntVector2(relativeX, relativeY), m_pits.at(index).m_color);
-				DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE PIT %d,%d", relativeX, relativeY);
+				//DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE PIT %d,%d", relativeX, relativeY);
 			}
 		}
 	}
 	int positionX = static_cast<int>((marioWorldPosition.x - minBounds.x) / (m_block.GetDimensions().x / 2.f));
 	int positionY = static_cast<int>((marioWorldPosition.y - minBounds.y) / (m_block.GetDimensions().x / 2.f));
-	DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE MARIO %d,%d", positionX, positionY);
+	//DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE MARIO %d,%d", positionX, positionY);
 	SetMiniMapValues(IntVector2(positionX, positionY), Rgba::GREEN);
 
 }
@@ -401,12 +408,14 @@ void Map::SetMiniMapValues(IntVector2 pos, Rgba color)
 		m_minimapObjs.at(index).m_color = color;
 		if(color == Rgba::WHITE)
 		{
-			m_minimapObjs.at(index).m_value = 1;
-		}else
+			m_minimapObjs.at(index).m_value = 0.5f;
+		}
+		else
 		if (color == Rgba::RED)
 		{
-			m_minimapObjs.at(index).m_value = -1;
-		}else
+			m_minimapObjs.at(index).m_value = 1;
+		}
+		else
 		if (color == Rgba::GREEN)
 		{
 			m_minimapObjs.at(index).m_value = 0.1;
@@ -521,6 +530,8 @@ void Map::QueryAndDie(float deltaTime)
 void Map::EndOnePlay()
 {
 	UpdateNN();
+	RandomSRAND();
+	m_mario->ResetWeight();
 	m_mario->m_transform.SetLocalPosition(Vector3(200, 100, 0));
 }
 
@@ -728,7 +739,7 @@ void Map::RenderNN()
 		}
 		outputStart.y += distanceBetweenNodes;
 	}
-	inputStart  = Vector2(500, 100);
+	inputStart  = Vector2(500,  100);
 	hiddenStart = Vector2(1000, 100);
 	outputStart = Vector2(1500, 100);
 

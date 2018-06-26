@@ -52,7 +52,7 @@ public:
 	bool IsJumping();
 	void UpdateJump(float deltaTime);
 	void ProcessInput(float deltaTime);
-
+	void ResetWeight();
 	void WalkWest(float deltaTime);
 	void WalkEast(float deltaTIme);
 	void StayIdle();

@@ -1,8 +1,7 @@
 <material id="default_light">
   <shader id="lighting" />
 
-  <texture bind="8" src="Data\\Images\\example_colour.png" />
-  <texture bind="0" src="Data\\Images\\stone.png" />
+  <texture bind="0" src="Data\\Images\\terrain_grass.jpg" />
   
   <float   bind="SPEC_FACTOR" value="1.0" />
   <float   bind="SPEC_POWER" value="1.0" />

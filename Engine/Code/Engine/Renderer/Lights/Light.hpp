@@ -19,7 +19,7 @@ const int MAX_LIGHTS = 16;
 struct PointLight_t
 {
 	Vector3 m_position;
-	float   pad00;
+	float   m_useShadow = 0.f;
 
 	Vector3 m_direction;
 	float   m_directionFactor = 1;
@@ -31,6 +31,8 @@ struct PointLight_t
 
 	Vector3 m_specAttenuation; 
 	float   m_dotOuterAngle;
+
+	Matrix44 m_vp;
 
 	PointLight_t()
 	{
@@ -75,6 +77,11 @@ struct PointLight_t
 		}
 		return false;
 	}
+
+	void SetViewProjection(Matrix44 mat)
+	{
+		m_vp = mat;
+	}
 };
 
 struct AmbientLightStruct
@@ -111,8 +118,9 @@ enum LIGHT_TYPE
 {
 	AMBIENT_LIGHT,
 	POINT_LIGHT,
+	DIRECTIONAL
 };
-
+class Texture;
 class Light : public Component
 {
 
@@ -128,6 +136,19 @@ public:
 	static UniformBuffer*		m_AmbientlightUBuffer;
 	int							m_index;
 	LIGHT_TYPE					m_type;
+
+	//SHADOW CASTING INFO
+	bool						m_isShadowCasting = true;
+	Texture*					m_depthFromCamera;
+	Texture*					m_shadowTexture;
+
+	int 						m_depthTextureResolution;
+	float						m_shadowPPU = 1000;
+	float						m_shadowDistance = 100;
+
+	Matrix44					m_vp;
+	Matrix44					m_ivp;
+
 	//Static_Member_Variables
 	static std::vector<Light*>  s_lights;
 	//Methods
@@ -138,27 +159,30 @@ public:
 	void			Reset();
 	void			EnableAmbientLight(Vector4 ambient);
 	void			DisableAmbientLight();
+	void			SetShadowTexture();
 
 	bool			IsPointLightActive();
 	bool			IsAmbientLightActive();
 	void			EnablePointLight(Vector4 colorIntensity, Vector3 position, Vector3 attenuationConst);
 	void			DisablePointLight();
+	void			EnableShadow();
 
 	float			CalculateIntensityOnAttenutation(float distance, Vector3 attenuationFactor);
 
-	Vector3			GetPointLightPosition();
-	Vector3			GetPointLightDirection();
-	Vector3			GetPointLightAttenuationFactor();
-	Rgba			GetPointLightColor();
-	float			GetPointLightSpecFactor();
-	float			GetPointLightSpecPower();
-	float			GetPointLightInnerAngle();
+	Vector3			GetPosition();
+	Vector3			GetDirection();
+	Vector3			GetAttenuationFactor();
+	Rgba			GetColor();
+	float			GetSpecFactor();
+	float			GetSpecPower();
+	float			GetInnerAngle();
 	float			GetPointLightOuterAngle();
 
+	void			SetViewProjection(Matrix44 mat);
 	void			SetAsPointLight();
-	void			SetPointLightDirection(Vector3 direction);
+	void			SetLightDirection(Vector3 direction);
 	void			SetPointLightInnerOuterAngles(float innerAngle, float outerAngle);
-	void			SetPointLightPosition(Vector3 position);
+	void			SetLightPosition(Vector3 position);
 	void			SetPointLightAttenutaion(Vector3 attenuation);
 	void			SetPointLigthSpecAttenuation(Vector3 specAttenuation);
 	void			SetPointLightColor(Rgba color);

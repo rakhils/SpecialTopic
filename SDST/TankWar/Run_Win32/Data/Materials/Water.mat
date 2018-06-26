@@ -1,0 +1,9 @@
+<material id="water">
+  <shader id="watershader" />
+
+  <texture bind="0" src="Data\\Images\\water.gif" />
+  
+  <float   bind="SPEC_FACTOR" value="1.0" />
+  <float   bind="SPEC_POWER" value="1.0" />
+
+</material>

@@ -10,6 +10,11 @@
 #include "Engine/Mesh/MeshBuilder.hpp"
 #include "Engine/Renderer/TextureCube.hpp"
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Renderer/Camera/PerspectiveCamera.hpp"
+#include "Engine/Renderer/Camera/OrthographicCamera.hpp"
+#include "Engine/Renderer/Lights/Light.hpp"
+#include "Engine/Core/EngineCommon.hpp"
+#include "ShaderDefinitions.hpp"
 // CONSTRUCTOR
 ForwardRenderingPath::ForwardRenderingPath()
 {
@@ -50,6 +55,16 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	Camera::SetCurrentCamera(camera);
 	m_renderer->BeginFrame();
 
+	for each(Light *light in scene->m_lights) 
+	{
+		if (light->m_type != AMBIENT_LIGHT && light->m_isShadowCasting)
+		{
+			RenderShadowCastingObjects(light, scene);
+		}
+	}
+
+	Camera::SetCurrentCamera(camera);
+	//m_renderer->BeginFrame();
 	if(scene->m_isSkyBoxEnabled)
 	{
 		Mesh *m_cube = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3(0, 0, 0), Vector3(1, 1, 1), Rgba::WHITE, FILL_MODE_FILL);
@@ -148,6 +163,68 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 		Light::BindAllLightsToShader(m_renderer,lights);
 		DrawCall dc = drawCalls.at(index);
 		m_renderer->DrawMesh(dc.m_mesh,dc.m_modelMatrix);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/23
+*@purpose : Renders shadow casting objects
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ForwardRenderingPath::RenderShadowCastingObjects(Light *light, Scene *scene)
+{
+	if(m_shadowCamera == nullptr)
+	{
+		m_shadowCamera = new OrthographicCamera();
+		Texture* shadowTex = new Texture();
+		Texture* colorTest = new Texture();
+		colorTest->CreateRenderTarget(1920, 1080, TEXTURE_FORMAT_RGBA8);
+		shadowTex->CreateRenderTarget(1920, 1080, TEXTURE_FORMAT_D24S8);
+		light->m_shadowTexture = shadowTex;
+		FrameBuffer *cFrameBuffer = new FrameBuffer();
+		m_shadowCamera->m_defaultFrameBuffer = cFrameBuffer;
+		m_shadowCamera->SetColorTarget(colorTest);
+		m_shadowCamera->SetDepthStencilTarget(light->m_shadowTexture);
+		light->m_shadowTexture->m_slot = 8;
+		
+	}
+	m_shadowCamera->SetOrthoProjection(Vector2::ZERO, Vector2::ONE * light->m_shadowPPU, -100, 100.f);
+
+
+
+	/*switch (light->m_type) 
+	{
+	case DIRECTIONAL:
+		m_shadowCamera->SetOrthoProjection(Vector2::ZERO, Vector2(light->m_shadowPPU, light->m_shadowPPU), 0.0f, light->m_shadowDistance);
+		break;
+	}*/
+	//Vector3 lightDirection = light->m_transform.GetWorldMatrix().GetKVector();
+
+	Vector3 lightDirection	   = light->GetDirection();
+	Vector3 lightWorldPosition = light->GetPosition();
+
+	Matrix44 lookAt = Matrix44::LookAt(lightWorldPosition,lightWorldPosition + lightDirection, Vector3::UP);
+	m_shadowCamera->SetModelMatrix(lookAt);
+	Matrix44 viewMat = lookAt;
+	viewMat.Inverse();
+	m_shadowCamera->SetViewMatrix(viewMat);
+
+	Camera::SetCurrentCamera(m_shadowCamera);
+	m_renderer->ClearDepth(1.f);
+	light->m_vp = m_shadowCamera->GetViewProjection();
+	light->SetViewProjection(light->m_vp);
+
+	for each(Renderable *renderable in scene->m_renderables)
+	{
+		Material *meshMaterial = renderable->GetMaterial();
+		GL_CHECK_ERROR();
+
+		if (meshMaterial->m_isOpaque)
+		{
+			Renderer::GetInstance()->BindMaterial(meshMaterial);
+			m_renderer->DrawMesh(renderable->m_mesh,renderable->m_modelMatrix);
+		}
 	}
 }
 

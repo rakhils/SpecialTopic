@@ -39,6 +39,7 @@ public:
 	void InitScene();
 	void CreatePlayer();
 	void CreateMap();
+	void CreateWater();
 	void CreateTerrain();
 
 	void Update(float deltaTime);

@@ -25,8 +25,12 @@ class EnemyTank : public GameObject
 public:
 	//Member_Variables
 	Vector3 m_forward;
-	float   m_velocity = 10;
-	float   m_distanceToFollow = 10;
+	Vector3 m_seekPosition;
+	float   m_velocity = 500;
+	float   m_minDistanceToFollow = 20;
+	float   m_minDistanceForSeperation = 5;
+	float   m_minDistanceForCohesion   = 15;
+	float   m_minDistanceForAlignment  = 10;
 	float   m_hitInterval = 0;
 	int     m_teamNumber;
 	bool    m_markAsDead = false;
@@ -38,14 +42,22 @@ public:
 	EnemyTank();
 	EnemyTank(std::string name,Scene *scene, Vector3 position);
 	~EnemyTank();
+	Vector3 GetCurrentForward();
 
 	void Update(float deltatime);
-	void UpdateWanderBehaviour(float deltaTime);
-	void UpdateFollowBehaviour(float deltaTime);
 	void UpdateHitFeedBack(float deltatime);
-	void UpdateTankOrientation();
+
 	void UpdateBounds(float deltaTime);
-	void UpdateDirectionBasedOnAllies();
+	void UpdateSeekDirection(float weight);
+	void UpdateSeperationDirection(float weight);
+	void UpdateCohesionDirection(float weight);
+	void UpdateAlignmentDirection(float weight);
+	void UpdateRandomDirection(float weight);
+
+	void UpdateTankTurn();
+	void UpdateTankOrientation();
+	void UpdateTankHeightOnTerrain();
+	void UpdateForceOnTank(float deltaTime);
 	void OnCollisionEnter(Collider *collider);
 	
 	void ChangeForwardDirection(Vector3 direction);

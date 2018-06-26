@@ -402,6 +402,7 @@ void Renderer::DisableDepth()
 *//////////////////////////////////////////////////////////////
 void Renderer::ClearDepth(float depth /*= 1.0f*/)
 {
+	glDepthMask(GL_TRUE);
 	glClearDepthf(depth);
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
@@ -1755,8 +1756,10 @@ void Renderer::PostStartup()
 	
 	Image  * onePixelImage  = new Image(Rgba::WHITE);
 	Texture* defaultTexture = new Texture(*onePixelImage);
+	Texture* shadowDepth	= new Texture(*onePixelImage);
 	Texture::SetDefaultTexture(defaultTexture);
 	Texture::SetCurrentTexture(defaultTexture);
+	Texture::SetDefaultShadowDepthTexture(shadowDepth);
 	Texture * defaultColorTarget = CreateRenderTarget(window_width, window_height, TEXTURE_FORMAT_RGBA8);
 	Texture * defaultDepthTarget = CreateRenderTarget(window_width, window_height, TEXTURE_FORMAT_D24S8);
 	Texture::SetDefaultColorTargetTexture(defaultColorTarget);
@@ -1891,6 +1894,7 @@ void Renderer::DrawMeshImmediateWithIndices(DrawPrimitiveType drawPrimitive, uns
 *//////////////////////////////////////////////////////////////
 void Renderer::DrawMesh(Mesh *mesh,Matrix44 model)
 {
+	GL_CHECK_ERROR();
 	BindShader(Shader::GetCurrentShader());
 	GL_CHECK_ERROR();
 	BindMeshToProgram(Shader::GetCurrentShader()->GetShaderProgram(), mesh);
@@ -1904,6 +1908,7 @@ void Renderer::DrawMesh(Mesh *mesh,Matrix44 model)
 
 	// Now that it is described and bound, draw using our program
 	glBindFramebuffer(GL_FRAMEBUFFER, Camera::GetCurrentCamera()->GetFrameBufferHandle());
+	GL_CHECK_ERROR();
 
 	if(mesh->m_drawInstruction.m_usingIndices)
 	{
@@ -1986,6 +1991,17 @@ void Renderer::BindRendererUniforms(Matrix44 model)
 	{
 		glUniformMatrix4fv(modeluniform, 1, GL_FALSE, (GLfloat*)&model);
 	}
+
+	GLint totalTime = glGetUniformLocation(program_handle, "TIME");
+	if (totalTime >= 0)
+	{
+		glUniform1f(totalTime, static_cast<float>(Clock::g_theMasterClock->total.m_seconds));
+	}
+	GLint viewPos = glGetUniformLocation(program_handle, "VIEWPOS");
+	if (viewPos >= 0)
+	{
+		glUniform3fv(viewPos,1, (GLfloat*)&model.GetKVector());
+	}
 }
 
 //////////////////////////////////////////////////////////////
@@ -2037,15 +2053,25 @@ void Renderer::BindShader(Shader *shader)
 void Renderer::BindMaterial(Material *material)
 {
 	BindShader(material->GetShader());
+	GL_CHECK_ERROR();
+
 	BindMaterialProperty(material);
+	GL_CHECK_ERROR();
+
 	Shader::SetCurrentShader(material->GetShader());
+	GL_CHECK_ERROR();
+
 	//m_currentShaderProgram = m_currentShader->GetShaderProgram();
 	//material->BindAll(m_currentShader->m_shaderProgram->GetHandle());
 	for(int index = 0;index < material->m_textures.size();index++)
 	{
 		Texture *texture = material->m_textures.at(index);
 		BindSampler(texture->m_slot, material->m_samplers.at(index));
+		GL_CHECK_ERROR();
+
 		BindTexture(texture->m_slot, material->m_textures.at(index));
+		GL_CHECK_ERROR();
+
 	}
 }
 

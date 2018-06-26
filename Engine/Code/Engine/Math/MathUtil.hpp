@@ -37,6 +37,7 @@ Vector2			 GetMin(Vector2 a, Vector2 b);
 Vector3			 GetMin(Vector3 a, Vector3 b);
 Vector2			 GetMax(Vector2 a, Vector2 b);
 Vector3			 GetMax(Vector3 a, Vector3 b);
+int				 GetMax(int a, int b);
 float		     GetMaxOf2 (float value1, float value2);
 float		     GetMinOf2 (float value1, float value2);
 bool		     IsInRangeOf(int value,int lowerLimit,int upperLimit);
@@ -107,7 +108,7 @@ float			 ClampFloatZeroToOne( float inValue );
 float			 ClampFloatNegativeOneToOne( float inValue );
 Vector3			 ClampVector3(Vector3 inValue, Vector3 minClamp, Vector3 maxClamp);
 bool			 Quadratic(Vector2 *out, float a, float b, float c);
-
+void			 RandomSRAND();
 // ADVANCED VECTOR FUNCTIONS/ PROJECTIONS AND REFLECTIONS
 //////////////////////////////////////////////////////////////////////////
 const Vector2    GetProjectedVector( const Vector2& vectorToProject, const Vector2& projectOnto );

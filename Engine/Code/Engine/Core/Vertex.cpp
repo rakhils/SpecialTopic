@@ -9,9 +9,24 @@ VertexAttribute VertexMaster::s_ATTRIBUTES[] =
 	VertexAttribute("BITANGENT",   GL_FLOAT,         3, true,  offsetof(VertexMaster, m_bitangent)),
 	VertexAttribute(), // last one to determine finish
 };
+VertexLayout  VertexMaster::s_LAYOUT = VertexLayout(sizeof(VertexMaster), VertexMaster::s_ATTRIBUTES);
 //////////////////////////////////////////////////////////////////////////
 
-VertexLayout  VertexMaster::s_LAYOUT = VertexLayout(sizeof(VertexMaster), VertexMaster::s_ATTRIBUTES);
+VertexAttribute Vertex_3DPCUNTBT::s_ATTRIBUTES[] =
+{
+	VertexAttribute("POSITION",    GL_FLOAT,         3, false, offsetof(Vertex_3DPCUNTBT, m_position)),
+	VertexAttribute("COLOR",       GL_UNSIGNED_BYTE, 4, true,  offsetof(Vertex_3DPCUNTBT, m_rgba)),
+	VertexAttribute("UV",          GL_FLOAT,         2, false, offsetof(Vertex_3DPCUNTBT, m_uvs)),
+	VertexAttribute("NORMAL",      GL_FLOAT,         3, true,  offsetof(Vertex_3DPCUNTBT, m_normal)),
+	VertexAttribute("TANGENT",     GL_FLOAT,         3, true,  offsetof(Vertex_3DPCUNTBT, m_tangent)),
+	VertexAttribute("BITANGENT",   GL_FLOAT,         3, true,  offsetof(Vertex_3DPCUNTBT, m_bitangent)),
+	VertexAttribute("TIME",        GL_FLOAT,         1, true,  offsetof(Vertex_3DPCUNTBT, m_time)),
+	VertexAttribute(), // last one to determine finish
+};
+
+VertexLayout  Vertex_3DPCUNTBT::s_LAYOUT = VertexLayout(sizeof(Vertex_3DPCUNTBT), Vertex_3DPCUNTBT::s_ATTRIBUTES);
+
+//////////////////////////////////////////////////////////////////////////
 
 VertexAttribute Vertex_3DPCUNTB::s_ATTRIBUTES[] =
 {

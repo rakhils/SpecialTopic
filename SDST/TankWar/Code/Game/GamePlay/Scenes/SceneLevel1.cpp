@@ -18,6 +18,8 @@
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Audio/AudioComponent.hpp"
 #include "Engine/Renderer/Camera/OrbitCamera.hpp"
+#include "Engine/Renderer/Sampler.hpp"
+#include "Engine/Mesh/MeshBuilder.hpp"
 
 #include "Game/Game.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
@@ -71,9 +73,10 @@ void SceneLevel1::InitScene()
 	Light *lightDirectional = Light::CreateOrGetPointLight();
 	Rgba color1;
 	color1.SetAsFloats(1, 1, 1, GetRandomFloatInRange(0.6f, 0.8f));
-	lightDirectional->EnablePointLight(color1.GetAsFloats(),Vector3(0,70,100),Vector3(1,0,0));
+	lightDirectional->EnablePointLight(color1.GetAsFloats(),Vector3(0,50,20),Vector3(1,0,0));
 	Vector3 lightDirection(1, -1, 0);
-	lightDirectional->SetPointLightDirection(lightDirection.GetNormalized());
+	lightDirectional->EnableShadow();
+	lightDirectional->SetLightDirection(lightDirection.GetNormalized());
 	lightDirectional->SetPointLightInnerOuterAngles(30.f, 60.f);
 	AddLight(lightDirectional);
 	// LOADING IT HERE
@@ -104,12 +107,12 @@ void SceneLevel1::CreatePlayer()
 	GameObject *turretGunGO = new GameObject("turretgun");
 	turretHeadGO->SetScene(this);
 	turretHeadGO->m_renderable->SetMesh(turretHead);
-	turretHeadGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
+	turretHeadGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Tank.mat"));
 	turretHeadGO->m_transform.SetLocalPosition(Vector3(0, 0.75f, 0));
 	
 	turretGunGO->SetScene(this);
 	turretGunGO->m_renderable->SetMesh(turretGun);
-	turretGunGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
+	turretGunGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Tank.mat"));
 	turretGunGO->m_transform.SetLocalPosition(Vector3(0, 0.5, 0.5));
 
 
@@ -119,7 +122,7 @@ void SceneLevel1::CreatePlayer()
 	m_playerTank->m_renderable->SetMesh(tankBody);
 	m_playerTank->AddRigidBody3DComponent();
 	m_playerTank->AddParticleComponent(Vector3::ZERO, Renderer::GetInstance());
-	m_playerTank->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
+	m_playerTank->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Tank.mat"));
 	m_playerTank->m_turret = turretGunGO;
 	m_playerTank->AddChild(turretHeadGO);
 	m_playerTank->AddChild(turretGunGO);
@@ -189,9 +192,28 @@ void SceneLevel1::CreateMap()
 	Image *terrainImage = new Image("Data//Images//m6.png");
 	m_map->m_image = terrainImage;
 	m_map->LoadFromImage(this,terrainImage, AABB2(Vector2(0, 0),256,256), 1, 50, Vector2::ONE);
-
+	CreateWater();
 	Game::SetMinBounds(Vector3(0, 1, 0));
 	Game::SetMaxBounds(Vector3(static_cast<float>(m_map->m_image->GetDimensions().x), 50, static_cast<float>(m_map->m_image->GetDimensions().y)));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/25
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SceneLevel1::CreateWater()
+{
+	GameObject *water = new GameObject("water");
+	Rgba color(Vector4(1, 1, 1,0.75f));
+	Mesh *mesh = MeshBuilder::Create3DPlaneChunk<Vertex_3DPCUNTB>(Vector3(0, 20, 0), Vector3::RIGHT, Vector3::FORWARD, Vector2(50, 50),Vector2::ONE ,color,FILL_MODE_FILL);
+	Mesh *mesh1 = MeshBuilder::Create3DPlane<Vertex_3DPCUNTB>(Vector3(0, 20, 0), Vector3::RIGHT, Vector3::FORWARD, Vector2(20, 20) ,color,FILL_MODE_FILL);
+	water->m_renderable->m_name = "water";
+	water->m_renderable->SetMesh(mesh);
+	water->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Water.mat"));
+	water->SetScene(this);
+	AddRenderable(water->m_renderable);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -239,6 +261,15 @@ void SceneLevel1::Update(float deltaTime)
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_R))
 	{
 		m_cameraRadius -= 50*deltaTime;
+	}
+	DebugDraw::GetInstance()->DebugRenderLogf("SAMPLER NEAR %f" , Sampler::GetCurrentSampler()->m_nearValue);
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_K))
+	{
+		Sampler::GetCurrentSampler()->m_nearValue-=10;
+	}
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_L))
+	{
+		Sampler::GetCurrentSampler()->m_nearValue+=10;
 	}
 
 	Vector3 position(-m_cameraRadius, m_cameraPhi, m_cameraTheta);

@@ -5,6 +5,7 @@
 #include "Engine/Math/Transform.hpp"
 #include "Engine/Core/Component.hpp"
 #include "Engine/Math/Frustum.hpp"
+#include "Engine/Math/AABB2.hpp"
 /*\class  : Camera		  
 * \group  : <GroupName>		   
 * \brief  : Camera class to view screen		   
@@ -36,7 +37,7 @@ class Camera : public Component
 
 public:
 	//Member_Variables
-
+	AABB2       m_viewPort;
 	Vector3		m_targetPosition;
 	std::string m_name;
 	Matrix44	m_projection;
@@ -94,7 +95,7 @@ public:
 	static void SetDefaultCamera (Camera *camera) { s_defaultCamera  = camera;}
 	static void SetCurrentCamera (Camera *camera) 
 	{ 
-		camera->Finalize(); 
+		camera->Finalize();
 		s_currentCamera = camera; 
 	}
 	static void SetGameplayCamera(Camera *camera) { s_gamePlayCamera = camera;}

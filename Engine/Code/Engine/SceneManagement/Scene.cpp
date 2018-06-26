@@ -216,8 +216,8 @@ std::vector<Light*> Scene::GetMostContributingLights(int lightCount, Vector3 pos
 	{
 		for(int indexJ = indexI+1;indexJ < m_lights.size();indexJ++)
 		{
-			float intensityAtPositionI = CalculateIntensityAtPosition(position, m_lights.at(indexI), m_lights.at(indexI)->GetPointLightAttenuationFactor());
-			float intensityAtPositionJ = CalculateIntensityAtPosition(position, m_lights.at(indexJ), m_lights.at(indexJ)->GetPointLightAttenuationFactor());
+			float intensityAtPositionI = CalculateIntensityAtPosition(position, m_lights.at(indexI), m_lights.at(indexI)->GetAttenuationFactor());
+			float intensityAtPositionJ = CalculateIntensityAtPosition(position, m_lights.at(indexJ), m_lights.at(indexJ)->GetAttenuationFactor());
 			if(intensityAtPositionJ > intensityAtPositionI)
 			{
 				Light *temp = m_lights.at(indexJ);
@@ -240,7 +240,7 @@ std::vector<Light*> Scene::GetMostContributingLights(int lightCount, Vector3 pos
 //////////////////////////////////////////////////////////////
 float Scene::CalculateIntensityAtPosition(Vector3 posiion, Light *light, Vector3 attenuationFactor)
 {
-	Vector3 distanceVector = (posiion - light->GetPointLightPosition());
+	Vector3 distanceVector = (posiion - light->GetPosition());
 	return light->CalculateIntensityOnAttenutation(distanceVector.GetLength(), attenuationFactor);
 }
 

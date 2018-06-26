@@ -12,7 +12,7 @@
 #include "Engine/Math/Vector4.hpp"
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Math/Matrix44.hpp"
-
+#include "Engine/Core/Time.hpp"
 float MATH_PIE = (float)3.1415926535897932384626433832795;
 
 float GetRandomFloatInRange(float minInclusive,float maxExclusive)
@@ -205,6 +205,21 @@ Vector3 GetMax(Vector3 a, Vector3 b)
 	}
 	return returnValue;
 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/23
+*@purpose : Returns max of 2 integers
+*@param   : 2 integers
+*@return  : max
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int GetMax(int a, int b)
+{
+	if(a > b)
+	{
+		return a;
+	}
+	return b;
 }
 
 float GetMaxOf2(float val1, float val2)
@@ -1293,6 +1308,17 @@ bool Quadratic(Vector2 *out, float a, float b, float c)
 	out->x = (-b + sqrt(discriminant)) / 2 * a ;
 	out->y = (-b - sqrt(discriminant)) / 2 * a;
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/25
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RandomSRAND()
+{
+	srand(GetCurrentTimeSeconds());
 }
 
 bool AreBitsSet(unsigned char bitFlags8, unsigned char flagsToCheck)
