@@ -5,6 +5,9 @@
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Physics/Collider/Collider.hpp"
+#include "Engine/GameObject/GameObject.hpp"
+#include "Engine/Debug/DebugDraw.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Terrain::Terrain()
@@ -243,13 +246,27 @@ bool Terrain::GetQuadFromWorldPosition(Vector2 position,Vector3* positions)
 *@param   : Ray constain start,direction,max length
 *@return  : Hit result
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-RaycastHit Terrain::Raycast(Ray &ray)
+RaycastHit Terrain::Raycast(GameObject *gameobject,Ray &ray)
 {
 	Vector3		currentPosition = ray.m_start;
 	RaycastHit  result;
 	for(float rayDistance = 0;(rayDistance + ray.m_stepSize)< ray.m_maxDistance;rayDistance += ray.m_stepSize)
 	{
 		Vector3 nextPosition = ray.Evaluate(rayDistance + ray.m_stepSize);
+		if(gameobject != nullptr)
+		{
+			Collider *collider = Raycast3D::GetColliderAtPosition(gameobject, nextPosition);
+			if (collider != nullptr)
+			{
+				result.m_hit = true;
+				result.m_position = ray.Evaluate(rayDistance);
+				result.m_collider = collider;
+				DebugDraw::GetInstance()->DebugRenderLogf(Rgba::RED,"GAMEOBJECT HIT NAME %s", collider->m_gameObject->m_name.c_str());
+				return result;
+
+			}
+		}
+		
 		float height = GetHeight(nextPosition.GetXZ());
 		if(height > nextPosition.y)
 		{

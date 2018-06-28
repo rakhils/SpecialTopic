@@ -8,6 +8,7 @@ in vec4 passColor;
 in vec2 passUV;
 in vec3 passNormal;
 in vec3 passWorldPos;
+in vec3 passWorld;
 in vec3 passTangent;
 in vec3 passBitangent;
 in vec3 cameraPosition;
@@ -71,19 +72,19 @@ vec3 ComputeSpecular(light_point light,in vec3 eyeDirection,in vec3 worldPositio
 float GetShadowFactor( vec3 position, vec3 normal, light_point light )
 {
 	float shadow = light.uses_shadow;
-   if (shadow == 0.0f) 
+   if (shadow == 1.0f) 
 	{
-      return 1.0f; 
+      return 0.0f; 
    }
-   vec4 clip_pos =  light.shadow_vp  * (vec4(position, 1.0f));
+   vec4 clip_pos =   light.shadow_vp * (vec4(position, 1.0f));
    vec3 ndc_pos = clip_pos.xyz / clip_pos.w; 
 
    // put from -1 to 1 range to 0 to 1 range
-   vec3 uvd = (ndc_pos + vec3(1)) * .5f;
+   ndc_pos = (ndc_pos + vec3(1)) * .5f;
 
    float is_lit = texture( gTexShadow, ndc_pos.xy ).x;
 	//float shadow_depth = texture( gTexShadow, uv );	
-	if(uvd.z > is_lit)
+	if(ndc_pos.z > is_lit)
 	{
 		return 1.0f;
 	}
@@ -134,9 +135,10 @@ vec3 normalToBeUsed = vec3(0);
 	normalToBeUsed = passNormal;
 }
 
-for(int lightIndex = 0;lightIndex < 16;lightIndex++)
+for(int lightIndex = 0;lightIndex < 8;lightIndex++)
 {
 	float shadowFactor = GetShadowFactor(passWorldPos, normalToBeUsed, POINT_LIGHTS[lightIndex] );
+shadowFactor = 1.f;
 	diffuseLight  += shadowFactor*ComputeDot3(POINT_LIGHTS[lightIndex],passWorldPos,normalize(normalToBeUsed));
 	specularLight += shadowFactor*ComputeSpecular(POINT_LIGHTS[lightIndex],eyeDirection,passWorldPos,normalize(normalToBeUsed));
 }
@@ -147,7 +149,11 @@ diffuseLight     = clamp(diffuseLight,vec3(0),vec3(1));
 vec4 final_color = vec4(diffuseLight, 1)*surfaceColor + vec4(specularLight, 0);
 final_color		 = clamp(final_color,vec4(0),vec4(1));
 outColor	     = final_color;
-outColor		 = AddFog(final_color,passViewPos.z);
+
+
+float distanceFromCamera	= length(cameraPosition - passWorld);
+
+//outColor		 = AddFog(distanceFromCamera,final_color,passViewPos.z);
 
 
 
@@ -183,5 +189,8 @@ outColor		 = AddFog(final_color,passViewPos.z);
 //passNormal = (passNormal +1)/2;
 //outColor = vec4( surfaceNormalColor, 1 ); 
 //outColor = vec4(specularLight.x,0,0,1);
+
+//outColor = vec4(GetShadowFactor(passWorldPos, worldNormal, POINT_LIGHTS[0]));
+//outColor = vec4(1,0,0,1);
 }
 

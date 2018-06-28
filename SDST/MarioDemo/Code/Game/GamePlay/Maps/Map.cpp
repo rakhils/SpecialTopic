@@ -84,10 +84,10 @@ void Map::InitGA()
 {
 	RandomSRAND();
 	std::string target    = "hello world !!!";
-	int geneCount		  = 1;
+	int   geneCount		  = 1;
 	float mutationChance  = 0.01f;
 	float crossOverChance = 1.f;
-	int totalPopulation   = 1;
+	int   totalPopulation   = 1;
 
 	std::vector<Gene*> inputs;
 	Gene* gene = new NeuralNetworkGene(0.01f);
@@ -96,8 +96,15 @@ void Map::InitGA()
 	m_ga				  = new NeuralNetGA(totalPopulation, geneCount,crossOverChance, mutationChance,inputs);
 
 	
+
+	geneCount = 1;
+	mutationChance = 0.01f;
+	crossOverChance = 1.f;
 	int totalGeneCountForString = target.length();
 	int totalPopulationForString = 500;
+
+
+
 	m_gaString = new StringGeneticAlgorithm(totalPopulationForString, totalGeneCountForString, crossOverChance, mutationChance);
 	Chromosome *ch  = new Chromosome(totalGeneCountForString, mutationChance,SIMPLE_CHAR);
 	for(int index = 0;index < target.length();index++)

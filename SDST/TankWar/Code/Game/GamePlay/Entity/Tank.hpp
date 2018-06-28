@@ -29,6 +29,9 @@ public:
 	Vector3				  m_mouseWorldPos;
 	std::vector<Bullet*>  m_bullets;
 	GameObject			 *m_turret = nullptr;
+	GameObject			 *m_turretHead = nullptr;
+	Vector3				  m_turretForwardDirection;
+	float				  m_bulletCoolDown = 2;
 	//Static_Member_Variables
 
 	//Methods
@@ -37,7 +40,7 @@ public:
 	~Tank();
 
 	Vector3 GetTurretForward();
-	void    FireBullet(float deltaTime);
+	void    FireBullet(float deltaTime,Vector3 direction);
 	void	Respawn(int tryCount);
 	void Update(float deltaTime);
 	void UpdateBullet(float deltaTime);
@@ -45,8 +48,9 @@ public:
 	void UpdateCameraOrientation(float deltaTime);
 	void UpdateTankOrientation();
 	void UpdateBreadCrumb(float deltatime);
+	void UpdateRaycastFromTurret(float deltaTime);
 	void UpdateTurretOrientation(float deltaTime);
-	void UpdateTurretOrientation1(float deltaTime);
+	void UpdateTurretOrientation1(float deltaTime,Vector3 direction);
 	void UpdateProjectedLines(float deltaTime);
 	void OnCollisionEnter(Collider* collider);
 	//Static_Methods

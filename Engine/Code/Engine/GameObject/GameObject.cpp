@@ -244,10 +244,7 @@ void GameObject::AddSphereCollider(Vector3 localPosition, float radius)
 void GameObject::AddBoxCollider(Vector3 localPosition, Vector3 dimensions)
 {
 	UNUSED(dimensions);
-	BoxCollider *collider = new BoxCollider();
-	//collider->m_offsetX = dimensions.x;
-	//collider->m_offsetY = dimensions.y;
-	//collider->m_offsetZ = dimensions.z;
+	BoxCollider *collider = new BoxCollider(dimensions);
 	collider->SetPosition(localPosition);
 	AddColliderComponent(BOX_COLLIDER, collider);
 }

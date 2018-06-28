@@ -27,7 +27,7 @@ public:
 	Vector3 m_forward;
 	Vector3 m_seekPosition;
 	float   m_velocity = 500;
-	float   m_minDistanceToFollow = 20;
+	float   m_minDistanceToFollow = 70;
 	float   m_minDistanceForSeperation = 5;
 	float   m_minDistanceForCohesion   = 15;
 	float   m_minDistanceForAlignment  = 10;

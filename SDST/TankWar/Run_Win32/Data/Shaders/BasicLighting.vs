@@ -3,7 +3,6 @@ uniform mat4 PROJECTION;
 uniform mat4 VIEW;
 uniform mat4 MODEL;
 uniform vec3 CAMERA_POSITION;
-uniform vec3  VIEWPOS;
 uniform float SPEC_FACTOR;
 uniform float SPEC_POWER;
 
@@ -22,6 +21,8 @@ out vec3 passTangent;
 out vec3 passBitangent;
 out vec3 cameraPosition;
 out vec3 passViewPos;
+out vec3 passWorld;
+
 out float passSpecFactor;
 out float passSpecPower;
 void main( void )
@@ -29,8 +30,9 @@ void main( void )
 vec4 local_pos= vec4(POSITION,1);
 vec4 clip_pos = PROJECTION*VIEW*MODEL*local_pos;
 
-vec4 world_pos  = local_pos * MODEL; 
-vec4 camera_pos = world_pos * VIEW; 
+vec4 world_pos  = MODEL * local_pos;
+passWorld = world_pos.xyz;
+vec4 camera_pos = VIEW * world_pos; 
 passViewPos = camera_pos.xyz; 
 
 passWorldPos = POSITION;

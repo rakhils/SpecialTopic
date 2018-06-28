@@ -42,7 +42,7 @@ public:
 	Vector3		GetNormalAtXZ(Vector2 cords);
 	Vector3		GetTangentAtXZ(Vector2 cords);
 	bool		GetQuadFromWorldPosition(Vector2 position,Vector3* positions);
-	RaycastHit	Raycast(Ray &ray);
+	RaycastHit	Raycast(GameObject *object,Ray &ray);
 	//Methods
 
 	Terrain();

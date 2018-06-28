@@ -45,13 +45,34 @@ Matrix44 Camera::LookAt(Vector3 pos, Vector3 target, Vector3 worldUP)
 	Vector3 Up = CrossProduct(forward,right);
 	Up = Up.GetNormalized();
 
-	Matrix44 LookAtMatrix = Matrix44(right, Up, forward);
+	Matrix44 LookAtMatrix = Matrix44(right, Up, forward,Vector4(pos,1));
 	
+	//LookAtMatrix.Tx = -1 * DotProduct(pos, right);
+	//LookAtMatrix.Ty = -1 * DotProduct(pos, Up);
+	//LookAtMatrix.Tz = -1 * DotProduct(pos, forward);
+	//LookAtMatrix.Tw = 1;
+	
+	return LookAtMatrix;
+}
+
+Matrix44 Camera::LookAt1(Vector3 pos, Vector3 target, Vector3 worldUP)
+{
+	Vector3 dir = target - pos;
+	Vector3 forward = dir.GetNormalized();
+
+	Vector3 right = CrossProduct(worldUP, forward);
+	right = right.GetNormalized();
+
+	Vector3 Up = CrossProduct(forward, right);
+	Up = Up.GetNormalized();
+
+	Matrix44 LookAtMatrix = Matrix44(right, Up, forward, pos);
+
 	LookAtMatrix.Tx = 1 * DotProduct(pos, right);
 	LookAtMatrix.Ty = 1 * DotProduct(pos, Up);
 	LookAtMatrix.Tz = 1 * DotProduct(pos, forward);
 	LookAtMatrix.Tw = 1;
-	
+
 	return LookAtMatrix;
 }
 //////////////////////////////////////////////////////////////
@@ -94,7 +115,7 @@ void Camera::SetOrthoProjection(Vector2 bottomLeft,Vector2 topRigth, float nearZ
 {
 	float horizontalDistance = topRigth.x - bottomLeft.x;
 	float verticalDistance   = topRigth.y - bottomLeft.y;
-	float zDistance = farZ - nearZ;
+	float zDistance           = farZ - nearZ;
 
 	m_projection.SetIdentity();
 
@@ -510,8 +531,8 @@ Frustum Camera::GetFrustum()
 //////////////////////////////////////////////////////////////
 void Camera::Finalize()
 {
-	m_defaultFrameBuffer->Finalize();
 	glViewport(0, 0, m_viewPort.maxs.x, m_viewPort.maxs.y);
+	m_defaultFrameBuffer->Finalize();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

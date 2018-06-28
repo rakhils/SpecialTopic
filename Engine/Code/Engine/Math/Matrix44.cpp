@@ -73,7 +73,7 @@ Matrix44::Matrix44(const Vector2& iBasis, const Vector2& jBasis, const Vector2& 
 //////////////////////////////////////////////////////////////
 Matrix44::Matrix44(const Vector3 R1, const Vector3 R2, const Vector3 R3)
 {
-	Ix = R1.x;
+	/*Ix = R1.x;
 	Jx = R1.y;
 	Kx = R1.z;
 	Tx = 0;
@@ -91,6 +91,27 @@ Matrix44::Matrix44(const Vector3 R1, const Vector3 R2, const Vector3 R3)
 	Iw = 0;
 	Jw = 0;
 	Kw = 0;
+	Tw = 1;*/
+
+
+	Ix = R1.x;
+	Iy = R1.y;
+	Iz = R1.z;
+	Iw = 0;
+
+	Jx = R2.x;
+	Jy = R2.y;
+	Jz = R2.z;
+	Jw = 0;
+
+	Kx = R3.x;
+	Ky = R3.y;
+	Kz = R3.z;
+	Kw = 0;
+
+	Tx = 0;
+	Ty = 0;
+	Tz = 0;
 	Tw = 1;
 }
 
@@ -105,7 +126,7 @@ Matrix44::Matrix44(const Vector3 R1, const Vector3 R2, const Vector3 R3)
 //////////////////////////////////////////////////////////////
 Matrix44::Matrix44(const Vector4 R1, const Vector4 R2, const Vector4 R3, const Vector4 R4)
 {
-	Ix = R1.x;
+	/*Ix = R1.x;
 	Jx = R1.y;
 	Kx = R1.z;
 	Tx = R1.w;
@@ -123,6 +144,27 @@ Matrix44::Matrix44(const Vector4 R1, const Vector4 R2, const Vector4 R3, const V
 	Iw = R4.x;
 	Jw = R4.y;
 	Kw = R4.z;
+	Tw = R4.w;*/
+
+
+	Ix = R1.x;
+	Iy = R1.y;
+	Iz = R1.z;
+	Iw = R1.w;
+
+	Jx = R2.x;
+	Jy = R2.y;
+	Jz = R2.z;
+	Jw = R2.w;
+
+	Kx = R3.x;
+	Ky = R3.y;
+	Kz = R3.z;
+	Kw = R3.w;
+
+	Tx = R4.x;
+	Ty = R4.y;
+	Tz = R4.z;
 	Tw = R4.w;
 }
 
@@ -1101,10 +1143,10 @@ Matrix44 Matrix44::MakePerspectiveMatrix(float fovDegrees, float aspect, float n
 	Vector4 i = Vector4(d / aspect, 0, 0, 0);
 	Vector4 j = Vector4(0, d, 0, 0);
 	Vector4 k = Vector4(0, 0, (nearz + farz) * q, 1);
-	Vector4 t = Vector4(0, 0, -2.0f * nearz * farz * q, 0);
+	Vector4 t = Vector4(0, 0, -2.0f * nearz * farz * q, 1);
 
 	Matrix44 matrix(i, j, k, t);
-	matrix.Transpose();
+	//matrix.Transpose();
 	return matrix;
 }
 
@@ -1167,6 +1209,30 @@ Matrix44 Matrix44::LookAt(Vector3 position, Vector3 lookAtPos, Vector3 upvector)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/26
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Matrix44 Matrix44::LookAt1(Vector3 position, Vector3 forward, Vector3 worldUP)
+{
+	Vector3 right = CrossProduct(worldUP, forward);
+	right = right.GetNormalized();
+
+	Vector3 Up = CrossProduct(forward,right);
+	Up = Up.GetNormalized();
+
+	Matrix44 LookAtMatrix = Matrix44(right, Up, forward);
+
+	LookAtMatrix.Tx = 1 * DotProduct(Vector3::ZERO, right);
+	LookAtMatrix.Ty = 1 * DotProduct(Vector3::ZERO, Up);
+	LookAtMatrix.Tz = 1 * DotProduct(Vector3::ZERO, forward);
+	LookAtMatrix.Tw = 1;
+
+	return LookAtMatrix;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/10
 *@purpose : Lerps transforms from matrix a to b by deltatime
 *@param   : StartMatrix a End Matrix b , delta time
@@ -1216,7 +1282,7 @@ Matrix44 Matrix44::TurnTowards(Matrix44 &current, Matrix44 &target, float maxTur
 
 	float t = GetMinOf2(theta / maxTurnPerFrame, .5f);
 	Matrix44 ret = LerpTransform(currentCopy1, target, t);
-	ret.Transpose();
+	//ret.Transpose();
 	ret.SetTranslation(currentCopy1.GetTranslation());
 
 	return ret;
@@ -1224,35 +1290,36 @@ Matrix44 Matrix44::TurnTowards(Matrix44 &current, Matrix44 &target, float maxTur
 
 void Matrix44::MultiplyAndSet(Matrix44 valueMatrix)
 {
-	Vector4 IVector(Ix,Jx,Kx,Tx);
-	Vector4 JVector(Iy,Jy,Ky,Ty);
-	Vector4 KVector(Iz,Jz,Kz,Tz);
-	Vector4 TVector(Iw,Jw,Kw,Tw);
+	Vector4 XComponent(Ix,Jx,Kx,Tx);
+	Vector4 YComponent(Iy,Jy,Ky,Ty);
+	Vector4 ZComponent(Iz,Jz,Kz,Tz);
+	Vector4 WComponent(Iw,Jw,Kw,Tw);
 
-	Vector4 XValueMatrix(valueMatrix.Ix,valueMatrix.Iy,valueMatrix.Iz,valueMatrix.Iw);
-	Vector4 YValueMatrix(valueMatrix.Jx,valueMatrix.Jy,valueMatrix.Jz,valueMatrix.Jw);
-	Vector4 ZValueMatrix(valueMatrix.Kx,valueMatrix.Ky,valueMatrix.Kz,valueMatrix.Kw);
-	Vector4 TValueMatrix(valueMatrix.Tx,valueMatrix.Ty,valueMatrix.Tz,valueMatrix.Tw);
+	Vector4 IVector(valueMatrix.Ix,valueMatrix.Iy,valueMatrix.Iz,valueMatrix.Iw);
+	Vector4 JVector(valueMatrix.Jx,valueMatrix.Jy,valueMatrix.Jz,valueMatrix.Jw);
+	Vector4 KVector(valueMatrix.Kx,valueMatrix.Ky,valueMatrix.Kz,valueMatrix.Kw);
+	Vector4 TVector(valueMatrix.Tx,valueMatrix.Ty,valueMatrix.Tz,valueMatrix.Tw);
 
-	Ix = DotProduct(IVector,XValueMatrix);
-	Jx = DotProduct(IVector,YValueMatrix);
-	Kx = DotProduct(IVector,ZValueMatrix);
-	Tx = DotProduct(IVector,TValueMatrix);
+	Ix = DotProduct(XComponent,IVector);
+	Jx = DotProduct(XComponent,JVector);
+	Kx = DotProduct(XComponent,KVector);
+	Tx = DotProduct(XComponent,TVector);
 
-	Iy = DotProduct(JVector,XValueMatrix);
-	Jy = DotProduct(JVector,YValueMatrix);
-	Ky = DotProduct(JVector,ZValueMatrix);
-	Ty = DotProduct(JVector,TValueMatrix);
+	Iy = DotProduct(YComponent,IVector);
+	Jy = DotProduct(YComponent,JVector);
+	Ky = DotProduct(YComponent,KVector);
+	Ty = DotProduct(YComponent,TVector);
 
-	Iz = DotProduct(KVector,XValueMatrix);
-	Jz = DotProduct(KVector,YValueMatrix);
-	Kz = DotProduct(KVector,ZValueMatrix);
-	Tz = DotProduct(KVector,TValueMatrix);
+	Iz = DotProduct(ZComponent,IVector);
+	Jz = DotProduct(ZComponent,JVector);
+	Kz = DotProduct(ZComponent,KVector);
+	Tz = DotProduct(ZComponent,TVector);
 
-	Iw = DotProduct(TVector,XValueMatrix);
-	Jw = DotProduct(TVector,YValueMatrix);
-	Kw = DotProduct(TVector,ZValueMatrix);
-	Tw = DotProduct(TVector,TValueMatrix);
+	Iw = DotProduct(WComponent,IVector);
+	Jw = DotProduct(WComponent,JVector);
+	Kw = DotProduct(WComponent,KVector);
+	Tw = DotProduct(WComponent,TVector);
+
 }
 
 //////////////////////////////////////////////////////////////

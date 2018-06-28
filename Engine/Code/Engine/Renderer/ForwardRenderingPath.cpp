@@ -59,7 +59,7 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	{
 		if (light->m_type != AMBIENT_LIGHT && light->m_isShadowCasting)
 		{
-			RenderShadowCastingObjects(light, scene);
+			//RenderShadowCastingObjects(light, scene);
 		}
 	}
 
@@ -159,6 +159,8 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	for (int index = 0; index < drawCalls.size(); index++)
 	{
 		m_renderer->BindMaterial(drawCalls.at(index).m_material);
+		//Renderer::GetInstance()->BindTexture(8, m_shadowCamera->m_defaultFrameBuffer->m_depth_stencil_target);
+		//Renderer::GetInstance()->BindSampler(8, Sampler::GetDefaultSampler());
 		std::vector<Light*> lights = scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTVector());
 		Light::BindAllLightsToShader(m_renderer,lights);
 		DrawCall dc = drawCalls.at(index);
@@ -179,8 +181,8 @@ void ForwardRenderingPath::RenderShadowCastingObjects(Light *light, Scene *scene
 		m_shadowCamera = new OrthographicCamera();
 		Texture* shadowTex = new Texture();
 		Texture* colorTest = new Texture();
-		colorTest->CreateRenderTarget(1920, 1080, TEXTURE_FORMAT_RGBA8);
-		shadowTex->CreateRenderTarget(1920, 1080, TEXTURE_FORMAT_D24S8);
+		colorTest->CreateRenderTarget(2048, 2048, TEXTURE_FORMAT_RGBA8);
+		shadowTex->CreateRenderTarget(2048, 2048, TEXTURE_FORMAT_D24S8);
 		light->m_shadowTexture = shadowTex;
 		FrameBuffer *cFrameBuffer = new FrameBuffer();
 		m_shadowCamera->m_defaultFrameBuffer = cFrameBuffer;
@@ -189,9 +191,7 @@ void ForwardRenderingPath::RenderShadowCastingObjects(Light *light, Scene *scene
 		light->m_shadowTexture->m_slot = 8;
 		
 	}
-	m_shadowCamera->SetOrthoProjection(Vector2::ZERO, Vector2::ONE * light->m_shadowPPU, -100, 100.f);
-
-
+	m_shadowCamera->SetOrthoProjection(Vector2(-128,-128), Vector2(128,128), -100, 100.f);
 
 	/*switch (light->m_type) 
 	{
@@ -203,26 +203,38 @@ void ForwardRenderingPath::RenderShadowCastingObjects(Light *light, Scene *scene
 
 	Vector3 lightDirection	   = light->GetDirection();
 	Vector3 lightWorldPosition = light->GetPosition();
+	
+	//lightDirection     = Vector3();
+	//lightWorldPosition = Vector3();
+	//Matrix44 lookAt = m_shadowCamera->LookAt(lightWorldPosition,lightWorldPosition + lightDirection, Vector3::UP);
+	Matrix44 lookAt = m_shadowCamera->LookAt(lightWorldPosition, lightWorldPosition + lightDirection, Vector3::UP);
 
-	Matrix44 lookAt = Matrix44::LookAt(lightWorldPosition,lightWorldPosition + lightDirection, Vector3::UP);
 	m_shadowCamera->SetModelMatrix(lookAt);
 	Matrix44 viewMat = lookAt;
 	viewMat.Inverse();
 	m_shadowCamera->SetViewMatrix(viewMat);
 
 	Camera::SetCurrentCamera(m_shadowCamera);
+	
 	m_renderer->ClearDepth(1.f);
 	light->m_vp = m_shadowCamera->GetViewProjection();
 	light->SetViewProjection(light->m_vp);
-
+	
 	for each(Renderable *renderable in scene->m_renderables)
 	{
 		Material *meshMaterial = renderable->GetMaterial();
 		GL_CHECK_ERROR();
 
-		if (meshMaterial->m_isOpaque)
+		//if (meshMaterial->m_isOpaque)
 		{
+
+			//meshMaterial->SetTexture2D(8, light->m_shadowTexture);
+			//meshMaterial->SetSampler(8, Sampler::GetDefaultSampler());
+
+
 			Renderer::GetInstance()->BindMaterial(meshMaterial);
+			Renderer::GetInstance()->BindTexture(8, light->m_shadowTexture);
+			Renderer::GetInstance()->BindSampler(8, Sampler::GetDefaultSampler());
 			m_renderer->DrawMesh(renderable->m_mesh,renderable->m_modelMatrix);
 		}
 	}

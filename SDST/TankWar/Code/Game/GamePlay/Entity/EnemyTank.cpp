@@ -40,7 +40,7 @@ EnemyTank::EnemyTank(std::string name, Scene *scene,Vector3 position) : GameObje
 	AddChild(turretHeadGO);
 	AddChild(turretGunGO);
 
-	AddSphereCollider(Vector3::ZERO, 1.f);
+	AddSphereCollider(Vector3::ZERO, 1.5f);
 
 	scene->AddRenderable(m_renderable);
 	scene->AddRenderable(turretGunGO->m_renderable);
@@ -81,10 +81,10 @@ void EnemyTank::Update(float deltatime)
 	Vector3 pos = m_transform.GetWorldPosition();
 	//DebugDraw::GetInstance()->DebugRenderLogf("TANK POS %f %f %f", pos.x, pos.y, pos.z);
 
-	UpdateSeekDirection(2);
-	UpdateSeperationDirection(10);
+	UpdateSeekDirection(45);
+	UpdateSeperationDirection(50);
 	UpdateCohesionDirection(1);
-	UpdateAlignmentDirection(1);
+	UpdateAlignmentDirection(20);
 	UpdateRandomDirection(1);
 
 	UpdateTankTurn();
@@ -134,7 +134,7 @@ void EnemyTank::UpdateTankOrientation()
 	Vector3	correctedForward = CrossProduct(right, terrainNormal);
 
 	Matrix44 matrix(Vector4(right.GetNormalized()), Vector4(terrainNormal.GetNormalized()), Vector4(correctedForward.GetNormalized()), Vector4(0, 0, 0, 1));
-	matrix.InvertFast1();
+	//matrix.InvertFast1();
 	Vector3 euler = matrix.GetEulerFromMatrix();
 	m_transform.SetLocalRotationEuler(euler);
 }
@@ -275,7 +275,7 @@ void EnemyTank::UpdateCohesionDirection(float weight)
 	}
 	averagePosition /= vehicleCount;
 	Vector3 direction = averagePosition - m_transform.GetWorldPosition();
-	m_forward += direction * weight;
+	m_forward += direction.GetNormalized() * weight;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -342,7 +342,7 @@ void EnemyTank::UpdateTankTurn()
 
 	Matrix44 currentTransform = m_transform.GetLocalMatrix();
 	Matrix44 targetTransform = Matrix44::LookAt(m_transform.GetLocalPosition(), m_transform.GetLocalPosition() + m_forward , Vector3::UP);
-	targetTransform.InvertFast1();
+	//targetTransform.InvertFast1();
 	//Vector3  targetAngle = targetTransform.GetEulerFromMatrix();
 
 	float turn_this_frame = 5000;

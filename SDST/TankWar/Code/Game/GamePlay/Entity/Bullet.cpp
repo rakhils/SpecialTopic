@@ -2,7 +2,7 @@
 #include "Engine/Renderer/Renderable.hpp"
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Mesh/MeshBuilder.hpp"
-
+#include "Game/GamePlay/Entity/EnemyTank.hpp"
 #include "Game/GamePlay/Entity/Bullet.hpp"
 // CONSTRUCTOR
 Bullet::Bullet(std::string name,int team,Vector3 position,Vector3 direction,float speed): GameObject(name)
@@ -11,7 +11,7 @@ Bullet::Bullet(std::string name,int team,Vector3 position,Vector3 direction,floa
 	m_forward = direction;
 	m_transform.SetLocalPosition(position);
 	MeshBuilder mb;
-	MeshBuilder::CreateUVSpehere(mb,Vector3::ZERO, 1, 8, 8, Rgba::RED, FILL_MODE_FILL);
+	MeshBuilder::CreateUVSpehere(mb,Vector3::ZERO, 0.35f, 8, 8, Rgba::RED, FILL_MODE_FILL);
 	//MeshBuilder::Create3DPlane(mb, Vector3::ZERO, Vector3(0.5f, 0, 0), Vector3(0, 0.5f, 0), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
 	//MeshBuilder::Create3DPlane(mb, Vector3::ZERO, Vector3(0, 0.5f, 0), Vector3(0, 0, 0.5f), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
 	//MeshBuilder::Create3DPlane(mb, Vector3::ZERO, Vector3(0, 0, 0.5f), Vector3(0.5f, 0, 0), Vector2(m_radius, m_radius), Rgba::RED, FILL_MODE_FILL);
@@ -21,7 +21,7 @@ Bullet::Bullet(std::string name,int team,Vector3 position,Vector3 direction,floa
 	m_renderable->m_material->m_textures.at(0) = Texture::GetDefaultTexture();
 
 	m_speed = speed;
-	AddSphereCollider(Vector3::ZERO, 1.5f);
+	AddSphereCollider(Vector3::ZERO, 1.f);
 	AddLightComponent(Vector3::ZERO,Rgba::RED);
 }
 
@@ -56,6 +56,10 @@ void Bullet::Update(float deltaTime)
 void Bullet::OnCollisionEnter(Collider *collider)
 {
 	UNUSED(collider);
-	m_markForDelete = true;
-	m_lifeTime = 0.f;
+	if (EnemyTank *tank = dynamic_cast<EnemyTank*>(collider->m_gameObject))
+	{
+		m_markForDelete = true;
+		m_lifeTime = 0.f;
+	}
+	
 }

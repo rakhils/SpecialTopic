@@ -28,7 +28,8 @@ public:
 
 	float					m_cameraRadius = 30;
 	float					m_cameraPhi	   = 0;
-	float					m_cameraTheta  = 20;
+	float					m_cameraTheta  = -20;
+
 	//Static_Member_Variables
 
 	//Methods

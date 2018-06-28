@@ -20,7 +20,7 @@ EnemyBase::EnemyBase(std::string name, Vector3 position,Vector3 dimensions) : Ga
 	Mesh *mesh = mb.CreateMesh();
 	m_renderable->SetMesh(mesh);
 	m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\default_light.mat"));
-	AddSphereCollider(Vector3::ZERO, dimensions.x);
+	AddBoxCollider(Vector3::ZERO, dimensions.x);
 }
 
 // DESTRUCTOR
@@ -39,8 +39,8 @@ void EnemyBase::SpawnEnemy(Scene *scene)
 {
 	std::string name(m_name + "tank_" + ToString(s_enemyTanks.size()));
 	Vector3 position = m_transform.GetWorldPosition();
-	float randomX = GetRandomFloatInRange(30, 60);
-	float randomZ = GetRandomFloatInRange(30, 60);
+	float randomX = GetRandomFloatInRange(130, 160);
+	float randomZ = GetRandomFloatInRange(130, 160);
 
 	EnemyTank *enemyTank = new EnemyTank(name, scene,Vector3(randomX,10,randomZ) );
 	enemyTank->AddRigidBody3DComponent();

@@ -630,6 +630,7 @@ void DebugDraw::DebugRenderQuad(Vector3 origin, AABB2 bounds, Vector3 rightVecto
 		texture = Texture::GetDefaultTexture();
 	}
 	debugDrawElement.m_type = ELEMENT;
+	debugDrawElement.m_color = color;
 	debugDrawElement.SetTexture(texture);
 	m_drawElements.push_back(debugDrawElement);
 }

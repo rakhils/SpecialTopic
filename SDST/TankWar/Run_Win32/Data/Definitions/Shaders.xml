@@ -26,7 +26,7 @@
 
     <blend>
       <color operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
-      <alpha operation="compare_add" src="blend_src_alpha" dest="blend_inv_src_alpha" />
+      <alpha operation="compare_add" src="one" dest="zero" />
     </blend>
 
     <fill mode="fillmode_solid"></fill>

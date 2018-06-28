@@ -93,6 +93,7 @@ public:
 	static Matrix44 MakePerspectiveMatrix(float fovDegrees,float aspect,float nearz,float farz);
 	static Matrix44 MakeRotationMatrixFromDirection(Vector3 direction);
 	static Matrix44 LookAt(Vector3 forward, Vector3 upvector);
+	static Matrix44 LookAt1(Vector3 position,Vector3 forward, Vector3 upvector);
 	static Matrix44 LookAt(Vector3 position,Vector3 lookAtPos, Vector3 upvector);
 	static Matrix44 LerpTransform(Matrix44 &a, Matrix44 &b, float delta);
 	static Matrix44 TurnTowards(Matrix44 &current, Matrix44 &target, float maxTurnPerFrame);

@@ -93,8 +93,8 @@ enum eFillMode
 
 enum eWindOrder
 {
-	WIND_CLOCKWISE,         // GL_CW       glFrontFace( GL_CW ); 
-	WIND_COUNTER_CLOCKWISE  // GL_CCW      glFrontFace( GL_CCW ); 
+	WIND_COUNTER_CLOCKWISE,  // GL_CCW      glFrontFace( GL_CCW ); 
+	WIND_CLOCKWISE         // GL_CW       glFrontFace( GL_CW ); 
 };
 struct RenderState
 {
@@ -115,6 +115,11 @@ struct RenderState
 	eBlendOperation  m_alpha_blend_op;		// COMPARE_ADD
 	eBlendFactor     m_alpha_src_factor;	// BLEND_ONE
 	eBlendFactor     m_alpha_dst_factor;	// BLEND_ONE
+};
+struct FogFactor
+{
+	float nearPlane = 0;
+	float farPlane = 0;
 };
 
 class BitmapFont;
@@ -156,7 +161,7 @@ public:
 
 	static std::string vertexShader;
 	static std::string fragmentShader; 
-	
+	static UniformBuffer*		m_FogUBuffer;
 	static std::string invalidVertexShader;
 	static std::string invalidFragmentShader;
 

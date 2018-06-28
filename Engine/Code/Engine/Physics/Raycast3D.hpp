@@ -16,7 +16,7 @@ class RigidBody3D;
 class GameObject;
 struct RaycastHit
 {
-	Collider*		m_collider;
+	Collider*		m_collider = nullptr;
 	Vector3			m_position;
 	bool			m_hit;
 	//RigidBody3D*	m_rigidBody;

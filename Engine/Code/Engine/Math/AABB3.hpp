@@ -29,6 +29,8 @@ public:
 	AABB3();
 	AABB3(Vector3 mins, Vector3 maxs);
 	~AABB3();
+
+	void SetDimensions(Vector3 dimensions);
 	
 	// ALL CORNERS
 	Vector3 GetBackBottomLeft();

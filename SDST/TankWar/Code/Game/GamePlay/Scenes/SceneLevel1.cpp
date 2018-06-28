@@ -70,14 +70,25 @@ void SceneLevel1::InitScene()
 	lightRenderable->SetMaterial(Material::AquireResource("default"));
 	AddRenderable(lightRenderable);
 
+	Vector3 lightPosition(256, 50, 256);
+	Vector3 lightDirection = Vector3(0.f, -1.f, 0.75f);
+
 	Light *lightDirectional = Light::CreateOrGetPointLight();
 	Rgba color1;
 	color1.SetAsFloats(1, 1, 1, GetRandomFloatInRange(0.6f, 0.8f));
-	lightDirectional->EnablePointLight(color1.GetAsFloats(),Vector3(0,50,20),Vector3(1,0,0));
-	Vector3 lightDirection(1, -1, 0);
+	lightDirectional->EnablePointLight(color1.GetAsFloats(),lightPosition,Vector3(1,0,0));
+	DebugRenderOptions options;
+	options.m_lifeTime = 1000;
+	DebugDraw::GetInstance()->DebugRenderSphere(lightPosition, 5, 32, 32, nullptr, Rgba::YELLOW, DEBUG_RENDER_FILL, options);
+	DebugDraw::GetInstance()->DebugRenderLine(lightPosition, lightPosition + (lightDirection * 10), Rgba::RED, 1000, DEBUG_RENDER_IGNORE_DEPTH);
+	
 	lightDirectional->EnableShadow();
 	lightDirectional->SetLightDirection(lightDirection.GetNormalized());
 	lightDirectional->SetPointLightInnerOuterAngles(30.f, 60.f);
+
+	
+
+
 	AddLight(lightDirectional);
 	// LOADING IT HERE
 	CreateMap();
@@ -102,18 +113,18 @@ void SceneLevel1::CreatePlayer()
 {
 	Mesh *turretHead = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3::ZERO, .75f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
 	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1.f, .5f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
-	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 1.5f), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 2.5f), Rgba::WHITE, FILL_MODE_FILL);
 	GameObject *turretHeadGO = new GameObject("turrethead");
 	GameObject *turretGunGO = new GameObject("turretgun");
 	turretHeadGO->SetScene(this);
 	turretHeadGO->m_renderable->SetMesh(turretHead);
 	turretHeadGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Tank.mat"));
-	turretHeadGO->m_transform.SetLocalPosition(Vector3(0, 0.75f, 0));
+	turretHeadGO->m_transform.SetLocalPosition(Vector3(0, 1, 0));
 	
 	turretGunGO->SetScene(this);
 	turretGunGO->m_renderable->SetMesh(turretGun);
 	turretGunGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Tank.mat"));
-	turretGunGO->m_transform.SetLocalPosition(Vector3(0, 0.5, 0.5));
+	turretGunGO->m_transform.SetLocalPosition(Vector3(0, 1, 0));
 
 
 	m_playerTank = new Tank();
@@ -124,11 +135,12 @@ void SceneLevel1::CreatePlayer()
 	m_playerTank->AddParticleComponent(Vector3::ZERO, Renderer::GetInstance());
 	m_playerTank->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Tank.mat"));
 	m_playerTank->m_turret = turretGunGO;
+	m_playerTank->m_turretHead = turretHeadGO;
 	m_playerTank->AddChild(turretHeadGO);
 	m_playerTank->AddChild(turretGunGO);
 
 	//m_playerTank->m_transform.Translate(Vector3(120, 20, 274));
-	m_playerTank->m_transform.Translate(Vector3(10, 0, 10));
+	m_playerTank->m_transform.Translate(Vector3(20, 0, 20));
 /*
 	m_camera = (OrbitCamera*)Camera::CreateOrGetCamera("level1cam", ORBIT);
 	m_camera->m_transform.SetLocalPosition(Vector3(0, 50, -10));
@@ -274,7 +286,7 @@ void SceneLevel1::Update(float deltaTime)
 
 	Vector3 position(-m_cameraRadius, m_cameraPhi, m_cameraTheta);
 
-	((OrbitCamera*)m_ocamera)->SetTargetPosition(m_playerTank->m_transform.GetWorldPosition());
+	((OrbitCamera*)m_ocamera)->SetTargetPosition(m_playerTank->m_transform.GetWorldPosition() + Vector3(0,5,0));
 	((OrbitCamera*)m_ocamera)->SetSphericalCords(position);
 
 	Vector3 cameraPosition = m_ocamera->m_transform.GetWorldPosition();
@@ -298,7 +310,7 @@ void SceneLevel1::Update(float deltaTime)
 
 	if (InputSystem::GetInstance()->IsLButtonDown())
 	{
-		Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
+		/*Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
 		PickRay ray      = Camera::GetGamePlayCamera()->GetPickRayFromScreenCords(screenXY);
 
 		Ray raycast;
@@ -315,10 +327,10 @@ void SceneLevel1::Update(float deltaTime)
 		Vector2 terrainCellSize = m_map->m_terrain->m_cellSize;
 		terrainCellSize = terrainCellSize / 2.f;
 
-		DebugDraw::GetInstance()->DebugRenderQuad(result.m_position, AABB2(Vector2(0, 0), terrainCellSize.x, terrainCellSize.y), cameraRight, cameraUp, nullptr, Rgba::BLUE, DEBUG_RENDER_FILL, options);
+		DebugDraw::GetInstance()->DebugRenderQuad(result.m_position, AABB2(Vector2(0, 0), terrainCellSize.x, terrainCellSize.y), cameraRight, cameraUp, nullptr, Rgba::BLUE, DEBUG_RENDER_FILL, options);*/
 		//DebugDraw::GetInstance()->DebugRenderSphere(result.m_position, 1, 16, 16, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
 	}
-
+	DebugDraw::GetInstance()->DebugRenderSphere(Vector3::ZERO, 5, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
 	m_playerTank->Update(deltaTime);
 	m_soundTestObj->Update(deltaTime);
 	Vector3 playerWorldPosition = m_playerTank->m_transform.GetWorldPosition();

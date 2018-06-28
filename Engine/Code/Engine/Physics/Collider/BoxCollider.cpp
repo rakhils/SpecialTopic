@@ -2,9 +2,9 @@
 #include "Engine/GameObject/GameObject.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
-BoxCollider::BoxCollider()
+BoxCollider::BoxCollider(Vector3 dimensions)
 {
-
+	m_aabb3.SetDimensions(dimensions);
 }
 
 // DESTRUCTOR
@@ -21,17 +21,17 @@ BoxCollider::~BoxCollider()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void BoxCollider::Update(float deltaTime)
 {
-	UNUSED(deltaTime);
-	std::map<std::string, GameObject*>::iterator itGameObject;
-	for (itGameObject = GameObject::s_gameObjects.begin(); itGameObject != GameObject::s_gameObjects.end(); itGameObject++)
-	{
-		GameObject *gameObject = itGameObject->second;
-		std::map<COMPONENT_COLLIDER_TYPE, Collider*>::iterator it;
-		for (it = gameObject->m_colliderComponents.begin(); it != gameObject->m_colliderComponents.end(); it++)
-		{
-
-		}
-	}
+	//UNUSED(deltaTime);
+	//std::map<std::string, GameObject*>::iterator itGameObject;
+	//for (itGameObject = GameObject::s_gameObjects.begin(); itGameObject != GameObject::s_gameObjects.end(); itGameObject++)
+	//{
+	//	GameObject *gameObject = itGameObject->second;
+	//	std::map<COMPONENT_COLLIDER_TYPE, Collider*>::iterator it;
+	//	for (it = gameObject->m_colliderComponents.begin(); it != gameObject->m_colliderComponents.end(); it++)
+	//	{
+	//
+	//	}
+	//}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -42,22 +42,17 @@ void BoxCollider::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool BoxCollider::IsPointInside(Vector3 point)
 {
-	UNUSED(point);
-	Vector3 centrePosition = GetCenterPosition();
-	//Vector2 xMinMax(centrePosition.x - m_offsetX, centrePosition.x + m_offsetX);
-	//Vector2 yMinMax(centrePosition.y - m_offsetY, centrePosition.y + m_offsetY);
-	//Vector2 zMinMax(centrePosition.z - m_offsetZ, centrePosition.z + m_offsetZ);
-
-	/*if (point.x > xMinMax.x && point.x < xMinMax.y)
+	Vector3 worldPosition = m_transform.GetWorldPosition();
+	if (point.x > worldPosition.x - m_aabb3.m_mins.x && point.x <  worldPosition.x + m_aabb3.m_maxs.x)
 	{
-		if (point.y > yMinMax.x && point.y < yMinMax.y)
+		if (point.y >  worldPosition.y - m_aabb3.m_mins.y && point.y <  worldPosition.y + m_aabb3.m_maxs.y)
 		{
-			if (point.z > zMinMax.x && point.z < zMinMax.y)
+			if (point.z >  worldPosition.z - m_aabb3.m_mins.z && point.z <  worldPosition.z + m_aabb3.m_maxs.z)
 			{
 				return true;
 			}
 		}
-	}*/
+	}
 	return false;
 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Physics/Collider/Collider.hpp"
+#include "Engine/Math/AABB3.hpp"
 /*\class  : BoxCollider	   
 * \group  : <GroupName>	   
 * \brief  :	   
@@ -16,12 +17,12 @@ class BoxCollider : public Collider
 
 public:
 	//Member_Variables
-	AABB2 m_aabb2;
+	AABB3 m_aabb3;
 	//Static_Member_Variables
 
 	//Methods
 
-	BoxCollider();
+	BoxCollider(Vector3 dimensions);
 	~BoxCollider();
 
 	void Update(float deltaTime);

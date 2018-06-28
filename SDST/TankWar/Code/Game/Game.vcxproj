@@ -395,7 +395,9 @@
     <Xml Include="..\..\Run_Win32\Data\Definitions\Projectile.xml">
       <SubType>Designer</SubType>
     </Xml>
-    <Xml Include="..\..\Run_Win32\Data\Definitions\Shaders.xml" />
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Shaders.xml">
+      <SubType>Designer</SubType>
+    </Xml>
     <Xml Include="..\..\Run_Win32\Data\Definitions\Tiles.xml" />
   </ItemGroup>
   <ItemGroup>
@@ -403,7 +405,9 @@
     <None Include="..\..\Run_Win32\Data\Materials\bullet.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\debug.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\default.mat" />
-    <None Include="..\..\Run_Win32\Data\Materials\default_light.mat" />
+    <None Include="..\..\Run_Win32\Data\Materials\default_light.mat">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="..\..\Run_Win32\Data\Materials\Particles.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\Shadow.mat" />
     <None Include="..\..\Run_Win32\Data\Materials\ship.mat" />

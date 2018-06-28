@@ -38,6 +38,7 @@ HDC gHDC			= NULL;    // our device context
 HGLRC gGLContext	= NULL;    // our rendering context; 
 
 Renderer* Renderer::s_renderer = nullptr;
+UniformBuffer*		Renderer::m_FogUBuffer = nullptr;
 
 Renderer::Renderer()
 {
@@ -1997,11 +1998,23 @@ void Renderer::BindRendererUniforms(Matrix44 model)
 	{
 		glUniform1f(totalTime, static_cast<float>(Clock::g_theMasterClock->total.m_seconds));
 	}
-	GLint viewPos = glGetUniformLocation(program_handle, "VIEWPOS");
-	if (viewPos >= 0)
+
+	GLint camPos = glGetUniformLocation(program_handle, "CAMERA_POSITION");
+	if (camPos >= 0)
 	{
-		glUniform3fv(viewPos,1, (GLfloat*)&model.GetKVector());
+		Vector3 position = Camera::GetCurrentCamera()->m_transform.GetWorldPosition();
+		glUniform3fv(camPos,1, (GLfloat*)&(position));
 	}
+	/*FogFactor fog;
+	fog.nearPlane = Camera::GetCurrentCamera()->m_model.GetKVector().z + Camera::GetCurrentCamera()->GetCameraForwardVector().z*30;
+	fog.farPlane  = fog.nearPlane + 30;
+
+	if(m_FogUBuffer == nullptr)
+	{
+		m_FogUBuffer = new UniformBuffer();
+	}
+	BindUniformBuffer(7, m_FogUBuffer, sizeof(FogFactor), &fog);*/
+
 }
 
 //////////////////////////////////////////////////////////////
