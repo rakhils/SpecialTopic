@@ -76,6 +76,7 @@ public:
 	void								AddCameraComponent(Vector3 localPosition);
 	
 	void								AddColliderComponent(COMPONENT_COLLIDER_TYPE type, Collider *collider_t);
+	void								AddPointCollider(Vector3 point);
 	void								AddSphereCollider(Vector3 localPosition, float radius);
 	void								AddBoxCollider(Vector3 localPosition, Vector3 dimensions);
 	void								AddBoxCollider2D(Vector3 localPosition, Vector3 dimensions,Vector3 normal);

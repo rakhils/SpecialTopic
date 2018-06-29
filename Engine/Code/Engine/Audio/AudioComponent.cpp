@@ -100,7 +100,7 @@ void AudioComponent::Update(float deltatime)
 	UNUSED(deltatime);
 	if(m_is3DSound)
 	{
-		Vector3 currentCameraPosition = Camera::GetGamePlayCamera()->m_transform.GetWorldPosition();
+		Vector3 currentCameraPosition = Camera::GetCurrentCamera()->m_transform.GetWorldPosition();
 		Vector3 distance = m_transform.GetWorldPosition() - currentCameraPosition;
 		float   distanceValue = distance.GetLength();
 		float   volume = RangeMapFloat(distanceValue, 0.f, m_maxDistanceFor0Sound, 1.f, 0.f);

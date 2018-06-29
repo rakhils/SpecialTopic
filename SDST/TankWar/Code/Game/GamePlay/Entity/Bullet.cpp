@@ -1,11 +1,14 @@
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/Renderer/Renderable.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+#include "Engine/Physics/RigidBody3D.hpp"
+
 #include "Engine/Mesh/MeshBuilder.hpp"
 #include "Game/GamePlay/Entity/EnemyTank.hpp"
 #include "Game/GamePlay/Entity/Bullet.hpp"
+#include "Game/GamePlay/Entity/EnemyBase.hpp"
 // CONSTRUCTOR
-Bullet::Bullet(std::string name,int team,Vector3 position,Vector3 direction,float speed): GameObject(name)
+Bullet::Bullet(std::string name,int team,Vector3 position,Vector3 direction,float speed,bool isArcher): GameObject(name)
 {
 	m_teamNumber = team;
 	m_forward = direction;
@@ -21,8 +24,19 @@ Bullet::Bullet(std::string name,int team,Vector3 position,Vector3 direction,floa
 	m_renderable->m_material->m_textures.at(0) = Texture::GetDefaultTexture();
 
 	m_speed = speed;
-	AddSphereCollider(Vector3::ZERO, 1.f);
+	AddPointCollider(Vector3::ZERO);
+	//AddSphereCollider(Vector3::ZERO, 1.f);
 	AddLightComponent(Vector3::ZERO,Rgba::RED);
+
+
+	if(isArcher)
+	{
+		AddRigidBody3DComponent();
+		((RigidBody3D*)GetRigidBody3DComponent())->ApplyForce(direction * 7500.f,0.016f);
+		((RigidBody3D*)GetRigidBody3DComponent())->m_gravity = Vector3(0, -9.8f, 0);
+		((RigidBody3D*)GetRigidBody3DComponent())->m_useGravity = true;
+		((RigidBody3D*)GetRigidBody3DComponent())->m_friction = 0.02f;
+	}
 }
 
 // DESTRUCTOR
@@ -43,7 +57,10 @@ void Bullet::Update(float deltaTime)
 {
 	//m_renderable->m_modelMatrix = m_transform.GetLocalMatrix();
 	m_lifeTime -= deltaTime;
-	m_transform.Translate(m_forward*m_speed);
+	if((RigidBody3D*)GetRigidBody3DComponent() == nullptr)
+	{
+		m_transform.Translate(m_forward*m_speed);
+	}
 	GameObject::Update(deltaTime);
 }
 
@@ -57,6 +74,11 @@ void Bullet::OnCollisionEnter(Collider *collider)
 {
 	UNUSED(collider);
 	if (EnemyTank *tank = dynamic_cast<EnemyTank*>(collider->m_gameObject))
+	{
+		m_markForDelete = true;
+		m_lifeTime = 0.f;
+	}
+	if (EnemyBase *base = dynamic_cast<EnemyBase*>(collider->m_gameObject))
 	{
 		m_markForDelete = true;
 		m_lifeTime = 0.f;

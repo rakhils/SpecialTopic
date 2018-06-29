@@ -30,6 +30,7 @@ public:
 	AABB3(Vector3 mins, Vector3 maxs);
 	~AABB3();
 
+	Vector3 GetDimensions();
 	void SetDimensions(Vector3 dimensions);
 	
 	// ALL CORNERS

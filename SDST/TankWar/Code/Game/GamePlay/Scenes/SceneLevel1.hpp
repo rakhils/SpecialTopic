@@ -14,21 +14,25 @@
 */
 class Tank;
 class Map;
+enum LEVEL_STATE
+{
+	PLAY,WIN,LOSE
+};
 class SceneLevel1 : public Scene
 {
 
 public:
 	//Member_Variables
-	Tank * m_playerTank = nullptr;
-	GameObject			    *m_soundTestObj = nullptr;
-	Map					    *m_map = nullptr;
-	bool				   m_init = false;
-	OrbitCamera			   *m_ocamera = nullptr;
-	PerspectiveCamera	   *m_pcamera = nullptr;
-
-	float					m_cameraRadius = 30;
-	float					m_cameraPhi	   = 0;
-	float					m_cameraTheta  = -20;
+	Tank*				   m_playerTank     = nullptr;
+	GameObject			   *m_soundTestObj  = nullptr;
+	Map					   *m_map			= nullptr;
+	bool				    m_init			= false;
+	OrbitCamera			   *m_ocamera		= nullptr;
+	PerspectiveCamera	   *m_pcamera		= nullptr;
+	LEVEL_STATE				m_levelState;
+	float					m_cameraRadius  = 30;
+	float					m_cameraPhi	    = 0;
+	float					m_cameraTheta   = -20;
 
 	//Static_Member_Variables
 

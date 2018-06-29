@@ -55,7 +55,7 @@ EnemyTank::EnemyTank(std::string name, Scene *scene,Vector3 position) : GameObje
 // DESTRUCTOR
 EnemyTank::~EnemyTank()
 {
-	int a = 1;
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -80,9 +80,9 @@ void EnemyTank::Update(float deltatime)
 	m_timeLeftForNextDirectionChange -= deltatime;
 	Vector3 pos = m_transform.GetWorldPosition();
 	//DebugDraw::GetInstance()->DebugRenderLogf("TANK POS %f %f %f", pos.x, pos.y, pos.z);
-
+	m_forward = Vector3::ZERO;
 	UpdateSeekDirection(45);
-	UpdateSeperationDirection(50);
+	UpdateSeperationDirection(250);
 	UpdateCohesionDirection(1);
 	UpdateAlignmentDirection(20);
 	UpdateRandomDirection(1);
@@ -208,7 +208,7 @@ void EnemyTank::UpdateSeekDirection(float weight)
 	Vector3 distanceVec3   = playerLocation - m_transform.GetWorldPosition();
 	if((distanceVec3).GetLength() < m_minDistanceToFollow)
 	{
-		m_forward = distanceVec3.GetNormalized() * weight;
+		m_forward += distanceVec3.GetNormalized() * weight;
 		return;
 	}
 }
@@ -233,7 +233,7 @@ void EnemyTank::UpdateSeperationDirection(float weight)
 		Vector3 distance = tank->m_transform.GetWorldPosition() - m_transform.GetWorldPosition();
 		if (distance.GetLength() < m_minDistanceForSeperation)
 		{
-			averageDirection += (distance);
+			averageDirection += (distance.GetNormalized());
 			vehicleCount++;
 		}
 	}
@@ -241,7 +241,7 @@ void EnemyTank::UpdateSeperationDirection(float weight)
 	{
 		return;
 	}
-	averageDirection /= vehicleCount;
+	averageDirection /= static_cast<float>(vehicleCount);
 	m_forward +=  averageDirection*(-1 * weight);
 }
 
@@ -273,7 +273,7 @@ void EnemyTank::UpdateCohesionDirection(float weight)
 	{
 		return;
 	}
-	averagePosition /= vehicleCount;
+	averagePosition /= static_cast<float>(vehicleCount);
 	Vector3 direction = averagePosition - m_transform.GetWorldPosition();
 	m_forward += direction.GetNormalized() * weight;
 }
@@ -306,7 +306,7 @@ void EnemyTank::UpdateAlignmentDirection(float weight)
 	{
 		return;
 	}
-	averageDirection /= vehicleCount;
+	averageDirection /= static_cast<float>(vehicleCount);
 	m_forward += averageDirection * weight;
 }
 

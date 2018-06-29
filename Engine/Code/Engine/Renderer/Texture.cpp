@@ -94,40 +94,22 @@ void Texture::PopulateFromData( unsigned char* imgData, const IntVector2& texelS
 {
 	m_dimensions = texelSize;
 
-	// Enable texturing
-	//glEnable( GL_TEXTURE_2D );
-
-	// Tell OpenGL that our pixel data is single-byte aligned
-	//glPixelStorei( GL_UNPACK_ALIGNMENT, 1 );
-
-	// Ask OpenGL for an unused texName (ID number) to use for this texture
 	glGenTextures( 1, (GLuint*) &m_textureID );
 
-	// Tell OpenGL to bind (set) this as the currently active texture
 	glBindTexture( GL_TEXTURE_2D, m_textureID );
 
-	// Set texture clamp vs. wrap (repeat)
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT ); // GL_CLAMP or GL_REPEAT
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT ); // GL_CLAMP or GL_REPEAT
-	////
-	////// Set magnification (texel > pixel) and minification (texel < pixel) filters
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST ); // one of: GL_NEAREST, GL_LINEAR
-	//glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); // one of: GL_NEAREST, GL_LINEAR, GL_NEAREST_MIPMAP_NEAREST, GL_NEAREST_MIPMAP_LINEAR, GL_LINEAR_MIPMAP_NEAREST, GL_LINEAR_MIPMAP_LINEAR
+	GLenum internalFormat = GL_RGBA8; // GL_RGB, GL_RGBA, GL_LUMINANCE, GL_LUMINANCE_ALPHA, ...
+	if( numComponents == 3 )	internalFormat = GL_RGB8;
 
-	GLenum bufferFormat = GL_RGBA8; // the format our source pixel data is in; any of: GL_RGB, GL_RGBA, GL_LUMINANCE, GL_LUMINANCE_ALPHA, ...
-	if( numComponents == 3 )
-		bufferFormat = GL_RGB8;
-
-	GLenum internalFormat = bufferFormat; // the format we want the texture to be on the card; allows us to translate into a different texture format as we upload to OpenGL
 	unsigned int mipmapCount = CalculateMipCount(GetMax(m_dimensions.x, m_dimensions.y));
 	GL_CHECK_ERROR();
 
 	glTexStorage2D(GL_TEXTURE_2D,mipmapCount,internalFormat,m_dimensions.x, m_dimensions.y); 
 	GL_CHECK_ERROR();
 
-	bufferFormat = GL_RGBA;
-	if (numComponents == 3)
-		bufferFormat = GL_RGB;
+	GLenum bufferFormat = GL_RGBA;
+	if (numComponents == 3)		bufferFormat = GL_RGB;
+
 	glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_dimensions.x,m_dimensions.y,bufferFormat,GL_UNSIGNED_BYTE,imgData);
 	GL_CHECK_ERROR();
 
@@ -143,7 +125,6 @@ void Texture::PopulateFromData( unsigned char* imgData, const IntVector2& texelS
 		bufferFormat,		// Pixel format describing the composition of the pixel data in buffer
 		GL_UNSIGNED_BYTE,	// Pixel color components are unsigned bytes (one byte per color channel/component)
 		imgData );*/		// Address of the actual pixel data bytes/buffer in system memory
-	GL_CHECK_ERROR();
 	//GenerateMipMaps();
 }
 
@@ -171,7 +152,6 @@ unsigned int Texture::CalculateMipCount(int value)
 	int mipCount = 0;
 	while(value > 0)
 	{
-		//int result = static_cast<int>(pow<int,int>(2, mipCount));
 		value >>= 1;
 		mipCount++;
 	}

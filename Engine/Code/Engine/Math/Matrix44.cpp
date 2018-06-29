@@ -1216,6 +1216,7 @@ Matrix44 Matrix44::LookAt(Vector3 position, Vector3 lookAtPos, Vector3 upvector)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 Matrix44 Matrix44::LookAt1(Vector3 position, Vector3 forward, Vector3 worldUP)
 {
+	UNUSED(position);
 	Vector3 right = CrossProduct(worldUP, forward);
 	right = right.GetNormalized();
 

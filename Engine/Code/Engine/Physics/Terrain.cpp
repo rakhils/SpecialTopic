@@ -25,7 +25,7 @@ void Terrain::LoadFromImage(Image *image, AABB2 const &extents, float min_height
 	m_extents		  = extents;
 	m_minHeight		  = min_height;
 	m_maxHeight		  = max_height;
-	m_chunkDimensions = chunk_counts;
+	m_chunkDimensions = extents.GetDimensions()/chunk_counts;
 	m_meshBuilder.Begin(PRIMITIVE_TRIANGES, true);
 	
 	for(int index = 0;index < image->texture->texels.size();index++)
@@ -37,23 +37,27 @@ void Terrain::LoadFromImage(Image *image, AABB2 const &extents, float min_height
 		m_heights.push_back(height);
 	}
 	m_dimensions = image->GetDimensions().GetAsVector2();
-	m_cellSize.x = m_dimensions.x / extents.GetDimensions().x;
-	m_cellSize.y = m_dimensions.y / extents.GetDimensions().y;
+	//m_cellSize.x = m_dimensions.x / extents.GetDimensions().x;
+	//m_cellSize.y = m_dimensions.y / extents.GetDimensions().y;
 	
+	m_cellSize.x = extents.GetDimensions().x / m_dimensions.x;
+	m_cellSize.y = extents.GetDimensions().y / m_dimensions.y;
+
+
 	Vector2 chunkDimension(m_dimensions.x / chunk_counts.x, m_dimensions.y/chunk_counts.y);
 	Vector3 startWorldPosition = Vector3::ZERO;
-	for (float chunkIndexY = 0; chunkIndexY < m_dimensions.y;)
+	for (float chunkIndexY = 0; chunkIndexY < chunk_counts.y;)
 	{
-		for(float chunkIndexX = 0;chunkIndexX < m_dimensions.x;)
+		for(float chunkIndexX = 0;chunkIndexX < chunk_counts.x;)
 		{
-			Vector2 startChunkPosition(chunkIndexX, chunkIndexY);
-			CreateTerrainChunk(startWorldPosition.GetXY(), startChunkPosition);
-			startWorldPosition.x += m_cellSize.x*chunkDimension.x;
-			chunkIndexX += chunkDimension.x;
+			Vector2 currentChunkStartPosition(chunkIndexX*m_chunkDimensions.x, chunkIndexY*m_chunkDimensions.y);
+			CreateTerrainChunk(startWorldPosition.GetXY(), currentChunkStartPosition);
+			startWorldPosition.x += (chunkDimension.x) * m_cellSize.x;
+			chunkIndexX ++;
 		}
-		chunkIndexY += chunkDimension.y;
+		chunkIndexY ++;
 		startWorldPosition.x = 0;
-		startWorldPosition.y += m_cellSize.y*chunkDimension.y;
+		startWorldPosition.y += (chunkDimension.y)* m_cellSize.y;
 	}
 }
 
@@ -66,10 +70,9 @@ void Terrain::LoadFromImage(Image *image, AABB2 const &extents, float min_height
 void Terrain::CreateTerrainChunk(Vector2 startPosition, Vector2 chunkStart)
 {
 	Vector2 tempStartPosition = startPosition;
-	Vector2 chunkDimension(m_dimensions.x / m_chunkDimensions.x, m_dimensions.y/m_chunkDimensions.y);
-	for(float indexY = 0;indexY < chunkDimension.y;indexY++)
+	for(float indexY = 0;indexY < m_chunkDimensions.y;indexY++)
 	{
-		for(float indexX = 0;indexX < chunkDimension.x;indexX++)
+		for(float indexX = 0;indexX < m_chunkDimensions.x;indexX++)
 		{
 			float height = GetHeightAtDiscreteCordinate(Vector2(chunkStart.x + indexX, chunkStart.y + indexY).ToIntVector2());
 			Vector3 position(startPosition.x, height, startPosition.y);
@@ -86,14 +89,14 @@ void Terrain::CreateTerrainChunk(Vector2 startPosition, Vector2 chunkStart)
 		startPosition.y += m_cellSize.y;
 	}
 
-	for (int z = 0; z < (static_cast<int>(chunkDimension.y) - 1); z++)
+	for (int z = 0; z < (static_cast<int>(m_chunkDimensions.y) - 1); z++)
 	{
-		for (int x = 0; x < (static_cast<int>(chunkDimension.x) - 1); x++)
+		for (int x = 0; x < (static_cast<int>(m_chunkDimensions.x) - 1); x++)
 		{
-			int ll = static_cast<int>(chunkDimension.y) * z + x;
+			int ll = static_cast<int>(m_chunkDimensions.y) * z + x;
 			int lr = ll + 1;
 
-			int ul = ll + static_cast<int>(chunkDimension.y);
+			int ul = ll + static_cast<int>(m_chunkDimensions.y);
 			int ur = ul + 1;
 			m_meshBuilder.AddQuadIndex(ll, lr, ul, ur);
 		}
@@ -250,7 +253,8 @@ RaycastHit Terrain::Raycast(GameObject *gameobject,Ray &ray)
 {
 	Vector3		currentPosition = ray.m_start;
 	RaycastHit  result;
-	for(float rayDistance = 0;(rayDistance + ray.m_stepSize)< ray.m_maxDistance;rayDistance += ray.m_stepSize)
+	float rayDistance = 0.f;
+	for(;(rayDistance + ray.m_stepSize)< ray.m_maxDistance;rayDistance += ray.m_stepSize)
 	{
 		Vector3 nextPosition = ray.Evaluate(rayDistance + ray.m_stepSize);
 		if(gameobject != nullptr)
@@ -292,7 +296,8 @@ RaycastHit Terrain::Raycast(GameObject *gameobject,Ray &ray)
 		}
 		currentPosition = nextPosition;
 	}
-	result.m_hit = false;
+	result.m_position = ray.Evaluate(rayDistance);
+	result.m_hit      = false;
 	return result;
 }
 

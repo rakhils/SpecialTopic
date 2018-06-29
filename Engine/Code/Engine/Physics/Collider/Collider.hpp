@@ -16,6 +16,7 @@
 * \date   : 5/17/2018 4:18:53 PM
 * \contact: srsrakhil@gmail.com
 */
+class PointCollider;
 class SphereCollider;
 class BoxCollider2D;
 class BoxCollider;
@@ -23,7 +24,7 @@ class AABB2Collider;
 class CircleCollider;
 enum COMPONENT_COLLIDER_TYPE
 {
-	BOX_COLLIDER2D, BOX_COLLIDER, SPHERE_COLLIDER, CIRCLE_COLLIDER
+	POINT_COLLIDER,BOX_COLLIDER2D, BOX_COLLIDER, SPHERE_COLLIDER, CIRCLE_COLLIDER
 };
 class Collider : public Component
 {
@@ -46,6 +47,9 @@ public:
 	Vector3 GetCenterPosition();
 	void	SetPosition(Vector3 position);
 	// ALL TYPE OF COLLISIONS
+	bool CheckSphereVsPointCollision (SphereCollider* sphereCollider, PointCollider *point);
+	bool CheckBoxVsPointCollision    (BoxCollider* sphereCollider, PointCollider *point);
+
 	bool CheckSphereVsBox2DCollision (SphereCollider* sphereCollider, BoxCollider2D* boxCollider);
 	bool CheckBox2DVsCircleCollision (BoxCollider2D * box2dCollider, CircleCollider* circleCollider,DIRECTIONS &area);
 	bool CheckSphereVsSphereCollision(SphereCollider* sphereCollider1, SphereCollider* sphereCollider2);

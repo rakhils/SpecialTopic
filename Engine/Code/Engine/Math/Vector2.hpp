@@ -31,6 +31,7 @@ public:
 	bool		    operator	!= (const Vector2& compare) const;			// vec2 != vec2
 
 	const Vector2   operator	*  (Vector2 vectora) const;
+	const Vector2   operator	/  (const Vector2& vec) const;			    // vec2 + vec2
 
 	friend const Vector2 operator*(float uniformScale, const Vector2& vecToScale);
 

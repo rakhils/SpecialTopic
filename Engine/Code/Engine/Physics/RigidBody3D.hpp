@@ -22,7 +22,7 @@ public:
 	bool						m_isKinematic			= false;
 	float						m_speed;
 	float						m_mass					= 1.f;
-	float						m_friction				= 0.f;
+	float						m_friction				= 1.f;
 	Vector3						m_acceleration;
 	Vector3						m_velocity; 
 	Vector3						m_gravity;

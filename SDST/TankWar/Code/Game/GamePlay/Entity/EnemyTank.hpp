@@ -28,9 +28,9 @@ public:
 	Vector3 m_seekPosition;
 	float   m_velocity = 500;
 	float   m_minDistanceToFollow = 70;
-	float   m_minDistanceForSeperation = 5;
+	float   m_minDistanceForSeperation = 7.5;
 	float   m_minDistanceForCohesion   = 15;
-	float   m_minDistanceForAlignment  = 10;
+	float   m_minDistanceForAlignment  = 12;
 	float   m_hitInterval = 0;
 	int     m_teamNumber;
 	bool    m_markAsDead = false;

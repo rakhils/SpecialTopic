@@ -19,9 +19,9 @@ Shader::Shader(const Shader &shaderObj)
 {
 	m_sortOrder		 = shaderObj.m_sortOrder;
 	m_renderQueue	 = shaderObj.m_renderQueue;
-	m_renderer		 = shaderObj.m_renderer;
 	m_state			 = shaderObj.m_state;
 	m_defines		 = shaderObj.m_defines;
+	m_renderer		 = shaderObj.m_renderer;	  // CAN BE SAME POINTER
 	m_shaderDef		 = shaderObj.m_shaderDef;	  // CAN BE SAME POINTER 
 	m_shaderProgram  = shaderObj.m_shaderProgram; // CAN BE SAME POINTER 
 }

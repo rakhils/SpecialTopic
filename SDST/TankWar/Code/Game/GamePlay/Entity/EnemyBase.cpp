@@ -46,8 +46,8 @@ void EnemyBase::SpawnEnemy(Scene *scene)
 	enemyTank->AddRigidBody3DComponent();
 	s_enemyTanks.push_back(enemyTank);
 	std::string text("Enemy Spawned at " + m_name +" TANK NUM "+name);
-	DebugDraw::GetInstance()->DebugRenderLogf(2,text.c_str());
-	DebugDraw::GetInstance()->DebugRenderLogf(2,"POSITION %f,%f,%f",position.x,position.y,position.z);
+	//DebugDraw::GetInstance()->DebugRenderLogf(2,text.c_str());
+	//DebugDraw::GetInstance()->DebugRenderLogf(2,"POSITION %f,%f,%f",position.x,position.y,position.z);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +89,7 @@ void EnemyBase::OnCollisionEnter(Collider *collider)
 		m_health--;
 		//std::string text(m_name + "HIT !! HEALTH LEFT %d ");
 		DebugDraw::GetInstance()->DebugRenderLogf(3, "ENEMY BASE HIT!! HEALTH LEFT %f", m_health);
+
 	}
 	if(m_health <0)
 	{

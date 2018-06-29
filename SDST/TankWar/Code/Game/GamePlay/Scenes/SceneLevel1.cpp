@@ -138,7 +138,7 @@ void SceneLevel1::CreatePlayer()
 	m_playerTank->m_turretHead = turretHeadGO;
 	m_playerTank->AddChild(turretHeadGO);
 	m_playerTank->AddChild(turretGunGO);
-
+	m_playerTank->AddParticleComponent(Vector3(0,2,-1), Renderer::GetInstance());
 	//m_playerTank->m_transform.Translate(Vector3(120, 20, 274));
 	m_playerTank->m_transform.Translate(Vector3(20, 0, 20));
 /*
@@ -150,7 +150,7 @@ void SceneLevel1::CreatePlayer()
 	m_ocamera = (OrbitCamera*)Camera::CreateOrGetCamera("level1cam", ORBIT);
 	//m_ocamera->m_transform.SetLocalPosition(Vector3(20, 60, 0));
 	//m_ocamera->m_transform.RotateLocalByEuler(Vector3(0, 0, 0));
-	float PI = 3.14f;
+	//float PI     = 3.14f;
 	float width  = static_cast<float>(Windows::GetInstance()->GetDimensions().x);
 	float heigth = static_cast<float>(Windows::GetInstance()->GetDimensions().y);
 	float aspect = width / heigth;
@@ -182,10 +182,10 @@ void SceneLevel1::CreatePlayer()
 
 	m_soundTestObj = new GameObject("soundtest");
 	m_soundTestObj->SetScene(this);
-	m_soundTestObj->SetPosition(Vector3(250, 20, 250));
+	m_soundTestObj->SetPosition(Vector3(100, 20, 100));
 	m_soundTestObj->Add3DAudioComponent("Data\\Audio\\GameplayMusic.mp3", Vector3::ZERO);
-	AudioComponent* audio =  (AudioComponent*)m_soundTestObj->GetComponentByType(AUDIO);
-	audio->Play();
+	AudioComponent* audio3D =  (AudioComponent*)m_soundTestObj->GetComponentByType(AUDIO);
+	audio3D->Play();
 	Mesh *body   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1, 1, 2), Rgba::WHITE, FILL_MODE_FILL);
 	m_soundTestObj->m_renderable->SetMesh(body);
 	m_soundTestObj->m_renderable->SetMaterial(Material::AquireResource("default"));
@@ -203,7 +203,7 @@ void SceneLevel1::CreateMap()
 	m_map = new Map();
 	Image *terrainImage = new Image("Data//Images//m6.png");
 	m_map->m_image = terrainImage;
-	m_map->LoadFromImage(this,terrainImage, AABB2(Vector2(0, 0),256,256), 1, 50, Vector2::ONE);
+	m_map->LoadFromImage(this,terrainImage, AABB2(Vector2(0, 0),256,256), 1, 50, Vector2::ONE*8);
 	CreateWater();
 	Game::SetMinBounds(Vector3(0, 1, 0));
 	Game::SetMaxBounds(Vector3(static_cast<float>(m_map->m_image->GetDimensions().x), 50, static_cast<float>(m_map->m_image->GetDimensions().y)));
@@ -220,7 +220,7 @@ void SceneLevel1::CreateWater()
 	GameObject *water = new GameObject("water");
 	Rgba color(Vector4(1, 1, 1,0.75f));
 	Mesh *mesh = MeshBuilder::Create3DPlaneChunk<Vertex_3DPCUNTB>(Vector3(0, 20, 0), Vector3::RIGHT, Vector3::FORWARD, Vector2(50, 50),Vector2::ONE ,color,FILL_MODE_FILL);
-	Mesh *mesh1 = MeshBuilder::Create3DPlane<Vertex_3DPCUNTB>(Vector3(0, 20, 0), Vector3::RIGHT, Vector3::FORWARD, Vector2(20, 20) ,color,FILL_MODE_FILL);
+	//Mesh *mesh1 = MeshBuilder::Create3DPlane<Vertex_3DPCUNTB>(Vector3(0, 20, 0), Vector3::RIGHT, Vector3::FORWARD, Vector2(20, 20) ,color,FILL_MODE_FILL);
 	water->m_renderable->m_name = "water";
 	water->m_renderable->SetMesh(mesh);
 	water->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Water.mat"));
@@ -247,9 +247,47 @@ void SceneLevel1::Update(float deltaTime)
 	DebugRenderOptions options;
 	options.m_lifeTime = 0;
 	options.m_mode = DEBUG_RENDER_USE_DEPTH;
-	//DebugDraw::GetInstance()->DebugRenderSphere(Vector3(0, 70, 100), 20, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL_WIRE, options);
-
 	
+	if(m_playerTank->m_health <= 0)
+	{
+		m_levelState = LOSE;
+	}
+	if(EnemyBase::s_enemyBases.size() == 0 && EnemyBase::s_enemyTanks.size() == 0)
+	{
+		m_levelState = WIN;
+	}
+	if(m_levelState == LOSE)
+	{
+		m_playerTank->m_timeLeftToRespawn -= deltaTime;
+		if(m_playerTank->m_timeLeftToRespawn <=0)
+		{
+			if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_ENTER))
+			{
+				m_playerTank->Respawn(0,10);
+				m_levelState = PLAY;
+			}
+		}
+		return;
+	}
+	if(m_levelState == WIN)
+	{
+		if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_ENTER))
+		{
+			
+		}
+		//return;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_B))
+	{
+		if(m_playerTank->m_isArcherBullet)
+		{
+			m_playerTank->m_isArcherBullet = false;
+		}
+		else
+		{
+			m_playerTank->m_isArcherBullet = true;
+		}
+	}
 	if(InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_Z))
 	{
 		m_cameraTheta += 50*deltaTime;
@@ -274,7 +312,7 @@ void SceneLevel1::Update(float deltaTime)
 	{
 		m_cameraRadius -= 50*deltaTime;
 	}
-	DebugDraw::GetInstance()->DebugRenderLogf("SAMPLER NEAR %f" , Sampler::GetCurrentSampler()->m_nearValue);
+	//DebugDraw::GetInstance()->DebugRenderLogf("SAMPLER NEAR %f" , Sampler::GetCurrentSampler()->m_nearValue);
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_K))
 	{
 		Sampler::GetCurrentSampler()->m_nearValue-=10;
@@ -291,15 +329,13 @@ void SceneLevel1::Update(float deltaTime)
 
 	Vector3 cameraPosition = m_ocamera->m_transform.GetWorldPosition();
 	Vector3 cameraAngle	   = m_ocamera->m_transform.GetWorldRotation();
-	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::RED, "CAM POSITION %f, %f, %f", cameraPosition.x, cameraPosition.y, cameraPosition.z);
-	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::RED, "CAM ANGLE    %f, %f, %f", cameraAngle.x, cameraAngle.y, cameraAngle.z);
 
-	float PI = 3.14f;
+	//float PI = 3.14f;
 	Vector2 delta = g_theInput->GetMouseDelta();
 	delta.y += .5;
 	if (delta.x != 0)
 	{
-		m_cameraPhi += delta.x/5.f;
+		m_cameraPhi  -= delta.x/5.f;
 		m_cameraPhi  = fmodf(m_cameraPhi, 360);
 	}
 	if (delta.y != 0)
@@ -308,29 +344,7 @@ void SceneLevel1::Update(float deltaTime)
 		m_cameraTheta = ClampFloat(m_cameraTheta, -90, 90);
 	}
 
-	if (InputSystem::GetInstance()->IsLButtonDown())
-	{
-		/*Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
-		PickRay ray      = Camera::GetGamePlayCamera()->GetPickRayFromScreenCords(screenXY);
-
-		Ray raycast;
-		raycast.m_direction = ray.m_direction;
-		raycast.m_start     = m_playerTank->m_transform.GetWorldPosition() + Vector3(0,1,0);
-
-		RaycastHit result = m_map->m_terrain->Raycast(raycast);
-		DebugDraw::GetInstance()->DebugRenderLogf("RAYCAST : POSITION :: %f,%f %f", result.m_position.x, result.m_position.y, result.m_position.z);
-		DebugDraw::GetInstance()->DebugRenderLine(raycast.m_start, result.m_position, Rgba::YELLOW, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
-		DebugDraw::GetInstance()->DebugRenderLine(result.m_position,result.m_position + ray.m_direction*1000 ,Rgba::RED, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
-
-		Vector3 cameraRight		= Camera::GetCurrentCamera()->GetCameraRightVector();
-		Vector3 cameraUp		= Camera::GetCurrentCamera()->GetCameraUpVector();
-		Vector2 terrainCellSize = m_map->m_terrain->m_cellSize;
-		terrainCellSize = terrainCellSize / 2.f;
-
-		DebugDraw::GetInstance()->DebugRenderQuad(result.m_position, AABB2(Vector2(0, 0), terrainCellSize.x, terrainCellSize.y), cameraRight, cameraUp, nullptr, Rgba::BLUE, DEBUG_RENDER_FILL, options);*/
-		//DebugDraw::GetInstance()->DebugRenderSphere(result.m_position, 1, 16, 16, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
-	}
-	DebugDraw::GetInstance()->DebugRenderSphere(Vector3::ZERO, 5, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
+	//DebugDraw::GetInstance()->DebugRenderSphere(Vector3::ZERO, 5, 32, 32, nullptr, Rgba::WHITE, DEBUG_RENDER_FILL, options);
 	m_playerTank->Update(deltaTime);
 	m_soundTestObj->Update(deltaTime);
 	Vector3 playerWorldPosition = m_playerTank->m_transform.GetWorldPosition();
@@ -339,7 +353,6 @@ void SceneLevel1::Update(float deltaTime)
 	DebugDraw::GetInstance()->DebugRenderLogf("ENEMY TANK LEFT %d ", static_cast<int>(EnemyBase::s_enemyTanks.size()));
 
 	EnemyBase::UpdateEnemyBase(deltaTime);
-	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -355,7 +368,7 @@ void SceneLevel1::Render()
 
 	AABB2 healthBound(Vector2(1600, 1000), Vector2(1900, 1050));
 	AABB2 health(Vector2(1600, 1000), Vector2(1600 + m_playerTank->m_health*30, 1050));
-	AABB2 statsBound(Vector2(1400, 900), Vector2(1950, 1070));
+	AABB2 statsBound(Vector2(1315, 900), Vector2(1950, 1070));
 
 	Camera::SetCurrentCamera(Camera::GetUICamera());
 	Material *defaultMaterial = Material::AquireResource("default");
@@ -367,24 +380,40 @@ void SceneLevel1::Render()
 	Material *text = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(text);
 	Renderer::GetInstance()->DrawText2D(Vector2(1450, 1025), "HEALTH : ", 10.f, Rgba::WHITE, 1, nullptr);
+	if(m_playerTank->m_isArcherBullet)
+	{
+		Renderer::GetInstance()->DrawText2D(Vector2(1325, 950), "BULLET TYPE ARCHER PRESS B TO CHANGE",10.f, Rgba::YELLOW, 1, nullptr);
+	}
+	else
+	{
+		Renderer::GetInstance()->DrawText2D(Vector2(1325, 950), "BULLET TYPE NORMAL PRESS B TO CHANGE",10.f, Rgba::YELLOW, 1, nullptr);
+	}
 	delete defaultMaterial;
 	delete text;
 
+	if (m_levelState == LOSE)
+	{
 
-	if (EnemyBase::s_enemyBases.size() == 0 && EnemyBase::s_enemyTanks.size() == 0)
+		Material *def = Material::AquireResource("Data\\Materials\\text.mat");
+		Renderer::GetInstance()->BindMaterial(def);
+		std::string text1 = ToString(m_playerTank->m_timeLeftToRespawn) + " SECONDS";
+		if (m_playerTank->m_timeLeftToRespawn <= 0)
+		{
+			Renderer::GetInstance()->DrawText2D(Vector2(300, 500), "PRESS ENTER TO RESPAWN ", 30, Rgba::WHITE, 1, nullptr);
+		}
+		else
+		{
+			Renderer::GetInstance()->DrawText2D(Vector2(300, 500), "YOU DIED WAIT FOR " + text1, 30, Rgba::WHITE, 1, nullptr);
+		}
+		delete def;
+		return;
+	}
+	if (m_levelState == WIN)
 	{
 		Material *def = Material::AquireResource("Data\\Materials\\text.mat");
 		Renderer::GetInstance()->BindMaterial(def);
 		Renderer::GetInstance()->DrawText2D(Vector2(1000, 500), "YOU WON", 50, Rgba::WHITE, 1, nullptr);
 		delete def;
-	}
-
-	if(m_playerTank->m_markForDead)
-	{
-		Material *def = Material::AquireResource("Data\\Materials\\text.mat");
-		Renderer::GetInstance()->BindMaterial(def);
-		std::string text1 = ToString(m_playerTank->m_timeLeftToRespawn) + " SECONDS";
-		Renderer::GetInstance()->DrawText2D(Vector2(300, 500), "YOU DIED WAIT FOR "+text1, 30, Rgba::WHITE, 1, nullptr);
-		delete def;
+		return;
 	}
 }

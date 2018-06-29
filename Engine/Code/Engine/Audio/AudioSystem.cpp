@@ -53,6 +53,8 @@ AudioSystem::AudioSystem()
 
 	result = m_fmodSystem->init( 512, FMOD_INIT_NORMAL, nullptr );
 	ValidateResult( result );
+
+	LoadSoundsFromFile("Data\\Definitions\\Sounds.xml");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //DESTRUCTOR
@@ -73,6 +75,31 @@ void AudioSystem::BeginFrame()
 //-----------------------------------------------------------------------------------------------
 void AudioSystem::EndFrame()
 {
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/28
+*@purpose : Load all sounds from definitions
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AudioSystem::LoadSoundsFromFile(std::string xmlPath)
+{
+	TinyXMLDocument doc;
+	doc.LoadFile(xmlPath.c_str());
+	XMLElement *xmlRootElement = doc.FirstChildElement("SoundDefinition");
+	XMLElement *xmlChildElement = xmlRootElement->FirstChildElement("Sounds");
+	for (; xmlChildElement != nullptr; xmlChildElement = xmlChildElement->NextSiblingElement())
+	{
+		const char* name = xmlChildElement->Attribute("name");
+		XMLElement *xmlFilePathElement = xmlChildElement->FirstChildElement("File");
+
+		for (; xmlFilePathElement != nullptr; xmlFilePathElement = xmlFilePathElement->NextSiblingElement())
+		{
+			const char* filePath = xmlFilePathElement->Attribute("path");
+			LoadSoundGroup(name, filePath);
+		}
+	}
 }
 
 //-----------------------------------------------------------------------------------------------
@@ -248,11 +275,11 @@ void AudioSystem::LoadSoundGroup(std::string grpname, std::string filename)
 	{
 		std::vector<std::string> filenames;
 		filenames.push_back(filename);
-		m_audioGroupMap[grpname] =filenames;
+		m_audioGroupMap[grpname] = filenames;
 		return;
 	}
-	std::vector<std::string> filenames = it->second;
-	filenames.push_back(filename);
+	//std::vector<std::string> filenames = it->second;
+	it->second.push_back(filename);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

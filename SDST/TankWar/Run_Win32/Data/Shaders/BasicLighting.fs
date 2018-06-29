@@ -155,7 +155,13 @@ float distanceFromCamera	= length(cameraPosition - passWorld);
 
 //outColor		 = AddFog(distanceFromCamera,final_color,passViewPos.z);
 
-
+   //vec4 clip_pos =   POINT_LIGHTS[0].shadow_vp * (vec4(passWorldPos, 1.0f));
+   //vec3 ndc_pos = clip_pos.xyz / clip_pos.w; 
+   //
+   //// put from -1 to 1 range to 0 to 1 range
+   //ndc_pos = (ndc_pos + vec3(1)) * .5f;
+   //
+   //outColor = texture( gTexShadow, ndc_pos.xy );
 
 
 //vec4(passSpecFactor/10,passSpecPower/16,0,1);

@@ -531,7 +531,7 @@ Frustum Camera::GetFrustum()
 //////////////////////////////////////////////////////////////
 void Camera::Finalize()
 {
-	glViewport(0, 0, m_viewPort.maxs.x, m_viewPort.maxs.y);
+	glViewport(0, 0, (int)m_viewPort.maxs.x, (int)m_viewPort.maxs.y);
 	m_defaultFrameBuffer->Finalize();
 }
 

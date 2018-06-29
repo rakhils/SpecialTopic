@@ -54,15 +54,16 @@ Vector3 Tank::GetTurretForward()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Tank::FireBullet(float deltaTime,Vector3 direction)
+void Tank::FireBullet(float deltaTime,Vector3 direction,bool isArcher)
 {
 	if(m_bulletCoolDown > 0)
 	{
 		return;
 	}
+	AudioSystem::GetInstance()->PlaySoundFromGroup("shoot");
 	UNUSED(deltaTime);
 	Vector3 bulletSpawnPosition = m_turretHead->m_transform.GetWorldPosition();
-	Bullet *bullet			    = new Bullet("bullet_" + ToString((m_bullets.size())),1, bulletSpawnPosition, direction, 1);
+	Bullet *bullet			    = new Bullet("bullet_" + ToString((m_bullets.size())),1, bulletSpawnPosition, direction, 1,isArcher);
 	Light *light			    = (Light*)bullet->GetComponentByType(LIGHT);
 	//LIGHT IS NULL IF IT EXCEED MAX LIMIT
 	if(light != nullptr)
@@ -71,11 +72,11 @@ void Tank::FireBullet(float deltaTime,Vector3 direction)
 		light->SetPointLigthSpecAttenuation(Vector3(1, 1, 1));
 		m_scene->AddLight(light);
 	}
+
 	bullet->SetScene(m_scene);
-	//bullet->AddParticleComponent(Vector3::ZERO, Renderer::GetInstance());
 	m_scene->AddRenderable(bullet->m_renderable);
 	m_bullets.push_back(bullet);
-	m_bulletCoolDown = 1;
+	//m_bulletCoolDown = 1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -84,9 +85,9 @@ void Tank::FireBullet(float deltaTime,Vector3 direction)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Tank::Respawn(int retryCount)
+void Tank::Respawn(int currentRetryCount,int maxRetryCount)
 {
-	if (retryCount > 10)
+	if (currentRetryCount > maxRetryCount)
 	{
 		Vector3 position = GetRandomPoint(Game::GetMinBounds(), Game::GetMaxBounds());
 		m_health = 10;
@@ -100,7 +101,7 @@ void Tank::Respawn(int retryCount)
 		Vector3 distance = tankPosition - position;
 		if(distance.GetLength() < 5)
 		{
-			Respawn(++retryCount);
+			Respawn(++currentRetryCount,maxRetryCount);
 			return;
 		}
 	}
@@ -112,7 +113,7 @@ void Tank::Respawn(int retryCount)
 		Vector3 distance	 = position - basePosition;
 		if(distance.GetLength() < 5)
 		{
-			Respawn(++retryCount);
+			Respawn(++currentRetryCount,maxRetryCount);
 			return;
 		}
 	}
@@ -128,29 +129,20 @@ void Tank::Respawn(int retryCount)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::Update(float deltaTime)
 {
-	if(m_markForDead)
-	{
-		m_timeLeftToRespawn -= deltaTime;
-		if(m_timeLeftToRespawn < 0)
-		{
-			m_markForDead = false;
-			Respawn(0);
-		}
-		return;
-	}
 	m_bulletCoolDown -= deltaTime;
 
 	float PI = 3.14f;
 	Vector3 minRotationValue(-PI / 2, 0, 0);
 	Vector3 maxRotationValue(PI / 2, 2 * PI, 0);	
-
-
 	
 	if (InputSystem::GetInstance()->WasLButtonJustPressed())
 	{
-		FireBullet(deltaTime,m_turretForwardDirection);
+		FireBullet(deltaTime,m_turretForwardDirection,false);
 	}
-
+	if (InputSystem::GetInstance()->WasRButtonJustPressed())
+	{
+		FireBullet(deltaTime, m_turretForwardDirection, true);
+	}
 
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_A))
 	{
@@ -190,6 +182,8 @@ void Tank::Update(float deltaTime)
 	float   terrainHeight   = ((SceneLevel1*)m_scene)->m_map->m_terrain->GetHeight(position.GetXZ());
 	m_transform.SetLocalPosition(Vector3(position.x, terrainHeight + 1, position.z));
 
+	ParticleEmitter *emitter = (ParticleEmitter*)GetComponentByType(PARTICLE);
+	emitter->SpawnParticles(4);
 	UpdateTankOrientation();
 	UpdateRaycastFromTurret(deltaTime);
 	UpdateBreadCrumb(deltaTime);
@@ -278,14 +272,14 @@ void Tank::UpdateRaycastFromTurret(float deltaTime)
 	Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
 	PickRay ray = Camera::GetGamePlayCamera()->GetPickRayFromScreenCords(screenXY);
 
-	DebugDraw::GetInstance()->DebugRenderLogf("PICKRAY1 : RAYPOS :: %f, %f, %f", ray.m_position.x, ray.m_position.y, ray.m_position.z);
-	DebugDraw::GetInstance()->DebugRenderLogf("PICKRAY1 : RAYDIR :: %f, %f, %f", ray.m_direction.x, ray.m_direction.y, ray.m_direction.z);
+	//DebugDraw::GetInstance()->DebugRenderLogf("PICKRAY1 : RAYPOS :: %f, %f, %f", ray.m_position.x, ray.m_position.y, ray.m_position.z);
+	//DebugDraw::GetInstance()->DebugRenderLogf("PICKRAY1 : RAYDIR :: %f, %f, %f", ray.m_direction.x, ray.m_direction.y, ray.m_direction.z);
 
 
 	Ray raycast;
 	raycast.m_direction = ray.m_direction;
 	raycast.m_start = ray.m_position;// +((SceneLevel1*)m_scene)->m_cameraRadius*Camera::GetCurrentCamera()->m_transform.GetWorldMatrix().GetKVector();
-	RaycastHit result = ((SceneLevel1*)m_scene)->m_map->m_terrain->Raycast(this,raycast);
+	RaycastHit result = ((SceneLevel1*)m_scene)->m_map->m_terrain->Raycast(nullptr,raycast);
 
 
 	raycast.m_direction = result.m_position - m_turretHead->m_transform.GetWorldPosition();
@@ -306,9 +300,9 @@ void Tank::UpdateRaycastFromTurret(float deltaTime)
 		color = Rgba::RED;
 	}
 	m_mouseWorldPos = result.m_position;
-	DebugDraw::GetInstance()->DebugRenderLogf("RAYCAST : POSITION :: %f,%f %f", result.m_position.x, result.m_position.y, result.m_position.z);
+	//DebugDraw::GetInstance()->DebugRenderLogf("RAYCAST : POSITION :: %f,%f %f", result.m_position.x, result.m_position.y, result.m_position.z);
 	DebugDraw::GetInstance()->DebugRenderLine(raycast.m_start, result.m_position, Rgba::YELLOW, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
-	DebugDraw::GetInstance()->DebugRenderLine(result.m_position, result.m_position + ray.m_direction * 1000, Rgba::RED, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
+	//DebugDraw::GetInstance()->DebugRenderLine(result.m_position, result.m_position + ray.m_direction * 1000, Rgba::RED, 0.f, DEBUG_RENDER_IGNORE_DEPTH);
 
 	Vector3 cameraRight = Camera::GetCurrentCamera()->GetCameraRightVector();
 	Vector3 cameraUp = Camera::GetCurrentCamera()->GetCameraUpVector();
@@ -340,8 +334,8 @@ void Tank::UpdateTurretOrientation(float deltaTime)
 
 	m_turret->m_transform.SetLocalPosition(Vector3(0, 1, 0));
 	Vector3 angle = m_turret->m_transform.GetWorldRotation();
-	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::BLUE,"LocalPos %f, %f, %f", localPosition.x, localPosition.y, localPosition.z);
-	DebugDraw::GetInstance()->DebugRenderLogf(Rgba::YELLOW,"EULER ANGLE %f, %f, %f" , angle.x, angle.y, angle.z);
+	//DebugDraw::GetInstance()->DebugRenderLogf(Rgba::BLUE,"LocalPos %f, %f, %f", localPosition.x, localPosition.y, localPosition.z);
+	//DebugDraw::GetInstance()->DebugRenderLogf(Rgba::YELLOW,"EULER ANGLE %f, %f, %f" , angle.x, angle.y, angle.z);
 	UNUSED(deltaTime);
 }
 
@@ -353,6 +347,8 @@ void Tank::UpdateTurretOrientation(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::UpdateTurretOrientation1(float deltaTime,Vector3 direction)
 {
+	UNUSED(direction);
+	UNUSED(deltaTime);
 	//m_turret->m_transform.SetLocalPosition(Vector3(0,0,0));
 	Vector3 tankPosition = m_transform.GetWorldPosition();
 	Vector3 tankUp = m_transform.GetWorldMatrix().GetKVector();

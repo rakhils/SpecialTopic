@@ -182,6 +182,9 @@
     <Xml Include="..\..\Run_Win32\Data\Definitions\Shaders.xml">
       <Filter>General\Data\Definitions</Filter>
     </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Sounds.xml">
+      <Filter>General\Data\Definitions</Filter>
+    </Xml>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\Run_Win32\Data\Shaders\Debug.fs">

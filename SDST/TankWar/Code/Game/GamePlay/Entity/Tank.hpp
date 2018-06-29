@@ -31,7 +31,8 @@ public:
 	GameObject			 *m_turret = nullptr;
 	GameObject			 *m_turretHead = nullptr;
 	Vector3				  m_turretForwardDirection;
-	float				  m_bulletCoolDown = 2;
+	float				  m_bulletCoolDown = 0;
+	bool				  m_isArcherBullet = false;
 	//Static_Member_Variables
 
 	//Methods
@@ -40,8 +41,8 @@ public:
 	~Tank();
 
 	Vector3 GetTurretForward();
-	void    FireBullet(float deltaTime,Vector3 direction);
-	void	Respawn(int tryCount);
+	void    FireBullet(float deltaTime,Vector3 direction,bool isArcher);
+	void	Respawn(int startCount,int tryCount);
 	void Update(float deltaTime);
 	void UpdateBullet(float deltaTime);
 	void UpdateCameraPosition(float deltaTime);

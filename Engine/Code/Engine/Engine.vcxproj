@@ -416,6 +416,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Physics\Collider\PointCollider.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Physics\Collider\SphereCollider.cpp">
       <SubType>
       </SubType>
@@ -755,6 +759,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Physics\Collider\Collider.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Physics\Collider\PointCollider.hpp">
       <SubType>
       </SubType>
     </ClInclude>

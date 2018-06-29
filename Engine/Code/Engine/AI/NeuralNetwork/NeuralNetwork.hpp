@@ -75,7 +75,8 @@ public:
 	
 	void				 SetRandomWeight();
 	void				 CreateNeuralNetwork(int numberOfInputNeuron, int numberOfHiidenNeurons, int numberOfOutputNeuron);
-	std::vector<float>&  GetOutputs();
+	//std::vector<float>&  GetOutputs();
+	void				 GetOutputs();
 	void				 Update();
 	float				 GetActivationValue(float value);
 	//Static_Methods

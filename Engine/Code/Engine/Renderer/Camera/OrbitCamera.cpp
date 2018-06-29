@@ -52,6 +52,7 @@ void OrbitCamera::SetSphericalCords(Vector3 position)
 	viewMat.Inverse();
 
 	SetViewMatrix(viewMat);
+	m_transform.SetLocalPosition(m_targetPosition - ConvertSphericalToCartesian(position));
 	//m_transform.SetLocalPosition(m_targetPosition - ConvertSphericalToCartesian(position));
 /*
 	lookAtMatrix.Tx = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetIAxis());

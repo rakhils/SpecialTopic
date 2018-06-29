@@ -1,16 +1,19 @@
 #pragma once
 //-----------------------------------------------------------------------------------------------
 //#include "ThirdParty/fmod/fmod.hpp"
-#include "Engine/ThirdParty/fmod/fmod.hpp"
 #include <string>
 #include <vector>
 #include <map>
+#include "Engine/ThirdParty/fmod/fmod.hpp"
+#include "Engine/TinyXml2/tinyxml2.h"
+
 //-----------------------------------------------------------------------------------------------
 typedef   size_t SoundID;
 typedef   size_t SoundPlaybackID;
 constexpr size_t MISSING_SOUND_ID = (size_t)(-1); // for bad SoundIDs and SoundPlaybackIDs
 //-----------------------------------------------------------------------------------------------
 class AudioSystem;
+using namespace tinyxml2;
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -25,7 +28,7 @@ public:
 public:
 	virtual void				BeginFrame();
 	virtual void				EndFrame();
-
+	void						LoadSoundsFromFile(std::string xmlPath);
 	virtual SoundID				CreateOrGetSound( const std::string& soundFilePath );
 	virtual SoundPlaybackID		PlaySound( SoundID soundID, bool isLooped=false, float volume=1.f, float balance=0.0f, float speed=1.0f, bool isPaused=false );
 	virtual void				StopSound( SoundPlaybackID soundPlaybackID );

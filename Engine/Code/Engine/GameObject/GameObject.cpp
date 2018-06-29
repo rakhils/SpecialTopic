@@ -11,6 +11,7 @@
 #include "Engine/Physics/Collider/BoxCollider.hpp"
 #include "Engine/Physics/Collider/BoxCollider2D.hpp"
 #include "Engine/Physics/Collider/CircleCollider.hpp"
+#include "Engine/Physics/Collider/PointCollider.hpp"
 #include "Engine/Audio/AudioComponent.hpp"
 #include "Engine/Renderer/ParticleSystem/ParticleEmitter.hpp"
 #include "Engine/Renderer/Camera/PerspectiveCamera.hpp"
@@ -219,6 +220,19 @@ void GameObject::AddColliderComponent(COMPONENT_COLLIDER_TYPE type, Collider *co
 	coliider_t->m_gameObject    = this;
 	m_colliderComponents[type]  = coliider_t;
 	m_transform.AddChild(&coliider_t->m_transform);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void GameObject::AddPointCollider(Vector3 point)
+{
+	PointCollider *pointCollider = new PointCollider();
+	pointCollider->m_centre = point;
+	AddColliderComponent(POINT_COLLIDER, pointCollider);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -499,7 +513,12 @@ Component* GameObject::GetComponentByType(COMPONENT_TYPE type)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 RigidBody3D* GameObject::GetRigidBody3DComponent()
 {
-	return static_cast<RigidBody3D*>(m_components[RIGID_BODY_3D]);
+	std::map<COMPONENT_TYPE, Component*>::iterator it = m_components.find(RIGID_BODY_3D);
+	if (it != m_components.end())
+	{
+		return (RigidBody3D*)it->second;
+	}
+	return nullptr;
 }
 
 //////////////////////////////////////////////////////////////

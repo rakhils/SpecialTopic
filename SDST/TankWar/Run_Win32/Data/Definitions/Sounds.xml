@@ -1,0 +1,8 @@
+<SoundDefinition>
+  <Sounds name ="shoot">
+    <File weight = "0.3" path ="Data\\Audio\\EnemyShoot.wav"></File>
+    <File weight = "0.5" path ="Data\\Audio\\PlayerHit"></File>
+    <File weight = "0.2" path ="Data\\Audio\\PlayerDied.wav"></File>
+
+  </Sounds>
+</SoundDefinition>

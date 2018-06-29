@@ -4,6 +4,8 @@
 #include "Engine/Physics/Collider/SphereCollider.hpp"
 #include "Engine/Physics/Collider/AABB2Collider.hpp"
 #include "Engine/Physics/Collider/CircleCollider.hpp"
+#include "Engine/Physics/Collider/PointCollider.hpp"
+
 #include "Engine/Math/Disc2.hpp"
 #include "Engine/Physics/RigidBody3D.hpp"
 #include "Engine/GameObject/GameObject.hpp"
@@ -41,6 +43,38 @@ Vector3 Collider::GetCenterPosition()
 void Collider::SetPosition(Vector3 position)
 {
 	m_centre = position;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/28
+*@purpose : Checks point vs spherer collision
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Collider::CheckSphereVsPointCollision(SphereCollider* sphereCollider, PointCollider *point)
+{
+	Vector3 worldPosition = point->m_transform.GetWorldPosition();
+	if(sphereCollider->IsPointInside(worldPosition))
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Collider::CheckBoxVsPointCollision(BoxCollider* boxCollider, PointCollider *point)
+{
+	Vector3 worldPosition = point->m_transform.GetWorldPosition();
+	if(boxCollider->IsPointInside(worldPosition))
+	{
+		return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

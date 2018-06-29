@@ -1318,7 +1318,7 @@ bool Quadratic(Vector2 *out, float a, float b, float c)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void RandomSRAND()
 {
-	srand(GetCurrentTimeSeconds());
+	srand(static_cast<int>(GetCurrentTimeSeconds()));
 }
 
 bool AreBitsSet(unsigned char bitFlags8, unsigned char flagsToCheck)

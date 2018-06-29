@@ -412,6 +412,9 @@
     <ClCompile Include="AI\NeuralNetwork\NeuralNetGA.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Physics\Collider\PointCollider.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -698,6 +701,7 @@
     <ClInclude Include="AI\GA\Abstract\GeneticAlgorithm.hpp" />
     <ClInclude Include="AI\GA\StringGeneticAlgorithm.hpp" />
     <ClInclude Include="AI\NeuralNetwork\NeuralNetGA.hpp" />
+    <ClInclude Include="Physics\Collider\PointCollider.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

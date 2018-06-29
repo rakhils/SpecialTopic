@@ -1,31 +1,30 @@
 #pragma once
+#include <map>
 #include "Engine/Physics/Collider/Collider.hpp"
-#include "Engine/Math/AABB3.hpp"
-/*\class  : BoxCollider	   
-* \group  : <GroupName>	   
-* \brief  :	   
-* \TODO:  :	   
-* \note   :	   
-* \author : Rakhil Soman	   
-* \version: 1.0	   
-* \date   : 5/17/2018 4:25:01 PM
+/*\class  : PointCollider		   
+* \group  : <GroupName>		   
+* \brief  :		   
+* \TODO:  :		   
+* \note   :		   
+* \author : Rakhil Soman		   
+* \version: 1.0		   
+* \date   : 6/28/2018 3:46:26 PM
 * \contact: srsrakhil@gmail.com
 */
  
-class BoxCollider : public Collider
+class PointCollider : public Collider
 {
 
 public:
 	//Member_Variables
-	AABB3 m_aabb3;
+	Vector3 m_point;
 	//Static_Member_Variables
 
 	//Methods
 
-	BoxCollider(Vector3 dimensions);
-	~BoxCollider();
-
-	Vector3 GetDimensions();
+	PointCollider();
+	~PointCollider();
+	
 	void Update(float deltaTime);
 	bool IsPointInside(Vector3 point);
 	void OnCollisionEnter(Collider *collider);

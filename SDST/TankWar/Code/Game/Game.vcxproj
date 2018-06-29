@@ -398,6 +398,7 @@
     <Xml Include="..\..\Run_Win32\Data\Definitions\Shaders.xml">
       <SubType>Designer</SubType>
     </Xml>
+    <Xml Include="..\..\Run_Win32\Data\Definitions\Sounds.xml" />
     <Xml Include="..\..\Run_Win32\Data\Definitions\Tiles.xml" />
   </ItemGroup>
   <ItemGroup>

@@ -28,7 +28,7 @@ void RigidBody3D::Update(float deltaTime)
 	Vector3 displacement	= m_velocity     * deltaTime;
 	Vector3 currentPosition = m_gameObject->m_transform.GetLocalPosition();
 	m_gameObject->m_transform.SetLocalPosition(currentPosition + displacement);
-	m_acceleration = Vector3::ZERO;
+	m_acceleration -= m_acceleration*m_friction;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

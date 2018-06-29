@@ -54,7 +54,7 @@ void NeuralNetwork::CreateNeuralNetwork(int numberOfInputNeurons, int numberOfHi
 *@param   : NIL
 *@return  : Outputs as vector of floats
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::vector<float>& NeuralNetwork::GetOutputs()
+void NeuralNetwork::GetOutputs()
 {
 	std::vector<float> outputs;
 	for(int index = 0;index < m_outputs->m_neurons.size() ;index++)
@@ -62,7 +62,7 @@ std::vector<float>& NeuralNetwork::GetOutputs()
 		float value = m_outputs->m_neurons.at(index).m_value;
 		outputs.push_back(value);
 	}
-	return outputs;
+	//return outputs;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
