@@ -14,6 +14,7 @@
 #include "Engine/Renderer/Camera/OrthographicCamera.hpp"
 #include "Engine/Renderer/Lights/Light.hpp"
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Renderer/Shaders/ShaderProgramInfo.hpp"
 #include "ShaderDefinitions.hpp"
 // CONSTRUCTOR
 ForwardRenderingPath::ForwardRenderingPath()
@@ -59,7 +60,7 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	{
 		if (light->m_type != AMBIENT_LIGHT && light->m_isShadowCasting)
 		{
-			//RenderShadowCastingObjects(light, scene);
+			RenderShadowCastingObjects(light, scene);
 		}
 	}
 
@@ -159,8 +160,9 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	for (int index = 0; index < drawCalls.size(); index++)
 	{
 		m_renderer->BindMaterial(drawCalls.at(index).m_material);
-		//Renderer::GetInstance()->BindTexture(8, m_shadowCamera->m_defaultFrameBuffer->m_depth_stencil_target);
-		//Renderer::GetInstance()->BindSampler(8, Sampler::GetDefaultSampler());
+		//Shader *shader = Shader::GetCurrentShader();
+		Renderer::GetInstance()->BindTexture(9, m_shadowCamera->m_defaultFrameBuffer->m_depth_stencil_target);
+		Renderer::GetInstance()->BindSampler(9, Sampler::CreateShadowSampler());
 		std::vector<Light*> lights = scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTVector());
 		Light::BindAllLightsToShader(m_renderer,lights);
 		DrawCall dc = drawCalls.at(index);
@@ -186,9 +188,9 @@ void ForwardRenderingPath::RenderShadowCastingObjects(Light *light, Scene *scene
 		light->m_shadowTexture = shadowTex;
 		FrameBuffer *cFrameBuffer = new FrameBuffer();
 		m_shadowCamera->m_defaultFrameBuffer = cFrameBuffer;
-		m_shadowCamera->SetColorTarget(colorTest);
+		m_shadowCamera->SetColorTarget(nullptr);
 		m_shadowCamera->SetDepthStencilTarget(light->m_shadowTexture);
-		light->m_shadowTexture->m_slot = 8;
+		light->m_shadowTexture->m_slot = 9;
 		
 	}
 	m_shadowCamera->SetOrthoProjection(Vector2(-128,-128), Vector2(128,128), -100, 100.f);
@@ -219,10 +221,12 @@ void ForwardRenderingPath::RenderShadowCastingObjects(Light *light, Scene *scene
 	m_renderer->ClearDepth(1.f);
 	light->m_vp = m_shadowCamera->GetViewProjection();
 	light->SetViewProjection(light->m_vp);
-	
+	Shader *shader = ShaderDefinitions::GetShaderByDefinitionName("shadow");
+	m_renderer->BindShader(shader);
+	Shader::SetCurrentShader(shader);
 	for each(Renderable *renderable in scene->m_renderables)
 	{
-		Material *meshMaterial = renderable->GetMaterial();
+		//Material *meshMaterial = renderable->GetMaterial();
 		GL_CHECK_ERROR();
 
 		//if (meshMaterial->m_isOpaque)
@@ -232,9 +236,7 @@ void ForwardRenderingPath::RenderShadowCastingObjects(Light *light, Scene *scene
 			//meshMaterial->SetSampler(8, Sampler::GetDefaultSampler());
 
 
-			Renderer::GetInstance()->BindMaterial(meshMaterial);
-			Renderer::GetInstance()->BindTexture(8, light->m_shadowTexture);
-			Renderer::GetInstance()->BindSampler(8, Sampler::GetDefaultSampler());
+			//Renderer::GetInstance()->BindMaterial(meshMaterial);
 			m_renderer->DrawMesh(renderable->m_mesh,renderable->m_modelMatrix);
 		}
 	}

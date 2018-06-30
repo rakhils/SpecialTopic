@@ -33,6 +33,7 @@ PFNGLGETUNIFORMLOCATIONPROC 	  glGetUniformLocation        = nullptr;
 PFNGLUNIFORMMATRIX4FVPROC	      glUniformMatrix4fv		  = nullptr;
 PFNGLGENSAMPLERSPROC		      glGenSamplers			      = nullptr;
 PFNGLSAMPLERPARAMETERIPROC		  glSamplerParameteri		  = nullptr;
+PFNGLSAMPLERPARAMETERFVPROC       glSamplerParameterfv		  = nullptr;
 PFNGLSAMPLERPARAMETERIPROC		  glSamplerParameterf		  = nullptr;
 PFNGLDELETESAMPLERSPROC			  glDeleteSamplers			  = nullptr;
 PFNGLBINDSAMPLERPROC			  glBindSampler				  = nullptr;
@@ -183,5 +184,6 @@ void glfunctions::BindGLFunctions()
 	GL_BIND_FUNCTION(glClearColor);
 	GL_BIND_FUNCTION(glGenerateMipmap);
 	GL_BIND_FUNCTION(glViewport);
+	GL_BIND_FUNCTION(glSamplerParameterfv);
 
 }

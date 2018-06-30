@@ -122,6 +122,7 @@ bool FrameBuffer::Finalize()
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 	if (status != GL_FRAMEBUFFER_COMPLETE) 
 	{
+		int a = 1;
 		//DebuggerPrintf("Failed to create framebuffer:  %u\n\n", status);
 		return false;
 	}

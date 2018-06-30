@@ -137,6 +137,17 @@ void Rgba::GetAsFloats( float& out_normalizedRed,float& out_normalizedGreen,floa
 	out_normalizedAlpha = RangeMapFloat((float)a,0,255,0,1);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/06/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Rgba::GetAsFloatArray(float *arr)
+{
+	GetAsFloats(arr[0], arr[1], arr[2], arr[3]);
+}
+
 void Rgba::ScaleRGB( float rgbScale ) // Scales (and clamps) RGB components, but not A
 {
 	r = static_cast<unsigned char> (r*rgbScale);

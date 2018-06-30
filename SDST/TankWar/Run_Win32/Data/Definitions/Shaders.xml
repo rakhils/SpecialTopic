@@ -121,4 +121,13 @@
 
   </Shaders>
 
+  <Shaders name ="shadow">
+    <program define="AMBIENT" >
+      <vertex   file="Data//Shaders//Shadow" />
+      <fragment file="Data//Shaders//Shadow" />
+    </program>
+    <cull mode="cullmode_front"></cull>
+    <depth compare="compare_less" write="true" />
+  </Shaders>
+
 </ShaderDefinitions>

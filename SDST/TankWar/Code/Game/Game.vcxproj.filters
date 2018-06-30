@@ -271,6 +271,12 @@
     <None Include="..\..\Run_Win32\Data\Shaders\Water.vs">
       <Filter>General\Data\Shaders</Filter>
     </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\Shadow.fs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
+    <None Include="..\..\Run_Win32\Data\Shaders\Shadow.vs">
+      <Filter>General\Data\Shaders</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\..\Run_Win32\Data\Shaders\glsl\light.glsl">

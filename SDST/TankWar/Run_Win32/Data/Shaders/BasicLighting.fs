@@ -3,7 +3,7 @@
 
 layout(binding = 0) uniform sampler2D gTexDiffuse;
 layout(binding = 1) uniform sampler2D gTexNormal;
-layout(binding = 8) uniform sampler2D gTexShadow; 
+layout(binding = 9) uniform sampler2DShadow gTexShadow; 
 in vec4 passColor;
 in vec2 passUV;
 in vec3 passNormal;
@@ -72,23 +72,36 @@ vec3 ComputeSpecular(light_point light,in vec3 eyeDirection,in vec3 worldPositio
 float GetShadowFactor( vec3 position, vec3 normal, light_point light )
 {
 	float shadow = light.uses_shadow;
-   if (shadow == 1.0f) 
+   if (shadow == 0.0f) 
 	{
-      return 0.0f; 
+      return 1.0f; 
    }
    vec4 clip_pos =   light.shadow_vp * (vec4(position, 1.0f));
-   vec3 ndc_pos = clip_pos.xyz / clip_pos.w; 
+   vec3 ndc_pos  =   clip_pos.xyz / clip_pos.w; 
 
    // put from -1 to 1 range to 0 to 1 range
    ndc_pos = (ndc_pos + vec3(1)) * .5f;
 
-   float is_lit = texture( gTexShadow, ndc_pos.xy ).x;
+    float is_lit = texture( gTexShadow, ndc_pos ).r;
 	//float shadow_depth = texture( gTexShadow, uv );	
-	if(ndc_pos.z > is_lit)
-	{
-		return 1.0f;
-	}
-	return 0.0f;
+	//if(ndc_pos.z > is_lit)
+	//{
+	//	return 1.0f;
+	//}
+	//return 0.0f;
+
+	//vec4 clip_pos = POINT_LIGHTS[0].shadow_vp * (vec4(passWorldPos, 1.0f));
+//  vec3 ndc_pos  = clip_pos.xyz / clip_pos.w; 
+//  
+//  // put from -1 to 1 range to 0 to 1 range
+//  ndc_pos = (ndc_pos + vec3(1)) * .5f;
+//  
+//  outColor = outColor*0.001f + texture( gTexShadow, ndc_pos );
+
+
+
+
+
 	//float shadow_depth = texture( gTexShadow, uv ); 
       // visible => (uvd.z <= shadow_depth)
    
@@ -138,30 +151,29 @@ vec3 normalToBeUsed = vec3(0);
 for(int lightIndex = 0;lightIndex < 8;lightIndex++)
 {
 	float shadowFactor = GetShadowFactor(passWorldPos, normalToBeUsed, POINT_LIGHTS[lightIndex] );
-shadowFactor = 1.f;
+    //shadowFactor = 1.f;
 	diffuseLight  += shadowFactor*ComputeDot3(POINT_LIGHTS[lightIndex],passWorldPos,normalize(normalToBeUsed));
 	specularLight += shadowFactor*ComputeSpecular(POINT_LIGHTS[lightIndex],eyeDirection,passWorldPos,normalize(normalToBeUsed));
 }
 
 //specularLight   = clamp(specularLight,vec3(0),vec3(1));
-diffuseLight     = clamp(diffuseLight,vec3(0),vec3(1));
-
-vec4 final_color = vec4(diffuseLight, 1)*surfaceColor + vec4(specularLight, 0);
-final_color		 = clamp(final_color,vec4(0),vec4(1));
-outColor	     = final_color;
+diffuseLight       = clamp(diffuseLight,vec3(0),vec3(1));
+vec4 final_color   = vec4(diffuseLight, 1)*surfaceColor + vec4(specularLight, 0);
+final_color		   = clamp(final_color,vec4(0),vec4(1));
+outColor	       = final_color ;
 
 
 float distanceFromCamera	= length(cameraPosition - passWorld);
 
-//outColor		 = AddFog(distanceFromCamera,final_color,passViewPos.z);
-
-   //vec4 clip_pos =   POINT_LIGHTS[0].shadow_vp * (vec4(passWorldPos, 1.0f));
-   //vec3 ndc_pos = clip_pos.xyz / clip_pos.w; 
-   //
-   //// put from -1 to 1 range to 0 to 1 range
-   //ndc_pos = (ndc_pos + vec3(1)) * .5f;
-   //
-   //outColor = texture( gTexShadow, ndc_pos.xy );
+// outColor		 = AddFog(distanceFromCamera,final_color,passViewPos.z);
+//
+  //vec4 clip_pos = POINT_LIGHTS[0].shadow_vp * (vec4(passWorldPos, 1.0f));
+  //vec3 ndc_pos  = clip_pos.xyz / clip_pos.w; 
+  //
+  //// put from -1 to 1 range to 0 to 1 range
+  //ndc_pos = (ndc_pos + vec3(1)) * .5f;
+  //
+  //outColor = outColor*0.001f + texture( gTexShadow, ndc_pos );
 
 
 //vec4(passSpecFactor/10,passSpecPower/16,0,1);

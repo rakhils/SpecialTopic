@@ -105,6 +105,7 @@ extern PFNGLTEXSUBIMAGE2DPROC			 glTexSubImage2D;
 extern PFNGLCLEARCOLORPROC				 glClearColor;
 extern PFNGLGENERATEMIPMAPPROC			 glGenerateMipmap;
 extern PFNGLVIEWPORTPROC				 glViewport;
+extern PFNGLSAMPLERPARAMETERFVPROC       glSamplerParameterfv;
 
 //extern PFNGLPUSHMA
 

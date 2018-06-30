@@ -50,14 +50,14 @@ void Terrain::LoadFromImage(Image *image, AABB2 const &extents, float min_height
 	{
 		for(float chunkIndexX = 0;chunkIndexX < chunk_counts.x;)
 		{
-			Vector2 currentChunkStartPosition(chunkIndexX*m_chunkDimensions.x, chunkIndexY*m_chunkDimensions.y);
+			Vector2 currentChunkStartPosition(chunkIndexX*(m_chunkDimensions.x -1), chunkIndexY*(m_chunkDimensions.y-1));
 			CreateTerrainChunk(startWorldPosition.GetXY(), currentChunkStartPosition);
-			startWorldPosition.x += (chunkDimension.x) * m_cellSize.x;
+			startWorldPosition.x += (chunkDimension.x - 1) * m_cellSize.x;
 			chunkIndexX ++;
 		}
 		chunkIndexY ++;
 		startWorldPosition.x = 0;
-		startWorldPosition.y += (chunkDimension.y)* m_cellSize.y;
+		startWorldPosition.y += (chunkDimension.y - 1)* m_cellSize.y;
 	}
 }
 

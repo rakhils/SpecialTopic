@@ -24,6 +24,7 @@ public:
 	void	    GetAsFloats( float& out_normalizedRed,float& out_normalizedGreen,float& out_normalizedBlue,float& out_normalizedAlpha ) const;
 
 	Vector4		GetAsFloats();
+	void		GetAsFloatArray(float *arr);
 
 	void		ScaleRGB( float rgbScale ); // Scales (and clamps) RGB components, but not A
 

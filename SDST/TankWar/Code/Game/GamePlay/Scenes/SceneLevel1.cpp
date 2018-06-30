@@ -70,8 +70,8 @@ void SceneLevel1::InitScene()
 	lightRenderable->SetMaterial(Material::AquireResource("default"));
 	AddRenderable(lightRenderable);
 
-	Vector3 lightPosition(256, 50, 256);
-	Vector3 lightDirection = Vector3(0.f, -1.f, 0.75f);
+	Vector3 lightPosition(20, 50, 50);
+	Vector3 lightDirection = Vector3(0.f, -1.f, 1.f);
 
 	Light *lightDirectional = Light::CreateOrGetPointLight();
 	Rgba color1;
@@ -85,7 +85,7 @@ void SceneLevel1::InitScene()
 	lightDirectional->EnableShadow();
 	lightDirectional->SetLightDirection(lightDirection.GetNormalized());
 	lightDirectional->SetPointLightInnerOuterAngles(30.f, 60.f);
-
+	//lightDirectional->
 	
 
 
@@ -113,7 +113,7 @@ void SceneLevel1::CreatePlayer()
 {
 	Mesh *turretHead = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3::ZERO, .75f, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
 	Mesh *tankBody   = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(1.f, .5f, 2.f), Rgba::WHITE, FILL_MODE_FILL);
-	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 2.5f), Rgba::WHITE, FILL_MODE_FILL);
+	Mesh *turretGun  = MeshBuilder::CreateCube<Vertex_3DPCUNTB>(Vector3::ZERO, Vector3(.1f, .1f, 1.5f), Rgba::WHITE, FILL_MODE_FILL);
 	GameObject *turretHeadGO = new GameObject("turrethead");
 	GameObject *turretGunGO = new GameObject("turretgun");
 	turretHeadGO->SetScene(this);
@@ -124,7 +124,7 @@ void SceneLevel1::CreatePlayer()
 	turretGunGO->SetScene(this);
 	turretGunGO->m_renderable->SetMesh(turretGun);
 	turretGunGO->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Tank.mat"));
-	turretGunGO->m_transform.SetLocalPosition(Vector3(0, 1, 0));
+	turretGunGO->m_transform.SetLocalPosition(Vector3(0, 1, .5f));
 
 
 	m_playerTank = new Tank();
@@ -140,7 +140,7 @@ void SceneLevel1::CreatePlayer()
 	m_playerTank->AddChild(turretGunGO);
 	m_playerTank->AddParticleComponent(Vector3(0,2,-1), Renderer::GetInstance());
 	//m_playerTank->m_transform.Translate(Vector3(120, 20, 274));
-	m_playerTank->m_transform.Translate(Vector3(20, 0, 20));
+	m_playerTank->m_transform.Translate(Vector3(30, 0, 30));
 /*
 	m_camera = (OrbitCamera*)Camera::CreateOrGetCamera("level1cam", ORBIT);
 	m_camera->m_transform.SetLocalPosition(Vector3(0, 50, -10));
@@ -203,7 +203,7 @@ void SceneLevel1::CreateMap()
 	m_map = new Map();
 	Image *terrainImage = new Image("Data//Images//m6.png");
 	m_map->m_image = terrainImage;
-	m_map->LoadFromImage(this,terrainImage, AABB2(Vector2(0, 0),256,256), 1, 50, Vector2::ONE*8);
+	m_map->LoadFromImage(this,terrainImage, AABB2(Vector2(0, 0),256,256), 1, 50, Vector2::ONE);
 	CreateWater();
 	Game::SetMinBounds(Vector3(0, 1, 0));
 	Game::SetMaxBounds(Vector3(static_cast<float>(m_map->m_image->GetDimensions().x), 50, static_cast<float>(m_map->m_image->GetDimensions().y)));

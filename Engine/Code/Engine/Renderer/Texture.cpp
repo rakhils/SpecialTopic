@@ -103,8 +103,12 @@ void Texture::PopulateFromData( unsigned char* imgData, const IntVector2& texelS
 
 	unsigned int mipmapCount = CalculateMipCount(GetMax(m_dimensions.x, m_dimensions.y));
 	GL_CHECK_ERROR();
-
-	glTexStorage2D(GL_TEXTURE_2D,mipmapCount,internalFormat,m_dimensions.x, m_dimensions.y); 
+	if(mipmapCount == 0)
+	{
+		mipmapCount = 1;
+	}
+	
+	glTexStorage2D(GL_TEXTURE_2D,1,internalFormat,(m_dimensions.x), (m_dimensions.y)); 
 	GL_CHECK_ERROR();
 
 	GLenum bufferFormat = GL_RGBA;
@@ -112,8 +116,11 @@ void Texture::PopulateFromData( unsigned char* imgData, const IntVector2& texelS
 
 	glTexSubImage2D(GL_TEXTURE_2D,0,0,0,m_dimensions.x,m_dimensions.y,bufferFormat,GL_UNSIGNED_BYTE,imgData);
 	GL_CHECK_ERROR();
+	if(mipmapCount >1)
+	{
+		//GenerateMipMaps();
 
-	GenerateMipMaps();
+	}
 	GL_CHECK_ERROR();
 	/*glTexImage2D(			// Upload this pixel data to our new OpenGL texture
 		GL_TEXTURE_2D,		// Creating this as a 2d texture
@@ -276,7 +283,7 @@ bool Texture::CreateRenderTarget(int width, int height, eTextureFormat fmt)
 	// Copy the texture - first, get use to be using texture unit 0 for this; 
 	glBindTexture(GL_TEXTURE_2D, m_textureID);    // bind our texture to our current texture unit (0)
 	GLCheckError(__FILE__, __LINE__);
-
+	m_dimensions = Vector2(static_cast<float>(width), static_cast<float>(height));
 	/*glTexStorage2D(GL_TEXTURE_2D,CalculateMipCount(GetMax(width, height)),internal_format,width, height);
 	GLCheckError(__FILE__, __LINE__);
 

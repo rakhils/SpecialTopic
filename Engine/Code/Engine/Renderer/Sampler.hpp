@@ -18,17 +18,21 @@
 *
 * \contact: srsrakhil@gmail.com
 */
- 
+enum SAMPLER_TYPE
+{
+	DEFAULT,SHADOW
+};
 class Sampler
 {
 
 public:
 	//Member_Variables
-	GLuint m_sampler_handle = NULL;
+	GLuint m_samplerHandle = NULL;
 	//Static_Member_Variables
 	static Sampler *s_defaultSampler;
 	static Sampler *s_currentSampler;
 	static Sampler *s_effectSampler; 
+	static Sampler *s_shadowSampler;
 	float    m_nearValue = -1000;
 	float	   m_farValue  = 1000;
 	//Methods
@@ -36,16 +40,21 @@ public:
 	Sampler();
 	~Sampler();
 	bool Create();
+	bool CreateShadow();
 	void Destroy();
 	GLuint GetHandle();
 	//Static_Methods
 	static void     SetDefaultSampler(Sampler *sampler) { s_defaultSampler = sampler; }
 	static void     SetCurrentSampler(Sampler *sampler) { s_currentSampler = sampler; }
 	static void     SetEffectSampler (Sampler *sampler) { s_effectSampler  = sampler; }
+	static void     SetShadowSampler (Sampler *sampler) { s_shadowSampler = sampler; }
 
 	static Sampler* GetDefaultSampler() { return s_defaultSampler; }
 	static Sampler* GetCurrentSampler() { return s_currentSampler; }
 	static Sampler* GetEffectSampler()  { return s_effectSampler;  }
+	static Sampler* GetShadowSampler()  { return s_shadowSampler;  }
+	
+	static Sampler* CreateShadowSampler();
 
 protected:
 	//Member_Variables

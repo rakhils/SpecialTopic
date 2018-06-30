@@ -71,9 +71,9 @@ void Renderer::EndFrame()
 *@param   : NIL
 *@return  : NIL
 *//////////////////////////////////////////////////////////////
-void Renderer::BindTexture(GLuint textureId, Texture *texture)
+void Renderer::BindTexture(GLuint textureSlot, Texture *texture)
 {
-	glActiveTexture(GL_TEXTURE0 + textureId);
+	glActiveTexture(GL_TEXTURE0 + textureSlot);
 	glBindTexture(GL_TEXTURE_2D, texture->m_textureID);
 }
 
@@ -1159,7 +1159,7 @@ void Renderer::DrawTextOn3DPoint(Vector3 position, Vector3 rigthDirection,Vector
 
 		//spriteIndex = (15 - (spriteIndex / 16))*16 + (spriteIndex % 16);
 
-		BitmapFont *bitmapFont = BitmapFont::CreateOrGetBitmapFont("font2");
+		BitmapFont *bitmapFont = BitmapFont::CreateOrGetBitmapFont("Data\\Font\\font2.png");
 		IntVector2 spriteCords = bitmapFont->m_spriteSheet->GetSpriteLayout();
 		spriteIndex = (spriteCords.y - 1 - (spriteIndex / spriteCords.y))*spriteCords.y + (spriteIndex % spriteCords.x);
 		AABB2 aabb2 = bitmapFont->m_spriteSheet->GetTexCoordsForSpriteIndex(spriteIndex);
@@ -1960,9 +1960,10 @@ void Renderer::BindMeshToProgram(ShaderProgram *program, Mesh *mesh)
 			//glVertexAttribPointer(uv_bind, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex_3DPCU), (GLvoid*)offsetof(Vertex_3DPCU, m_uvs));
 			// 
 			glVertexAttribPointer(bind,attribute.m_elementCount,(attribute.m_GLType),attribute.m_isNormalized,vertex_stride,(GLvoid*)attribute.m_memberOffset);  
-			GL_CHECK_ERROR();
 
 		}
+		GL_CHECK_ERROR();
+
 	}
 }
 

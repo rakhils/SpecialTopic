@@ -24,6 +24,7 @@ GameObject::GameObject(std::string name)
 {
 	m_name = name;
 	m_renderable   = new Renderable();
+	m_renderable->m_name = name;
 	m_creationTime = static_cast<float>(Clock::g_theMasterClock->total.m_seconds);
 	CreateGameObject(name,this);
 }

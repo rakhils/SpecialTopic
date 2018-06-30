@@ -223,7 +223,13 @@ Vector3 Camera::ScreenToWorld(Vector2 screen_xy, float ndc_depth)
 void Camera::SetColorTarget(Texture *colorTarget)
 {
 	m_defaultFrameBuffer->SetColorTarget(colorTarget);
+	if(colorTarget == nullptr)
+	{
+		m_viewPort = AABB2(Vector2(0, 0),Vector2(2048,2048));
+		return;
+	}
 	m_viewPort = AABB2(Vector2(0, 0), colorTarget->getDimensions().GetAsVector2());
+
 }
 
 //////////////////////////////////////////////////////////////
@@ -531,8 +537,8 @@ Frustum Camera::GetFrustum()
 //////////////////////////////////////////////////////////////
 void Camera::Finalize()
 {
-	glViewport(0, 0, (int)m_viewPort.maxs.x, (int)m_viewPort.maxs.y);
 	m_defaultFrameBuffer->Finalize();
+	glViewport(0, 0, (int)m_viewPort.maxs.x, (int)m_viewPort.maxs.y);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
