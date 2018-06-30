@@ -39,10 +39,10 @@ void EnemyBase::SpawnEnemy(Scene *scene)
 {
 	std::string name(m_name + "tank_" + ToString(s_enemyTanks.size()));
 	Vector3 position = m_transform.GetWorldPosition();
-	float randomX = GetRandomFloatInRange(130, 160);
-	float randomZ = GetRandomFloatInRange(130, 160);
+	float randomX = GetRandomFloatInRange(0, 5);
+	float randomZ = GetRandomFloatInRange(0, 5);
 
-	EnemyTank *enemyTank = new EnemyTank(name, scene,Vector3(randomX,10,randomZ) );
+	EnemyTank *enemyTank = new EnemyTank(name, scene,position + Vector3(randomX,10,randomZ) );
 	enemyTank->AddRigidBody3DComponent();
 	s_enemyTanks.push_back(enemyTank);
 	std::string text("Enemy Spawned at " + m_name +" TANK NUM "+name);
