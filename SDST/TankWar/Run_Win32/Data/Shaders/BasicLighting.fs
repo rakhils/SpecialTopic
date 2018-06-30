@@ -165,7 +165,7 @@ outColor	       = final_color ;
 
 float distanceFromCamera	= length(cameraPosition - passWorld);
 
-// outColor		 = AddFog(distanceFromCamera,final_color,passViewPos.z);
+ outColor		 = AddFog(distanceFromCamera,final_color,passViewPos.z);
 //
   //vec4 clip_pos = POINT_LIGHTS[0].shadow_vp * (vec4(passWorldPos, 1.0f));
   //vec3 ndc_pos  = clip_pos.xyz / clip_pos.w; 

@@ -108,7 +108,7 @@ void Texture::PopulateFromData( unsigned char* imgData, const IntVector2& texelS
 		mipmapCount = 1;
 	}
 	
-	glTexStorage2D(GL_TEXTURE_2D,1,internalFormat,(m_dimensions.x), (m_dimensions.y)); 
+	glTexStorage2D(GL_TEXTURE_2D,mipmapCount,internalFormat,(m_dimensions.x), (m_dimensions.y)); 
 	GL_CHECK_ERROR();
 
 	GLenum bufferFormat = GL_RGBA;
@@ -118,7 +118,7 @@ void Texture::PopulateFromData( unsigned char* imgData, const IntVector2& texelS
 	GL_CHECK_ERROR();
 	if(mipmapCount >1)
 	{
-		//GenerateMipMaps();
+		GenerateMipMaps();
 
 	}
 	GL_CHECK_ERROR();

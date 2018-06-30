@@ -170,13 +170,13 @@ void SceneLevel1::CreatePlayer()
 	EnemyBase::AddEnemyBase("enemybase_1", Vector3(10, height + 5, 10), Vector3(10, 10, 10), this);
 
 	height = m_map->GetHeight(Vector2(500, 10));
-	EnemyBase::AddEnemyBase("enemybase_2", Vector3(500, height+ 5, 10), Vector3(10, 10, 10), this);
+	EnemyBase::AddEnemyBase("enemybase_2", Vector3(200, height+ 5, 10), Vector3(10, 10, 10), this);
 	
 	height = m_map->GetHeight(Vector2(10, 500));
-	EnemyBase::AddEnemyBase("enemybase_3", Vector3(10, height+ 5, 500), Vector3(10, 10, 10), this);
+	EnemyBase::AddEnemyBase("enemybase_3", Vector3(10, height+ 5, 200), Vector3(10, 10, 10), this);
 
 	height = m_map->GetHeight(Vector2(500, 500));
-	EnemyBase::AddEnemyBase("enemybase_4", Vector3(500, height+ 5, 500), Vector3(10, 10, 10), this);
+	EnemyBase::AddEnemyBase("enemybase_4", Vector3(200, height+ 5, 200), Vector3(10, 10, 10), this);
 
 
 
@@ -203,7 +203,7 @@ void SceneLevel1::CreateMap()
 	m_map = new Map();
 	Image *terrainImage = new Image("Data//Images//m6.png");
 	m_map->m_image = terrainImage;
-	m_map->LoadFromImage(this,terrainImage, AABB2(Vector2(0, 0),256,256), 1, 50, Vector2::ONE);
+	m_map->LoadFromImage(this,terrainImage, AABB2(Vector2(0, 0),256,256), 1, 50, Vector2::ONE*4);
 	CreateWater();
 	Game::SetMinBounds(Vector3(0, 1, 0));
 	Game::SetMaxBounds(Vector3(static_cast<float>(m_map->m_image->GetDimensions().x), 50, static_cast<float>(m_map->m_image->GetDimensions().y)));
