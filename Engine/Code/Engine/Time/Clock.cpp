@@ -1,13 +1,5 @@
 #include "Engine/Time/Clock.hpp"
-//////////////////////////////////////////////////////////////
-/*DATE    : 2018/03/20
-*@purpose : NIL
-*
-*@param   : NIL
-*
-*@return  : NIL
-*/
-//////////////////////////////////////////////////////////////
+#include "Engine/Debug/DebugDraw.hpp"
 Clock *Clock::g_theMasterClock = nullptr;
 Clock::Clock(Clock *parent /*= nullptr */)
 {
@@ -110,7 +102,7 @@ void Clock::StepClock(uint64_t elapsed)
 	total.m_seconds += frame.m_seconds;
 	total.m_hpc += frame.m_hpc;
 	total.m_milliSeconds += frame.m_milliSeconds;
-
+	DebugDraw::GetInstance()->DebugRenderLogf("TIME ELAPSED TOTAL %lf", elapsed_seconds);
 	for (size_t index = 0; index < m_children.size(); index++)
 	{
 		m_children.at(index)->StepClock(elapsed);

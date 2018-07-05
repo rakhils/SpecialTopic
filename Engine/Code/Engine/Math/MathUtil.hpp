@@ -98,12 +98,14 @@ int				 LoopValue(int value, int lowerBound, int upperBound);
 Vector2			 RangeMap(Vector2 value, Vector2 originalLowerBound, Vector2 originalUpperBound, Vector2 newLowerBound, Vector2 newUpperBound);
 Vector3          RangeMap(Vector3 value, Vector3 originalLowerBound, Vector3 originalUppperBound, Vector3 newLowerBound, Vector3 newUpperBound);
 float			 RangeMapFloat(float value, float OriginalLowerBound, float OriginalUpperBound, float NewLowerbound, float NewUpperBound);
+double			 RangeMap(double value, double OriginalLowerBound, double OriginalUpperBound, double NewLowerbound, double NewUpperBound);
 float			 RangeMapInt(int value, int OriginalLowerBound, int OriginalUpperBound, int NewLowerbound, int NewUpperBound);
 float			 GetFractionInRange(float inValue, float rangeStart, float rangeEnd);
 int				 RoundToNearestInt(float inValue);			// 0.5 rounds up to 1; -0.5 rounds up to 0
 float			 ClampZeroOrToOne(float value);
 int				 ClampInt( int inValue, int min, int max );
 float			 ClampFloat( float inValue, float min, float max );
+double			 ClampDouble(double inValue, double min, double max);
 float			 ClampFloatZeroToOne( float inValue );
 float			 ClampFloatNegativeOneToOne( float inValue );
 Vector3			 ClampVector3(Vector3 inValue, Vector3 minClamp, Vector3 maxClamp);

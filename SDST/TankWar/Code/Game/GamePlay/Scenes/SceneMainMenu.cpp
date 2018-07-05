@@ -7,6 +7,7 @@
 #include "Engine/Renderer/Renderable.hpp"
 #include "Engine/Core/Windows.hpp"
 #include "Engine/Renderer/Materials/Material.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 #include "Game/GamePlay/Scenes/SceneMainMenu.hpp"
 #include "Game/GameCommon.hpp"
 // CONSTRUCTOR

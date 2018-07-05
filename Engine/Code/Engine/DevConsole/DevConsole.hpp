@@ -30,9 +30,11 @@ class DevConsole
 public:
 	static DevConsole *s_devConsole;
 	static DevConsole* GetInstance();
+	
 	//Member_Variables
 
 	bool							m_isActive             = false;
+	bool							m_wasJustActive		   = false;
 	int								m_cursorBlinkCount     = 0;
 	int								m_fontSize			   = 0;
 	int								m_commandHistoryIndex  = 0;
@@ -52,18 +54,22 @@ public:
 	bool							m_predictionOn		   = false;
 	int								m_predictionIndex      = 0;
 	std::vector<CommandDefinition>  m_predictions;
-	std::vector<OutputBox*>		    m_outputString; 
+	std::vector<OutputBox*>		    m_outputString;
 private:
 	DevConsole();
 	~DevConsole();
 public:
+	void Open();
+	void Close();
 	bool IsDevConsoleOpen();
+	bool WasDevConsoleJustOpened();
 	bool IsInputAlreadyCleared();
 	bool IsTextSelected();
 	bool IsPredictionOn();
 	
+	void Update(float deltaTime);
 	void UpdateDimensions(Vector2 mins,Vector2 maxs);
-	void Render(Renderer *renderer);
+	void Render();
 	void RenderOutputBox(Renderer *renderer);
 	void RenderCursor(Renderer *renderer);
 	void RenderBoundaries(Renderer *renderer);
@@ -103,6 +109,7 @@ public:
 	void SetShiftPressed(bool value);
 	void SetControlPressed(bool value);
 	//Static_Methods
+	static void StartUp();
 protected:
 	//Member_Variables
 

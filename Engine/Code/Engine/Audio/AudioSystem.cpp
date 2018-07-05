@@ -54,7 +54,7 @@ AudioSystem::AudioSystem()
 	result = m_fmodSystem->init( 512, FMOD_INIT_NORMAL, nullptr );
 	ValidateResult( result );
 
-	LoadSoundsFromFile("Data\\Definitions\\Sounds.xml");
+	//LoadSoundsFromFile("Data\\Definitions\\Sounds.xml");
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //DESTRUCTOR

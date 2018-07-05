@@ -197,6 +197,15 @@ public:
 		return meshbuilder.CreateMesh<VERTEX_TYPE>();
 	}
 
+	template <typename  VERTEX_TYPE>
+	static Mesh* CreateTriangle(Vector3 position1, Vector3 position2,Vector3 position3, Rgba color)
+	{
+		MeshBuilder meshbuilder;
+		meshbuilder.Begin(PRIMITIVE_TRIANGES, true);
+		CreateTriangle(meshbuilder, position1, position2, position3, color);
+		return meshbuilder.CreateMesh<VERTEX_TYPE>();
+	}
+
 	
 	static void CreateUVSpehere					 (MeshBuilder &meshbuilder, Vector3 position, float radius, int wedges, int slices, Rgba color, FillMode mode);
 	static void CreateDistortedUVSpehere         (MeshBuilder &meshbuilder, Vector3 position, float radius, int wedges, int slices, float distortlength, Rgba color, FillMode mode);
@@ -210,10 +219,14 @@ public:
 	static void Create2DGrid					 (MeshBuilder &meshbuilder, Vector3 position, Vector2 dimensions,Vector3 rightDirection,Vector3 upDirection, Rgba color);
 	static void CreateBasis						 (MeshBuilder &meshbuilder, Vector3 position, Vector3 rotation,float scale);
 	static void CreateLineSet					 (MeshBuilder &meshBuilder, Vector3 startPosition[], Vector3 endPosition[], int count,Rgba color);
+	static void	CreateTriangle					 (MeshBuilder &meshBuilfer, Vector3 position1, Vector3 position2, Vector3 position3, Rgba color);
+	static void	CreateRect					     (MeshBuilder &meshBuilfer, Vector3 position1, Vector3 position2, Vector3 position3,Vector3 position4, Rgba color);
 	static Mesh* CreateMeshFromFile				 (std::string imageFilePath);
 
 	static bool GenerateMikkt(MeshBuilder &meshBuilder);
 	void GenerateArbitaryTangent(Vector3 *tangent, Vector3 *bitangent, Vector3 normal);
+	void RemoveVerticesFromBegin(int count);
+	void RemoveIndicesFromBegin(int count);
 	//Static_Methods
 
 protected:

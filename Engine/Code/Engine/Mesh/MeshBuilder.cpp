@@ -1056,6 +1056,57 @@ void MeshBuilder::CreateLineSet(MeshBuilder &meshBuilder, Vector3 startPosition[
 	meshBuilder.End();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/01
+*@purpose : Creates triangle with points given
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MeshBuilder::CreateTriangle(MeshBuilder &meshBuilder, Vector3 position1, Vector3 position2, Vector3 position3, Rgba color)
+{
+	int indices = static_cast<int>(meshBuilder.m_indices.size());
+	meshBuilder.SetUV(Vector2(0, 0));
+	meshBuilder.SetColor(color);
+	meshBuilder.PushVertex(position1);
+
+	meshBuilder.SetUV(Vector2(0, 0));
+	meshBuilder.SetColor(color);
+	meshBuilder.PushVertex(position2);
+
+	meshBuilder.SetUV(Vector2(0, 0));
+	meshBuilder.SetColor(color);
+	meshBuilder.PushVertex(position3);
+
+	//meshBuilder.AddTriangleIndex(indices,indices + 1,indices + 2);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MeshBuilder::CreateRect(MeshBuilder &meshBuilder, Vector3 position1, Vector3 position2, Vector3 position3, Vector3 position4, Rgba color)
+{
+	int qindex = static_cast<int>(meshBuilder.m_indices.size());
+	meshBuilder.SetUV(Vector2(0, 0));
+	meshBuilder.SetColor(color);
+	meshBuilder.PushVertex(position1);
+
+	meshBuilder.SetUV(Vector2(0, 1));
+	meshBuilder.SetColor(color);
+	meshBuilder.PushVertex(position2);
+
+	meshBuilder.SetUV(Vector2(1, 1));
+	meshBuilder.SetColor(color);
+	meshBuilder.PushVertex(position3);
+
+	meshBuilder.SetUV(Vector2(1, 0));
+	meshBuilder.SetColor(color);
+	meshBuilder.PushVertex(position4);
+	//meshBuilder.AddQuadIndex(qindex, qindex + 1, qindex + 3, qindex + 2);
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/04/04
 *@purpose : Creates mesh from file
@@ -1207,5 +1258,26 @@ void MeshBuilder::GenerateArbitaryTangent(Vector3 *tangent, Vector3 *bitangent, 
 
 	*tangent = right;
 	*bitangent = up;
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/01
+*@purpose : Removes vertices from begin of mb
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MeshBuilder::RemoveVerticesFromBegin(int count)
+{
+	m_vertices.erase(m_vertices.begin(), m_vertices.begin() + count);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/01
+*@purpose : removes indices from begin
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MeshBuilder::RemoveIndicesFromBegin(int count)
+{
+	m_indices.erase(m_indices.begin(), m_indices.begin() + count);
 }

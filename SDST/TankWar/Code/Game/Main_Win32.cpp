@@ -1,14 +1,15 @@
 #define WIN32_LEAN_AND_MEAN		// Always #define this before #including <windows.h>	
 #include <cassert>
 #include <crtdbg.h>
-#include "GameCommon.hpp"
-#include "Engine/Time/Clock.hpp"
-#include "App.hpp"
-
-#include "Engine/Renderer/Renderer.hpp"
-#include "Engine/Core/Windows.hpp"
-#include "Engine/DevConsole/Command.hpp"
 #include <stdio.h>
+#include "Engine/EngineSystem.hpp"
+#include "Engine/Renderer/Renderer.hpp"
+#include "Engine/DevConsole/Command.hpp"
+#include "Engine/Core/Windows.hpp"
+#include "Engine/Time/Clock.hpp"
+#include "Game/GameCommon.hpp"
+#include "Game/App.hpp"
+
 //#pragma comment( lib, "opengl32" )	// Link in the OpenGL32.lib static library
 
 #define UNUSED(x) (void)(x);
@@ -20,10 +21,7 @@ App *g_theApp;
 bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t lParam);
 bool AppMessageHandler( unsigned int wmMessageCode, size_t wParam, size_t lParam )
 {
-	/*if(DevConsole::GetInstance()->IsDevConsoleOpen())
-	{
-	return true;
-	}*/
+
 	unsigned char keyCode = (unsigned char) wParam;
 	switch( wmMessageCode )
 	{
@@ -46,7 +44,7 @@ bool AppMessageHandler( unsigned int wmMessageCode, size_t wParam, size_t lParam
 		{
 			Windows::GetInstance()->RemoveHandler(AppMessageHandler);
 			Windows::GetInstance()->AddHandler(DevConsoleMessageHandler);
-			DevConsole::GetInstance()->m_isActive = true;
+			DevConsole::GetInstance()->Open();
 			DevConsole::GetInstance()->ClearPrediction();
 			IntVector2 dimensions = Windows::GetInstance()->GetDimensions();
 			DevConsole::GetInstance()->UpdateDimensions(Vector2(0,0),Vector2(static_cast<float>(dimensions.x),static_cast<float>(dimensions.y)));
@@ -107,10 +105,6 @@ bool AppMessageHandler( unsigned int wmMessageCode, size_t wParam, size_t lParam
 bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t lParam)
 {
 	UNUSED(lParam);
-	/*if(!DevConsole::GetInstance()->IsDevConsoleOpen())
-	{
-	return true;
-	}*/
 	switch (wmMessageCode)
 	{
 
@@ -136,7 +130,7 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 			{
 				Windows::GetInstance()->AddHandler(AppMessageHandler);
 				Windows::GetInstance()->RemoveHandler(DevConsoleMessageHandler);
-				DevConsole::GetInstance()->m_isActive = false;
+				DevConsole::GetInstance()->Close();
 			}
 			DevConsole::GetInstance()->ClearInputScreen();
 			return true;
@@ -235,13 +229,10 @@ void CreateOpenGLWindow( HINSTANCE applicationInstanceHandle, float clientAspect
 void Initialize( HINSTANCE applicationInstanceHandle )
 {
 	g_theApp = new App();
-
 	CreateOpenGLWindow( applicationInstanceHandle, CLIENT_ASPECT );
+	EngineSystem::StartUp();
 	g_theRenderer = Renderer::GetInstance();
-	g_theRenderer->RenderStartup();
-	g_theRenderer->PostStartup();
-	CommandRunScript("");
-	CommandRegister("quit",QuitApp,"QUITS APPLICATION");
+	CommandRegister("quit", QuitApp, "QUITS APPLICATION");
 }
 
 

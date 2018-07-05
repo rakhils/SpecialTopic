@@ -20,6 +20,7 @@
 #include "Engine/Renderer/Camera/OrbitCamera.hpp"
 #include "Engine/Renderer/Sampler.hpp"
 #include "Engine/Mesh/MeshBuilder.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 
 #include "Game/Game.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
@@ -236,6 +237,7 @@ void SceneLevel1::CreateWater()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLevel1::Update(float deltaTime)
 {
+	ProfilerManager::PushProfiler("SceneLevel1::Update");
 	if (IsEnteringScene(deltaTime))
 	{
 		UpdateEnteringTime(deltaTime);
@@ -267,6 +269,7 @@ void SceneLevel1::Update(float deltaTime)
 				m_levelState = PLAY;
 			}
 		}
+		ProfilerManager::PoPProfiler();
 		return;
 	}
 	if(m_levelState == WIN)
@@ -353,6 +356,7 @@ void SceneLevel1::Update(float deltaTime)
 	DebugDraw::GetInstance()->DebugRenderLogf("ENEMY TANK LEFT %d ", static_cast<int>(EnemyBase::s_enemyTanks.size()));
 
 	EnemyBase::UpdateEnemyBase(deltaTime);
+	ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -363,6 +367,7 @@ void SceneLevel1::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneLevel1::Render()
 {
+	ProfilerManager::PushProfiler("SceneLevel1::Render");
 	m_forwardRenderingPath->RenderScene(this);
 
 
@@ -406,6 +411,8 @@ void SceneLevel1::Render()
 			Renderer::GetInstance()->DrawText2D(Vector2(300, 500), "YOU DIED WAIT FOR " + text1, 30, Rgba::WHITE, 1, nullptr);
 		}
 		delete def;
+		ProfilerManager::PoPProfiler();
+
 		return;
 	}
 	if (m_levelState == WIN)
@@ -414,6 +421,7 @@ void SceneLevel1::Render()
 		Renderer::GetInstance()->BindMaterial(def);
 		Renderer::GetInstance()->DrawText2D(Vector2(1000, 500), "YOU WON", 50, Rgba::WHITE, 1, nullptr);
 		delete def;
-		return;
 	}
+	ProfilerManager::PoPProfiler();
+
 }

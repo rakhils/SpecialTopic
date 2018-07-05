@@ -328,11 +328,31 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\Profiler.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="DevConsole\Command.cpp">
       <SubType>
       </SubType>
     </ClCompile>
     <ClCompile Include="DevConsole\DevConsole.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\ProfilerManager.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\ProfilerReport.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\ProfilerReportEntry.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="EngineSystem.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -673,6 +693,10 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="DevConsole\Profiler\Profiler.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="DevConsole\Command.hpp">
       <SubType>
       </SubType>
@@ -681,7 +705,24 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="DevConsole\Profiler\ProfilerConstants.hpp" />
+    <ClInclude Include="DevConsole\Profiler\ProfilerManager.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="DevConsole\Profiler\ProfilerReport.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="DevConsole\Profiler\ProfilerReportEntry.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="EngineBuildPreferences.hpp" />
+    <ClInclude Include="EngineSystem.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="FileUtil\File.h" />
     <ClInclude Include="GameObject\GameObject.hpp">
       <SubType>

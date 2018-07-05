@@ -803,7 +803,7 @@ std::vector<std::string> GetCommandHistory()
 //////////////////////////////////////////////////////////////
 void CommandRunScript(char const *script)
 {
-	CommandStartup();
+	//CommandStartup();
 	UNUSED(script);
 	
 	//CommandRegister("light_set_attenuation", LightSetAttenuation);

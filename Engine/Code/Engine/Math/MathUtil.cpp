@@ -662,6 +662,27 @@ Vector3 RangeMap(Vector3 value, Vector3 originalLowerBound, Vector3 originalUppe
 	return Vector3(xValue, yValue,zValue);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double RangeMap(double value, double OriginalLowerBound, double OriginalUpperBound, double NewLowerbound, double NewUpperBound)
+{
+	if (OriginalLowerBound == OriginalUpperBound)
+	{
+		return NewLowerbound;
+	}
+	double inRange = OriginalUpperBound - OriginalLowerBound;
+	double outRange = NewUpperBound - NewLowerbound;
+	double valueRelatedToStart = value - OriginalLowerBound;
+	double dividedValue = valueRelatedToStart / inRange;
+	double outValueRelatedToStart = dividedValue * outRange;
+	double outValue = outValueRelatedToStart + NewLowerbound;
+	return outValue;
+}
+
 float RangeMapFloat(float value,float OriginalLowerBound,float OriginalUpperBound,float NewLowerbound,float NewUpperBound)
 {
 	if(OriginalLowerBound == OriginalUpperBound)
@@ -1248,6 +1269,25 @@ float ClampFloat(float inValue, float min, float max)
 		return min;
 	}
 	else if(inValue > max)
+	{
+		return max;
+	}
+	return inValue;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/04
+*@purpose : Clamps double value
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double ClampDouble(double inValue, double min, double max)
+{
+	if (inValue < min)
+	{
+		return min;
+	}
+	else if (inValue > max)
 	{
 		return max;
 	}

@@ -98,6 +98,6 @@ public:
 	static Matrix44 LerpTransform(Matrix44 &a, Matrix44 &b, float delta);
 	static Matrix44 TurnTowards(Matrix44 &current, Matrix44 &target, float maxTurnPerFrame);
 	static Vector4  Multiply(Matrix44 mat44,Vector4 vec4);
-
+	static Matrix44 GetIdentity();
 
 };

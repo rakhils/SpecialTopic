@@ -1,3 +1,6 @@
+#include <iostream>
+#include <conio.h>
+#include <windows.h>
 #include "App.hpp"
 #include "Game.hpp"
 #include "GameCommon.hpp"
@@ -7,7 +10,8 @@
 #include "Engine\Time\Clock.hpp"
 #include "Engine\Renderer\Renderer.hpp"
 #include "Engine\Renderer\Shader.hpp"
-
+#include "Engine\EngineSystem.hpp"
+#include "Engine\DevConsole\Profiler\ProfilerManager.hpp"
 App::App()
 {
 	g_theRenderer = Renderer::GetInstance();
@@ -17,6 +21,8 @@ App::App()
 
 	Clock::g_theMasterClock = new Clock();
 	g_theGameClock = new Clock();
+
+
 }
 
 App::~App()
@@ -39,32 +45,34 @@ void App::RunFrame()
 {
 	Clock::g_theMasterClock->BeginFrame();
 	Renderer::GetInstance()->BeginFrame();
+
 	g_theInput->BeginFrame();
 	g_audio->BeginFrame();
 
 	Update(MAX_DELTA_VALUE);
 	Render();
-	g_audio->EndFrame();
 
+	g_audio->EndFrame();
 	g_theInput->EndFrame();
+	
 	Renderer::GetInstance()->EndFrame();
 }
 
-
-
 void App::Update(float deltaTime)
 {
+	ProfilerManager::MarkFrame();
+	
+	ProfilerManager::PushProfiler("App::Update");
 	g_theGame->Update(deltaTime);
-	//isQuitTriggered = g_theGame->isQuitTriggered;
+	ProfilerManager::PoPProfiler();
+	EngineSystem::Update(deltaTime);
+
 }
 
 void App::Render()
 {
 	g_theGame->Render();
-	if (DevConsole::GetInstance()->IsDevConsoleOpen())
-	{
-		DevConsole::GetInstance()->Render(g_theRenderer);
-	}
+	EngineSystem::Render();
 }
 
 bool App::IsReadyToQuit()

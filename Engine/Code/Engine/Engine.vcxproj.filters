@@ -415,6 +415,21 @@
     <ClCompile Include="Physics\Collider\PointCollider.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\Profiler.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\ProfilerManager.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="EngineSystem.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\ProfilerReportEntry.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\ProfilerReport.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -702,6 +717,12 @@
     <ClInclude Include="AI\GA\StringGeneticAlgorithm.hpp" />
     <ClInclude Include="AI\NeuralNetwork\NeuralNetGA.hpp" />
     <ClInclude Include="Physics\Collider\PointCollider.hpp" />
+    <ClInclude Include="DevConsole\Profiler\Profiler.hpp" />
+    <ClInclude Include="DevConsole\Profiler\ProfilerManager.hpp" />
+    <ClInclude Include="EngineSystem.hpp" />
+    <ClInclude Include="DevConsole\Profiler\ProfilerReportEntry.hpp" />
+    <ClInclude Include="DevConsole\Profiler\ProfilerReport.hpp" />
+    <ClInclude Include="DevConsole\Profiler\ProfilerConstants.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

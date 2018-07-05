@@ -27,6 +27,7 @@
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Renderer/Camera/PerspectiveCamera.hpp"
 #include "Engine/Renderer/Camera.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 
 #include "Game/GameCommon.hpp"
 #include "Game/Game.hpp"
@@ -141,6 +142,7 @@ void Game::SelectNextScene()
 *//////////////////////////////////////////////////////////////
 void Game::Update(float deltaTime)
 {	
+	ProfilerManager::PushProfiler("Game::Update");
 	Init();
 	float deltaSecond = static_cast<float>(Clock::g_theMasterClock->frame.m_seconds);
 	deltaSecond = ClampFloat(deltaSecond, 0, 0.016f);
@@ -148,8 +150,9 @@ void Game::Update(float deltaTime)
 	{
 		SelectNextScene();
 	}
+
 	m_currentScene->Update(deltaTime);
-	DebugDraw::Update();
+	ProfilerManager::PoPProfiler();
 }
 
 //////////////////////////////////////////////////////////////

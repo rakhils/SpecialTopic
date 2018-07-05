@@ -293,6 +293,18 @@ Vector4 Matrix44::Multiply(Matrix44 mat44,Vector4 vec4)
 	return Vector4(x, y, z, w);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Matrix44 Matrix44::GetIdentity()
+{
+	Matrix44 identity;
+	return identity;
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/03/18
 *@purpose : NIL
@@ -659,7 +671,7 @@ void Matrix44::ScaleUniform2D(float scaleXY)
 
 void Matrix44::Scale3D(float scaleX, float scaleY,float scaleZ)
 {
-	Vector4 IVector(scaleX,0,0,0);
+	/*Vector4 IVector(scaleX,0,0,0);
 	Vector4 JVector(0,scaleY,0,0);
 	Vector4 KVector(0,0,scaleZ,0);
 	Vector4 TVector(0,0,0,1);
@@ -667,9 +679,13 @@ void Matrix44::Scale3D(float scaleX, float scaleY,float scaleZ)
 						IVector.y,JVector.y,KVector.y,TVector.y,
 						IVector.z,JVector.z,KVector.z,TVector.z,
 						IVector.w,JVector.w,KVector.w,TVector.w};
-	Matrix44 rotationMatrix(points); 
+	Matrix44 rotationMatrix(points);*/ 
+	
+	Ix *= scaleX;
+	Jy *= scaleY;
+	Kz *= scaleZ;
 
-	MultiplyAndSet(rotationMatrix); 
+	//MultiplyAndSet(scaleMatrix); 
 }
 
 //////////////////////////////////////////////////////////////

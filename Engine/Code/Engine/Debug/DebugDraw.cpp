@@ -1094,7 +1094,6 @@ void DebugDraw::DebugRenderMatrix(Matrix44 value)
 	DebugRenderLogf("%f , %f , %f , %f", value.GetJVector4());
 	DebugRenderLogf("%f , %f , %f , %f", value.GetKVector4());
 	DebugRenderLogf("%f , %f , %f , %f", value.GetTVector4());
-
 }
 
 //////////////////////////////////////////////////////////////

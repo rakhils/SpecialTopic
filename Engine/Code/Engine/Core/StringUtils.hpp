@@ -26,6 +26,7 @@ bool					 IsEqual(std::string str,char *ch);
 
 std::string				 ToString(std::vector<std::string> Strings);
 std::string				 ToString(float value);
+std::string				 ToString(double value);
 std::string				 ToString(bool value);
 std::string				 ToString(int value);
 std::string				 ToString(size_t value);
