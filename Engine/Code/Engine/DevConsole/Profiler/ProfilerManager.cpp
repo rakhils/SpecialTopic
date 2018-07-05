@@ -4,12 +4,21 @@
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Renderer/Materials/Material.hpp"
+#include "Engine/Core/Windows.hpp"
+
 Profiler*					  ProfilerManager::s_profiler		  = nullptr;
 std::vector<ProfilerReport*>   ProfilerManager::s_profilerReports;
 ReportUI					  ProfilerManager::s_report;
 Graph						  ProfilerManager::s_performanceGraph;
 int							  ProfilerManager::s_maxSample = g_profilerMaxSamples;
 REPORT_TYPE					  ProfilerManager::s_reportType = TREE;
+double						  ProfilerManager::s_fps;
+double					      ProfilerManager::s_frameTime;
+double						  ProfilerManager::s_prevTime;
+double					      ProfilerManager::s_currentTime;
+bool						  ProfilerManager::s_isPaused = false;
+bool						  ProfilerManager::s_showSpecificReport = false;
+int							  ProfilerManager::s_showReportIndex	= 0;
 // CONSTRUCTOR
 ProfilerManager::ProfilerManager()
 {
@@ -66,6 +75,34 @@ void ProfilerManager::SetMaxSamples(int samples)
 void ProfilerManager::Update(float deltaTime)
 {
 	UNUSED(deltaTime);
+	s_currentTime = Clock::g_theMasterClock->total.m_seconds;
+	double delta  = s_currentTime - s_prevTime;
+	s_prevTime	  = s_currentTime;
+	s_fps		  = static_cast<double>(1) / delta;
+	s_frameTime   = delta;
+	
+	if (InputSystem::GetInstance()->WasRButtonJustPressed())
+	{
+		s_isPaused = false;
+	}
+
+
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_P))
+	{
+		if(s_isPaused)
+		{
+			s_isPaused = false;
+		}
+		else
+		{
+			s_isPaused = true;
+		}
+	}
+	if(s_isPaused)
+	{
+		return;
+	}
+
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_R))
 	{
 		if (s_reportType == TREE)
@@ -77,6 +114,32 @@ void ProfilerManager::Update(float deltaTime)
 			s_reportType = TREE;
 		}
 	}
+	if (InputSystem::GetInstance()->WasLButtonJustPressed())
+	{
+		Vector2 postion = InputSystem::GetInstance()->GetMousePosition();
+		if (s_performanceGraph.m_bounds.IsPointInside(postion))
+		{
+			float Xvalue = postion.x - s_performanceGraph.m_bounds.mins.x;
+			float index = RangeMapFloat(Xvalue, 0, s_performanceGraph.m_bounds.GetDimensions().x, 0, s_profilerReports.size());
+			s_showSpecificReport = true;
+			s_isPaused = true;
+			s_showReportIndex = static_cast<int>(index);
+
+
+			/*ProfilerReport *report = s_profilerReports.at(static_cast<int(index));
+			report->GenerateTreeReportFromFrame(root);
+			s_profilerReports.push_back(report);
+			if (s_profilerReports.size() >= s_maxSample)
+			{
+				ProfilerReport *lastReport = s_profilerReports.at(0);
+				delete lastReport;
+				s_profilerReports.erase(s_profilerReports.begin(), s_profilerReports.begin() + 1);
+			}*/
+		}
+	}
+	
+
+
 	if(s_profiler->m_measurements.size() >= 1)
 	{
 		ProfileMeasurement_t* measurement = s_profiler->m_measurements.at(s_profiler->m_measurements.size() - 1);
@@ -90,7 +153,6 @@ void ProfilerManager::Update(float deltaTime)
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_J))
 	{
 		s_performanceGraph.UpdateAllPointsWithNewMax(s_performanceGraph.m_maxValue, s_performanceGraph.m_maxValue/2.f);
-		//s_performanceGraph.m_maxValue--;
 	}
 }
 
@@ -102,17 +164,23 @@ void ProfilerManager::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ProfilerManager::RenderProfiler()
 {
-	//Vector2 startPosition =  g_profilerUIStartPos;
-	//RenderAttributes();
-	//startPosition.y       -= g_profilerUILineSpace;
-	//if(s_profilerReports.size() > 0)
-	//{
-	//	ProfilerReport *lastReport = s_profilerReports.at(s_profilerReports.size() - 1);
-	//	RenderTreeView(lastReport->m_root, startPosition, 0);
-	//}
+	RenderFPSAndFrameRate();
+	Vector2 startPosition =  g_profilerUIStartPos;
+	RenderAttributes();
+	startPosition.y       -= g_profilerUILineSpace;
 
-
-
+	if(s_showSpecificReport)
+	{
+		ProfilerReport *lastReport = s_profilerReports.at(s_showReportIndex);
+		RenderTreeView(lastReport->m_root, startPosition, 0);
+	}
+	else
+	if(s_profilerReports.size() > 0)
+	{
+		
+		ProfilerReport *lastReport = s_profilerReports.at(s_profilerReports.size() - 1);
+		RenderTreeView(lastReport->m_root, startPosition, 0);
+	}
 
 	s_performanceGraph.Render();
 }
@@ -128,7 +196,7 @@ void ProfilerManager::RenderAttributes()
 	Vector2 startPosition = g_profilerUIStartPos;
 	Renderer *renderer = Renderer::GetInstance();
 	int indent = static_cast<int>(g_profilerUIParaSpace);
-	std::string headings = Stringf("%*s%-*s %-8s %-8s %-12s %-8s %-12s ", indent, "",
+	std::string headings = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s ", indent, "",
 		(2 * indent), s_report.m_attribs.at(0).c_str(),
 		s_report.m_attribs.at(1).c_str(),
 		s_report.m_attribs.at(2).c_str(),
@@ -151,14 +219,14 @@ void ProfilerManager::RenderAttributes()
 void ProfilerManager::RenderTreeView(ProfilerReportEntry *entry,Vector3 position,int depth)
 {
 	Renderer *renderer = Renderer::GetInstance();
-	int indent = static_cast<int>(g_profilerUIParaSpace) + depth;
-	std::string entryString = Stringf("%*s%-*s %-8s %-8s %-12s %-8s %-12s ", indent, "",
-		(2*indent), entry->m_id.c_str(),
+	int indent = static_cast<int>(g_profilerUIParaSpace);
+	std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s ", indent, "",
+		2*indent, entry->m_id.c_str(),
 		ToString(entry->m_callCount).c_str(),
-		ToString(entry->m_percentTime).c_str(),
-		ToString(entry->m_totalTime).c_str(),
-		ToString(entry->m_selfTime).c_str(),
-		ToString(entry->m_selfTime).c_str());
+		ToString(entry->m_totalPercentTimeInSec).c_str(),
+		ToString(entry->m_totalTimeInSec).c_str(),
+		ToString(entry->m_selfPercentTimeInSec).c_str(),
+		ToString(entry->m_selfTimeInSec).c_str());
 	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
 	renderer->BindMaterial(material);
 	renderer->DrawTextOn3DPoint(position, Vector3::RIGHT, Vector3::UP, entryString, g_profilerUIFontSize, Rgba::WHITE);
@@ -184,18 +252,42 @@ void ProfilerManager::RenderFlatView(ProfilerReportEntry* root,Vector3 startPos)
 	{
 		Renderer *renderer = Renderer::GetInstance();
 		int indent = static_cast<int>(g_profilerUIParaSpace);
-		std::string entryString = Stringf("%*s%-*s %-8s %-8s %-12s %-8s %-12s ", indent, "",
+		std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s ", indent, "",
 			(2*indent), root->m_id.c_str(),
 			ToString(root->m_callCount).c_str(),
-			ToString(root->m_percentTime).c_str(),
-			ToString(root->m_totalTime).c_str(),
-			ToString(root->m_selfTime).c_str(),
-			ToString(root->m_selfTime).c_str());
+			ToString(root->m_totalPercentTimeInSec).c_str(),
+			ToString(root->m_totalTimeInSec).c_str(),
+			ToString(root->m_selfPercentTimeInSec).c_str(),
+			ToString(root->m_selfTimeInSec).c_str());
 		Renderer::GetInstance()->BindShader(Shader::GetDefaultShader());
 		Shader::SetCurrentShader(Shader::GetDefaultShader());
 		renderer->DrawTextOn3DPoint(startPos, Vector3::RIGHT, Vector3::UP, entryString, g_profilerUIFontSize, Rgba::WHITE);
 		startPos.y -= g_profilerUILineSpace;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/04
+*@purpose : renders fps and frame rate
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ProfilerManager::RenderFPSAndFrameRate()
+{
+	Vector2 screenDimensions = Windows::GetInstance()->GetDimensions().GetAsVector2();
+	Vector3 position(Vector3(screenDimensions) - Vector3(300, 300, 0));
+	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
+	Renderer::GetInstance()->BindMaterial(material);
+	Renderer::GetInstance()->DrawTextOn3DPoint(position, Vector3::RIGHT, Vector3::UP, "FPS :", g_profilerUIFontSize, Rgba::WHITE);
+	position += Vector3(10 * g_profilerUIFontSize, 0, 0);
+	Renderer::GetInstance()->DrawTextOn3DPoint(position, Vector3::RIGHT, Vector3::UP, ToString(static_cast<int>(s_fps)), g_profilerUIFontSize, Rgba::WHITE);
+	position += Vector3(-10 *g_profilerUIFontSize ,10 * g_profilerUIFontSize, 0);
+
+	Renderer::GetInstance()->DrawTextOn3DPoint(position, Vector3::RIGHT, Vector3::UP, "FRAME RATE :", g_profilerUIFontSize, Rgba::WHITE);
+	position += Vector3(10 * g_profilerUIFontSize,0, 0);
+
+	Renderer::GetInstance()->DrawTextOn3DPoint(position, Vector3::RIGHT, Vector3::UP, ToString(s_frameTime), g_profilerUIFontSize, Rgba::WHITE);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,6 +6,7 @@
 #include "Engine/Debug/DebugDraw.hpp"
 #include "Engine/Core/Blackboard.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Command::Command()
@@ -212,6 +213,12 @@ void CommandStartup()
 	CommandRegister("debug_render_point3d"  , DebugRenderPoint3D,			 "DRAWS POINT IN CURRENT 3D SPACE");
 	CommandRegister("debug_render_sphere"   , DebugRenderSphere,			 "DRAWS SPHERE IN CURRENT 3D SPACE");
 	CommandRegister("debug_render_text3d"	, DebugRenderText3D,			 "DRAWS TEXT IN CURRENT 3D SPACE");
+
+	CommandRegister("profiler_resume", ProfilerResume, "Resumes Profiler");
+	CommandRegister("profiler_pause" , ProfilerPause,  "Pauses Profiler");
+	CommandRegister("show_mouse",  ShowMouse, "Shows  mouse ");
+	CommandRegister("hide_mouse", HideMouse, "Hides  mouse ");
+
 }
 
 //////////////////////////////////////////////////////////////
@@ -621,6 +628,56 @@ void DebugRenderText3D(Command &cmd)
 	options.m_lifeTime = lifetime;
 	DebugDraw::GetInstance()->DebugRenderText(str,position, Vector3::ZERO, Vector2::ONE, lifetime,fontsize, Rgba::WHITE);
 	DevConsole::GetInstance()->PushToOutputText("SUCCESS", Rgba::GREEN);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : Resumes profiler
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ProfilerResume(Command &cmd)
+{
+	UNUSED(cmd);
+	ProfilerManager::s_isPaused = false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : Pauess profiler
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ProfilerPause(Command &cmd)
+{
+	UNUSED(cmd);
+	ProfilerManager::s_isPaused = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : Shows cursor
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ShowMouse(Command &cmd)
+{
+	UNUSED(cmd);
+	InputSystem::GetInstance()->ShowCursor(true);
+	InputSystem::GetInstance()->MouseLockToScreen(false);
+	InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_ABSOLUTE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : Hides mouses
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void HideMouse(Command &cmd)
+{
+	UNUSED(cmd);
+	InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_RELATIVE;
 }
 
 /*

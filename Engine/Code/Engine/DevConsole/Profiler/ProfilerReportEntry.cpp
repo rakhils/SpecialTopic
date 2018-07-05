@@ -5,9 +5,6 @@ ProfilerReportEntry::ProfilerReportEntry(std::string id)
 {
 	m_id = id;
 	m_callCount = 0;
-	m_totalTime = static_cast<uint64_t>(0);
-	m_selfTime  = static_cast<uint64_t>(0);
-	m_percentTime = static_cast<uint64_t>(0);
 }
 
 // DESTRUCTOR
@@ -22,21 +19,38 @@ ProfilerReportEntry::~ProfilerReportEntry()
 *@param   : Measurement pointer(root)
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ProfilerReportEntry::PopulateTree(ProfileMeasurement_t *m_frame)
+void ProfilerReportEntry::PopulateTree(ProfileMeasurement_t *m_frame,double totalFrameTime)
 {
 	AccumulateData(m_frame);
-	uint64_t childrenTotalTime = static_cast<uint64_t>(0);
-	double   childTimeInSec = 0.0;
+	double   childTimeInSec  = 0.0;
+	double   parentTotalTimeInSec = 1.0;
+	double   parentSelfTimeInSec = 1.0;
+	double   parentTotalPercent  = 1.0;
+	double   parentSelfPercent   = 1.0;
+	if(m_parent != nullptr)
+	{
+		parentTotalTimeInSec     = m_parent->m_totalTimeInSec;
+		parentSelfTimeInSec		 = m_parent->m_selfTimeInSec;
+		parentTotalPercent		 = m_parent->m_totalPercentTimeInSec;
+		parentSelfPercent		 = m_parent->m_selfPercentTimeInSec;	
+	}
+	if (m_parent != nullptr)
+	{
+		m_totalPercentTimeInSec = m_totalTimeInSec / parentTotalTimeInSec * parentTotalPercent;
+	}
 	for(int index = 0;index < m_frame->m_children.size();index++)
 	{
 		ProfileMeasurement_t *child = m_frame->m_children.at(index);
 		ProfilerReportEntry *entry  = CreateOrGetChild(child->m_name.c_str());
-		entry->PopulateTree(child);
-		childrenTotalTime += entry->m_totalTime;
-		childTimeInSec += entry->m_totalTimeInSec;
+		
+		entry->PopulateTree(child,totalFrameTime);
+		childTimeInSec    += entry->m_totalTimeInSec;
 	}
-	m_selfTime = m_totalTime - childrenTotalTime;
-	m_selfTimeInSec = m_totalTimeInSec - childTimeInSec;
+	m_selfTimeInSec			    = m_totalTimeInSec - childTimeInSec;
+	if (m_parent != nullptr)
+	{
+		m_selfPercentTimeInSec = m_selfTimeInSec / totalFrameTime *100 ;	
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,8 +59,9 @@ void ProfilerReportEntry::PopulateTree(ProfileMeasurement_t *m_frame)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ProfilerReportEntry::PopulateFlat(ProfileMeasurement_t *leafnode)
+void ProfilerReportEntry::PopulateFlat(ProfileMeasurement_t *leafnode,double totalFrameTime)
 {
+	UNUSED(totalFrameTime);
 	UNUSED(leafnode);
 }
 
@@ -59,7 +74,6 @@ void ProfilerReportEntry::PopulateFlat(ProfileMeasurement_t *leafnode)
 void ProfilerReportEntry::AccumulateData(ProfileMeasurement_t *leafnode)
 {
 	m_callCount++;
-	m_totalTime      += leafnode->m_elapsedTime;
 	m_totalTimeInSec += leafnode->m_elapsedTimeInSec;
 }
 

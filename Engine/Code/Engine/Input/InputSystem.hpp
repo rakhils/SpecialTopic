@@ -13,7 +13,7 @@ struct KeyButtonState
 enum MousMode
 {
 	MOUSEMODE_RELATIVE,
-	MOUSEMODE__ABSOLUTE
+	MOUSEMODE_ABSOLUTE
 };
 struct Mouse
 {
@@ -80,7 +80,6 @@ public:
 	bool WasRButtonJustPressed() const;
 	bool WasLButtonJustReleased() const;
 	bool WasRButtonJustReleased() const;
-
 	bool WasLeftDoubleClicked() const;
 
 	XboxController&		GetController( int controllerID ) { return m_controllers[ controllerID ]; }

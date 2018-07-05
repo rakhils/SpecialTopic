@@ -22,7 +22,7 @@ ProfilerReport::~ProfilerReport()
 void ProfilerReport::GenerateTreeReportFromFrame(ProfileMeasurement_t *root)
 {
 	m_root = new ProfilerReportEntry(root->m_name);
-	m_root->PopulateTree(root);
+	m_root->PopulateTree(root,root->m_elapsedTimeInSec);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

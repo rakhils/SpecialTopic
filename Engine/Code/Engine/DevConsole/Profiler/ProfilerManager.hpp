@@ -4,6 +4,8 @@
 #include "Engine/DevConsole/Profiler/ProfilerReport.hpp"
 #include "Engine/DevConsole/Profiler/ProfilerConstants.hpp"
 #include "Engine/Renderer/Materials/Material.hpp"
+#include "Engine/Input/InputSystem.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 /*\class  : ProfilerManager	   
 * \group  : <GroupName>	   
 * \brief  :		   
@@ -22,10 +24,11 @@ enum REPORT_TYPE
 struct Graph
 {
 	int			 m_maxNumSample		    = g_profilerMaxSamples;
-	double       m_maxValue			= g_profilerGraphMaxValue;
-	double       m_minValue			= g_profilerGraphMinValue;
+	double       m_maxValue			    = g_profilerGraphMaxValue;
+	double       m_minValue			    = g_profilerGraphMinValue;
 	MeshBuilder* m_meshBuilder		    = nullptr;
-	double       m_lastPointValue      = 0;
+	double       m_lastPointValue       = 0;
+	float		 m_scaleFactor			= 1.f;
 	AABB2        m_bounds;
 	Matrix44	 m_modelMatrix;
 	Graph()
@@ -46,6 +49,10 @@ struct Graph
 		{
 			delete m_meshBuilder;
 		}
+	}
+	void Update(float detaTime)
+	{
+		UNUSED(detaTime);
 	}
 	void SetBounds(AABB2 bounds)
 	{
@@ -107,8 +114,8 @@ struct Graph
 		pointX1			= ClampDouble(pointX1,0, static_cast<double>(m_bounds.GetDimensions().y));
 		pointX2			= ClampDouble(pointX2,0, static_cast<double>(m_bounds.GetDimensions().y));
 
-		float value1    = static_cast<float>(pointX1);// + m_bounds.mins.y;
-		float value2    = static_cast<float>(pointX2);// + m_bounds.mins.y;
+		float value1    = static_cast<float>(pointX1);
+		float value2    = static_cast<float>(pointX2);
 		//DebugDraw::GetInstance()->DebugRenderLogf("GRAPH VALUE FINAL %f", value2);
 		//DebugDraw::GetInstance()->DebugRenderLogf("GRAPH MINMAX %f %f", m_minValue, m_maxValue);
 		float Xposition = m_bounds.maxs.x;
@@ -124,7 +131,7 @@ struct Graph
 		m_meshBuilder->End();
 		m_meshBuilder->RemoveVerticesFromBegin(4);
 		UpdatePosition();
-		//CheckForMaxAndResetScale();
+		CheckForMaxAndResetScale();
 		DebugDraw::GetInstance()->DebugRenderLogf("SCALE FACTOR %f",m_modelMatrix.Jy);
 	}
 	
@@ -149,10 +156,12 @@ struct Graph
 
 			m_meshBuilder->m_vertices.at(vertexIndex).m_position.y = value2;
 		}*/
-		float factor = static_cast<float>(oldMax / newMax);
-		m_modelMatrix.Scale3D(1, factor, 1);
-		m_maxValue = newMax;
-		//DebugDraw::GetInstance()->DebugRenderLogf(1, "newscale %f", m_modelMatrix.Jy);
+		float currentScaleFactor = m_modelMatrix.Jy;
+		float factor		     = static_cast<float>(oldMax / newMax);
+		m_scaleFactor	         = currentScaleFactor*factor;
+		//m_scaleFactor			 = ClampFloat(m_scaleFactor,0,1);
+		m_modelMatrix.Jy         = m_scaleFactor;
+		m_maxValue				 = newMax;
 
 	}
 
@@ -162,7 +171,8 @@ struct Graph
 		for (int vertexIndex = 0; vertexIndex < m_meshBuilder->m_vertices.size(); vertexIndex++)
 		{
 			float value              = m_meshBuilder->m_vertices.at(vertexIndex).m_position.y;
-			float origValue			 = RangeMap(value, 0, (m_bounds.GetDimensions().y), m_minValue, m_maxValue);
+			float origValue			 = RangeMapFloat(value, 0, m_bounds.GetDimensions().y, static_cast<float>(m_minValue), static_cast<float>(m_maxValue));
+			origValue				 = origValue*m_scaleFactor;
 			if(origValue > maxValue)
 			{
 				maxValue = origValue;
@@ -171,6 +181,10 @@ struct Graph
 		if(maxValue == 0)
 		{
 			return;
+		}
+		if(m_maxValue > maxValue)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(1, "SCALING UP %f ",maxValue);
 		}
 		UpdateAllPointsWithNewMax(m_maxValue, maxValue);
 	}
@@ -207,6 +221,14 @@ public:
 	static Graph						 s_performanceGraph;
 	static int							 s_maxSample;
 	static REPORT_TYPE					 s_reportType;
+	static double						 s_fps;
+	static double					     s_frameTime;
+	static double						 s_currentTime;
+	static double						 s_prevTime;
+	static bool							 s_isPaused;
+
+	static bool							 s_showSpecificReport;
+	static int							 s_showReportIndex;
 	//Static_Member_Variables
 
 	//Methods
@@ -221,6 +243,7 @@ public:
 	static void		RenderAttributes();
 	static void     RenderTreeView(ProfilerReportEntry *entry,Vector3 position,int depth);
 	static void     RenderFlatView(ProfilerReportEntry* root,Vector3 startPos);
+	static void     RenderFPSAndFrameRate();
 
 	static void     CreateReportFromPreviousFrames();
 	

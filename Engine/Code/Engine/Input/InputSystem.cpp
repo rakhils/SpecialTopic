@@ -124,9 +124,13 @@ void InputSystem::UpdateMouse()
 		m_mouse.m_positionLastFrame = GetCenterOfClientWindow();
 		SetMousePosition(m_mouse.m_positionLastFrame);
 		ShowCursor(false);
+		MouseLockToScreen(true);
 	}
-	MouseLockToScreen(true);
-
+	if (m_mouse.m_mouseMode == MOUSEMODE_ABSOLUTE)
+	{
+		ShowCursor(true);
+		MouseLockToScreen(false);
+	}
 }
 
 void InputSystem::onKeyPressed(unsigned char keyCode)

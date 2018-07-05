@@ -9,6 +9,7 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
+#include "Engine/Input/InputSystem.hpp"
 // CONSTRUCTOR
 
 DevConsole* DevConsole::s_devConsole = nullptr;
@@ -175,6 +176,22 @@ bool DevConsole::IsPredictionOn()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void DevConsole::Update(float deltaTime)
 {
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_M))
+	{
+		InputSystem::GetInstance()->ShowCursor(true);
+		InputSystem::GetInstance()->MouseLockToScreen(false);
+		if(InputSystem::GetInstance()->m_mouse.m_mouseMode == MOUSEMODE_RELATIVE)
+		{
+			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_ABSOLUTE;
+		
+		}
+		else
+		{
+			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_RELATIVE;
+		}
+
+	}
+
 	if(m_wasJustActive)
 	{
 		ProfilerManager::CreateReportFromPreviousFrames();

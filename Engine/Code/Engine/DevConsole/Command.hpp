@@ -90,6 +90,13 @@ void DebugRenderPoint3D(Command &cmd);
 void DebugRenderSphere(Command &cmd);
 void DebugRenderWiredSphere(Command &cmd);
 void DebugRenderText3D(Command &cmd);
+
+// PROFILER COMMMANDS
+void ProfilerResume(Command &cmd);
+void ProfilerPause(Command &cmd);
+
+void ShowMouse(Command &cmd);
+void HideMouse(Command &cmd);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static std::vector<std::string> GetCommandHistory();
 

@@ -1064,7 +1064,7 @@ void MeshBuilder::CreateLineSet(MeshBuilder &meshBuilder, Vector3 startPosition[
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MeshBuilder::CreateTriangle(MeshBuilder &meshBuilder, Vector3 position1, Vector3 position2, Vector3 position3, Rgba color)
 {
-	int indices = static_cast<int>(meshBuilder.m_indices.size());
+	//int indices = static_cast<int>(meshBuilder.m_indices.size());
 	meshBuilder.SetUV(Vector2(0, 0));
 	meshBuilder.SetColor(color);
 	meshBuilder.PushVertex(position1);
@@ -1088,7 +1088,7 @@ void MeshBuilder::CreateTriangle(MeshBuilder &meshBuilder, Vector3 position1, Ve
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MeshBuilder::CreateRect(MeshBuilder &meshBuilder, Vector3 position1, Vector3 position2, Vector3 position3, Vector3 position4, Rgba color)
 {
-	int qindex = static_cast<int>(meshBuilder.m_indices.size());
+//	int qindex = static_cast<int>(meshBuilder.m_indices.size());
 	meshBuilder.SetUV(Vector2(0, 0));
 	meshBuilder.SetColor(color);
 	meshBuilder.PushVertex(position1);

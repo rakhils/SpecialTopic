@@ -44,6 +44,7 @@ struct ProfileMeasurement_t
 			delete m_children.at(index);
 		}
 	}
+	
 	void Finish()
 	{
 		UpdateEndTime();
@@ -66,7 +67,7 @@ struct ProfileMeasurement_t
 		//DebugDraw::GetInstance()->DebugRenderLogf("%s START TIME HPC %llu", m_name.c_str(), m_start);
 		//DebugDraw::GetInstance()->DebugRenderLogf("%s END   TIME HPC %llu", m_name.c_str(), m_end);
 
-		//DebugDraw::GetInstance()->DebugRenderLogf("%s ELAPSED TIME SEC %f", m_name.c_str(), static_cast<float>(m_elapsedTimeInSec));
+		//DebugDraw::GetInstance()->DebugRenderLogf("%s ELAPSED TIME SEC %f", m_name.c_str(), (m_elapsedTimeInSec));
 
 	}
 	void AddChild(ProfileMeasurement_t* measurement)

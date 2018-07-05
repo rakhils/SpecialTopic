@@ -18,13 +18,14 @@ public:
 	//Member_Variables
 	std::string m_id;
 	int			m_callCount  ;
-	uint64_t	m_totalTime  ; // inclusive time including functions called by itself; 
+	/*uint64_t	m_totalTime  ; // inclusive time including functions called by itself; 
 	uint64_t	m_selfTime   ;  // own time = total time - function calls
-	uint64_t	m_percentTime;
+	uint64_t	m_percentTime;*/
 
-	double		m_totalTimeInSec   = 0.0;
-	double		m_selfTimeInSec    = 0.0;
-	double		m_percentTimeInSec = 0.0;
+	double		m_totalTimeInSec        = 0.0;
+	double		m_selfTimeInSec         = 0.0;
+	double		m_totalPercentTimeInSec = 100.0;
+	double		m_selfPercentTimeInSec  = 100.0; 
 
 	ProfilerReportEntry *m_parent;
 	std::map<std::string, ProfilerReportEntry*> m_children;
@@ -35,8 +36,8 @@ public:
 	ProfilerReportEntry(std::string id);
 	~ProfilerReportEntry();
 	
-	void				 PopulateTree(ProfileMeasurement_t *m_frame);
-	void				 PopulateFlat(ProfileMeasurement_t *leafnode);
+	void				 PopulateTree(ProfileMeasurement_t *m_frame,double totalFrameTime);
+	void				 PopulateFlat(ProfileMeasurement_t *leafnode,double totalFrameTime);
 	void				 AccumulateData(ProfileMeasurement_t *leafnode);
 	ProfilerReportEntry* CreateOrGetChild(char const *str);
 
