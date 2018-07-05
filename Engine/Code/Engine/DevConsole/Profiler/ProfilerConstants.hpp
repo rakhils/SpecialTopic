@@ -1,6 +1,6 @@
 #pragma once
+#define         PROFILER_ENABLED
 static int		g_profilerMaxSamples			= 250;
-
 //GRAPH CONSTANTS//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static float	g_profilerTimeGraphWidth		= 500.f;
 static float	g_profilerTimeGraphHeight       = 50.f;
