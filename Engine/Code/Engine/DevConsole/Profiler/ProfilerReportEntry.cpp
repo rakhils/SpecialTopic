@@ -22,35 +22,17 @@ ProfilerReportEntry::~ProfilerReportEntry()
 void ProfilerReportEntry::PopulateTree(ProfileMeasurement_t *m_frame,double totalFrameTime)
 {
 	AccumulateData(m_frame);
-	double   childTimeInSec  = 0.0;
-	double   parentTotalTimeInSec = 1.0;
-	double   parentSelfTimeInSec = 1.0;
-	double   parentTotalPercent  = 1.0;
-	double   parentSelfPercent   = 1.0;
-	if(m_parent != nullptr)
-	{
-		parentTotalTimeInSec     = m_parent->m_totalTimeInSec;
-		parentSelfTimeInSec		 = m_parent->m_selfTimeInSec;
-		parentTotalPercent		 = m_parent->m_totalPercentTimeInSec;
-		parentSelfPercent		 = m_parent->m_selfPercentTimeInSec;	
-	}
-	if (m_parent != nullptr)
-	{
-		m_totalPercentTimeInSec = m_totalTimeInSec / parentTotalTimeInSec * parentTotalPercent;
-	}
+	double childTimeInSec = 0;
 	for(int index = 0;index < m_frame->m_children.size();index++)
 	{
 		ProfileMeasurement_t *child = m_frame->m_children.at(index);
 		ProfilerReportEntry *entry  = CreateOrGetChild(child->m_name.c_str());
-		
 		entry->PopulateTree(child,totalFrameTime);
 		childTimeInSec    += entry->m_totalTimeInSec;
 	}
 	m_selfTimeInSec			    = m_totalTimeInSec - childTimeInSec;
-	if (m_parent != nullptr)
-	{
-		m_selfPercentTimeInSec = m_selfTimeInSec / totalFrameTime *100 ;	
-	}
+	m_selfPercentTimeInSec      = m_selfTimeInSec  / totalFrameTime * 100;
+	m_totalPercentTimeInSec		= m_totalTimeInSec / totalFrameTime * 100;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -59,10 +41,22 @@ void ProfilerReportEntry::PopulateTree(ProfileMeasurement_t *m_frame,double tota
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ProfilerReportEntry::PopulateFlat(ProfileMeasurement_t *leafnode,double totalFrameTime)
+void ProfilerReportEntry::PopulateFlat(ProfileMeasurement_t *m_frame,double totalFrameTime)
 {
-	UNUSED(totalFrameTime);
-	UNUSED(leafnode);
+	double childTime = 0;
+	for (int index = 0; index < m_frame->m_children.size(); index++)
+	{
+		ProfileMeasurement_t *child = m_frame->m_children.at(index);
+		ProfilerReportEntry *entry  = CreateOrGetChild(child->m_name.c_str());
+		PopulateFlat(child, totalFrameTime);
+		childTime += entry->m_totalTimeInSec;
+	}
+	ProfilerReportEntry *entry         = CreateOrGetChild(m_frame->m_name.c_str());
+	entry->m_callCount++;
+	entry->m_totalTimeInSec			   += m_frame->m_elapsedTimeInSec;
+	entry->m_selfTimeInSec             += m_frame->m_elapsedTimeInSec - childTime;
+	entry->m_selfPercentTimeInSec	   += (entry->m_selfTimeInSec  / totalFrameTime) * static_cast<double>(100);
+	entry->m_totalPercentTimeInSec     += (entry->m_totalTimeInSec / totalFrameTime) * static_cast<double>(100);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,4 +90,15 @@ ProfilerReportEntry* ProfilerReportEntry::CreateOrGetChild(char const *str)
 	m_children[id]			   = entry;
 	entry->m_parent			   = this;
 	return entry;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : Adds a child
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ProfilerReportEntry::AddChild(ProfilerReportEntry* entry)
+{
+	m_children[entry->m_id] = entry;
 }

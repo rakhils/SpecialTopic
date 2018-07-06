@@ -15,6 +15,7 @@
 #include "Engine/Renderer/Lights/Light.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Renderer/Shaders/ShaderProgramInfo.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 #include "ShaderDefinitions.hpp"
 // CONSTRUCTOR
 ForwardRenderingPath::ForwardRenderingPath()
@@ -53,6 +54,8 @@ ForwardRenderingPath::~ForwardRenderingPath()
 //////////////////////////////////////////////////////////////
 void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 {
+	ProfilerManager::PushProfiler("ForwardRenderingPath::RenderSceneFromCamera");
+
 	Camera::SetCurrentCamera(camera);
 	m_renderer->BeginFrame();
 
@@ -168,6 +171,7 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 		DrawCall dc = drawCalls.at(index);
 		m_renderer->DrawMesh(dc.m_mesh,dc.m_modelMatrix);
 	}
+	ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

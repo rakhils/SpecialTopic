@@ -16,11 +16,6 @@
 * \date   : 7/3/2018 1:20:57 AM
 * \contact: srsrakhil@gmail.com
 */
-enum REPORT_TYPE
-{
-	TREE,
-	FLAT
-};
 struct Graph
 {
 	int			 m_maxNumSample		    = g_profilerMaxSamples;
@@ -107,8 +102,7 @@ struct Graph
 	}
 	void UpdateGraphPoints(double pointX1, double pointX2)
 	{
-		UpdateScaleFactor(pointX2);
-		//DebugDraw::GetInstance()->DebugRenderLogf("GRAPH VALUE DOUBLE %f", pointX2);
+		//UpdateScaleFactor(pointX2);
 		pointX1			= RangeMap(pointX1, m_minValue, m_maxValue, 0, static_cast<double>(m_bounds.GetDimensions().y));
 		pointX2			= RangeMap(pointX2, m_minValue, m_maxValue, 0, static_cast<double>(m_bounds.GetDimensions().y));
 		pointX1			= ClampDouble(pointX1,0, static_cast<double>(m_bounds.GetDimensions().y));
@@ -116,11 +110,9 @@ struct Graph
 
 		float value1    = static_cast<float>(pointX1);
 		float value2    = static_cast<float>(pointX2);
-		//DebugDraw::GetInstance()->DebugRenderLogf("GRAPH VALUE FINAL %f", value2);
-		//DebugDraw::GetInstance()->DebugRenderLogf("GRAPH MINMAX %f %f", m_minValue, m_maxValue);
 		float Xposition = m_bounds.maxs.x;
 		float deltaXVal = m_bounds.GetDimensions().x / m_maxNumSample;
-		
+		DebugDraw::GetInstance()->DebugRenderLogf("GRAPH VALUE %f ",value2);
 		Vector3 position1(Xposition,			 0,   0);
 		Vector3 position2(Xposition + deltaXVal, 0,   0);
 		Vector3 position3(Xposition,			 value1			,   0);
@@ -131,8 +123,7 @@ struct Graph
 		m_meshBuilder->End();
 		m_meshBuilder->RemoveVerticesFromBegin(4);
 		UpdatePosition();
-		CheckForMaxAndResetScale();
-		DebugDraw::GetInstance()->DebugRenderLogf("SCALE FACTOR %f",m_modelMatrix.Jy);
+		//CheckForMaxAndResetScale();
 	}
 	
 	void UpdateScaleFactor(double value)
@@ -184,7 +175,7 @@ struct Graph
 		}
 		if(m_maxValue > maxValue)
 		{
-			DebugDraw::GetInstance()->DebugRenderLogf(1, "SCALING UP %f ",maxValue);
+			//DebugDraw::GetInstance()->DebugRenderLogf(1, "SCALING UP %f ",maxValue);
 		}
 		UpdateAllPointsWithNewMax(m_maxValue, maxValue);
 	}
@@ -194,7 +185,10 @@ struct Graph
 		Mesh *mesh = m_meshBuilder->CreateMesh();
 		Material *material = Material::AquireResource("default");
 		Renderer::GetInstance()->BindMaterial(material);
-		Renderer::GetInstance()->DrawRectangle(m_bounds);
+		AABB2 bounds = m_bounds;
+		bounds.mins.y += bounds.GetDimensions().y / 2;
+		bounds.maxs.y += bounds.GetDimensions().y / 2;
+		Renderer::GetInstance()->DrawRectangle(bounds);
 		Renderer::GetInstance()->DrawMesh(mesh, m_modelMatrix);
 		delete material;
 		delete mesh;
@@ -220,7 +214,6 @@ public:
 	static ReportUI					     s_report;
 	static Graph						 s_performanceGraph;
 	static int							 s_maxSample;
-	static REPORT_TYPE					 s_reportType;
 	static double						 s_fps;
 	static double					     s_frameTime;
 	static double						 s_currentTime;
@@ -244,7 +237,7 @@ public:
 	static void     RenderTreeView(ProfilerReportEntry *entry,Vector3 position,int depth);
 	static void     RenderFlatView(ProfilerReportEntry* root,Vector3 startPos);
 	static void     RenderFPSAndFrameRate();
-
+	static void		RenderInfo();
 	static void     CreateReportFromPreviousFrames();
 	
 	static void		MarkFrame();
@@ -253,6 +246,8 @@ public:
 	static void     GenerateReport(ProfileMeasurement_t* root);
 	static void		GenerateReportTree(ProfileMeasurement_t* root);
 	static void     GenerateReportFlat(ProfileMeasurement_t* root);
+
+	
 	//Static_Methods
 
 protected:

@@ -1,6 +1,8 @@
 #include "Engine/DevConsole/Profiler/ProfilerReport.hpp"
 #include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerConstants.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerReportEntry.hpp"
 // CONSTRUCTOR
 ProfilerReport::ProfilerReport()
 {
@@ -23,6 +25,108 @@ void ProfilerReport::GenerateTreeReportFromFrame(ProfileMeasurement_t *root)
 {
 	m_root = new ProfilerReportEntry(root->m_name);
 	m_root->PopulateTree(root,root->m_elapsedTimeInSec);
+	switch (g_profilerReportSortType)
+	{
+	case TOTAL:
+		SortTreeReportByTotalTime();
+		break;
+	case SELF:
+		SortTreeReportBySelfTime();
+		break;
+	case NONE:
+		break;
+	default:
+		break;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ProfilerReport::GenerateFlatReportFromFrame(ProfileMeasurement_t *root)
+{
+	m_root = new ProfilerReportEntry(root->m_name.c_str());
+	m_root->AddChild(m_root);
+	m_root->PopulateFlat(root, root->m_elapsedTimeInSec);
+	switch (g_profilerReportSortType)
+	{
+	case TOTAL:
+		SortFlatReportByTotalTime();
+		break;
+	case SELF:
+		SortFlatReportBySelfTime();
+		break;
+	case NONE:
+		break;
+	default:
+		break;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : 
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ProfilerReport::SortFlatReportByTotalTime()
+{
+	std::map<std::string, ProfilerReportEntry*>::iterator it1;
+	
+	m_sortedByTime.clear();
+	for (it1 = m_root->m_children.begin(); it1 != m_root->m_children.end(); it1++)
+	{
+		m_sortedByTime.push_back(it1->second);
+	}
+
+	for (int index1 = 0; index1 < m_sortedByTime.size(); index1++)
+	{
+		for (int index2 = index1 + 1; index2 < m_sortedByTime.size(); index2++)
+		{
+			if(m_sortedByTime.at(index1)->m_totalTimeInSec < m_sortedByTime.at(index2)->m_totalTimeInSec)
+			{
+				ProfilerReportEntry* temp = m_sortedByTime.at(index1);
+				m_sortedByTime.at(index1) = m_sortedByTime.at(index2);
+				m_sortedByTime.at(index2) = temp;
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ProfilerReport::SortFlatReportBySelfTime()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : Sorts 
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ProfilerReport::SortTreeReportByTotalTime()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ProfilerReport::SortTreeReportBySelfTime()
+{
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

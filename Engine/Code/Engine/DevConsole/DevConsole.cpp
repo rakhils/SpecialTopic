@@ -176,6 +176,7 @@ bool DevConsole::IsPredictionOn()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void DevConsole::Update(float deltaTime)
 {
+	UNUSED(deltaTime);
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_M))
 	{
 		InputSystem::GetInstance()->ShowCursor(true);
@@ -191,12 +192,6 @@ void DevConsole::Update(float deltaTime)
 		}
 
 	}
-
-	if(m_wasJustActive)
-	{
-		ProfilerManager::CreateReportFromPreviousFrames();
-	}
-	ProfilerManager::Update(deltaTime);
 	m_wasJustActive = false;
 }
 
@@ -233,7 +228,6 @@ void DevConsole::Render()
 	{
 		RenderPredictionBox(renderer);
 	}
-	//ProfilerManager::RenderProfiler();
 }
 
 

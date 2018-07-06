@@ -34,8 +34,6 @@ struct ProfileMeasurement_t
 		m_name			 = name;
 		m_start			 = Clock::g_theMasterClock->total.m_hpc;
 		m_startTimeInSec = GetCurrentTimeSeconds();
-		//DebugDraw::GetInstance()->DebugRenderLogf("%s START TIME SEC %llu", m_name.c_str(), m_startTimeInSec);
-		//DebugDraw::GetInstance()->DebugRenderLogf("%s START TIME HPC %llu", m_name.c_str(), m_start);
 	}
 	~ProfileMeasurement_t()
 	{
@@ -63,12 +61,6 @@ struct ProfileMeasurement_t
 		m_elapsedTime      = m_end - m_start;
 		m_endTimeInSec     = GetCurrentTimeSeconds();
 		m_elapsedTimeInSec = m_endTimeInSec - m_startTimeInSec;
-		//DebugDraw::GetInstance()->DebugRenderLogf("%s ELAPSED TIME SEC %llu", m_name.c_str(), m_elapsedTimeInSec);
-		//DebugDraw::GetInstance()->DebugRenderLogf("%s START TIME HPC %llu", m_name.c_str(), m_start);
-		//DebugDraw::GetInstance()->DebugRenderLogf("%s END   TIME HPC %llu", m_name.c_str(), m_end);
-
-		//DebugDraw::GetInstance()->DebugRenderLogf("%s ELAPSED TIME SEC %f", m_name.c_str(), (m_elapsedTimeInSec));
-
 	}
 	void AddChild(ProfileMeasurement_t* measurement)
 	{

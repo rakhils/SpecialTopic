@@ -37,8 +37,14 @@ void EngineSystem::StartUp()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EngineSystem::Update(float deltaTime)
 {
+	ProfilerManager::PushProfiler("EngineSystem::Update");
+	if(InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_F1))
+	{
+		g_profilerEnabled = g_profilerEnabled ? false : true;
+	}
 	UpdateDebugDraws(deltaTime);
 	UpdateDevConsoleSystem(deltaTime);
+	ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -49,7 +55,9 @@ void EngineSystem::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EngineSystem::Render()
 {
+	ProfilerManager::PushProfiler("EngineSystem::Render");
 	RenderDevConsoleSystem();
+	ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,7 +107,6 @@ void EngineSystem::UpdateDevConsoleSystem(float deltaTime)
 	if (DevConsole::GetInstance()->IsDevConsoleOpen())
 	{
 		DevConsole::GetInstance()->Update(deltaTime);
-		UpdateProfiler(deltaTime);
 	}
 }
 
@@ -111,11 +118,14 @@ void EngineSystem::UpdateDevConsoleSystem(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EngineSystem::UpdateProfiler(float deltaTime)
 {
+	ProfilerManager::PushProfiler("EngineSystem::UpdateProfiler");
 #if defined( PROFILER_ENABLED )
+	if(g_profilerEnabled)
 	{
 		ProfilerManager::Update(deltaTime);
 	}
 #endif
+	ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,7 +151,7 @@ void EngineSystem::RenderDevConsoleSystem()
 	if (DevConsole::GetInstance()->IsDevConsoleOpen())
 	{
 		DevConsole::GetInstance()->Render();
-		RenderProfiler();
+		//RenderProfiler();
 	}
 }
 
@@ -153,9 +163,13 @@ void EngineSystem::RenderDevConsoleSystem()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EngineSystem::RenderProfiler()
 {
+	ProfilerManager::PushProfiler("EngineSystem::RenderProfiler");
 #if defined( PROFILER_ENABLED )
+	if (g_profilerEnabled)
 	{
 		ProfilerManager::RenderProfiler();
 	}
 #endif
+	ProfilerManager::PoPProfiler();
+
 }

@@ -44,6 +44,7 @@ App::~App()
 void App::RunFrame()
 {
 	ProfilerManager::MarkFrame();
+	ProfilerManager::PushProfiler("App::Runframe");
 	Clock::g_theMasterClock->BeginFrame();
 	Renderer::GetInstance()->BeginFrame();
 
@@ -57,6 +58,7 @@ void App::RunFrame()
 	g_theInput->EndFrame();
 	
 	Renderer::GetInstance()->EndFrame();
+	ProfilerManager::PoPProfiler();
 }
 
 void App::Update(float deltaTime)
@@ -64,8 +66,8 @@ void App::Update(float deltaTime)
 	ProfilerManager::PushProfiler("App::Update");
 	g_theGame->Update(deltaTime);
 	ProfilerManager::PoPProfiler();
-	EngineSystem::Update(deltaTime);
-
+	EngineSystem::Update(MAX_DELTA_VALUE);
+	EngineSystem::UpdateProfiler(deltaTime);
 }
 
 void App::Render()
@@ -74,6 +76,7 @@ void App::Render()
 	g_theGame->Render();
 	ProfilerManager::PoPProfiler();
 	EngineSystem::Render();
+	EngineSystem::RenderProfiler();
 }
 
 bool App::IsReadyToQuit()
