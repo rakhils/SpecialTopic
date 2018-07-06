@@ -23,8 +23,8 @@ class ProfilerReport
 public:
 	//Member_Variables
 	ProfilerReportEntry*				 m_root   = nullptr;
-	std::vector<ProfilerReportEntry*>    m_sortedByTime;
-	std::vector<ProfilerReportEntry*>    m_sortedBySelfTime;
+	std::vector<ProfilerReportEntry*>	 m_sortedByTime;
+	std::vector<ProfilerReportEntry*>	 m_sortedBySelfTime;
 	//Static_Member_Variables
 
 	//Methods

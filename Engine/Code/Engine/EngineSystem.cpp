@@ -40,7 +40,8 @@ void EngineSystem::Update(float deltaTime)
 	ProfilerManager::PushProfiler("EngineSystem::Update");
 	if(InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_F1))
 	{
-		g_profilerEnabled = g_profilerEnabled ? false : true;
+		ProfilerManager::CreateReportFromPreviousFrames();
+		ProfilerManager::s_profilerEnabled = ProfilerManager::s_profilerEnabled ? false : true;
 	}
 	UpdateDebugDraws(deltaTime);
 	UpdateDevConsoleSystem(deltaTime);
@@ -120,7 +121,7 @@ void EngineSystem::UpdateProfiler(float deltaTime)
 {
 	ProfilerManager::PushProfiler("EngineSystem::UpdateProfiler");
 #if defined( PROFILER_ENABLED )
-	if(g_profilerEnabled)
+	if(ProfilerManager::s_profilerEnabled)
 	{
 		ProfilerManager::Update(deltaTime);
 	}
@@ -165,7 +166,7 @@ void EngineSystem::RenderProfiler()
 {
 	ProfilerManager::PushProfiler("EngineSystem::RenderProfiler");
 #if defined( PROFILER_ENABLED )
-	if (g_profilerEnabled)
+	if (ProfilerManager::s_profilerEnabled)
 	{
 		ProfilerManager::RenderProfiler();
 	}

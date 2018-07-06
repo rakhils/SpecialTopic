@@ -33,6 +33,8 @@ public:
 	float					m_cameraRadius  = 30;
 	float					m_cameraPhi	    = 0;
 	float					m_cameraTheta   = -20;
+	bool					m_mode = false;
+	Vector2					defaultMouseposition;
 
 	//Static_Member_Variables
 

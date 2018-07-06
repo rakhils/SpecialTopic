@@ -238,6 +238,7 @@ void SceneLevel1::CreateWater()
 void SceneLevel1::Update(float deltaTime)
 {
 	ProfilerManager::PushProfiler("SceneLevel1::Update");
+	
 	if (IsEnteringScene(deltaTime))
 	{
 		UpdateEnteringTime(deltaTime);
@@ -246,6 +247,7 @@ void SceneLevel1::Update(float deltaTime)
 	{
 		UpdateExitingTime(deltaTime);
 	}
+	
 	DebugRenderOptions options;
 	options.m_lifeTime = 0;
 	options.m_mode = DEBUG_RENDER_USE_DEPTH;
@@ -315,10 +317,17 @@ void SceneLevel1::Update(float deltaTime)
 	{
 		m_cameraRadius -= 50*deltaTime;
 	}
-	//DebugDraw::GetInstance()->DebugRenderLogf("SAMPLER NEAR %f" , Sampler::GetCurrentSampler()->m_nearValue);
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_K))
+	
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_M))
 	{
-		Sampler::GetCurrentSampler()->m_nearValue-=10;
+		if(!m_mode)
+		{
+			m_mode = true;
+		}
+		else
+		{
+			m_mode = false;
+		}
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_L))
 	{
@@ -336,6 +345,11 @@ void SceneLevel1::Update(float deltaTime)
 	//float PI = 3.14f;
 	Vector2 delta = g_theInput->GetMouseDelta();
 	delta.y += .5;
+	if(m_mode)
+	{
+		delta = Vector2::ZERO;
+		delta.y += .5;
+	}
 	if (delta.x != 0)
 	{
 		m_cameraPhi  -= delta.x/5.f;

@@ -56,6 +56,7 @@ SceneMainMenu::~SceneMainMenu()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SceneMainMenu::Update(float deltaTime)
 {
+	PROFILE_LOG_SCOPE("SceneMainMenu::Update");
 	if (IsEnteringScene(deltaTime))
 	{
 		UpdateEnteringTime(deltaTime);

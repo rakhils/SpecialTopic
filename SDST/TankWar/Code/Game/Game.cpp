@@ -63,6 +63,8 @@ void Game::Init()
 	m_forwardRenderingPath = new ForwardRenderingPath(g_theRenderer);
 	InitScenes();
 	InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_RELATIVE;
+	InputSystem::GetInstance()->ShowCursor(false);
+	InputSystem::GetInstance()->MouseLockToScreen(true);
 	m_init = true;
 
 	/*Light *light = Light::CreateAmbientLight();

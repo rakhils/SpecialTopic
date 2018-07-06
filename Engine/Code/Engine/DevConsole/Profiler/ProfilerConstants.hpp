@@ -1,5 +1,7 @@
 #pragma once
+#include "Engine/DevConsole/Profiler/ProfileLogScoped.hpp"
 #define	PROFILER_ENABLED
+#define PROFILE_LOG_SCOPE(tag) ProfileLogScoped __FUNCTION__ ##__LINE__ ## (tag)
 enum PROFILER_VIEW
 {
 	FLAT,
@@ -11,10 +13,9 @@ enum REPORT_SORT
 	SELF,
 	NONE
 };
+
 static int				g_profilerMaxSamples			= 150;
-static bool				g_profilerEnabled				= false;
-static PROFILER_VIEW	g_profilerView;
-static REPORT_SORT		g_profilerReportSortType;
+
 //GRAPH CONSTANTS//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static float			g_profilerTimeGraphWidth		= 500.f;
 static float			g_profilerTimeGraphHeight       = 100.f;

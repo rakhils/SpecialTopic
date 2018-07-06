@@ -3,6 +3,7 @@
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/DevConsole/Profiler/ProfilerConstants.hpp"
 #include "Engine/DevConsole/Profiler/ProfilerReportEntry.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 // CONSTRUCTOR
 ProfilerReport::ProfilerReport()
 {
@@ -25,19 +26,6 @@ void ProfilerReport::GenerateTreeReportFromFrame(ProfileMeasurement_t *root)
 {
 	m_root = new ProfilerReportEntry(root->m_name);
 	m_root->PopulateTree(root,root->m_elapsedTimeInSec);
-	switch (g_profilerReportSortType)
-	{
-	case TOTAL:
-		SortTreeReportByTotalTime();
-		break;
-	case SELF:
-		SortTreeReportBySelfTime();
-		break;
-	case NONE:
-		break;
-	default:
-		break;
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,7 +39,7 @@ void ProfilerReport::GenerateFlatReportFromFrame(ProfileMeasurement_t *root)
 	m_root = new ProfilerReportEntry(root->m_name.c_str());
 	m_root->AddChild(m_root);
 	m_root->PopulateFlat(root, root->m_elapsedTimeInSec);
-	switch (g_profilerReportSortType)
+	switch (ProfilerManager::s_profilerReportSortType)
 	{
 	case TOTAL:
 		SortFlatReportByTotalTime();
@@ -68,14 +56,13 @@ void ProfilerReport::GenerateFlatReportFromFrame(ProfileMeasurement_t *root)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/07/05
-*@purpose : 
+*@purpose : Sorts flat report by total time
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ProfilerReport::SortFlatReportByTotalTime()
 {
 	std::map<std::string, ProfilerReportEntry*>::iterator it1;
-	
 	m_sortedByTime.clear();
 	for (it1 = m_root->m_children.begin(); it1 != m_root->m_children.end(); it1++)
 	{
@@ -98,44 +85,29 @@ void ProfilerReport::SortFlatReportByTotalTime()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/07/05
-*@purpose : NIL
+*@purpose : Sorts by self time
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ProfilerReport::SortFlatReportBySelfTime()
 {
+	std::map<std::string, ProfilerReportEntry*>::iterator it1;
+	m_sortedBySelfTime.clear();
+	for (it1 = m_root->m_children.begin(); it1 != m_root->m_children.end(); it1++)
+	{
+		m_sortedBySelfTime.push_back(it1->second);
+	}
 
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/07/05
-*@purpose : Sorts 
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ProfilerReport::SortTreeReportByTotalTime()
-{
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/07/05
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ProfilerReport::SortTreeReportBySelfTime()
-{
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/07/02
-*@purpose : Init profiler report
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ProfilerReport::Init()
-{
-	
+	for (int index1 = 0; index1 < m_sortedBySelfTime.size(); index1++)
+	{
+		for (int index2 = index1 + 1; index2 < m_sortedBySelfTime.size(); index2++)
+		{
+			if (m_sortedBySelfTime.at(index1)->m_selfTimeInSec < m_sortedBySelfTime.at(index2)->m_selfTimeInSec)
+			{
+				ProfilerReportEntry* temp = m_sortedBySelfTime.at(index1);
+				m_sortedBySelfTime.at(index1) = m_sortedBySelfTime.at(index2);
+				m_sortedBySelfTime.at(index2) = temp;
+			}
+		}
+	}
 }

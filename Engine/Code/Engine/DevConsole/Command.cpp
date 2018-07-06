@@ -694,7 +694,7 @@ void MouseHide(Command &cmd)
 void ProfilerShow(Command &cmd)
 {
 	UNUSED(cmd);
-	g_profilerEnabled = true;
+	ProfilerManager::s_profilerEnabled = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -706,7 +706,7 @@ void ProfilerShow(Command &cmd)
 void ProfilerHide(Command &cmd)
 {
 	UNUSED(cmd);
-	g_profilerEnabled = false;
+	ProfilerManager::s_profilerEnabled = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -718,7 +718,7 @@ void ProfilerHide(Command &cmd)
 void ProfilerFlatView(Command &cmd)
 {
 	UNUSED(cmd);
-	g_profilerView = FLAT;
+	ProfilerManager::s_profilerView = FLAT;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -730,7 +730,7 @@ void ProfilerFlatView(Command &cmd)
 void ProfilerTreeView(Command &cmd)
 {
 	UNUSED(cmd);
-	g_profilerView = TREE;
+	ProfilerManager::s_profilerView = TREE;
 }
 
 /*

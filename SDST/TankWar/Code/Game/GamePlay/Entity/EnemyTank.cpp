@@ -77,6 +77,7 @@ Vector3 EnemyTank::GetCurrentForward()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EnemyTank::Update(float deltatime)
 {
+	
 	m_timeLeftForNextDirectionChange -= deltatime;
 	Vector3 pos = m_transform.GetWorldPosition();
 	//DebugDraw::GetInstance()->DebugRenderLogf("TANK POS %f %f %f", pos.x, pos.y, pos.z);
@@ -93,7 +94,10 @@ void EnemyTank::Update(float deltatime)
 	UpdateForceOnTank(deltatime);
 	//UpdateHitFeedBack(deltatime);
 	//UpdateBounds(deltatime);
-	
+	if (((SceneLevel1*)m_scene)->m_mode)
+	{
+		return;
+	}
 	DebugDraw::GetInstance()->DebugRenderLine(pos + Vector3(0,2,0), pos + m_forward * 10,Rgba::YELLOW);
 	GameObject::Update(deltatime);
 

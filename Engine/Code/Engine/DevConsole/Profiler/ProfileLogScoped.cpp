@@ -1,0 +1,18 @@
+#include "Engine/DevConsole/Profiler/ProfileLogScoped.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ProfileLogScoped::ProfileLogScoped(char const *tag)
+{
+	ProfilerManager::PushProfiler(std::string(tag));
+}
+
+// DESTRUCTOR
+ProfileLogScoped::~ProfileLogScoped()
+{
+	ProfilerManager::PoPProfiler();
+}

@@ -110,7 +110,7 @@ void InputSystem::UpdateMouse()
 {
 	m_mouseStates.m_wasLButtonJustPressed = false;
 	m_mouseStates.m_wasRButtonJustPressed = false;
-	m_mouseStates.m_wasLeftDoubleClicked = false;
+	m_mouseStates.m_wasLeftDoubleClicked  = false;
 
 	m_mouseStates.m_wasLButtonJustReleased = false;
 	m_mouseStates.m_wasRButtonJustReleased = false;
@@ -118,18 +118,16 @@ void InputSystem::UpdateMouse()
 	m_mouse.m_positionLastFrame = m_mouse.m_positionThisFrame;
 	m_mouse.m_positionThisFrame = GetMouseClientPosition();
 	//ShowCursor(true);
-	// Relative mode -> I care about deltas - I reset to the center (meaning, mutually exclusive modes)
 	if (m_mouse.m_mouseMode == MOUSEMODE_RELATIVE) 
 	{
 		m_mouse.m_positionLastFrame = GetCenterOfClientWindow();
 		SetMousePosition(m_mouse.m_positionLastFrame);
-		ShowCursor(false);
-		MouseLockToScreen(true);
+		
 	}
 	if (m_mouse.m_mouseMode == MOUSEMODE_ABSOLUTE)
 	{
-		ShowCursor(true);
-		MouseLockToScreen(false);
+		//ShowCursor(true);
+		//MouseLockToScreen(false);
 	}
 }
 
@@ -205,6 +203,7 @@ void InputSystem::OnLButtonClicked()
 		m_mouseStates.m_wasLeftDoubleClicked = true;
 	}
 	m_lastLeftClickTime = static_cast<float>(GetCurrentTimeSeconds());
+
 }
 
 //////////////////////////////////////////////////////////////

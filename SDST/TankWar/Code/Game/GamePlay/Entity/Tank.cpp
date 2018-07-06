@@ -134,14 +134,16 @@ void Tank::Update(float deltaTime)
 	float PI = 3.14f;
 	Vector3 minRotationValue(-PI / 2, 0, 0);
 	Vector3 maxRotationValue(PI / 2, 2 * PI, 0);	
-	
-	if (InputSystem::GetInstance()->WasLButtonJustPressed())
+	if(!((SceneLevel1*)m_scene)->m_mode)
 	{
-		FireBullet(deltaTime,m_turretForwardDirection,false);
-	}
-	if (InputSystem::GetInstance()->WasRButtonJustPressed())
-	{
-		FireBullet(deltaTime, m_turretForwardDirection, true);
+		if (InputSystem::GetInstance()->WasLButtonJustPressed())
+		{
+			FireBullet(deltaTime,m_turretForwardDirection,false);
+		}
+		if (InputSystem::GetInstance()->WasRButtonJustPressed())
+		{
+			FireBullet(deltaTime, m_turretForwardDirection, true);
+		}
 	}
 
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_A))
@@ -270,6 +272,10 @@ void Tank::UpdateRaycastFromTurret(float deltaTime)
 	options.m_lifeTime = 0;
 	options.m_mode = DEBUG_RENDER_USE_DEPTH;
 	Vector2 screenXY = InputSystem::GetInstance()->GetMouseClientPosition();
+	if(((SceneLevel1*)m_scene)->m_mode)
+	{
+		screenXY = Windows::GetInstance()->GetDimensions().GetAsVector2() / 2.f;
+	}
 	PickRay ray = Camera::GetGamePlayCamera()->GetPickRayFromScreenCords(screenXY);
 
 	//DebugDraw::GetInstance()->DebugRenderLogf("PICKRAY1 : RAYPOS :: %f, %f, %f", ray.m_position.x, ray.m_position.y, ray.m_position.z);

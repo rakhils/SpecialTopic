@@ -81,7 +81,7 @@ struct Graph
 
 			Xposition += deltaXVal;
 			int qindex = static_cast<int>(m_meshBuilder->m_vertices.size());
-			MeshBuilder::CreateRect(*m_meshBuilder, position1, position2, position4, position3, Rgba::YELLOW);
+			MeshBuilder::CreateRect(*m_meshBuilder, position1, position2, position4, position3, Rgba::FADED_GREEN);
 			m_meshBuilder->AddQuadIndex(qindex, qindex + 1, qindex + 3, qindex + 2);
 		}
 		m_meshBuilder->End();
@@ -118,7 +118,7 @@ struct Graph
 		Vector3 position3(Xposition,			 value1			,   0);
 		Vector3 position4(Xposition + deltaXVal, value2			,   0);
 
-		MeshBuilder::CreateRect(*m_meshBuilder, position1, position2, position4, position3, Rgba::YELLOW);
+		MeshBuilder::CreateRect(*m_meshBuilder, position1, position2, position4, position3, Rgba::FADED_GREEN);
 
 		m_meshBuilder->End();
 		m_meshBuilder->RemoveVerticesFromBegin(4);
@@ -209,6 +209,9 @@ class ProfilerManager
 
 public:
 	//Member_Variables
+	static bool							 s_profilerEnabled;
+	static PROFILER_VIEW				 s_profilerView;
+	static REPORT_SORT					 s_profilerReportSortType;
 	static Profiler*					 s_profiler;
 	static std::vector<ProfilerReport*>  s_profilerReports;
 	static ReportUI					     s_report;
@@ -229,24 +232,31 @@ public:
 	ProfilerManager();
 	~ProfilerManager();
 	
-	static void		StartUp();
-	static void     SetMaxSamples(int samples);
-	static void     Update(float deltaTime);
-	static void     RenderProfiler();
-	static void		RenderAttributes();
-	static void     RenderTreeView(ProfilerReportEntry *entry,Vector3 position,int depth);
-	static void     RenderFlatView(ProfilerReportEntry* root,Vector3 startPos);
-	static void     RenderFPSAndFrameRate();
-	static void		RenderInfo();
-	static void     CreateReportFromPreviousFrames();
-	
-	static void		MarkFrame();
-	static void		PushProfiler(std::string name);
-	static void		PoPProfiler();
-	static void     GenerateReport(ProfileMeasurement_t* root);
-	static void		GenerateReportTree(ProfileMeasurement_t* root);
-	static void     GenerateReportFlat(ProfileMeasurement_t* root);
+	static void			StartUp();
+	static void			SetMaxSamples(int samples);
+	static void			Update(float deltaTime);
+	static void			RenderProfiler();
+	static void			RenderAttributes();
+	static void			RenderCurrentTreeView();
+	static void			RenderCurrentFlatView();
+	static void			RenderTreeView(ProfilerReportEntry *entry, Vector3 position, int depth);
+	static void			RenderFlatView(ProfilerReportEntry* root, Vector3 startPos);
+	static void			RenderFlatViewBySelfTime(ProfilerReportEntry* root, Vector3 startPos);
+	static void			RenderFlatViewByTotalTime(ProfilerReportEntry* root, Vector3 startPos);
 
+	static void			RenderFPSAndFrameRate();
+	static void			RenderInfo();
+	static void			CreateReportFromPreviousFrames();
+
+	static void			MarkFrame();
+	static void			PushProfiler(std::string name);
+	static void			PoPProfiler();
+	static void			GenerateReport(ProfileMeasurement_t* root);
+	static void			GenerateReportTree(ProfileMeasurement_t* root);
+	static void			GenerateReportFlat(ProfileMeasurement_t* root);
+	static std::string  GetReportSortAsString(REPORT_SORT sortType);
+	static std::string  GetProfilerViewAsString(PROFILER_VIEW viewType);
+		
 	
 	//Static_Methods
 

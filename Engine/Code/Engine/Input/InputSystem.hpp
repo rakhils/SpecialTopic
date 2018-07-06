@@ -19,7 +19,7 @@ struct Mouse
 {
 	Vector2  m_positionLastFrame;
 	Vector2  m_positionThisFrame;
-	MousMode m_mouseMode = MOUSEMODE_RELATIVE;
+	MousMode m_mouseMode = MOUSEMODE_ABSOLUTE;
 
 };
 
