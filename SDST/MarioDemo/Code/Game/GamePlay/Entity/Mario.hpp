@@ -21,6 +21,10 @@ enum Action
 {
 	IDLE,WALK,RUN,FIRE,JUMP
 };
+enum DeathType
+{
+	NONE,DEATH_PIT,DEATH_ENEMY,DEATH_IDLE
+};
 class NeuralNetwork;
 class Mario : public Entity
 {
@@ -30,6 +34,7 @@ public:
 	int					m_framesOnJump				= 0;
 	CharacterType		m_currentCharacter			= SmallMario;
 	Action				m_currentAction				= IDLE;
+	DeathType			m_deathType;
 	bool				m_hasReachedMaxHeight		= false;
 	float				m_maxJumpForce				= 0.3f;
 	float				m_currentJumpForce			= 0;
@@ -50,11 +55,12 @@ public:
 	void Update(float deltaTime);
 	void ResetJump();
 	bool IsJumping();
-	void UpdateJump(float deltaTime);
+	void UpdateJump(float deltaTime,float force);
 	void ProcessInput(float deltaTime);
 	void ResetWeight();
 	void WalkWest(float deltaTime);
 	void WalkEast(float deltaTIme);
+	void Walk(float deltaTime, float force);
 	void StayIdle();
 	void Jump(float deltaTime);
 	bool IsGrounded(float deltaTime);

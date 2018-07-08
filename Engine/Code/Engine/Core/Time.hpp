@@ -12,3 +12,4 @@ double   GetCurrentTimeSeconds();
 uint64_t GetPerformanceCounter();
 double   PerformanceCounterToSeconds(uint64_t seconds);
 uint64_t SecondsToPerformanceCounter(double seconds);
+double   GetSystemTimeInSeconds();

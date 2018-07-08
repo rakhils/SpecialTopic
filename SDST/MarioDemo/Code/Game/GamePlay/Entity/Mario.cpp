@@ -52,19 +52,23 @@ void Mario::Update(float deltaTime)
 		NNOutputs.push_back(value);
 	}
 	
-	DebugDraw::GetInstance()->DebugRenderLogf("NN OUTPUT %f, %f", NNOutputs.at(0), NNOutputs.at(1));
+	DebugDraw::GetInstance()->DebugRenderLogf("NN OUTPUT %f, %f, %f", NNOutputs.at(0), NNOutputs.at(1),NNOutputs.at(2));
 
 	float random = GetRandomIntInRange(0, 3);
 	//random = -1;
-	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW))// || NNOutputs.at(0) < 0)
+	if(NNOutputs.at(0) > 0.5f)
+	{
+		Walk(deltaTime, NNOutputs.at(0));
+	}
+	if (NNOutputs.at(1) > 0.5f)
+	{
+		Walk(deltaTime, -NNOutputs.at(1));
+	}
+	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW))
 	{
 		WalkWest(deltaTime);
 	}
-	if (g_theInput->wasKeyJustReleased(InputSystem::KEYBOARD_LEFT_ARROW))
-	{
-		//StayIdle();
-	}
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_RIGHT_ARROW))// || NNOutputs.at(0) > 0)
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_RIGHT_ARROW))
 	{
 		WalkEast(deltaTime);
 	}
@@ -72,23 +76,31 @@ void Mario::Update(float deltaTime)
 	{
 		ResetJump();
 	}
-	
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_DOWN_ARROW))
-	{
-		//((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->ApplyForce(Vector3(0, -2*m_jumpForce, 0), deltaTime);
-	}
 
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW)|| NNOutputs.at(1) > 0.75f )
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW))
 	{
 		if(IsGrounded(deltaTime) || IsJumping())
 		{
-			UpdateJump(deltaTime);
+			UpdateJump(deltaTime,1);
 			if (m_currentJumpForce < m_maxJumpForce)
 			{
 				Jump(deltaTime);
 			}
 		}
 	}
+
+	if (IsGrounded(deltaTime) || IsJumping())
+	{
+		if(NNOutputs.at(2) > 0.5f)
+		{
+			UpdateJump(deltaTime, NNOutputs.at(2));
+			if (m_currentJumpForce < m_maxJumpForce)
+			{
+				Jump(deltaTime);
+			}
+		}
+	}
+
 	float xVelocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->m_velocity.x;
 	DebugRenderOptions option;
 	//DebugDraw::GetInstance()->DebugRenderQuad2D(Vector3(300, 700, 0), AABB2(Vector2(0, 0), 300, 150), 0, nullptr, Rgba::BLACK, DEBUG_RENDER_FILL, option);
@@ -149,9 +161,13 @@ bool Mario::IsJumping()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Mario::UpdateJump(float deltaTime)
+void Mario::UpdateJump(float deltaTime,float force)
 {
-	m_currentJumpForce += deltaTime;
+	if(force < 0)
+	{
+		return;
+	}
+	m_currentJumpForce += deltaTime*force;
 	if(m_currentJumpForce > m_maxJumpForce)
 	{
 		ResetJump();
@@ -190,6 +206,25 @@ void Mario::WalkEast(float deltaTime)
 {
 	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(m_movementForce, 0, 0), deltaTime);
 	m_forwardVector = Vector2::EAST;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::Walk(float deltaTime, float force)
+{
+	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(force*m_movementForce, 0, 0), deltaTime);
+	if(force > 0)
+	{
+		m_forwardVector = Vector2::EAST;
+	}
+	else
+	{
+		m_forwardVector = Vector2::WEST;
+	}
 }
 
 //////////////////////////////////////////////////////////////

@@ -220,6 +220,7 @@ void GameObject::AddColliderComponent(COMPONENT_COLLIDER_TYPE type, Collider *co
 {
 	coliider_t->m_gameObject    = this;
 	m_colliderComponents[type]  = coliider_t;
+	coliider_t->m_colliderType = type;
 	m_transform.AddChild(&coliider_t->m_transform);
 }
 
@@ -277,6 +278,7 @@ void GameObject::AddBoxCollider2D(Vector3 localPosition, Vector3 dimensions,Vect
 	collider->SetPosition(localPosition);
 	Vector2 worldPosition = GetWorldPosition().GetXY() + localPosition.GetXY();
 	collider->m_aabb2 = AABB2(worldPosition, dimensions.x, dimensions.y);
+	collider->m_transform.SetLocalPosition(localPosition);
 	/*collider->offsetX = dimensions.x;
 	collider->offsetY = dimensions.y;
 	collider->offsetZ = dimensions.z;

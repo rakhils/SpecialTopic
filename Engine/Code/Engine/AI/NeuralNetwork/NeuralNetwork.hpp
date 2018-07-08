@@ -13,7 +13,7 @@
 */
 struct Neuron
 {
-	float				m_value;
+	float				m_value = 0;
 	int					m_numberOfWeights;
 	std::vector<float>  m_weights;
 	Neuron(int numberOfWeights)
@@ -75,10 +75,17 @@ public:
 	
 	void				 SetRandomWeight();
 	void				 CreateNeuralNetwork(int numberOfInputNeuron, int numberOfHiidenNeurons, int numberOfOutputNeuron);
-	//std::vector<float>&  GetOutputs();
+	void				 FeedForward(std::vector<float> &inputs);
+	void				 DoBackPropogation(std::vector<float> &knownOutputs);
+	void				 TrainHiddenOutputLayer(std::vector<float> &outputErrors);
+	void				 TrainInputHiddenLayer(std::vector<float> &outputErrors);
+	float				 GetSumOfWeightsInHiddenLayer(int outputIndex);
 	void				 GetOutputs();
 	void				 Update();
 	float				 GetActivationValue(float value);
+	float				 GetFastSigmoidValue(float value);
+	float				 GetFastSigmoidDerivative(float value);
+	float				 GetSigmoidValue(float value);
 	//Static_Methods
 
 protected:

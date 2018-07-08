@@ -3,6 +3,7 @@
 //	
 //-----------------------------------------------------------------------------------------------
 #include "Engine/Core/Time.hpp"
+#include <ctime>
 #define   WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 
@@ -80,5 +81,18 @@ double PerformanceCounterToSeconds(uint64_t seconds)
 uint64_t SecondsToPerformanceCounter(double seconds)
 {
 	return static_cast<uint64_t>(seconds) * gLocalTimeData.m_hpc_per_second;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double GetSystemTimeInSeconds()
+{
+	time_t seconds;
+	seconds = time (NULL);
+	return static_cast<double>(seconds);
 }
 

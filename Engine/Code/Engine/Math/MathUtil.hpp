@@ -110,7 +110,7 @@ float			 ClampFloatZeroToOne( float inValue );
 float			 ClampFloatNegativeOneToOne( float inValue );
 Vector3			 ClampVector3(Vector3 inValue, Vector3 minClamp, Vector3 maxClamp);
 bool			 Quadratic(Vector2 *out, float a, float b, float c);
-void			 RandomSRAND();
+void			 SetRandomSRAND();
 // ADVANCED VECTOR FUNCTIONS/ PROJECTIONS AND REFLECTIONS
 //////////////////////////////////////////////////////////////////////////
 const Vector2    GetProjectedVector( const Vector2& vectorToProject, const Vector2& projectOnto );

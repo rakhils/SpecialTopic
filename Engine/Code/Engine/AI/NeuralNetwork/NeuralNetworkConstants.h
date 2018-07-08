@@ -1,5 +1,6 @@
 #pragma once
 
-int INPUT_NEURON_COUNT  = 100;
-int HIDDEN_NEURON_COUNT = 250;
-int OUTPUT_NEURON_COUNT = 2;
+static int	 INPUT_NEURON_COUNT  = 100;
+static int	 HIDDEN_NEURON_COUNT = 250;
+static int	 OUTPUT_NEURON_COUNT = 2;
+static float NEURALNET_LEARNING_RATE = 0.05f;

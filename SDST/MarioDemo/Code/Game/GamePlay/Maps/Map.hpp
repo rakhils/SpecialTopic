@@ -39,8 +39,10 @@ public:
 
 	Vector2   m_lastKnownPosition;
 	float     m_timeElapsedAfterKnownLocation;
-
+	float     m_lastTrainedTime = 0;
 	float     m_miniMapScaleFactor = 1 / 5.f;
+	bool	  m_slowerTraining = false;
+	float     m_traininigPeriod = 0;
 	std::vector<Brick*> m_bricks;
 	std::vector<Pipe*>  m_pipes;
 	std::vector<Pit>    m_pits;
@@ -49,6 +51,8 @@ public:
 	//MINIMAP
 	AABB2					   m_minimapAABB;
 	std::vector<MiniMapObject> m_minimapObjs;
+	AABB2					   m_minimapLastPosAABB;
+	std::vector<MiniMapObject> m_minimapLastPos;
 	int m_minimapWidth  = 10;
 	int m_minimapHeight = 10;
 	GeneticAlgorithm *m_ga = nullptr;
@@ -58,7 +62,7 @@ public:
 	void InitCamera();
 	void InitMiniMap();
 	void InitGA();
-	void SetMiniMapValues(IntVector2 pos, Rgba color);
+	void SetMiniMapValues(std::vector<MiniMapObject> &m_minimap,IntVector2 pos, Rgba color);
 	std::vector<float>& GetInputsFromMiniMap();
 	
 	void CreatePit(Vector2 position);
@@ -72,18 +76,18 @@ public:
 
 	void Update(float deltaTime);
 	void UpdateCamera();
-	void UpdateMiniMap();
+	void UpdateMiniMap(float deltaTime);
 	void UpdateBrick(float deltaTime);
 	void UpdatePipes(float deltaTime);
 
-	void UpdateNN();
+	void TrainNN(bool isDead);
 
 	void CheckForMarioOutOfBounds();
 	void QueryAndDie(float deltaTime);
 	void EndOnePlay();
 
 	void Render();
-	void RenderMiniMap();
+	void RenderMiniMap(AABB2 aabbPos,std::vector<MiniMapObject>& minimap);
 	void RenderMario();
 	void RenderBricks();
 	void RenderPipes();

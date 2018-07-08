@@ -68,7 +68,7 @@ void App::Render()
 	DebugDraw::Render();
 	if (DevConsole::GetInstance()->IsDevConsoleOpen())
 	{
-		DevConsole::GetInstance()->Render(g_theRenderer);
+		DevConsole::GetInstance()->Render();
 	}
 }
 
