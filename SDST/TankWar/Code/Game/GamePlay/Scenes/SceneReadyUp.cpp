@@ -68,7 +68,7 @@ void SceneReadyUp::Update(float deltaTime)
 		UpdateExitingTime(deltaTime);
 		if(m_isExitTaskComplete)
 		{
-			LogManager::PushLog("levelstart.txt", "SCENE READY FINAL");
+			//LogManager::LogToFile("levelstart.txt", "SCENE READY FINAL");
 		}
 	}
 }

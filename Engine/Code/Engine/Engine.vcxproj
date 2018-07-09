@@ -613,6 +613,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="System\Thread\Thread.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="ThirdParty\Math\mikktspace.c" />
     <ClCompile Include="ThirdParty\stb\stb_image.c" />
     <ClCompile Include="ThirdParty\stb\stb_image_write.c" />
@@ -983,6 +987,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="SceneManagement\SceneManager.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="System\Thread\Thread.hpp">
       <SubType>
       </SubType>
     </ClInclude>

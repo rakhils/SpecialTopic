@@ -8,6 +8,7 @@
 #include "Engine/Core/Windows.hpp"
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
+#include "Engine/Logger/LogManager.hpp"
 #include "Game/GamePlay/Scenes/SceneMainMenu.hpp"
 #include "Game/GameCommon.hpp"
 // CONSTRUCTOR
@@ -65,6 +66,7 @@ void SceneMainMenu::Update(float deltaTime)
 	{
 		UpdateExitingTime(deltaTime);
 	}
+	LogManager::GetInstance()->LogTaggedPrintf("test", "TEST = %f", 0);
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_UP_ARROW))
 	{
 		m_cursorIndex--;

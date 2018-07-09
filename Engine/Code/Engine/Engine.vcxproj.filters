@@ -433,6 +433,9 @@
     <ClCompile Include="DevConsole\Profiler\ProfileLogScoped.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="System\Thread\Thread.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -727,6 +730,7 @@
     <ClInclude Include="DevConsole\Profiler\ProfilerReport.hpp" />
     <ClInclude Include="DevConsole\Profiler\ProfilerConstants.hpp" />
     <ClInclude Include="DevConsole\Profiler\ProfileLogScoped.hpp" />
+    <ClInclude Include="System\Thread\Thread.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

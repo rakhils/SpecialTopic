@@ -32,6 +32,7 @@ public:
 	static void RendererStartUp();
 	static void DevConsoleStartUp();
 	static void CommandSystemStartUp();
+	static void LoggerStartUp();
 
 	static void UpdateDevConsoleSystem(float deltaTime);
 	static void UpdateProfiler(float deltaTime);
