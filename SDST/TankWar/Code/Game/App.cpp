@@ -38,6 +38,7 @@ App::~App()
 
 	delete g_theRenderer;
 	g_theRenderer = nullptr;
+	EngineSystem::ShutDown();
 
 }
 

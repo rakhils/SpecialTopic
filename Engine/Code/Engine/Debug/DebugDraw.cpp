@@ -9,6 +9,7 @@
 #include "Engine/Core/Windows.hpp"
 #include "Engine/Renderer/Camera.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/Logger/LogManager.hpp"
 
 bool					 DebugDraw::s_debugRender		= true;
 DebugDraw*				 DebugDraw::s_defaultDraw		= nullptr;
@@ -976,6 +977,22 @@ void DebugDraw::DebugRenderGrid(Vector3 position, Vector2 dimensions,Vector3 rig
 	drawElement.SetTexture(Texture::GetDefaultTexture());
 	drawElement.m_type = ELEMENT;
 	m_drawElements.push_back(drawElement);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DebugDraw::DebuggerPrinf(char const *format, ...)
+{
+	va_list args;
+	va_start(args, format);
+	char buffer[1000];
+	vsnprintf_s(buffer, 1000, format, args);
+	va_end(args);
+	LogManager::GetInstance()->LogTaggedPrintf("debug", std::string(buffer));
 }
 
 //////////////////////////////////////////////////////////////

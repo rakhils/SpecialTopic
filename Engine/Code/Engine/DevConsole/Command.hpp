@@ -94,13 +94,20 @@ void DebugRenderText3D(Command &cmd);
 // PROFILER COMMMANDS
 void ProfilerResume(Command &cmd);
 void ProfilerPause(Command &cmd);
-
 void MouseShow(Command &cmd);
 void MouseHide(Command &cmd);
 void ProfilerShow(Command &cmd);
 void ProfilerHide(Command &cmd);
 void ProfilerFlatView(Command &cmd);
 void ProfilerTreeView(Command &cmd);
+
+// THREAD TEST COMMANDS
+void MainThreadTest(Command &cmd);
+void NewThreadTest (Command &cmd);
+void LogFlushTest(Command &cmd);
+
+void AttachDevConsoleToLogging(Command &cmd);
+void DetachDevConsoleLogging(Command &cmd);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static std::vector<std::string> GetCommandHistory();
 

@@ -64,7 +64,10 @@ public:
 	static void ThreadYield();
 	static void ThreadSleep( int ms );
 
-	void SetName( char const *name );
+	static void TestOnThread(int numThreads);
+	static void TestOnMainThread();
+	static void TestWriteToFile(void *data);
+	void		SetName( char const *name );
 
 	//Static_Methods
 

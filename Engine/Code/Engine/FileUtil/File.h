@@ -7,9 +7,12 @@
 
 void*       FileReadToBuffer(char const *filename);
 bool        FileWrite(std::string filename,char *content,int length);
-FILE*       FileAppend(std::string fileName);
+FILE*       FileOpenForAppend(std::string fileName);
 void	    FileAppendString(FILE* fp, std::string content);
-void        CloseFile(FILE *fp);
+void		FileAppendChar(FILE *fp, char ch);
+FILE*       FileOpenForWrite(std::string filename);
+void		FileFlush(FILE *fp);
+void		FileClose(FILE* fp);
 std::string GetFileContentAsString(char const* filename);
 bool		DoFileExist(std::string filepath);
 

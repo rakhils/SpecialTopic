@@ -1,4 +1,5 @@
 #include "Game.hpp"
+#include "Engine/Input/InputSystem.hpp"
 Game *Game::s_game = nullptr;
 Game::Game()
 {
@@ -9,10 +10,20 @@ Game::Game()
 }
 void Game::Update(float deltaTime)
 {	
-	for(int index = 0;index < m_numberOfIterations;index++)
+	
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_T))
+	{
+		if(m_numberOfIterations == 1)
+		{
+			m_numberOfIterations = 10000;
+		}
+	}
+		
+	for (int index = 0; index < m_numberOfIterations; index++)
 	{
 		m_map->Update(deltaTime);
 	}
+	m_numberOfIterations = 1;
 }
 
 void Game::Render()

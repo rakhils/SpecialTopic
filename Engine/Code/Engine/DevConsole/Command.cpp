@@ -8,6 +8,8 @@
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 #include "Engine/DevConsole/Profiler/ProfilerConstants.hpp"
+#include "Engine/Logger/LogManager.hpp"
+#include "Engine/System/Thread/Thread.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Command::Command()
@@ -224,6 +226,12 @@ void CommandStartup()
 	CommandRegister("profiler_tree_view", ProfilerTreeView, "Views profiler in tree style");
 	CommandRegister("profiler_flat_view", ProfilerFlatView, "Views profiler in flat style");
 	
+	// THREAD
+	CommandRegister("thread_test_thread", NewThreadTest, "DO THREAD TEST ON NEW THREAD");
+	CommandRegister("thread_test_main"  , MainThreadTest, "DO THREAD TEST ON MAIN THREAD");
+	CommandRegister("log_flush_test", LogFlushTest, "DO THE LOGS FLUSH TEST");
+	CommandRegister("attach_devconsole_tolog", AttachDevConsoleToLogging,"ATTACHES DEVCONSOLE OUTPUT TO LOGGER");
+	CommandRegister("detach_devconsole_tolog", DetachDevConsoleLogging, "DETACHES DEVCONSOLE OUTPUT TO LOGGER");
 }
 
 //////////////////////////////////////////////////////////////
@@ -731,6 +739,71 @@ void ProfilerTreeView(Command &cmd)
 {
 	UNUSED(cmd);
 	ProfilerManager::s_profilerView = TREE;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void MainThreadTest(Command &cmd)
+{
+	UNUSED(cmd);
+	Thread::TestOnMainThread();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/10
+*@purpose : Test on new thread
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NewThreadTest(Command &cmd)
+{
+	int number;
+	if (!cmd.GetNextInt(&number))
+	{
+		DevConsole::GetInstance()->PushToOutputText("INVALID THREAD COUNT - thread_test_thread <count>", Rgba::RED);
+		return;
+	}
+	Thread::TestOnThread(number);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogFlushTest(Command &cmd)
+{
+	UNUSED(cmd);
+	LogManager::GetInstance()->LogFlushTest();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AttachDevConsoleToLogging(Command &cmd)
+{
+	std::string logForwardId = cmd.GetNextString();
+	LogManager::GetInstance()->AttachLogForwardCallBacks(logForwardId,LogDevConsoleWriteCallBack);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/10
+*@purpose : Detaches log forwarding
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DetachDevConsoleLogging(Command &cmd)
+{
+	std::string logForwardId = cmd.GetNextString();
+	LogManager::GetInstance()->DetachLogForwardCallBacks(logForwardId);
 }
 
 /*

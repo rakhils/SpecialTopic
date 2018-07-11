@@ -17,6 +17,7 @@
 #include "Engine/AI/GA/Gene.hpp"
 #include "Game/GamePlay/Entity/Pipe.hpp"
 #include "Game/GamePlay/Entity/Mario.hpp"
+
 Map::Map(MapDefinition *mapDef)
 {
 	m_dimensions.x = mapDef->m_width;
@@ -67,7 +68,7 @@ void Map::InitMiniMap()
 	{
 		for (int indexX = 0; indexX < m_minimapWidth; indexX++)
 		{
-			MiniMapObject obj;
+			MiniMapObject1 obj;
 			obj.m_color = Rgba::BLACK;
 			obj.m_value = 0.f;
 			m_minimapObjs.push_back(obj);
@@ -91,11 +92,16 @@ void Map::InitGA()
 	float crossOverChance = 1.f;
 	int   totalPopulation   = 1;
 
-	std::vector<Gene*> inputs;
-	Gene* gene = new NeuralNetworkGene(0.01f);
-	((NeuralNetworkGene*)gene)->m_neuralNet = m_mario->m_neuralNet;
-	inputs.push_back(gene);
-	m_ga				  = new NeuralNetGA(totalPopulation, geneCount,crossOverChance, mutationChance,inputs);
+	/*std::vector<Gene*> inputs;
+	for(int index = 0;index < g_initialMarioCount;index++)
+	{
+		Gene* gene = new NeuralNetworkGene(0.01f);
+		((NeuralNetworkGene*)gene)->m_neuralNet = m_mario->m_neuralNet;
+		inputs.push_back(gene);
+	}
+	
+	
+	m_ga				  = new NeuralNetGA(totalPopulation, geneCount,crossOverChance, mutationChance,inputs);*/
 
 	
 
@@ -216,28 +222,28 @@ void Map::CreateCharacters()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::CreateMario()
 {
-	m_mario = new Mario(EntityDefinition::GetDefinition("Mario"));
-	m_mario->SetPosition(Vector2(200,400));
-	m_mario->AddRigidBody3DComponent();
-	m_mario->m_length = m_mario->m_definition->m_length;
-	m_mario->m_height = m_mario->m_definition->m_height;
-	Vector2 colliderPosition(0, -m_mario->m_definition->m_height / 2 + m_mario->m_definition->m_physicsRadius);
-	m_mario->AddCircleCollider(Vector3(colliderPosition,0), m_mario->m_definition->m_physicsRadius);
-	((RigidBody3D*)m_mario->GetComponentByType(RIGID_BODY_3D))->m_friction = 0.8f;
-	((RigidBody3D*)m_mario->GetComponentByType(RIGID_BODY_3D))->m_useGravity = true;
-	((RigidBody3D*)m_mario->GetComponentByType(RIGID_BODY_3D))->m_gravity = Vector3(0, -12000, 0);
+	for (int index = 0; index < g_initialMarioCount; index++)
+	{
+		Mario *mario = new Mario(EntityDefinition::GetDefinition("Mario"));
+		mario->SetPosition(Vector2(200, 400));
+		mario->AddRigidBody3DComponent();
+		mario->m_length = mario->m_definition->m_length;
+		mario->m_height = mario->m_definition->m_height;
+		Vector2 colliderPosition(0, -mario->m_definition->m_height / 2 + mario->m_definition->m_physicsRadius);
+		mario->AddCircleCollider(Vector3(colliderPosition, 0), mario->m_definition->m_physicsRadius);
+		((RigidBody3D*)mario->GetComponentByType(RIGID_BODY_3D))->m_friction = 0.8f;
+		((RigidBody3D*)mario->GetComponentByType(RIGID_BODY_3D))->m_useGravity = true;
+		((RigidBody3D*)mario->GetComponentByType(RIGID_BODY_3D))->m_gravity = Vector3(0, -12000, 0);
+		mario->m_map = this;
+		m_marios.push_back(mario);
+	}
 }
 
 void Map::Update(float deltaTime)
 {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// NEURAL NET 
-	std::vector<float> inputs;
-	for (int index = 0; index < m_minimapObjs.size(); index++)
-	{
-		inputs.push_back(m_minimapObjs.at(index).m_value);
-	}
-	((NeuralNetGA*)m_ga)->UpdateWithInputs(inputs);
+	
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -272,7 +278,7 @@ void Map::Update(float deltaTime)
 		//CreateCharacters();
 		m_init = true;
 	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_D))
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_N))
 	{
 		if(m_isDebugMode)
 		{
@@ -328,19 +334,24 @@ void Map::Update(float deltaTime)
 		}
 	}
 	
-	m_mario->Update(deltaTime);
+	//m_mario->Update(deltaTime);
 	UpdateCamera();
-	UpdateMiniMap(deltaTime);
-	QueryAndDie(deltaTime);
-	CheckForMarioOutOfBounds();
+	UpdateMarios(deltaTime);
+	if(IsAllDead())
+	{
+		PickAndCreateNewMarios();
+	}
+	//UpdateMiniMap(deltaTime);
+	//QueryAndDie(deltaTime);
+	//CheckForMarioOutOfBounds();
 	m_lastTrainedTime += deltaTime;
 	if(m_lastTrainedTime >= m_traininigPeriod)
 	{
-		TrainNN(false);
+		//TrainNN(false);
 		m_lastTrainedTime = 0.f;
 	}
 
-	//DebugDraw::GetInstance()->DebugRenderLogf("CREATED BY RAKHIL SOMAN", "");
+	DebugDraw::GetInstance()->DebugRenderLogf("GENERATION COUNT %d", m_generations);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -351,6 +362,8 @@ void Map::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::UpdateCamera()
 {
+	if(true)
+	return
 	m_camera->SetOrthoProjection();
 	float minX = Windows::GetInstance()->GetDimensions().x / 2.f;
 	float minY = Windows::GetInstance()->GetDimensions().y / 2.f;
@@ -456,7 +469,7 @@ void Map::UpdateMiniMap(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::SetMiniMapValues(std::vector<MiniMapObject>&minimap, IntVector2 pos, Rgba color)
+void Map::SetMiniMapValues(std::vector<MiniMapObject1>&minimap, IntVector2 pos, Rgba color)
 {
 	int index = static_cast<int>(pos.y)*m_minimapHeight + static_cast<int>(pos.x);
 	if(index < minimap.size())
@@ -528,6 +541,20 @@ void Map::UpdatePipes(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::UpdateMarios(float deltaTime)
+{
+	for(int index = 0;index < m_marios.size();index++)
+	{
+		m_marios.at(index)->Update(deltaTime);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/20
 *@purpose : Updates NN
 *@param   : NIL
@@ -535,16 +562,21 @@ void Map::UpdatePipes(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::TrainNN(bool isDead)
 {
+	if(true)
+	{
+		m_mario->m_neuralNet->Mutate();
+		return;
+	}
 	std::vector<float> knowOutputs;
-	knowOutputs.push_back(0.5f);
-	knowOutputs.push_back(0.5f);
-	knowOutputs.push_back(0.5f);
-	/*std::vector<float> inputs;
+	knowOutputs.push_back(0);
+	knowOutputs.push_back(0);
+
+	std::vector<float> inputs;
 	for (int index = 0; index < m_minimapLastPos.size(); index++)
 	{
 		inputs.push_back(m_minimapLastPos.at(index).m_value);
 	}
-	//((NeuralNetGA*)m_ga)->UpdateWithInputs(inputs);
+	((NeuralNetGA*)m_ga)->UpdateWithInputs(inputs);
 	std::vector<float> NNOutputs;
 	for (int index = 0; index < m_mario->m_neuralNet->m_outputs->m_neurons.size(); index++)
 	{
@@ -552,8 +584,7 @@ void Map::TrainNN(bool isDead)
 		NNOutputs.push_back(value);
 	}
 	bool wasMovingRight = NNOutputs.at(0) > 0.5f ? true : false;
-	bool wasMovingLeft  = NNOutputs.at(1) > 0.5f ? true : false;
-	bool wasJumping		= NNOutputs.at(2) > 0.5f ? true : false;
+	bool wasJumping		= NNOutputs.at(1) > 0.5f ? true : false;
 
 	if(isDead)
 	{
@@ -562,22 +593,22 @@ void Map::TrainNN(bool isDead)
 			//is Jumping
 			if(wasJumping)
 			{
-				knowOutputs.at(2) = 0.f;
+				knowOutputs.at(1) = 0.f;
 			}
 			if(!wasJumping)
 			{
-				knowOutputs.at(2) = 1.f;
+				knowOutputs.at(1) = 1.f;
 			}
 		}
 		if (m_mario->m_deathType == DEATH_IDLE)
 		{
 			if (!wasJumping)
 			{
-				knowOutputs.at(2) = 1.f;
+				knowOutputs.at(1) = 1.f;
 			}
 			if (wasJumping)
 			{
-				knowOutputs.at(2) = 0.f;
+				//knowOutputs.at(1) = 0.f;
 			}
 			if(!wasMovingRight)
 			{
@@ -588,20 +619,24 @@ void Map::TrainNN(bool isDead)
 	}
 	else
 	{
+		return;
+	}
+	/*else
+	{
 		if (wasJumping)
 		{
-			knowOutputs.at(2) = 0.f;
+			knowOutputs.at(1) = 0.f;
 		}
 		if (!wasMovingRight)
 		{
 			knowOutputs.at(0) = 1.f;
 		}
 	}
-	//if (wasJumping)
+	if (wasJumping)
 	{
-		knowOutputs.at(2) = 0.f;
-	}
-	knowOutputs.at(0) = 1.f;*/
+		//knowOutputs.at(1) = 0.f;
+	}*/
+	//knowOutputs.at(0) = 1.f;
 	//DebugDraw::GetInstance()->DebugRenderLogf(1,"IS DEAD %s RIGHT %s LEFT %s JUMP %s", ToString(isDead), ToString(wasMovingRight), ToString(wasMovingLeft), ToString(wasJumping));
 	m_mario->m_neuralNet->DoBackPropogation(knowOutputs);
 }
@@ -621,6 +656,7 @@ void Map::CheckForMarioOutOfBounds()
 	}
 	if (m_mario->m_transform.GetWorldPosition().x > 6700)
 	{
+		m_mario->m_deathType = NONE;
 		EndOnePlay();
 	}
 }
@@ -658,9 +694,151 @@ void Map::EndOnePlay()
 	DebugDraw::GetInstance()->DebugRenderLogf(1, "END ONE PLAY ");
 	TrainNN(true);
 	SetRandomSRAND();
+	m_generations++;
 	//m_mario->ResetWeight();
 	m_mario->m_transform.SetLocalPosition(Vector3(200, 150, 0));
 	m_lastTrainedTime = 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::IsAllDead()
+{
+	bool allDead = true;
+	for(int index = 0;index < m_marios.size();index++)
+	{
+		if(!m_marios.at(index)->m_isDead)
+		{
+			allDead = false;
+		}
+	}
+	return allDead;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Map::CalculateMaxFitness()
+{
+	float max = -1;
+	for (int index = 0; index < m_marios.size(); index++)
+	{
+		float fitness = m_marios.at(index)->m_fitness;
+		if(fitness > max)
+		{
+			max = fitness;
+		}
+	}
+	return max;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Map::CalculateFitnessSum()
+{
+	float total = 0;
+	for (int index = 0; index < m_marios.size(); index++)
+	{
+		total += m_marios.at(index)->m_fitness;
+	}
+	return total;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : Picks the best marios copy and mutate
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::PickAndCreateNewMarios()
+{
+
+	for (int index = 0; index < m_marios.size(); index++)
+	{
+		Mario *mario = m_marios.at(index);
+		//DebugDraw::GetInstance()->DebugRenderLogf(4,"FITNESS %f ", mario->m_fitness);
+	}
+
+	std::vector<NeuralNetwork> m_neuralNet;
+	for(int index = 0;index < m_marios.size();index++)
+	{
+		Mario *mario = PickRandomMarioUsingFitness();
+		//DebugDraw::GetInstance()->DebugRenderLogf(4, "CHOOSING FITNESS %f ", mario->m_fitness);
+		NeuralNetwork neuralNet(mario->m_neuralNet->m_inputs->m_neurons.size(), mario->m_neuralNet->m_hiddenLayers->m_neurons.size(), mario->m_neuralNet->m_outputs->m_neurons.size());
+		mario->m_neuralNet->CopyWeights(neuralNet);
+		m_neuralNet.push_back(neuralNet);
+	}
+	for (int index = 0; index < m_marios.size(); index++)
+	{
+		Mario *mario = m_marios.at(index);
+		mario->m_neuralNet->CopyWeights(m_neuralNet.at(index));
+		mario->m_neuralNet->Mutate();
+
+	}
+
+	
+	m_generations++;
+	for (int index = 0; index < m_marios.size(); index++)
+	{
+		m_marios.at(index)->m_transform.SetLocalPosition(Vector3(200, 150, 0));
+		m_marios.at(index)->m_isDead = false;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Mario* Map::PickRandomMarioUsingFitness()
+{
+	int maxIteration = 100;
+	int currentIteration = 0;
+	
+	std::vector<int> highProbIndex;
+
+	for(int index = 0;index < m_marios.size();index++)
+	{
+		for (int index1 = index + 1; index1 < m_marios.size(); index1++)
+		{
+			if(m_marios.at(index)->m_fitness < m_marios.at(index1)->m_fitness)
+			{
+				Mario *mario = m_marios.at(index);
+				m_marios.at(index) = m_marios.at(index1);
+				m_marios.at(index1) = mario;
+			}
+		}
+	}
+	/*while (true)
+	{
+		int index = GetRandomIntLessThan(static_cast<int>(m_marios.size()));
+		Mario *mario = m_marios.at(index);
+		int r = GetRandomIntLessThan(CalculateMaxFitness());
+
+		if (static_cast<float>(r) < CalculateFitnessSum())
+		{
+			return mario;
+		}
+		currentIteration++;
+		if (currentIteration > maxIteration)
+		{
+			break;
+		}
+	}*/
+	int index = GetRandomIntLessThan(1);
+	return m_marios.at(index);
 }
 
 //////////////////////////////////////////////////////////////
@@ -697,8 +875,8 @@ void Map::Render()
 	RenderBricks();
 	//RenderPipes();
 	RenderMario();
-	RenderMiniMap(m_minimapAABB, m_minimapObjs);
-	RenderMiniMap(m_minimapLastPosAABB,m_minimapLastPos);
+	//RenderMiniMap(m_minimapAABB, m_minimapObjs);
+	//RenderMiniMap(m_minimapLastPosAABB,m_minimapLastPos);
 
 	//RenderGrid();
 }
@@ -709,7 +887,7 @@ void Map::Render()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::RenderMiniMap(AABB2 minmapAABB,std::vector<MiniMapObject>& minimap)
+void Map::RenderMiniMap(AABB2 minmapAABB,std::vector<MiniMapObject1>& minimap)
 {
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
@@ -760,7 +938,11 @@ void Map::RenderMiniMap(AABB2 minmapAABB,std::vector<MiniMapObject>& minimap)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::RenderMario()
 {
-	m_mario->Render();
+	for(int index = 0;index < m_marios.size();index++)
+	{
+		m_marios.at(index)->Render();
+	}
+	//m_mario->Render();
 }
 
 //////////////////////////////////////////////////////////////

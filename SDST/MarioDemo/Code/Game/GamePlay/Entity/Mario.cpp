@@ -7,6 +7,8 @@
 #include "Engine/AI/NeuralNetwork/NeuralNetwork.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetworkConstants.h"
 #include "Game/GamePlay/Entity/Mario.hpp"
+#include "Game/GamePlay/Maps/Map.hpp"
+#include "Game/GamePlay/Entity/Brick.hpp"
 // CONSTRUCTOR
 Mario::Mario():Entity("mario")
 {
@@ -27,6 +29,8 @@ Mario::Mario(EntityDefinition *definition) :Entity("mario")
 	m_spriteAnimSet = new SpriteAnimSet(definition->m_spriteAnimSetDef);
 	m_spriteAnimSet->SetAnimation(m_characterTypeString + "EastIdle");
 	m_neuralNet = new NeuralNetwork(INPUT_NEURON_COUNT, HIDDEN_NEURON_COUNT, OUTPUT_NEURON_COUNT);
+	InitMiniMap();
+
 	StayIdle();
 }
 
@@ -34,6 +38,161 @@ Mario::Mario(EntityDefinition *definition) :Entity("mario")
 Mario::~Mario()
 {
 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::InitMiniMap()
+{
+	m_minimapAABB		 = AABB2(Vector2(0, 0), 50, 50);
+	m_minimapLastPosAABB = AABB2(Vector2(0, 0), 50, 50);
+	for (int indexY = 0; indexY < m_minimapHeight; indexY++)
+	{
+		for (int indexX = 0; indexX < m_minimapWidth; indexX++)
+		{
+			MiniMapObject obj;
+			obj.m_color = Rgba::BLACK;
+			obj.m_value = 0.f;
+			m_minimapObjs.push_back(obj);
+			m_minimapLastPos.push_back(obj);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::SetMiniMapValues(std::vector<MiniMapObject> &minimap, IntVector2 pos, Rgba color)
+{
+	int index = static_cast<int>(pos.y)*m_minimapHeight + static_cast<int>(pos.x);
+	if (index < minimap.size())
+	{
+		minimap.at(index).m_color = color;
+		if (color == Rgba::WHITE)
+		{
+			minimap.at(index).m_value = 25;
+		}
+		else
+			if (color == Rgba::RED)
+			{
+				minimap.at(index).m_value = 25;
+			}
+			else
+				if (color == Rgba::GREEN)
+				{
+					minimap.at(index).m_value = 50;
+				}
+				else
+				{
+					minimap.at(index).m_value = 1;
+				}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<float>& Mario::GetInputsFromMiniMap()
+{
+	std::vector<float> inputs;
+	for (int index = 0; index < m_minimapObjs.size(); index++)
+	{
+		inputs.push_back(m_minimapObjs.at(index).m_value);
+	}
+	return inputs;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::UpdateMiniMap(float deltaTime)
+{
+	float width = static_cast<float>(Windows::GetInstance()->GetDimensions().x);
+	float height = static_cast<float>(Windows::GetInstance()->GetDimensions().y);
+
+	Vector2 marioWorldPosition = m_transform.GetWorldPosition().GetXY();
+	m_miniMapPosition.x = m_map->m_camera->m_transform.GetWorldPosition().x + width / 2 - m_minimapAABB.GetDimensions().x * 2;
+	m_miniMapPosition.y = m_map->m_camera->m_transform.GetWorldPosition().y + height / 2 - m_minimapAABB.GetDimensions().y * 2;
+	m_miniMapPosition.y += 100;
+	m_minimapAABB = AABB2(m_miniMapPosition, m_minimapAABB.GetDimensions().x / 2.f, m_minimapAABB.GetDimensions().y / 2.f);
+	m_minimapLastPosAABB = AABB2(m_miniMapPosition + Vector2(0, -150), m_minimapAABB.GetDimensions().x / 2.f, m_minimapAABB.GetDimensions().y / 2.f);
+
+	// SQUARE CAN TAKE X OR Y
+	Vector2 minBounds = marioWorldPosition - Vector2::ONE * (m_map->m_block.GetDimensions().x / 2.f) * (m_minimapWidth / 2.f);
+	Vector2 maxBounds = marioWorldPosition + Vector2::ONE * (m_map->m_block.GetDimensions().x / 2.f) * (m_minimapHeight / 2.f);
+
+	// MAKE ALL BLACK IN MINIMAP
+	for (int index = 0; index < m_minimapObjs.size(); index++)
+	{
+		m_minimapObjs.at(index).m_color = Rgba::CONSOLE_FADED_BLUE;
+		m_minimapObjs.at(index).m_value = 0.75f;
+		if (IsGrounded(deltaTime))
+		{
+			m_minimapLastPos.at(index).m_color = Rgba::CONSOLE_FADED_BLUE;
+			m_minimapLastPos.at(index).m_value = 0.75f;
+		}
+	}
+
+	for (int index = 0; index < m_map->m_bricks.size(); index++)
+	{
+		Vector2 brickPosition = m_map->m_bricks.at(index)->m_transform.GetWorldPosition().GetXY();
+		if (brickPosition.x > minBounds.x && brickPosition.y > minBounds.y)
+		{
+			int relativeX = RoundToNearestInt((brickPosition.x - minBounds.x) / (m_map->m_block.GetDimensions().x / 2.f));
+			int relativeY = RoundToNearestInt((brickPosition.y - minBounds.y) / (m_map->m_block.GetDimensions().x / 2.f));
+			relativeY++;
+			if (brickPosition.x < maxBounds.x && brickPosition.y < maxBounds.y)
+			{
+				SetMiniMapValues(m_minimapObjs, IntVector2(relativeX, relativeY), Rgba::WHITE);
+				if (IsGrounded(deltaTime))
+				{
+					SetMiniMapValues(m_minimapLastPos, IntVector2(relativeX, relativeY), Rgba::WHITE);
+				}
+				//DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE %d,%d", relativeX, relativeY);
+			}
+		}
+	}
+	for (int index = 0; index < m_map->m_pits.size(); index++)
+	{
+		Vector2 pitPosition = m_map->m_pits.at(index).m_position;
+		if (pitPosition.x > minBounds.x && pitPosition.y > minBounds.y)
+		{
+			int relativeX = RoundToNearestInt((pitPosition.x - minBounds.x) / (m_map->m_block.GetDimensions().x / 2.f));
+			int relativeY = RoundToNearestInt((pitPosition.y - minBounds.y) / (m_map->m_block.GetDimensions().x / 2.f));
+			relativeY++;
+			if (pitPosition.x < maxBounds.x && pitPosition.y < maxBounds.y)
+			{
+				SetMiniMapValues(m_minimapObjs, IntVector2(relativeX, relativeY), m_map->m_pits.at(index).m_color);
+				if (IsGrounded(deltaTime))
+				{
+					SetMiniMapValues(m_minimapLastPos, IntVector2(relativeX, relativeY), m_map->m_pits.at(index).m_color);
+				}
+				//DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE PIT %d,%d", relativeX, relativeY);
+			}
+		}
+	}
+	int positionX = static_cast<int>((marioWorldPosition.x - minBounds.x) / (m_map->m_block.GetDimensions().x / 2.f));
+	int positionY = static_cast<int>((marioWorldPosition.y - minBounds.y) / (m_map->m_block.GetDimensions().x / 2.f));
+	//DebugDraw::GetInstance()->DebugRenderLogf("RELATIVE MARIO %d,%d", positionX, positionY);
+	SetMiniMapValues(m_minimapObjs, IntVector2(positionX, positionY), Rgba::GREEN);
+
+	if (IsGrounded(deltaTime))
+	{
+		SetMiniMapValues(m_minimapLastPos, IntVector2(positionX, positionY), Rgba::GREEN);
+	}
 }
 
 //////////////////////////////////////////////////////////////
@@ -44,6 +203,17 @@ Mario::~Mario()
 *//////////////////////////////////////////////////////////////
 void Mario::Update(float deltaTime)
 {
+	if(m_isDead)
+	{
+		return;
+	}
+	std::vector<float> inputs;
+	for (int index = 0; index < m_minimapObjs.size(); index++)
+	{
+		inputs.push_back(m_minimapObjs.at(index).m_value);
+	}
+	m_neuralNet->FeedForward(inputs);
+
 	Disc2 colliderOutline = GetCircleCollider()->m_disc;
 	std::vector<float> NNOutputs;
 	for (int index = 0; index < m_neuralNet->m_outputs->m_neurons.size(); index++)
@@ -52,7 +222,7 @@ void Mario::Update(float deltaTime)
 		NNOutputs.push_back(value);
 	}
 	
-	DebugDraw::GetInstance()->DebugRenderLogf("NN OUTPUT %f, %f, %f", NNOutputs.at(0), NNOutputs.at(1),NNOutputs.at(2));
+	//DebugDraw::GetInstance()->DebugRenderLogf("NN OUTPUT %f, %f, %f", NNOutputs.at(0), NNOutputs.at(1));
 
 	float random = GetRandomIntInRange(0, 3);
 	//random = -1;
@@ -62,7 +232,7 @@ void Mario::Update(float deltaTime)
 	}
 	if (NNOutputs.at(1) > 0.5f)
 	{
-		Walk(deltaTime, -NNOutputs.at(1));
+		//Walk(deltaTime, -NNOutputs.at(1));
 	}
 	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW))
 	{
@@ -77,29 +247,43 @@ void Mario::Update(float deltaTime)
 		ResetJump();
 	}
 
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW))
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW) || NNOutputs.at(1) > 0.5f)
 	{
-		if(IsGrounded(deltaTime) || IsJumping())
+		if(IsGrounded(deltaTime) && m_jumpTime == m_maxJumpFrames)
+		{
+			m_isJumping = true;
+		}
+		/*if(IsGrounded(deltaTime) || IsJumping())
 		{
 			UpdateJump(deltaTime,1);
 			if (m_currentJumpForce < m_maxJumpForce)
 			{
 				Jump(deltaTime);
 			}
-		}
+		}*/
 	}
-
-	if (IsGrounded(deltaTime) || IsJumping())
+	if(m_isJumping)
 	{
-		if(NNOutputs.at(2) > 0.5f)
+		Jump(deltaTime);
+		m_jumpTime--;
+		if(m_jumpTime <=0)
 		{
-			UpdateJump(deltaTime, NNOutputs.at(2));
-			if (m_currentJumpForce < m_maxJumpForce)
-			{
-				Jump(deltaTime);
-			}
+			m_isJumping = false;
+			m_jumpTime = m_maxJumpFrames;
 		}
 	}
+	/*if (IsGrounded(deltaTime) || IsJumping())
+	{
+		if(NNOutputs.at(1) > 0.5f)
+		{
+			Jump(deltaTime);
+
+			//UpdateJump(deltaTime, NNOutputs.at(1));
+			//if (m_currentJumpForce < m_maxJumpForce)
+			//{
+			//}
+		}
+	}*/
 
 	float xVelocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->m_velocity.x;
 	DebugRenderOptions option;
@@ -122,9 +306,12 @@ void Mario::Update(float deltaTime)
 	}
 	Vector3 prevTransform = GetRigidBody3DComponent()->m_previousTransform.GetWorldPosition();
 	Vector3 marioWorldPosition = m_transform.GetWorldPosition();
-	DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f, %f, %f", marioWorldPosition.x, marioWorldPosition.y, marioWorldPosition.z);
+	//DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f, %f, %f", marioWorldPosition.x, marioWorldPosition.y, marioWorldPosition.z);
+	UpdateMiniMap(deltaTime);
 	//DebugDraw::GetInstance()->DebugRenderLogf("Previous %f, %f, %f", prevTransform.x, prevTransform.y, prevTransform.z);
 	//DebugDraw::GetInstance()->DebugRenderLogf("Diff %f, %f, %f"    , (marioWorldPosition.x - prevTransform.x), (marioWorldPosition.y - prevTransform.y), (marioWorldPosition.z - prevTransform.z));
+	QueryAndDie(deltaTime);
+	CheckForBounds();
 	Entity::Update(deltaTime);
 
 }
@@ -163,11 +350,7 @@ bool Mario::IsJumping()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Mario::UpdateJump(float deltaTime,float force)
 {
-	if(force < 0)
-	{
-		return;
-	}
-	m_currentJumpForce += deltaTime*force;
+	m_currentJumpForce += deltaTime;
 	if(m_currentJumpForce > m_maxJumpForce)
 	{
 		ResetJump();
@@ -284,6 +467,57 @@ bool Mario::IsGrounded(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::CheckForBounds()
+{
+	if (m_transform.GetWorldPosition().y < 0)
+	{
+		EndOfPlay();
+	}
+	if (m_transform.GetWorldPosition().x > 6700)
+	{
+		EndOfPlay();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::EndOfPlay()
+{
+	m_isDead = true;
+	m_fitness = m_transform.GetWorldPosition().x/100.f - m_numOfJumps;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::QueryAndDie(float deltaTime)
+{
+	m_timeElapsedAfterKnownLocation += deltaTime;
+	if (m_timeElapsedAfterKnownLocation > 2)
+	{
+		Vector2 distance = (m_transform.GetWorldPosition().GetXY() - m_lastKnownPosition);
+		if (distance.GetLength() < m_map->m_block.GetDimensions().x * 2)
+		{
+			EndOfPlay();
+		}
+		m_lastKnownPosition = m_transform.GetWorldPosition().GetXY();
+		m_timeElapsedAfterKnownLocation = 0.f;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/08
 *@purpose : NIL
 *@param   : NIL
@@ -385,19 +619,66 @@ void Mario::OnCollisionEnter(Collider *collider)
 //////////////////////////////////////////////////////////////
 void Mario::Render()
 {
+	if (m_isDead)
+	{
+		return;
+	}
+	//RenderMiniMap(m_minimapAABB, m_minimapObjs);
+	//RenderMiniMap(m_minimapLastPosAABB, m_minimapLastPos);
 	Material *defaultMaterial = Material::AquireResource("default");
-	m_texture = Texture::CreateOrGetTexture("Data\\Images\\player.png",true,true);
+	m_texture			      = Texture::CreateOrGetTexture("Data\\Images\\player.png",true,true);
 	defaultMaterial->m_textures.at(0) = m_texture;
 	Texture::SetCurrentTexture(m_texture);
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Entity::Render();
+	delete defaultMaterial;
+}
 
-	//Disc2 colliderOutline = GetCircleCollider()->m_disc;
-	//Renderer::GetInstance()->DrawCircle(colliderOutline.center,colliderOutline.radius);
-	//DebugDraw::GetInstance()->DebugRenderLogf("COLLIDER POSITION %f, %f",colliderOutline.center.x, colliderOutline.center.y);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::RenderMiniMap(AABB2 minmapAABB, std::vector<MiniMapObject>& minimap)
+{
+	Material *defaultMaterial = Material::AquireResource("default");
+	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 
-	/*Vector2 entityPosition = m_transform.GetWorldPosition().GetXY();
-	AABB2 m_aabb2(entityPosition, GetDrawDimensions().x / 2, GetDrawDimensions().y / 2);
-	Renderer::GetInstance()->DrawAABB(m_aabb2,Rgba::WHITE);*/
+	Vector2 marioPosition = m_transform.GetWorldPosition().GetXY();
+	//Renderer::GetInstance()->DrawAABB(m_minimapAABB,Rgba::BLACK);
+	Renderer::GetInstance()->DrawRectangle(minmapAABB);
+
+	Vector2 minPosition		     = minmapAABB.mins;
+	Vector2 marioMiniMapPosition = minmapAABB.GetCenter();
+	for(int indexY = 0;indexY < m_minimapHeight;indexY++)
+	{
+		for(int indexX = 0;indexX < m_minimapWidth;indexX++)
+		{
+			int index = indexY * m_minimapHeight + indexX;
+			Vector2 currentPos(indexX * 10, indexY * 10);
+			Rgba color = minimap.at(index).m_color;
+			if(color == Rgba::BLACK)
+			{
+				continue;
+			}
+			AABB2 miniMapobj(minPosition + currentPos,5,5);
+			Renderer::GetInstance()->DrawAABB(miniMapobj,color);// , color);
+		}
+	}
+
+
+	/*for (int brickIndex = 0; brickIndex < m_bricks.size(); brickIndex++)
+	{
+	Vector2 brickPosition = m_bricks.at(brickIndex)->m_transform.GetWorldPosition().GetXY();
+	if (m_cameraQuads.IsPointInside(brickPosition))
+	{
+	Vector2 relativePosition =  brickPosition - marioPosition;
+	relativePosition = relativePosition * m_miniMapScaleFactor;
+	Vector2 absolutePosition = m_miniMapPosition + relativePosition;
+	AABB2 brickMiniMap(absolutePosition, 10, 10);
+	Renderer::GetInstance()->DrawAABB(brickMiniMap, Rgba::GREEN);
+	}
+	}*/
 	delete defaultMaterial;
 }

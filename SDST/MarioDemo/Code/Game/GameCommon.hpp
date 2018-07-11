@@ -23,7 +23,7 @@ extern HumanController*		g_theHumanController;
 extern Menu*				g_theCurrentMenu;
 extern AudioSystem*			g_audio;
 extern Clock*				g_theGameClock;
-
+extern int					g_initialMarioCount;
 
 extern bool g_isQuitting;
 

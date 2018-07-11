@@ -21,6 +21,7 @@ public:
 	bool   isQuitTriggered = false;
 	int    m_numberOfIterations = 1;
 	static Game *s_game;
+	bool   m_isTraining = false;
 	
 	Game();
 	void Update(float deltaTime);

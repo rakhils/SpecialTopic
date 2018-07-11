@@ -86,6 +86,8 @@ public:
 	float				 GetFastSigmoidValue(float value);
 	float				 GetFastSigmoidDerivative(float value);
 	float				 GetSigmoidValue(float value);
+	void				 Mutate();
+	bool				 CopyWeights(NeuralNetwork &copy);
 	//Static_Methods
 
 protected:
