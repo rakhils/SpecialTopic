@@ -17,17 +17,28 @@
 * \date   : 5/20/2018 2:03:29 AM
 * \contact: srsrakhil@gmail.com
 */
-
+struct LogDefine
+{
+	std::string m_tag;
+	Rgba        m_color;
+};
 struct Log_t
 {
 	std::string m_logTime;
-	std::string m_tag;
+	//std::string m_tag;
 	std::string m_text;
+	LogDefine   m_define;
 	Log_t();
 	Log_t(std::string tag, std::string text)
 	{
-		m_text	  = text;
-		m_tag	  = tag;
+		m_text			  = text;
+		m_define.m_tag	  = tag;
+		m_logTime = TimeSystem::GetCurrentDateAndTimeInString();
+	}
+	Log_t(LogDefine define, std::string text)
+	{
+		m_text    = text;
+		m_define  = define;
 		m_logTime = TimeSystem::GetCurrentDateAndTimeInString();
 	}
 };
@@ -58,8 +69,49 @@ public:
 		return ret;
 	}
 
-public:
 	std::queue<Log_t*> m_data;
+	std::mutex	  m_lock;
+};
+class ThreadSafeSet 
+{
+public:
+	void Add(std::string tag)
+	{
+		m_lock.lock();
+		m_data.push_back(tag);
+		m_lock.unlock();
+	}
+
+	void Remove(std::string tag)
+	{
+		m_lock.lock();
+		for(int index = 0; index < m_data.size();index++)
+		{
+			if(m_data.at(index) == tag)
+			{
+				m_data.erase(m_data.begin() + index, m_data.begin() + index + 1);
+				break;
+			}
+		}
+		m_lock.unlock();
+	}
+
+	bool HasTag(std::string tag)
+	{	
+		bool hasTag = false;
+		m_lock.lock();
+		for (int index = 0; index < m_data.size(); index++)
+		{
+			if (m_data.at(index) == tag)
+			{
+				hasTag = true;
+				break;
+			}
+		}
+		m_lock.unlock();
+		return hasTag;
+	}
+	std::vector<std::string> m_data;
 	std::mutex	  m_lock;
 };
 class LogManager
@@ -67,17 +119,20 @@ class LogManager
 
 public:
 	//Member_Variables
-	static bool									s_logEnabled;
-	static std::map<std::string, FILE*>			s_logIdMaps;
-	static LogManager*							s_logger;
+	
 	ThreadHandle								m_thread; 
 	ThreadSafeQueue								m_logQueue; 
 	bool										m_isRunning =  true;
 	std::string									m_defaultFileName;
 	std::string									m_timeStampFilePath;
 	std::map<std::string,LogForwardCallBack>    m_logForwardCallBacks;
+	ThreadSafeSet						    	m_filters;  
+	bool										m_globalFilterCheck		= false;
 	//Static_Member_Variables
-
+	static bool									s_logEnabled;
+	static std::map<std::string, FILE*>			s_logIdMaps;
+	static LogManager*							s_logger;
+	static std::map<std::string, LogDefine>     s_logDefines;
 	//Methods
 
 	LogManager();
@@ -112,6 +167,9 @@ public:
 
 	void				AttachLogForwardCallBacks(std::string id,LogForwardCallBack cb);
 	void				DetachLogForwardCallBacks(std::string id);
+	void				AddFilter(std::string tag);
+	void				RemoveFilter(std::string tag);
+
 	void				LogShowAll();
 	void				LogHideAll();
 	void				LogShowTag(char const *tag);

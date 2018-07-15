@@ -78,6 +78,26 @@ bool Collider::CheckBoxVsPointCollision(BoxCollider* boxCollider, PointCollider 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/11
+*@purpose : Checks collision of 2 circle colliders
+*@param   : Circle collides
+*@return  : True if collision occurs
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Collider::CheckCircleVsCircleCollision(CircleCollider *circleCollider1, CircleCollider* circleCollider2)
+{
+	Vector2 circlePosition1 = circleCollider1->m_transform.GetWorldPosition().GetXY();
+	Vector2 circlePosition2 = circleCollider2->m_transform.GetWorldPosition().GetXY();
+	Vector2 distance		= circlePosition1 - circlePosition2;
+
+	float sumOfRadi			= circleCollider1->m_disc.radius + circleCollider2->m_disc.radius;
+	if(distance.GetLengthSquared() < sumOfRadi*sumOfRadi)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/18
 *@purpose : Checks if sphere and box2d collision happend
 *@param   : Sphere collider and box collider
@@ -132,7 +152,8 @@ bool Collider::CheckSphereVsBox2DCollision(SphereCollider* sphereCollider, BoxCo
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Collider::CheckBox2DVsCircleCollision(BoxCollider2D * box2dCollider, CircleCollider* circleCollider ,DIRECTIONS& area)
 {
-	Disc2 disk			   = circleCollider->m_disc;
+	Vector2 diskPos        = circleCollider->m_transform.GetWorldPosition().GetXY();
+	Disc2 disk(diskPos, circleCollider->m_disc.radius);
 	float radius		   = disk.radius;
 	AABB2 aabb2			   = box2dCollider->m_aabb2;
 	Vector2 distanceVector = Vector2(disk.center.x - aabb2.GetCenter().x, disk.center.y - aabb2.GetCenter().y);
@@ -158,7 +179,6 @@ bool Collider::CheckBox2DVsCircleCollision(BoxCollider2D * box2dCollider, Circle
 				area = EAST;
 				return true;
 			}
-
 		}
 	}
 

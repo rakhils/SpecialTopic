@@ -12,7 +12,9 @@
 //#pragma comment( lib, "opengl32" )	// Link in the OpenGL32.lib static library
 
 #define UNUSED(x) (void)(x);
-float MAX_DELTA_VALUE = 0.01616f;
+//float MAX_DELTA_VALUE = 0.01616f;
+//float MIN_DELTA_VALUE = 0.01216f;
+
 
 constexpr float CLIENT_ASPECT = 1.0f; 
 const char* APP_NAME = "Space Shooter3D";	

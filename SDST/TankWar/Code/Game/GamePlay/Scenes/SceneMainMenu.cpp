@@ -66,7 +66,7 @@ void SceneMainMenu::Update(float deltaTime)
 	{
 		UpdateExitingTime(deltaTime);
 	}
-	LogManager::GetInstance()->LogTaggedPrintf("test", "TEST = %f", 0);
+	LogManager::GetInstance()->LogTaggedPrintf("test", "TEST = %f", static_cast<float>(Clock::g_theMasterClock->total.m_seconds));
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_UP_ARROW))
 	{
 		m_cursorIndex--;

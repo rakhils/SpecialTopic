@@ -133,7 +133,11 @@ void Tank::Update(float deltaTime)
 
 	float PI = 3.14f;
 	Vector3 minRotationValue(-PI / 2, 0, 0);
-	Vector3 maxRotationValue(PI / 2, 2 * PI, 0);	
+	Vector3 maxRotationValue(PI / 2, 2 * PI, 0);
+	if (!((SceneLevel1*)m_scene)->m_mode)
+	{
+
+	}
 	if(!((SceneLevel1*)m_scene)->m_mode)
 	{
 		if (InputSystem::GetInstance()->WasLButtonJustPressed())

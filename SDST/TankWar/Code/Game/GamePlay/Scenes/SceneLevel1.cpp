@@ -318,7 +318,7 @@ void SceneLevel1::Update(float deltaTime)
 		m_cameraRadius -= 50*deltaTime;
 	}
 	
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_M))
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_M))
 	{
 		if(!m_mode)
 		{
@@ -348,7 +348,7 @@ void SceneLevel1::Update(float deltaTime)
 	if(m_mode)
 	{
 		delta = Vector2::ZERO;
-		delta.y += .5;
+		//delta.y += .5;
 	}
 	if (delta.x != 0)
 	{

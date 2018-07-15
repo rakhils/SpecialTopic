@@ -109,9 +109,20 @@ void ProfilerManager::Update(float deltaTime)
 
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_M))
 	{
-		InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_ABSOLUTE;
-		InputSystem::GetInstance()->ShowCursor(true);
-		InputSystem::GetInstance()->MouseLockToScreen(false);
+		if(InputSystem::GetInstance()->m_mouse.m_mouseMode == MOUSEMODE_RELATIVE)
+		{
+			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_ABSOLUTE;
+			InputSystem::GetInstance()->ShowCursor(true);
+			InputSystem::GetInstance()->MouseLockToScreen(false);
+		}
+		else
+		{
+			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_RELATIVE;
+			InputSystem::GetInstance()->ShowCursor(false);
+			InputSystem::GetInstance()->MouseLockToScreen(true);
+		}
+
+		
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_P))
 	{
@@ -194,6 +205,8 @@ void ProfilerManager::Update(float deltaTime)
 void ProfilerManager::RenderProfiler()
 {
 	DebugDraw::GetInstance()->DebugRenderLogf("RENDERPROFILE");
+	DebugRenderOptions options;
+	//DebugDraw::GetInstance()->DebugRenderQuad2D(Vector3(Windows::GetInstance()->GetDimensions().GetAsVector2()), AABB2(Vector2(0, 0), 1000, 1000), 0.f, nullptr, Rgba::FADED_BLUE,DEBUG_RENDER_WIRE, options);
 	RenderInfo();
 	RenderFPSAndFrameRate();
 	s_performanceGraph.Render();

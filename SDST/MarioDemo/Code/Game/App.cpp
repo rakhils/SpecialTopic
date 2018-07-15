@@ -13,11 +13,15 @@ App::App()
 {
 	Clock::g_theMasterClock = new Clock();
 	g_theGameClock = new Clock();
-
+	if(g_controlMode)
+	{
+		g_initialMarioCount = 1;
+	}
 	g_theRenderer = Renderer::GetInstance();
 	g_theInput	  = InputSystem::GetInstance();
 	g_audio		  = AudioSystem::GetInstance();
 	g_theGame	  = Game::GetInstance();
+	
 }
 
 App::~App()
@@ -41,8 +45,9 @@ void App::RunFrame()
 	Renderer::GetInstance()->BeginFrame();
 	g_theInput->BeginFrame();
 	g_audio->BeginFrame();
-
-	Update(MAX_DELTA_VALUE);
+	float deltaTime = static_cast<float>(Clock::g_theMasterClock->frame.m_seconds);
+	deltaTime = ClampFloat(deltaTime, 0.f, MAX_DELTA_VALUE);
+	Update(deltaTime);
 	Render();
 	g_audio->EndFrame();
 

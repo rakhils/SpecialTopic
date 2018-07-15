@@ -12,7 +12,9 @@
 #include "Game/GamePlay/Entity/Brick.hpp"
 #include "Game/GamePlay/Entity/Entity.hpp"
 #include "Game/GamePlay/Entity/Mario.hpp"
+#include "Game/GamePlay/Entity/InvisibleEnemies.hpp"
 class GeneticAlgorithm;
+
 struct MiniMapObject1
 {
 	Rgba  m_color;
@@ -37,19 +39,21 @@ public:
 	Vector2   m_dimensions;
 	
 
-	Vector2				 m_lastKnownPosition;
-	float				 m_timeElapsedAfterKnownLocation;
-	float				 m_lastTrainedTime = 0;
-	float				 m_miniMapScaleFactor = 1 / 5.f;
-	bool				 m_slowerTraining = false;
-	float				 m_traininigPeriod = 2;
-	int					 m_generations = 0;
-	std::vector<Brick*>	 m_bricks;
-	std::vector<Pipe*>	 m_pipes;
-	std::vector<Pit>	 m_pits;
+	Vector2							m_lastKnownPosition;
+	float							m_timeElapsedAfterKnownLocation;
+	float							m_lastTrainedTime = 0;
+	float							m_miniMapScaleFactor = 1 / 5.f;
+	bool							m_slowerTraining = false;
+	float							m_traininigPeriod = 2;
+	int								m_generations = 0;
+	std::vector<Brick*>				m_bricks;
+	std::vector<Pipe*>				m_pipes;
+	std::vector<Pit>				m_pits;
+	std::vector<InvisibleEnemies*>  m_invisibleEnemies;
 
 	Mario					  *m_mario;
 	std::vector<Mario*>		   m_marios;
+	int							m_aliveMarioCount = 0;
 	//MINIMAP
 	Vector2					   m_miniMapPosition;
 	AABB2					   m_minimapAABB;
@@ -58,6 +62,16 @@ public:
 	std::vector<MiniMapObject1> m_minimapLastPos;
 	int m_minimapWidth  = 10;
 	int m_minimapHeight = 10;
+
+	bool						m_bestMode = false;
+	NeuralNetwork				*m_bestNeuralNet = nullptr;
+	float						m_bestFitness = 0.f;
+	float						m_lastBestFitness = 0.f;
+	float						m_lastBestMarioX  = 0.f;
+	int						    m_lastBestMarioJump = 0;
+	float						m_bestMarioX = 0.f;
+	int						    m_bestMarioJump = 0;
+
 	GeneticAlgorithm *m_ga = nullptr;
 	GeneticAlgorithm *m_gaString = nullptr;
 	Map(MapDefinition* def);
@@ -74,6 +88,7 @@ public:
 	void CreateGround();
 	void CreateCharacters();
 	void CreateMario();
+	void CreateInvisibleEnemies(Vector2 position, float radius);
 	void InitScore();
 	void InitTime();
 
@@ -91,7 +106,8 @@ public:
 	bool IsAllDead();
 	float CalculateMaxFitness();
 	float CalculateFitnessSum();
-	void PickAndCreateNewMarios();
+	void PickMostSuccessfulMario();
+	void SortMariosInOrderOfFitness();
 	Mario* PickRandomMarioUsingFitness();
 
 	void Render();
@@ -100,5 +116,6 @@ public:
 	void RenderBricks();
 	void RenderPipes();
 	void RenderGrid();
+	void RenderInvisibleEnemies();
 	void RenderNN();
 };

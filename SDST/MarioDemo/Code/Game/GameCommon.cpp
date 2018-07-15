@@ -14,8 +14,10 @@ HumanController*    g_theHumanController = nullptr;
 AudioSystem*	    g_audio = nullptr;
 //Clock*				g_theMasterClock		= nullptr;
 Clock*				g_theGameClock = nullptr;
-int					g_initialMarioCount = 150;
+int					g_initialMarioCount = 350;
+int					g_maxMarioCountedForNextGen = 15;
 bool				g_isQuitting = false;
+bool				g_controlMode = false;
 
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/02/02

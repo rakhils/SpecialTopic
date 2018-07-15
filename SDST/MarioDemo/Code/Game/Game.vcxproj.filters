@@ -76,6 +76,9 @@
     <ClCompile Include="GamePlay\Entity\Enemies\Enemy.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="GamePlay\Entity\InvisibleEnemies.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -116,6 +119,7 @@
     <ClInclude Include="GamePlay\Entity\Pipe.hpp" />
     <ClInclude Include="GamePlay\Entity\PowerUp.hpp" />
     <ClInclude Include="GamePlay\Entity\Enemies\Enemy.hpp" />
+    <ClInclude Include="GamePlay\Entity\InvisibleEnemies.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\Run_Win32\Data\Definitions\Tiles.xml">

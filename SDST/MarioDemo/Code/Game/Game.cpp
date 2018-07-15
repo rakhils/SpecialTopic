@@ -15,7 +15,42 @@ void Game::Update(float deltaTime)
 	{
 		if(m_numberOfIterations == 1)
 		{
+			m_numberOfIterations = 50000;
+		}
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_Y))
+	{
+		if (m_numberOfIterations == 1)
+		{
+			m_numberOfIterations = 40000;
+		}
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_U))
+	{
+		if (m_numberOfIterations == 1)
+		{
+			m_numberOfIterations = 30000;
+		}
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_I))
+	{
+		if (m_numberOfIterations == 1)
+		{
+			m_numberOfIterations = 20000;
+		}
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_O))
+	{
+		if (m_numberOfIterations == 1)
+		{
 			m_numberOfIterations = 10000;
+		}
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_P))
+	{
+		if (m_numberOfIterations == 1)
+		{
+			m_numberOfIterations = 2500;
 		}
 	}
 		

@@ -6,9 +6,12 @@
 #include "Engine/Physics/Collider/BoxCollider2D.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetwork.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetworkConstants.h"
+#include "Engine/Time/Clock.hpp"
 #include "Game/GamePlay/Entity/Mario.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Entity/Brick.hpp"
+
+
 // CONSTRUCTOR
 Mario::Mario():Entity("mario")
 {
@@ -77,17 +80,17 @@ void Mario::SetMiniMapValues(std::vector<MiniMapObject> &minimap, IntVector2 pos
 		minimap.at(index).m_color = color;
 		if (color == Rgba::WHITE)
 		{
-			minimap.at(index).m_value = 25;
+			minimap.at(index).m_value = -0.5f;
 		}
 		else
 			if (color == Rgba::RED)
 			{
-				minimap.at(index).m_value = 25;
+				minimap.at(index).m_value = -.75f;
 			}
 			else
 				if (color == Rgba::GREEN)
 				{
-					minimap.at(index).m_value = 50;
+					minimap.at(index).m_value = 1.f;
 				}
 				else
 				{
@@ -138,12 +141,12 @@ void Mario::UpdateMiniMap(float deltaTime)
 	for (int index = 0; index < m_minimapObjs.size(); index++)
 	{
 		m_minimapObjs.at(index).m_color = Rgba::CONSOLE_FADED_BLUE;
-		m_minimapObjs.at(index).m_value = 0.75f;
-		if (IsGrounded(deltaTime))
+		m_minimapObjs.at(index).m_value = 0.0001f;
+		/*if (IsGrounded(deltaTime))
 		{
 			m_minimapLastPos.at(index).m_color = Rgba::CONSOLE_FADED_BLUE;
-			m_minimapLastPos.at(index).m_value = 0.75f;
-		}
+			m_minimapLastPos.at(index).m_value = 0.0001f;
+		}*/
 	}
 
 	for (int index = 0; index < m_map->m_bricks.size(); index++)
@@ -207,71 +210,46 @@ void Mario::Update(float deltaTime)
 	{
 		return;
 	}
-	std::vector<float> inputs;
-	for (int index = 0; index < m_minimapObjs.size(); index++)
+	if (m_transform.GetWorldPosition().y <= 115)
 	{
-		inputs.push_back(m_minimapObjs.at(index).m_value);
+		Vector3 position = m_transform.GetWorldPosition();
+		SetPosition(position);
 	}
-	m_neuralNet->FeedForward(inputs);
+	UpdateMiniMap(deltaTime);
+	UpdateNN(deltaTime);
+	UpdateGravity(deltaTime);
+	UpdateVelocity(deltaTime);
 
-	Disc2 colliderOutline = GetCircleCollider()->m_disc;
-	std::vector<float> NNOutputs;
-	for (int index = 0; index < m_neuralNet->m_outputs->m_neurons.size(); index++)
-	{
-		float value = m_neuralNet->m_outputs->m_neurons.at(index).m_value;
-		NNOutputs.push_back(value);
-	}
-	
-	//DebugDraw::GetInstance()->DebugRenderLogf("NN OUTPUT %f, %f, %f", NNOutputs.at(0), NNOutputs.at(1));
-
-	float random = GetRandomIntInRange(0, 3);
-	//random = -1;
-	if(NNOutputs.at(0) > 0.5f)
-	{
-		Walk(deltaTime, NNOutputs.at(0));
-	}
-	if (NNOutputs.at(1) > 0.5f)
-	{
-		//Walk(deltaTime, -NNOutputs.at(1));
-	}
 	if(g_theInput->isKeyPressed(InputSystem::KEYBOARD_LEFT_ARROW))
 	{
 		WalkWest(deltaTime);
+	}
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_1))
+	{
+		m_sideImpulse = 25.f;
+	}
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_2))
+	{
+		m_sideImpulse = 5.f;
 	}
 	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_RIGHT_ARROW))
 	{
 		WalkEast(deltaTime);
 	}
-	if (g_theInput->wasKeyJustReleased(InputSystem::KEYBOARD_UP_ARROW))
-	{
-		ResetJump();
-	}
 
-	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW) || NNOutputs.at(1) > 0.5f)
-	{
-		if(IsGrounded(deltaTime) && m_jumpTime == m_maxJumpFrames)
-		{
-			m_isJumping = true;
-		}
-		/*if(IsGrounded(deltaTime) || IsJumping())
-		{
-			UpdateJump(deltaTime,1);
-			if (m_currentJumpForce < m_maxJumpForce)
-			{
-				Jump(deltaTime);
-			}
-		}*/
-	}
-	if(m_isJumping)
+	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_UP_ARROW))
 	{
 		Jump(deltaTime);
-		m_jumpTime--;
-		if(m_jumpTime <=0)
-		{
-			m_isJumping = false;
-			m_jumpTime = m_maxJumpFrames;
-		}
 	}
+	if(m_sideVelocity > 0)
+	{
+		m_spriteAnimSet->SetAnimation(m_characterTypeString + "WalkEast");
+	}
+	if(m_sideVelocity < 0)
+	{
+		m_spriteAnimSet->SetAnimation(m_characterTypeString + "WalkWest");
+	}
+
 	/*if (IsGrounded(deltaTime) || IsJumping())
 	{
 		if(NNOutputs.at(1) > 0.5f)
@@ -285,13 +263,13 @@ void Mario::Update(float deltaTime)
 		}
 	}*/
 
-	float xVelocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->m_velocity.x;
-	DebugRenderOptions option;
+	//float xVelocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->m_velocity.x;
+	//DebugRenderOptions option;
 	//DebugDraw::GetInstance()->DebugRenderQuad2D(Vector3(300, 700, 0), AABB2(Vector2(0, 0), 300, 150), 0, nullptr, Rgba::BLACK, DEBUG_RENDER_FILL, option);
 	//DebugDraw::GetInstance()->DebugRenderLogf("VELOCITY %f", xVelocity);
-	if( xVelocity > m_minVelocityForIdle)
+	/*if( xVelocity > m_minVelocityForIdle)
 	{
-		m_spriteAnimSet->SetAnimation(m_characterTypeString + "WalkEast");
+		
 		m_currentAction = WALK; 
 	}
 	else
@@ -303,17 +281,144 @@ void Mario::Update(float deltaTime)
 	else
 	{
 		StayIdle();
-	}
-	Vector3 prevTransform = GetRigidBody3DComponent()->m_previousTransform.GetWorldPosition();
-	Vector3 marioWorldPosition = m_transform.GetWorldPosition();
+	}*/
+	//Vector3 prevTransform      = GetRigidBody3DComponent()->m_previousTransform.GetWorldPosition();
+	//Vector3 marioWorldPosition = m_transform.GetWorldPosition();
 	//DebugDraw::GetInstance()->DebugRenderLogf("POSITION %f, %f, %f", marioWorldPosition.x, marioWorldPosition.y, marioWorldPosition.z);
-	UpdateMiniMap(deltaTime);
 	//DebugDraw::GetInstance()->DebugRenderLogf("Previous %f, %f, %f", prevTransform.x, prevTransform.y, prevTransform.z);
 	//DebugDraw::GetInstance()->DebugRenderLogf("Diff %f, %f, %f"    , (marioWorldPosition.x - prevTransform.x), (marioWorldPosition.y - prevTransform.y), (marioWorldPosition.z - prevTransform.z));
 	QueryAndDie(deltaTime);
 	CheckForBounds();
+	m_isPushed = false;
+	m_isGrounded = false;
+	if(m_lastSetPos.y < 227.f)
+	{
+		int a = 1;
+	}
 	Entity::Update(deltaTime);
+	if(m_isPushed)
+	{
+		m_isGrounded = true;
+	}
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/13
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::UpdateNN(float deltTime)
+{
+	std::vector<float> inputs;
+	for (int index = 0; index < m_minimapObjs.size(); index++)
+	{
+		inputs.push_back(m_minimapObjs.at(index).m_value);
+	}
+	m_neuralNet->FeedForward(inputs);
+
+	std::vector<float> NNOutputs;
+	for (int index = 0; index < m_neuralNet->m_outputs->m_neurons.size(); index++)
+	{
+		float value = m_neuralNet->m_outputs->m_neurons.at(index).m_value;
+		NNOutputs.push_back(value);
+	}
+	if(g_controlMode)
+	{
+		return;
+	}
+	if(NNOutputs.at(0) > 0.5)
+	{
+		WalkEast(deltTime);
+	}
+	if(NNOutputs.at(1) > 0.5)
+	{
+		Jump(deltTime);
+	}
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/13
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::UpdateGravity(float deltaTime)
+{
+	if (!IsGrounded(deltaTime))
+	{
+		Vector3 currentPosition = m_transform.GetWorldPosition();
+		m_upVelocity		    += m_gravity;
+		currentPosition		    += Vector3(0, m_upVelocity, 0);
+		SetPosition(currentPosition);
+		return;
+	}
+	m_upVelocity = 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/13
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::UpdateVelocity(float deltaTime)
+{
+	if(GetAbsolute(m_sideVelocity) < 0.01)
+	{
+		return;
+	}
+	m_sideVelocity			= m_sideVelocity * 0.8f;
+	Vector3 currentPosition = m_transform.GetWorldPosition();
+	currentPosition			+= Vector3(m_sideVelocity, 0, 0);
+	m_transform.SetLocalPosition(currentPosition);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/13
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::SetPosition(Vector3 positon)
+{
+	//m_transform.SetLocalPosition(positon);
+	if (true)
+	{
+		//return;
+	}
+	/*<Brick actor = "Pit" position = "2235,40"  dimension = "30,30" hidden = "false" / >
+	<Brick actor = "Pit" position = "2265,40"  dimension = "30,30" hidden = "false" / >
+
+	<Brick actor = "Pit" position = "2775,40"  dimension = "30,30" hidden = "false" / >
+	<Brick actor = "Pit" position = "2805,40"  dimension = "30,30" hidden = "false" / >
+	<Brick actor = "Pit" position = "2835,40"  dimension = "30,30" hidden = "false" / >
+	<Brick actor = "Pit" position = "4950,40"  dimension = "30,30" hidden = "false" / >
+	<Brick actor = "Pit" position = "4980,40"  dimension = "30,30" hidden = "false" / >*/
+
+	if(positon.x > 2220 && positon.x < 2280 && positon.y <= 115)
+	{
+		EndOfPlay();
+		return;
+	}
+	if(positon.x > 2760 && positon.x < 2850 && positon.y <= 115)
+	{
+		EndOfPlay();
+		return;
+	}
+	if(positon.x > 4935 && positon.x < 4995 && positon.y <= 115)
+	{
+		EndOfPlay();
+		return;
+	}
+	if (positon.y <= 115)
+	{
+		m_isGrounded = true;
+		positon.y = 115;
+	}
+	m_lastSetPos = positon;
+	m_transform.SetLocalPosition(positon);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -325,6 +430,19 @@ void Mario::Update(float deltaTime)
 void Mario::ResetJump()
 {
 	m_currentJumpForce = 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/13
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::ResetPosition()
+{
+	m_transform.SetLocalPosition(Vector3(200, 150, 0));
+	m_numOfJumps = 0;
+	m_isDead = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -375,7 +493,8 @@ void Mario::ResetWeight()
 *//////////////////////////////////////////////////////////////
 void Mario::WalkWest(float deltaTime)
 {
-	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(-m_movementForce, 0, 0), deltaTime);
+	m_sideVelocity		    = -m_sideImpulse;
+	//((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(-m_movementForce, 0, 0), deltaTime);
 	m_forwardVector = Vector2::WEST;
 }
 
@@ -387,27 +506,10 @@ void Mario::WalkWest(float deltaTime)
 *//////////////////////////////////////////////////////////////
 void Mario::WalkEast(float deltaTime)
 {
-	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(m_movementForce, 0, 0), deltaTime);
+	m_sideVelocity		    = m_sideImpulse;
+	
+	//((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(m_movementForce, 0, 0), deltaTime);
 	m_forwardVector = Vector2::EAST;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/07/06
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Mario::Walk(float deltaTime, float force)
-{
-	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(force*m_movementForce, 0, 0), deltaTime);
-	if(force > 0)
-	{
-		m_forwardVector = Vector2::EAST;
-	}
-	else
-	{
-		m_forwardVector = Vector2::WEST;
-	}
 }
 
 //////////////////////////////////////////////////////////////
@@ -443,7 +545,18 @@ void Mario::StayIdle()
 //////////////////////////////////////////////////////////////
 void Mario::Jump(float deltaTime)
 {
-	((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->AddForce(Vector3(0, m_jumpForce, 0), deltaTime);
+	if (IsGrounded(deltaTime))
+	{
+		m_numOfJumps++;
+		m_upVelocity = m_upImpulseValue;
+
+		Vector3 currentPosition = m_transform.GetWorldPosition();
+		m_upVelocity += m_gravity;
+		currentPosition += Vector3(0, m_upVelocity, 0);
+		m_transform.SetLocalPosition(currentPosition);
+		m_isGrounded = false;
+		m_isJumping = true;
+	}
 }
 
 //////////////////////////////////////////////////////////////
@@ -457,13 +570,15 @@ void Mario::Jump(float deltaTime)
 //////////////////////////////////////////////////////////////
 bool Mario::IsGrounded(float deltaTime)
 {
-	Vector3 velocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->GetVelocity(deltaTime);
+	/*Vector3 velocity = ((RigidBody3D*)GetComponentByType(RIGID_BODY_3D))->GetVelocity(deltaTime);
 	velocity.x = 0;
 	if(IsAlmostEqual(velocity,Vector3::ZERO,0.05))
 	{
 		return true;
-	}
-	return false;
+	}*/
+	//if(m_upVelocity)
+	
+	return m_isGrounded;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -492,8 +607,12 @@ void Mario::CheckForBounds()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Mario::EndOfPlay()
 {
-	m_isDead = true;
-	m_fitness = m_transform.GetWorldPosition().x/100.f - m_numOfJumps;
+	m_isDead       = true;
+	double diff    = Clock::g_theMasterClock->total.m_seconds - m_lastDeadTime;
+	m_lastDeadTime = Clock::g_theMasterClock->total.m_seconds;
+	m_lastKnownPosition = Vector2::ZERO;
+	m_timeElapsedAfterKnownLocation = 0.f;
+	CalculateFitness();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -504,17 +623,35 @@ void Mario::EndOfPlay()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Mario::QueryAndDie(float deltaTime)
 {
-	m_timeElapsedAfterKnownLocation += deltaTime;
-	if (m_timeElapsedAfterKnownLocation > 2)
+	if(g_controlMode)
 	{
-		Vector2 distance = (m_transform.GetWorldPosition().GetXY() - m_lastKnownPosition);
-		if (distance.GetLength() < m_map->m_block.GetDimensions().x * 2)
+		return;
+	}
+	m_timeElapsedAfterKnownLocation += deltaTime;
+	if (m_timeElapsedAfterKnownLocation > 2.f)
+	{
+		float distanceDiff = m_transform.GetWorldPosition().x - m_lastKnownPosition.x;
+		m_lastKnownPosition = m_transform.GetWorldPosition().GetXY();
+		if (distanceDiff < m_map->m_block.GetDimensions().x/2)
 		{
 			EndOfPlay();
+			m_lastKnownPosition = Vector2::ZERO;
 		}
-		m_lastKnownPosition = m_transform.GetWorldPosition().GetXY();
 		m_timeElapsedAfterKnownLocation = 0.f;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/11
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Mario::CalculateFitness()
+{
+	float xValue     = m_transform.GetWorldPosition().x;
+	float jumpElement = 0.015*static_cast<float>(m_numOfJumps);
+	m_fitness = xValue * (1 - jumpElement*jumpElement);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -527,82 +664,112 @@ void Mario::OnCollisionEnter(Collider *collider)
 {
 	if(collider->m_colliderType == BOX_COLLIDER2D)
 	{
+		m_isPushed = false;
 		BoxCollider2D *boxcollider = (BoxCollider2D*)collider;
+		//DebugDraw::GetInstance()->DebugRenderLogf("")
 		Vector3 position = m_transform.GetWorldPosition();
-		float   radius = GetCircleCollider()->m_disc.radius;
-		Vector2 circleColliderPosition = GetCircleCollider()->m_disc.center;
-		if(boxcollider->m_colliderDirection == SOUTH)
+		float   radius   = GetCircleCollider()->m_disc.radius;
+		Vector2 circleColliderPosition = GetCircleCollider()->m_transform.GetWorldPosition().GetXY();
+		if (boxcollider->m_colliderDirection == NORTH)// || boxcollider->m_colliderDirection == CENTRE)
 		{
-			float distanceToPush = ((circleColliderPosition.y + radius) - boxcollider->m_aabb2.mins.y); 
-			m_transform.SetLocalPosition(Vector3(position.x, position.y - distanceToPush, 0));
-		}
-		if (boxcollider->m_colliderDirection == NORTH)
-		{
+			m_isPushed = true;
 			float distanceToPush = (boxcollider->m_aabb2.maxs.y - (circleColliderPosition.y - radius));
 			m_transform.SetLocalPosition(Vector3(position.x, position.y + distanceToPush, 0));
 		}
+		if(boxcollider->m_colliderDirection == SOUTH)
+		{
+			circleColliderPosition = GetCircleCollider()->m_disc.center;
+			float distanceToPush = ((circleColliderPosition.y + radius) - boxcollider->m_aabb2.mins.y); 
+			m_transform.SetLocalPosition(Vector3(position.x, position.y - distanceToPush, 0));
+		}
+		
 		if (boxcollider->m_colliderDirection == EAST)
 		{
-			float distanceToPush = (boxcollider->m_aabb2.maxs.x - (circleColliderPosition.x - radius));
+			circleColliderPosition = GetCircleCollider()->m_disc.center;
+			float distanceToPush   = (boxcollider->m_aabb2.maxs.x - (circleColliderPosition.x - radius));
 			m_transform.SetLocalPosition(Vector3(position.x + distanceToPush, position.y, 0));
 		}
 		if (boxcollider->m_colliderDirection == WEST)
 		{
-			float distanceToPush = ((circleColliderPosition.x + radius) - boxcollider->m_aabb2.mins.x);
-			m_transform.SetLocalPosition(Vector3(position.x - distanceToPush, position.y, 0));
+			circleColliderPosition = GetCircleCollider()->m_disc.center;
+			float distanceToPush   = ((circleColliderPosition.x + radius) - boxcollider->m_aabb2.mins.x);
+			m_transform.SetLocalPosition(Vector3(position.x - distanceToPush , position.y, 0));
+		}
+		if (boxcollider->m_colliderDirection == CENTRE)
+		{
+			/*circleColliderPosition = GetCircleCollider()->m_disc.center;
+			if(circleColliderPosition.y  > boxcollider->m_aabb2.GetCenter().y)
+			{
+				float distanceToPush = (boxcollider->m_aabb2.maxs.y - (circleColliderPosition.y - radius));
+				m_transform.SetLocalPosition(Vector3(position.x, position.y + distanceToPush, 0));
+			}*/
+
 		}
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		if (boxcollider->m_colliderDirection == NORTH_WEST)
 		{
+			circleColliderPosition		     = GetCircleCollider()->m_disc.center;
 			Vector2 northWestCornerPosition(boxcollider->m_aabb2.mins.x, boxcollider->m_aabb2.maxs.y);
 			Vector2 distance				 = circleColliderPosition - northWestCornerPosition;
 			Vector2 pushDirection			 = distance.GetNormalized();
-			Vector2 requiredDistance		 = pushDirection*radius;
-			float   differenceX				 = requiredDistance.x - distance.x;
-			float   differenceY				 = requiredDistance.y - distance.y;
+			Vector2 requiredDistance		 = pushDirection*radius + northWestCornerPosition;
 
-			Vector2 finalPosition = position.GetXY() + Vector2(differenceX, differenceY);
+			Vector2 translatedDistance		 = requiredDistance - circleColliderPosition;
+			m_transform.Translate(translatedDistance);
+			
+			Vector3 diskPos					 = GetCircleCollider()->m_transform.GetWorldPosition();
+			Vector3 distanceact				 = diskPos - Vector3(northWestCornerPosition,0);
+			float   len						 = distanceact.GetLength();
+			int a = 1;
 
-			m_transform.SetLocalPosition(Vector3(finalPosition, 0));
 		}
 		if (boxcollider->m_colliderDirection == NORTH_EAST)
 		{
+			circleColliderPosition			 = GetCircleCollider()->m_disc.center;
 			Vector2 northEastCornerPosition(boxcollider->m_aabb2.maxs.x, boxcollider->m_aabb2.maxs.y);
-			Vector2 distance = circleColliderPosition - northEastCornerPosition;
-			Vector2 pushDirection = distance.GetNormalized();
-			Vector2 requiredDistance = pushDirection * radius;
-			float   differenceX = requiredDistance.x - distance.x;
-			float   differenceY = requiredDistance.y - distance.y;
+			Vector2 distance				 = circleColliderPosition - northEastCornerPosition;
+			Vector2 pushDirection			 = distance.GetNormalized();
+			Vector2 requiredDistance		 = pushDirection*radius + northEastCornerPosition;
 
-			Vector2 finalPosition = position.GetXY() + Vector2(differenceX, differenceY);
+			Vector2 translatedDistance		 = requiredDistance - circleColliderPosition;
+			m_transform.Translate(translatedDistance);
 
-			m_transform.SetLocalPosition(Vector3(finalPosition, 0));
+			Vector3 diskPos					 = GetCircleCollider()->m_transform.GetWorldPosition();
+			Vector3 distanceact				 = diskPos - Vector3(northEastCornerPosition, 0);
+			float   len						 = distanceact.GetLength();
+			int a = 1;
 		}
 		if (boxcollider->m_colliderDirection == SOUTH_WEST)
 		{
+			circleColliderPosition = GetCircleCollider()->m_disc.center;
 			Vector2 southWestCornerPosition(boxcollider->m_aabb2.mins.x, boxcollider->m_aabb2.mins.y);
 			Vector2 distance = circleColliderPosition - southWestCornerPosition;
 			Vector2 pushDirection = distance.GetNormalized();
-			Vector2 requiredDistance = pushDirection * radius;
-			float   differenceX = requiredDistance.x - distance.x;
-			float   differenceY = requiredDistance.y - distance.y;
+			Vector2 requiredDistance = pushDirection * radius + southWestCornerPosition;
 
-			Vector2 finalPosition = position.GetXY() + Vector2(differenceX, differenceY);
+			Vector2 translatedDistance = requiredDistance - circleColliderPosition;
+			m_transform.Translate(translatedDistance);
 
-			m_transform.SetLocalPosition(Vector3(finalPosition, 0));
+			Vector3 diskPos = GetCircleCollider()->m_transform.GetWorldPosition();
+			Vector3 distanceact = diskPos - Vector3(southWestCornerPosition, 0);
+			float   len = distanceact.GetLength();
+			int a = 1;
 		}
 		if (boxcollider->m_colliderDirection == SOUTH_EAST)
 		{
+			circleColliderPosition   = GetCircleCollider()->m_disc.center;
 			Vector2 southEastCornerPosition(boxcollider->m_aabb2.maxs.x, boxcollider->m_aabb2.mins.y);
-			Vector2 distance = circleColliderPosition - southEastCornerPosition;
-			Vector2 pushDirection = distance.GetNormalized();
-			Vector2 requiredDistance = pushDirection * radius;
-			float   differenceX = requiredDistance.x - distance.x;
-			float   differenceY = requiredDistance.y - distance.y;
+			Vector2 distance		  = circleColliderPosition - southEastCornerPosition;
+			Vector2 pushDirection     = distance.GetNormalized();
+			Vector2 requiredDistance  = pushDirection * radius + southEastCornerPosition;
 
-			Vector2 finalPosition = position.GetXY() + Vector2(differenceX, differenceY);
+			Vector2 translatedDistance = requiredDistance - circleColliderPosition;
+			m_transform.Translate(translatedDistance);
 
-			m_transform.SetLocalPosition(Vector3(finalPosition, 0));
+			Vector3 diskPos = GetCircleCollider()->m_transform.GetWorldPosition();
+			Vector3 distanceact = diskPos - Vector3(southEastCornerPosition, 0);
+			float   len = distanceact.GetLength();
+			int a = 1;
 		}
 
 	}
@@ -630,7 +797,12 @@ void Mario::Render()
 	defaultMaterial->m_textures.at(0) = m_texture;
 	Texture::SetCurrentTexture(m_texture);
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
+
 	Entity::Render();
+	if (m_map->m_bestMode)
+	{
+		RenderMiniMap(m_minimapAABB, m_minimapObjs);
+	}
 	delete defaultMaterial;
 }
 

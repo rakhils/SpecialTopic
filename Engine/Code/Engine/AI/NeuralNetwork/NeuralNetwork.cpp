@@ -15,7 +15,54 @@ NeuralNetwork::NeuralNetwork(int numberOfInputNeurons, int numberOfHiidenNeurons
 // DESTRUCTOR
 NeuralNetwork::~NeuralNetwork()
 {
+	if(m_inputs!=nullptr)
+	{
+		delete m_inputs;
+		m_inputs = nullptr;
+	}
+	if(m_hiddenLayers != nullptr)
+	{
+		delete m_hiddenLayers;
+		m_hiddenLayers = nullptr;
+	}
+	if(m_outputs != nullptr)
+	{
+		delete m_outputs;
+		m_outputs = nullptr;
+	}
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/13
+*@purpose : Retrieves number of inputs
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int NeuralNetwork::GetNumberOfInputs()
+{
+	return m_inputs->m_neurons.size();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/13
+*@purpose : Gets number of hiiden layer count
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int NeuralNetwork::GetNumberOfHiddenLayerNeuron()
+{
+	return m_hiddenLayers->m_neurons.size();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/13
+*@purpose : gets number of outputs
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int NeuralNetwork::GetNumberOfOutputs()
+{
+	return m_outputs->m_neurons.size();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -423,14 +470,13 @@ float NeuralNetwork::GetSigmoidValue(float value)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NeuralNetwork::Mutate()
 {
-
 	for(int inputNeuronIndex = 0;inputNeuronIndex < m_inputs->m_neurons.size();inputNeuronIndex++)
 	{
 		for(int inputNeuronWeightIndex = 0;inputNeuronWeightIndex < m_inputs->m_neurons.at(inputNeuronIndex).m_weights.size();inputNeuronWeightIndex++)
 		{
 			if(GetRandomFloatZeroToOne() < 0.1)
 			{
-				float random = GetRandomFloatInRange(-0.5, 0.5);
+				float random = GetRandomFloatInRange(-1, 1)/50.f;
 				float weight = m_inputs->m_neurons.at(inputNeuronIndex).m_weights.at(inputNeuronWeightIndex) + random;
 				weight = ClampFloat(weight, -1, 1);
 				m_inputs->m_neurons.at(inputNeuronIndex).m_weights.at(inputNeuronWeightIndex) = weight;
@@ -443,9 +489,9 @@ void NeuralNetwork::Mutate()
 		{
 			if (GetRandomFloatZeroToOne() < 0.1)
 			{
-				float random = GetRandomFloatInRange(-0.5, 0.5);
+				float random = GetRandomFloatInRange(-1, 1)/50.f;
 				float weight = m_hiddenLayers->m_neurons.at(hiddenNeuronIndex).m_weights.at(hiddenNeuronWeightIndex) + random;
-				weight = ClampFloat(weight, -1, 1);
+				weight		 = ClampFloat(weight, -1, 1);
 				m_hiddenLayers->m_neurons.at(hiddenNeuronIndex).m_weights.at(hiddenNeuronWeightIndex) = weight;
 			}
 		}
@@ -458,7 +504,7 @@ void NeuralNetwork::Mutate()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool NeuralNetwork::CopyWeights(NeuralNetwork &copy)
+bool NeuralNetwork::CopyWeightsTo(NeuralNetwork &copy)
 {
 	if(m_hiddenLayers->m_neurons.size() != copy.m_hiddenLayers->m_neurons.size())
 	{
@@ -494,4 +540,15 @@ bool NeuralNetwork::CopyWeights(NeuralNetwork &copy)
 	//	Neuron neuron(0);
 	//	copy.m_outputs->m_neurons.push_back(neuron);
 	//}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/11
+*@purpose : Do a cross over of all weights
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NeuralNetwork::CrossOver(NeuralNetwork &second)
+{
+
 }

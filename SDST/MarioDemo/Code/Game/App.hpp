@@ -7,6 +7,8 @@ public:
 	bool isQuitTriggered = false;
 	Game *g_theGame;
 	float MAX_DELTA_VALUE = 0.01616f;
+	float MIN_DELTA_VALUE = 0.01216f;
+
 	App::App();
 	App::~App();
 	void App::RunFrame();

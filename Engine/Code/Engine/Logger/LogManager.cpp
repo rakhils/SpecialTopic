@@ -2,9 +2,10 @@
 #include "Engine/FileUtil/File.h"
 #include "Engine/DevConsole/DevConsole.hpp"
 #include "Engine/Core/Rgba.hpp"
-bool LogManager::s_logEnabled = true;
-std::map<std::string, FILE*> LogManager::s_logIdMaps;
-LogManager * LogManager::s_logger = nullptr;
+bool								 LogManager::s_logEnabled = true;
+std::map<std::string, FILE*>		 LogManager::s_logIdMaps;
+LogManager *						 LogManager::s_logger = nullptr;
+std::map<std::string, LogDefine>     LogManager::s_logDefines;
 // CONSTRUCTOR
 
 LogManager::LogManager()
@@ -73,6 +74,22 @@ void LogManager::LogSystemStartup(std::string fileName)
 	}
 	
 	s_logger->Init(fileName);
+	//CREATING DEFAULT DEFINE TAGS WARNING,ERROR
+	LogDefine warningDefine;
+	warningDefine.m_tag   = "WARNING";
+	warningDefine.m_color = Rgba::YELLOW;
+	s_logDefines["warning"] = warningDefine;
+
+	LogDefine errorDefine;
+	errorDefine.m_tag     = "ERROR";
+	errorDefine.m_color   = Rgba::RED;
+	s_logDefines["error"] = errorDefine;
+
+	LogDefine defautlDefine;
+	defautlDefine.m_tag     = "DEFAULT";
+	defautlDefine.m_color   = Rgba::GREEN;
+	s_logDefines["default"] = defautlDefine;
+	 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -96,36 +113,24 @@ void LogManager::LogSystemShutdown()
 void LogManager::LogFlush()
 {
 	Log_t *log_t = m_logQueue.dequeue();
-	if (log_t != nullptr)
+	if (log_t == nullptr)
 	{
-		std::map<std::string, LogForwardCallBack>::iterator it = m_logForwardCallBacks.begin();
-		for(;it != m_logForwardCallBacks.end();it++)
-		{
-			(*it->second)(log_t);
-			//(*m_logForwardCallBacks.at(cbIndex))(log_t);
-		}
-		/*std::string tag		 = log_t->m_tag;
-		std::string text	 = log_t->m_text;
-		std::string dateTime = log_t->m_logTime;
-
-		std::map<std::string, FILE*>::iterator it = s_logIdMaps.find(m_defaultFileName);
-		FILE *filePtr = it->second;
-		it = s_logIdMaps.find(m_timeStampFilePath);
-		FILE *filePtrTimeStamp = it->second;
-
-		if (filePtr == nullptr)
-		{
-			filePtr = FileOpenForAppend(m_defaultFileName);
-			s_logIdMaps[m_defaultFileName] = filePtr;
-		}
-		FileAppendString(filePtr, datetime + " :: [" + tag + "]" + "[" + text + "]\n");
-		if (filePtrTimeStamp == nullptr)
-		{
-			filePtrTimeStamp = FileOpenForAppend(m_defaultFileName);
-			s_logIdMaps[m_defaultFileName] = filePtrTimeStamp;
-		}
-		FileAppendString(filePtrTimeStamp, datetime + " :: [" + tag + "]" + "[" + text + "]\n");*/
+		return;
 	}
+
+	if(m_globalFilterCheck && m_filters.HasTag(log_t->m_define.m_tag))
+	{
+		delete log_t;
+		return;
+	}
+
+	std::map<std::string, LogForwardCallBack>::iterator it = m_logForwardCallBacks.begin();
+	for(;it != m_logForwardCallBacks.end();it++)
+	{
+		(*it->second)(log_t);
+	}
+
+	delete log_t;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -250,6 +255,17 @@ void LogManager::LogTaggedPrintf(std::string tag, char const *format, ...)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void LogManager::LogTaggedPrintf(std::string tag, std::string text)
 {
+	std::map<std::string, LogDefine>::iterator it = s_logDefines.find(tag);
+	LogDefine define;
+	if(it != s_logDefines.end())
+	{
+		define = s_logDefines[tag];
+	}
+	else
+	{
+		define = s_logDefines["default"]; 
+	}
+
 	Log_t *log = new Log_t(tag, text);
 	m_logQueue.enqueue(log);
 }
@@ -342,6 +358,72 @@ void LogManager::DetachLogForwardCallBacks(std::string id)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/14
+*@purpose : Pushes filter tag
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::AddFilter(std::string tag)
+{
+	m_filters.Add(tag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/14
+*@purpose : Removes fIlter
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::RemoveFilter(std::string tag)
+{
+	m_filters.Remove(tag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/14
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::LogShowAll()
+{
+	m_globalFilterCheck = false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/14
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::LogHideAll()
+{
+	m_globalFilterCheck = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/14
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::LogShowTag(char const *tag)
+{
+	AddFilter(tag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/14
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::LogHideTag(char const *tag)
+{
+	RemoveFilter(tag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/07/10
 *@purpose : F
 *@param   : NIL
@@ -349,7 +431,7 @@ void LogManager::DetachLogForwardCallBacks(std::string id)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void LogFileWriteCallBack(Log_t* log_t)
 {
-	std::string tag		 = log_t->m_tag;
+	std::string tag		 = log_t->m_define.m_tag;
 	std::string text	 = log_t->m_text;
 	std::string dateTime = log_t->m_logTime;
 
@@ -380,9 +462,9 @@ void LogFileWriteCallBack(Log_t* log_t)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void LogDevConsoleWriteCallBack(Log_t* log_t)
 {
-	std::string tag       = log_t->m_tag;
+	std::string tag       = log_t->m_define.m_tag;
 	std::string text      = log_t->m_text;
 	std::string dateTime  = log_t->m_logTime;
 	std::string finalText = dateTime + " :: [" + tag + "]" + "[" + text + "]\n";
-	DevConsole::GetInstance()->PushToOutputText(finalText, Rgba::GREEN);
+	DevConsole::GetInstance()->PushToOutputText(finalText, log_t->m_define.m_color);
 }

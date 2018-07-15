@@ -52,6 +52,14 @@ void CircleCollider::Update(float deltaTime)
 					//DebugDraw::GetInstance()->DebugRenderLogf("HITTT "+GetDirectionNameFromType(areaOfContact),"");
 				}
 			}
+			if (collider->m_colliderType == CIRCLE_COLLIDER)
+			{
+				if(CheckCircleVsCircleCollision(this,(CircleCollider*)collider))
+				{
+					OnCollisionEnter(collider);
+				}
+			}
+
 		}
 	}
 }

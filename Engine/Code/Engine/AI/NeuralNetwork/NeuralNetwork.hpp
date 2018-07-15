@@ -48,7 +48,10 @@ struct NeuronLayer
 			m_neurons.push_back(neuron);
 		}
 	}
+	~NeuronLayer()
+	{
 
+	}
 	void SetRandomWeights()
 	{
 		for (int neuronIndex = 0; neuronIndex < m_numberOfNeurons; neuronIndex++)
@@ -73,6 +76,10 @@ public:
 	NeuralNetwork(int numberOfInputNeuron,int numberOfHiidenNeurons,int numberOfOutputNeuron);
 	~NeuralNetwork();
 	
+	int					 GetNumberOfInputs();
+	int					 GetNumberOfHiddenLayerNeuron();
+	int					 GetNumberOfOutputs();
+
 	void				 SetRandomWeight();
 	void				 CreateNeuralNetwork(int numberOfInputNeuron, int numberOfHiidenNeurons, int numberOfOutputNeuron);
 	void				 FeedForward(std::vector<float> &inputs);
@@ -87,7 +94,8 @@ public:
 	float				 GetFastSigmoidDerivative(float value);
 	float				 GetSigmoidValue(float value);
 	void				 Mutate();
-	bool				 CopyWeights(NeuralNetwork &copy);
+	bool				 CopyWeightsTo(NeuralNetwork &copy);
+	void				 CrossOver(NeuralNetwork &second);
 	//Static_Methods
 
 protected:

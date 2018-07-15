@@ -24,6 +24,8 @@ extern Menu*				g_theCurrentMenu;
 extern AudioSystem*			g_audio;
 extern Clock*				g_theGameClock;
 extern int					g_initialMarioCount;
+extern int					g_maxMarioCountedForNextGen;
+extern bool					g_controlMode;
 
 extern bool g_isQuitting;
 

@@ -43,6 +43,11 @@ AABB2 SpriteAnimation::GetCurrentTexCoords() const
 	{
 		currentIndex = 0;
 	}
+	if(currentIndex >= m_spriteIndexes.size())
+	{
+		currentIndex = 0;
+	}
+
 	return m_spriteSheet->GetTexCoordsForSpriteIndex(m_spriteIndexes.at(currentIndex));
 }
 
