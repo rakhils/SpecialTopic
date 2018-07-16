@@ -97,7 +97,10 @@ void AudioSystem::LoadSoundsFromFile(std::string xmlPath)
 		for (; xmlFilePathElement != nullptr; xmlFilePathElement = xmlFilePathElement->NextSiblingElement())
 		{
 			const char* filePath = xmlFilePathElement->Attribute("path");
-			LoadSoundGroup(name, filePath);
+			const char* weight   = xmlFilePathElement->Attribute("weight");
+			float weightValue;
+			ToFloat(weight, &weightValue);
+			LoadSoundGroup(name, filePath,weightValue);
 		}
 	}
 }
@@ -266,20 +269,19 @@ void AudioSystem::SetSoundPlaybackSpeed( SoundPlaybackID soundPlaybackID, float 
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void AudioSystem::LoadSoundGroup(std::string grpname, std::string filename)
+void AudioSystem::LoadSoundGroup(std::string grpname, std::string filename,float weight)
 {
-	CreateOrGetSound(filename);
-	std::map<std::string, std::vector<std::string>>::iterator it;
+	SoundID soundID = CreateOrGetSound(filename);
+	std::map<std::string, GroupSound_t>::iterator it;
 	it = m_audioGroupMap.find(grpname);
 	if(it == m_audioGroupMap.end())
 	{
-		std::vector<std::string> filenames;
-		filenames.push_back(filename);
-		m_audioGroupMap[grpname] = filenames;
+		GroupSound_t grpSoundID;
+		grpSoundID.Add(soundID, filename, weight);
+		m_audioGroupMap[grpname] = grpSoundID;
 		return;
 	}
-	//std::vector<std::string> filenames = it->second;
-	it->second.push_back(filename);
+	it->second.Add(soundID, filename, weight);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -290,13 +292,31 @@ void AudioSystem::LoadSoundGroup(std::string grpname, std::string filename)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void AudioSystem::PlaySoundFromGroup(std::string grpname)
 {
-	std::map<std::string, std::vector<std::string>>::iterator it;
+	std::map<std::string, GroupSound_t>::iterator it;
 	it = m_audioGroupMap.find(grpname);
 	if (it != m_audioGroupMap.end())
 	{
-		std::vector<std::string> filenames = it->second;
-		int random = GetRandomIntLessThan(static_cast<int>(filenames.size()));
-		SoundID id = CreateOrGetSound(filenames.at(random));
+		GroupSound_t grpID = it->second;
+		float weightSum    = grpID.GetTotalWeights();
+		int   size         = static_cast<int>(grpID.m_weights.size());
+		float prob		   = GetRandomFloatInRange(0,weightSum);
+		int   index        = 0;
+		while(prob > 0)
+		{
+			for(index = 0;index < size; index++)
+			{
+				prob -= grpID.m_weights.at(index);
+				if(prob <= 0)
+				{
+					break;
+				}
+			}
+			if(index >= size)
+			{
+				index = 0;
+			}
+		}
+		SoundID id = grpID.m_soundIDs.at(index);
 		PlaySound(id);
 	}
 }

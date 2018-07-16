@@ -76,17 +76,17 @@ void LogManager::LogSystemStartup(std::string fileName)
 	s_logger->Init(fileName);
 	//CREATING DEFAULT DEFINE TAGS WARNING,ERROR
 	LogDefine warningDefine;
-	warningDefine.m_tag   = "WARNING";
+	warningDefine.m_tag   = "warning";
 	warningDefine.m_color = Rgba::YELLOW;
 	s_logDefines["warning"] = warningDefine;
 
 	LogDefine errorDefine;
-	errorDefine.m_tag     = "ERROR";
+	errorDefine.m_tag     = "error";
 	errorDefine.m_color   = Rgba::RED;
 	s_logDefines["error"] = errorDefine;
 
 	LogDefine defautlDefine;
-	defautlDefine.m_tag     = "DEFAULT";
+	defautlDefine.m_tag     = "default";
 	defautlDefine.m_color   = Rgba::GREEN;
 	s_logDefines["default"] = defautlDefine;
 	 
@@ -127,6 +127,14 @@ void LogManager::LogFlush()
 	std::map<std::string, LogForwardCallBack>::iterator it = m_logForwardCallBacks.begin();
 	for(;it != m_logForwardCallBacks.end();it++)
 	{
+		if(it->first == "devconsole")
+		{
+			if (m_devConsoleFilterCheck && m_devConsolefilters.HasTag(log_t->m_define.m_tag))
+			{
+				continue;
+			}
+		}
+
 		(*it->second)(log_t);
 	}
 
@@ -196,6 +204,7 @@ void LogManager::Init(std::string fileName)
 {
 	m_defaultFileName = fileName;
 	m_defaultFileName.append(".txt");
+	m_defaultHTMLFileName = fileName + "HTML.html";
 	/////////////////////////////////////////////
 	//TIME STAMP
 	time_t rawtime;
@@ -222,8 +231,14 @@ void LogManager::Init(std::string fileName)
 		FILE *filePtrTimeStamp = nullptr;
 		filePtrTimeStamp = FileOpenForAppend(m_timeStampFilePath);
 		s_logIdMaps[m_timeStampFilePath] = filePtrTimeStamp;
+
+		FILE *filePtrHTML = nullptr;
+		filePtrHTML       = FileOpenForAppend(m_defaultHTMLFileName);
+		s_logIdMaps[m_defaultHTMLFileName] = filePtrHTML;
 	}
 	AttachLogForwardCallBacks("defualtfilewrite",LogFileWriteCallBack);
+	AttachLogForwardCallBacks("defualthtmlwrite", LogHTMLWriteCallBack);
+
 	//AttachLogForwardCallBacks(LogDevConsoleWriteCallBack);
 }
 
@@ -266,7 +281,7 @@ void LogManager::LogTaggedPrintf(std::string tag, std::string text)
 		define = s_logDefines["default"]; 
 	}
 
-	Log_t *log = new Log_t(tag, text);
+	Log_t *log = new Log_t(define, text);
 	m_logQueue.enqueue(log);
 }
 
@@ -380,6 +395,28 @@ void LogManager::RemoveFilter(std::string tag)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::AddDevConsoleFilter(std::string tag)
+{
+	m_devConsolefilters.Add(tag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::RemoveDevConsoleFilter(std::string tag)
+{
+	m_devConsolefilters.Remove(tag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/07/14
 *@purpose : NIL
 *@param   : NIL
@@ -421,6 +458,28 @@ void LogManager::LogShowTag(char const *tag)
 void LogManager::LogHideTag(char const *tag)
 {
 	RemoveFilter(tag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::LogShowDevConsole()
+{
+	m_devConsoleFilterCheck = false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::LogHideDevConsole()
+{
+	m_devConsoleFilterCheck = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -467,4 +526,39 @@ void LogDevConsoleWriteCallBack(Log_t* log_t)
 	std::string dateTime  = log_t->m_logTime;
 	std::string finalText = dateTime + " :: [" + tag + "]" + "[" + text + "]\n";
 	DevConsole::GetInstance()->PushToOutputText(finalText, log_t->m_define.m_color);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/14
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogHTMLWriteCallBack(Log_t* log_t)
+{
+	LogDefine def        = log_t->m_define;
+	std::string text     = log_t->m_text;
+	std::string dateTime = log_t->m_logTime;
+	Rgba color			 = def.m_color;
+
+	std::map<std::string, FILE*>::iterator it = LogManager::GetInstance()->s_logIdMaps.find(LogManager::GetInstance()->m_defaultHTMLFileName);
+	FILE *filePtr = it->second;
+
+	if (filePtr == nullptr)
+	{
+		filePtr = FileOpenForAppend(LogManager::GetInstance()->m_defaultHTMLFileName);
+		LogManager::GetInstance()->s_logIdMaps[LogManager::GetInstance()->m_defaultHTMLFileName] = filePtr;
+	}
+	//<p><span style="color: #ffffff;">asdasd</span></p>
+
+
+	std::string format;
+	format.append("<p><span style=\"color :#");
+	format.append(def.m_color.GetAsHexaEquivalent());
+	format.append(";\">");
+	format.append(dateTime + " :: ");
+	format.append(text);
+	format.append("</span></p>");
+
+	FileAppendString(filePtr, format);
 }

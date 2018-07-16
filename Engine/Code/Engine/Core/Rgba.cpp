@@ -36,6 +36,8 @@ Rgba Rgba::FADED_BLACK = Rgba(static_cast<unsigned char>(0),static_cast<unsigned
 Rgba Rgba::FADED_RED   = Rgba(static_cast<unsigned char>(255),static_cast<unsigned char>(0),static_cast<unsigned char>(0), static_cast<unsigned char>(75));
 Rgba Rgba::FADED_GREEN = Rgba(static_cast<unsigned char>(0),static_cast<unsigned char>(255),static_cast<unsigned char>(0), static_cast<unsigned char>(75));
 Rgba Rgba::FADED_BLUE  = Rgba(static_cast<unsigned char>(0),static_cast<unsigned char>(0),static_cast<unsigned char>(255), static_cast<unsigned char>(75));
+Rgba Rgba::FADED_YELLOW = Rgba(static_cast<unsigned char>(255), static_cast<unsigned char>(255), static_cast<unsigned char>(0), static_cast<unsigned char>(75));
+
 Rgba Rgba::CONSOLE_FADED_BLUE = Rgba(static_cast<unsigned char>(0),static_cast<unsigned char>(0),static_cast<unsigned char>(255), static_cast<unsigned char>(75));
 Rgba Rgba::CONSOLE_BLACK      = Rgba(static_cast<unsigned char>(0),static_cast<unsigned char>(0),static_cast<unsigned char>(0), static_cast<unsigned char>(150));
 
@@ -216,6 +218,22 @@ std::string Rgba::GetAsString()
 	strValue.append(ToString(alphaV));
 
 	return strValue;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/14
+*@purpose : Gets color as hexa equivalent
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Rgba::GetAsHexaEquivalent()
+{
+	std::string colorValue;
+	colorValue += GetHexaDecimalEquivalent(static_cast<int>(r));
+	colorValue += GetHexaDecimalEquivalent(static_cast<int>(g));
+	colorValue += GetHexaDecimalEquivalent(static_cast<int>(b));
+	colorValue += GetHexaDecimalEquivalent(static_cast<int>(a));
+	return colorValue;
 }
 
 //////////////////////////////////////////////////////////////

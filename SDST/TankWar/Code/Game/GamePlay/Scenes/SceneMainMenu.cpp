@@ -66,7 +66,9 @@ void SceneMainMenu::Update(float deltaTime)
 	{
 		UpdateExitingTime(deltaTime);
 	}
-	LogManager::GetInstance()->LogTaggedPrintf("test", "TEST = %f", static_cast<float>(Clock::g_theMasterClock->total.m_seconds));
+	LogManager::GetInstance()->LogTaggedPrintf("warning", "WARNING TEST = %f", static_cast<float>(Clock::g_theMasterClock->total.m_seconds));
+	LogManager::GetInstance()->LogTaggedPrintf("error",   "ERROR   TEST = %f", static_cast<float>(Clock::g_theMasterClock->total.m_seconds));
+
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_UP_ARROW))
 	{
 		m_cursorIndex--;
@@ -84,6 +86,27 @@ void SceneMainMenu::Update(float deltaTime)
 			return;
 		}
 		g_isQuitting = true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_M))
+	{
+		if (!m_mode)
+		{
+			m_mode = true;
+			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_ABSOLUTE;
+			InputSystem::GetInstance()->ShowCursor(true);
+			InputSystem::GetInstance()->MouseLockToScreen(false);
+		}
+		else
+		{
+			m_mode = false;
+			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_RELATIVE;
+			InputSystem::GetInstance()->ShowCursor(false);
+			InputSystem::GetInstance()->MouseLockToScreen(true);
+			ProfilerManager::s_profilerEnabled = false;
+			ProfilerManager::s_isPaused = false;
+
+
+		}
 	}
 }
 

@@ -412,6 +412,83 @@ void Mario::SetPosition(Vector3 positon)
 		EndOfPlay();
 		return;
 	}
+	if(positon.x > 4325 && positon.x < 4357 && positon.y <= 144)
+	{
+		m_isGrounded = true;
+		positon.y = 144;
+	}
+	if (positon.x > 4357 && positon.x < 4389 && positon.y <= 176)
+	{
+		m_isGrounded = true;
+		positon.y = 176;
+	}
+	if (positon.x > 4389 && positon.x < 4421 && positon.y <= 208)
+	{
+		m_isGrounded = true;
+		positon.y = 208;
+	}
+
+	//////4790
+	if (positon.x > 4774 && positon.x < 4806 && positon.y <= 144)
+	{
+		m_isGrounded = true;
+		positon.y = 144;
+	}
+	if (positon.x > 4806 && positon.x < 4838 && positon.y <= 176)
+	{
+		m_isGrounded = true;
+		positon.y = 176;
+	}
+	if (positon.x > 4838 && positon.x < 4870 && positon.y <= 208)
+	{
+		m_isGrounded = true;
+		positon.y = 208;
+	}
+	///////
+	if (positon.x > 5824 && positon.x < 5856 && positon.y <= 144)
+	{
+		m_isGrounded = true;
+		positon.y = 144;
+	}
+	if (positon.x > 5856 && positon.x < 5888 && positon.y <= 176)
+	{
+		m_isGrounded = true;
+		positon.y = 176;
+	}
+	if (positon.x > 5888 && positon.x < 5920 && positon.y <= 208)
+	{
+		m_isGrounded = true;
+		positon.y = 208;
+	}
+	if (positon.x > 5920 && positon.x < 5952 && positon.y <= 240)
+	{
+		m_isGrounded = true;
+		positon.y = 240;
+	}
+	if (positon.x > 5952 && positon.x < 5984 && positon.y <= 272)
+	{
+		m_isGrounded = true;
+		positon.y = 272;
+	}
+	if (positon.x > 5984 && positon.x < 6016 && positon.y <= 304)
+	{
+		m_isGrounded = true;
+		positon.y = 304;
+	}
+	if (positon.x > 6018 && positon.x < 6050 && positon.y <= 336)
+	{
+		m_isGrounded = true;
+		positon.y = 336;
+	}
+	/*if (positon.x > 6048 && positon.x < 6080 && positon.y <= 368)
+	{
+		m_isGrounded = true;
+		positon.y = 368;
+	}*/
+
+
+
+
 	if (positon.y <= 115)
 	{
 		m_isGrounded = true;
@@ -595,6 +672,7 @@ void Mario::CheckForBounds()
 	}
 	if (m_transform.GetWorldPosition().x > 6700)
 	{
+		m_isCompleted = true;
 		EndOfPlay();
 	}
 }
@@ -634,6 +712,7 @@ void Mario::QueryAndDie(float deltaTime)
 		m_lastKnownPosition = m_transform.GetWorldPosition().GetXY();
 		if (distanceDiff < m_map->m_block.GetDimensions().x/2)
 		{
+			m_isCompleted = false;
 			EndOfPlay();
 			m_lastKnownPosition = Vector2::ZERO;
 		}
@@ -650,8 +729,14 @@ void Mario::QueryAndDie(float deltaTime)
 void Mario::CalculateFitness()
 {
 	float xValue     = m_transform.GetWorldPosition().x;
-	float jumpElement = 0.015*static_cast<float>(m_numOfJumps);
+	float jumpElement = 0.0225*static_cast<float>(m_numOfJumps);
 	m_fitness = xValue * (1 - jumpElement*jumpElement);
+	if(m_isCompleted)
+	{
+		//DebugDraw::GetInstance()->DebugRenderLogf(5,"FINISHEDDDD %f",m_fitness);
+		m_fitness    += 1200;
+		m_isCompleted = false;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

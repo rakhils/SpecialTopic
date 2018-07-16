@@ -26,6 +26,7 @@ struct ProfileMeasurement_t
 	double      m_startTimeInSec;
 	double      m_endTimeInSec;
 	double      m_elapsedTimeInSec;
+	double		m_averageTimeInSec;
 
 	ProfileMeasurement_t* m_parent     = nullptr;
 	std::vector<ProfileMeasurement_t*> m_children;
@@ -57,10 +58,12 @@ struct ProfileMeasurement_t
 	}
 	void UpdateEndTime()
 	{
-		m_end		       = Clock::g_theMasterClock->total.m_hpc;
-		m_elapsedTime      = m_end - m_start;
-		m_endTimeInSec     = GetCurrentTimeSeconds();
-		m_elapsedTimeInSec = m_endTimeInSec - m_startTimeInSec;
+		m_end		       =  Clock::g_theMasterClock->total.m_hpc;
+		m_elapsedTime      =  m_end - m_start;
+		m_endTimeInSec     =  GetCurrentTimeSeconds();
+		m_elapsedTimeInSec =  m_endTimeInSec - m_startTimeInSec;
+		m_averageTimeInSec = m_elapsedTimeInSec;
+		//m_averageTimeInSec /= 2;
 	}
 	void AddChild(ProfileMeasurement_t* measurement)
 	{

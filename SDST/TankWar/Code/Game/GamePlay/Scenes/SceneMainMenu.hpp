@@ -17,6 +17,7 @@ class SceneMainMenu : public Scene
 public:
 	//Member_Variables
 	int m_cursorIndex = 0;
+	bool m_mode = false;
 	//Static_Member_Variables
 
 	//Methods

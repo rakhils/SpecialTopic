@@ -50,9 +50,9 @@ const std::string Stringf( const int maxLength, const char* format, ... )
 *@return  : string pointer
 */
 //////////////////////////////////////////////////////////////
-std::vector<std::string> Split(std::string str, char ch)
+void Split(std::vector<std::string> &Strings,std::string str, char ch)
 {
-	std::vector<std::string> Strings;
+	//std::vector<std::string> Strings;
 	int index = 0;int startpos = 0;
 	for(;index < str.length();index++)
 	{
@@ -63,7 +63,6 @@ std::vector<std::string> Split(std::string str, char ch)
 		}
 	}
 	Strings.push_back(str.substr(startpos,index));
-	return Strings;
 }
 
 std::string ReplaceAllChars(std::string str,char originalChar,char newChar)

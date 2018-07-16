@@ -103,6 +103,18 @@ struct Graph
 	void UpdateGraphPoints(double pointX1, double pointX2)
 	{
 		//UpdateScaleFactor(pointX2);
+		
+		Rgba color = Rgba::GREEN;
+		if (1 / pointX2 < static_cast<double>(30))
+		{
+			color = Rgba::YELLOW;
+		}
+		if (1/pointX2 < static_cast<double>(20))
+		{
+			color = Rgba::RED;
+		}
+		
+		
 		pointX1			= RangeMap(pointX1, m_minValue, m_maxValue, 0, static_cast<double>(m_bounds.GetDimensions().y));
 		pointX2			= RangeMap(pointX2, m_minValue, m_maxValue, 0, static_cast<double>(m_bounds.GetDimensions().y));
 		pointX1			= ClampDouble(pointX1,0, static_cast<double>(m_bounds.GetDimensions().y));
@@ -117,8 +129,8 @@ struct Graph
 		Vector3 position2(Xposition + deltaXVal, 0,   0);
 		Vector3 position3(Xposition,			 value1			,   0);
 		Vector3 position4(Xposition + deltaXVal, value2			,   0);
-
-		MeshBuilder::CreateRect(*m_meshBuilder, position1, position2, position4, position3, Rgba::FADED_GREEN);
+		
+		MeshBuilder::CreateRect(*m_meshBuilder, position1, position2, position4, position3, color);
 
 		m_meshBuilder->End();
 		m_meshBuilder->RemoveVerticesFromBegin(4);
@@ -213,7 +225,8 @@ public:
 	static PROFILER_VIEW				 s_profilerView;
 	static REPORT_SORT					 s_profilerReportSortType;
 	static Profiler*					 s_profiler;
-	static std::vector<ProfilerReport*>  s_profilerReports;
+	static std::vector<ProfilerReport*>  s_profilerTreeReports;
+	static std::vector<ProfilerReport*>  s_profilerFlatReports;
 	static ReportUI					     s_report;
 	static Graph						 s_performanceGraph;
 	static int							 s_maxSample;
@@ -239,7 +252,7 @@ public:
 	static void			RenderAttributes();
 	static void			RenderCurrentTreeView();
 	static void			RenderCurrentFlatView();
-	static void			RenderTreeView(ProfilerReportEntry *entry, Vector3 position, int depth);
+	static void			RenderTreeView(ProfilerReportEntry *entry, Vector3 &position, int depth);
 	static void			RenderFlatView(ProfilerReportEntry* root, Vector3 startPos);
 	static void			RenderFlatViewBySelfTime(ProfilerReportEntry* root, Vector3 startPos);
 	static void			RenderFlatViewByTotalTime(ProfilerReportEntry* root, Vector3 startPos);

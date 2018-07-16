@@ -212,7 +212,8 @@ bool ShaderProgram::CreateShadersFrom(char const *rootVs,char const *rootFs,GLen
 	
 	fragmentShaderStr = CheckForIncludesInShaderProgram(fs_file,fragmentShaderStr);
 	
-	std::vector<std::string> Strings = Split(defineSets,';');
+	std::vector<std::string> Strings;
+	Split(Strings,defineSets, ';');
 	int positionOfFirstLF = static_cast<int>(vertexShaderStr.find_first_of("\n"));// LINE FEED
 	positionOfFirstLF++;
 	for(int defineSetIndex = 0;defineSetIndex < Strings.size();defineSetIndex++)

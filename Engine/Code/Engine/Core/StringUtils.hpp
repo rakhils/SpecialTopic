@@ -11,7 +11,7 @@
 const std::string		 Stringf( const char* format, ... );
 const std::string		 Stringf( const int maxLength, const char* format, ... );
 
-std::vector<std::string> Split(std::string,char ch);
+void					 Split(std::vector<std::string> &Strings,std::string str,char ch);
 std::string				 ReplaceAllChars(std::string str,char originalChar,char newChar);
 
 std::string				 ToLower(std::string str);

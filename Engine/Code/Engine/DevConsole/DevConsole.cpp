@@ -177,7 +177,7 @@ bool DevConsole::IsPredictionOn()
 void DevConsole::Update(float deltaTime)
 {
 	UNUSED(deltaTime);
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_M))
+	/*if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_M))
 	{
 		InputSystem::GetInstance()->ShowCursor(true);
 		InputSystem::GetInstance()->MouseLockToScreen(false);
@@ -191,7 +191,7 @@ void DevConsole::Update(float deltaTime)
 			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_RELATIVE;
 		}
 
-	}
+	}*/
 	m_wasJustActive = false;
 }
 

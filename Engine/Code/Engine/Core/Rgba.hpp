@@ -33,6 +33,7 @@ public:
 	void		SetFromText(const char* text);
 
 	std::string GetAsString();
+	std::string GetAsHexaEquivalent();
 
 	static Rgba GetRandomColor();
 
@@ -46,9 +47,9 @@ public:
 	static Rgba CYAN;
 	static Rgba BLACK;
 	static Rgba FADED_BLACK;
+	static Rgba FADED_YELLOW;
 	static Rgba CONSOLE_BLACK;
 	static Rgba CONSOLE_FADED_BLUE;
-
 	static Rgba FADED_BLUE;
 	static Rgba FADED_RED;
 	static Rgba FADED_GREEN;

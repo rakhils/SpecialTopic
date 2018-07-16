@@ -323,10 +323,19 @@ void SceneLevel1::Update(float deltaTime)
 		if(!m_mode)
 		{
 			m_mode = true;
+			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_ABSOLUTE;
+			InputSystem::GetInstance()->ShowCursor(true);
+			InputSystem::GetInstance()->MouseLockToScreen(false);
 		}
 		else
 		{
 			m_mode = false;
+			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_RELATIVE;
+			InputSystem::GetInstance()->ShowCursor(false);
+			InputSystem::GetInstance()->MouseLockToScreen(true);
+			ProfilerManager::s_profilerEnabled = false;
+			ProfilerManager::s_isPaused = false;
+			
 		}
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_L))

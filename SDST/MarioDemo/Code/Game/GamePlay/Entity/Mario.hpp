@@ -75,6 +75,7 @@ public:
 	float						m_upImpulseValue = 9.5f;
 	float						m_gravity        = -0.35;
 	Vector3						m_lastSetPos;
+	bool						m_isCompleted    = false;
 	//Static_Member_Variables
 
 	//Methods

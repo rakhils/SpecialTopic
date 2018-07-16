@@ -92,6 +92,7 @@ public:
 	void InitScore();
 	void InitTime();
 
+	void GetBestMario();
 	void Update(float deltaTime);
 	void UpdateCamera();
 	void UpdateMiniMap(float deltaTime);

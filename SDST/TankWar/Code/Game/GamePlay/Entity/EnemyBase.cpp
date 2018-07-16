@@ -5,6 +5,7 @@
 #include "Engine/SceneManagement/Scene.hpp"
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 
 #include "Game/GamePlay/Entity/Tank.hpp"
 #include "Game/GamePlay/Entity/Bullet.hpp"
@@ -58,6 +59,8 @@ void EnemyBase::SpawnEnemy(Scene *scene)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EnemyBase::Update(float deltaTime)
 {
+	ProfilerManager::PushProfiler("EnemyBase::Update");
+
 	m_currentTime += deltaTime;
 	if(m_currentTime > m_spawnInterval)
 	{
@@ -70,6 +73,7 @@ void EnemyBase::Update(float deltaTime)
 	}
 
 	GameObject::Update(deltaTime);
+	ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

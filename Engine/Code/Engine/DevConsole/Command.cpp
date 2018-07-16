@@ -210,32 +210,34 @@ void CommandStartup()
 
 	//DEBUG RENDER COMMANDS
 	//CommandRegister("debug_render_quad2d"   , DebugRenderQuad2D,			 "DRAWS DEBUG QUAD2D IN 2D SPACE");
-	CommandRegister("debug_render"          ,   ToggleDebugRenderVisibility, "TOGGLES DEBUG RENDER OBJECTS VISIBILITY");
-	CommandRegister("debug_render_clear"    ,   ClearDebugRenderDraws,		 "CLEARS ALL DEBUG RENDER OBJECTS");
-	CommandRegister("debug_render_text2d"   ,   DebugRenderText2D,			 "DRAWS TEXT IN 2D SPACE");
-	CommandRegister("debug_render_point3d"  ,   DebugRenderPoint3D,			 "DRAWS POINT IN CURRENT 3D SPACE");
-	CommandRegister("debug_render_sphere"   ,   DebugRenderSphere,			 "DRAWS SPHERE IN CURRENT 3D SPACE");
-	CommandRegister("debug_render_text3d"	,   DebugRenderText3D,			 "DRAWS TEXT IN CURRENT 3D SPACE");
+	CommandRegister("debug_render"          ,			ToggleDebugRenderVisibility,		"TOGGLES DEBUG RENDER OBJECTS VISIBILITY");
+	CommandRegister("debug_render_clear"    ,			ClearDebugRenderDraws,				"CLEARS ALL DEBUG RENDER OBJECTS");
+	CommandRegister("debug_render_text2d"   ,			DebugRenderText2D,					"DRAWS TEXT IN 2D SPACE");
+	CommandRegister("debug_render_point3d"  ,			DebugRenderPoint3D,					"DRAWS POINT IN CURRENT 3D SPACE");
+	CommandRegister("debug_render_sphere"   ,			DebugRenderSphere,					"DRAWS SPHERE IN CURRENT 3D SPACE");
+	CommandRegister("debug_render_text3d"	,			DebugRenderText3D,					"DRAWS TEXT IN CURRENT 3D SPACE");
 
-	CommandRegister("profiler_resume",			ProfilerResume,				 "Resumes Profiler");
-	CommandRegister("profiler_pause" ,			ProfilerPause,				 "Pauses Profiler");
-	CommandRegister("show_mouse",				MouseShow,					 "Shows  mouse ");
-	CommandRegister("hide_mouse",				MouseHide,					 "Hides  mouse ");
-	CommandRegister("profiler_show",			ProfilerShow ,				 "Shows profiler");
-	CommandRegister("profiler_hide",			ProfilerHide,				 "Hides Profiler");
-	CommandRegister("profiler_tree_view",		ProfilerTreeView,			 "Views profiler in tree style");
-	CommandRegister("profiler_flat_view",		ProfilerFlatView,			 "Views profiler in flat style");
+	CommandRegister("profiler_resume",					ProfilerResume,						"Resumes Profiler");
+	CommandRegister("profiler_pause" ,					ProfilerPause,						"Pauses Profiler");
+	CommandRegister("show_mouse",						MouseShow,							"Shows  mouse ");
+	CommandRegister("hide_mouse",						MouseHide,							"Hides  mouse ");
+	CommandRegister("profiler_show",					ProfilerShow ,						"Shows profiler");
+	CommandRegister("profiler_hide",					ProfilerHide,						"Hides Profiler");
+	CommandRegister("profiler_tree_view",				ProfilerTreeView,					"Views profiler in tree style");
+	CommandRegister("profiler_flat_view",				ProfilerFlatView,					"Views profiler in flat style");
 	
 	// THREAD
-	CommandRegister("thread_test_thread",		NewThreadTest,				 "DO THREAD TEST ON NEW THREAD");
-	CommandRegister("thread_test_main"  ,		MainThreadTest,				 "DO THREAD TEST ON MAIN THREAD");
-	CommandRegister("log_flush_test",			LogFlushTest,				 "DO THE LOGS FLUSH TEST");
-	CommandRegister("attach_devconsole_tolog",  AttachDevConsoleToLogging,   "ATTACHES DEVCONSOLE OUTPUT TO LOGGER");
-	CommandRegister("detach_devconsole_tolog",  DetachDevConsoleLogging,     "DETACHES DEVCONSOLE OUTPUT TO LOGGER");
-	CommandRegister("add_log_filter",			AddLogFilter,				 "ADDS LOG FILTER ");
-	CommandRegister("removes_log_filter",		RemoveLogFilter,			 "REMOVES LOG FILTER");
-	CommandRegister("toggle_global_log_filter", ToggleGlobalLogFilterCheck,  "TOGGLE LOG FILTER CHECK");
-	
+	CommandRegister("thread_test_thread",				NewThreadTest,						"DO THREAD TEST ON NEW THREAD");
+	CommandRegister("thread_test_main"  ,				MainThreadTest,						"DO THREAD TEST ON MAIN THREAD");
+	CommandRegister("log_flush_test",					LogFlushTest,						"DO THE LOGS FLUSH TEST");
+	CommandRegister("attach_devconsole_tolog",			AttachDevConsoleToLogging,			"ATTACHES DEVCONSOLE OUTPUT TO LOGGER");
+	CommandRegister("detach_devconsole_tolog",			DetachDevConsoleLogging,			"DETACHES DEVCONSOLE OUTPUT TO LOGGER");
+	CommandRegister("add_log_filter",					AddLogFilter,						"ADDS LOG FILTER ");
+	CommandRegister("removes_log_filter",				RemoveLogFilter,					"REMOVES LOG FILTER");
+	CommandRegister("add_devconsole_log_filter",		AddDevConsoleLogForwardFilter,		"ADDS DEVCONSOLE LOG FILTER ");
+	CommandRegister("removes_devconsole_log_filter",	RemoveDevConsoleLogForwardFilter,	"REMOVES DEVCONSOLE LOG FILTER");
+	CommandRegister("toggle_global_log_filter",			ToggleGlobalLogFilterCheck,			"TOGGLE LOG FILTER CHECK");
+	CommandRegister("toggle_devconsole_log_filter",		ToggleDevConsoleLogFilterCheck,		"TOGGLE DEVCONSOLE LOG FILTER CHECK");
 }
 
 //////////////////////////////////////////////////////////////
@@ -795,6 +797,10 @@ void LogFlushTest(Command &cmd)
 void AttachDevConsoleToLogging(Command &cmd)
 {
 	std::string logForwardId = cmd.GetNextString();
+	if(logForwardId == "")
+	{
+		logForwardId = "devconsole";
+	}
 	LogManager::GetInstance()->AttachLogForwardCallBacks(logForwardId,LogDevConsoleWriteCallBack);
 }
 
@@ -832,6 +838,52 @@ void RemoveLogFilter(Command &cmd)
 {
 	std::string filterTag = cmd.GetNextString();
 	LogManager::GetInstance()->RemoveFilter(filterTag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AddDevConsoleLogForwardFilter(Command &cmd)
+{
+	std::string filterTag = cmd.GetNextString();
+	LogManager::GetInstance()->AddDevConsoleFilter(filterTag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RemoveDevConsoleLogForwardFilter(Command &cmd)
+{
+	std::string filterTag = cmd.GetNextString();
+	LogManager::GetInstance()->RemoveDevConsoleFilter(filterTag);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ToggleDevConsoleLogFilterCheck(Command &cmd)
+{
+	std::string filterTag = cmd.GetNextString();
+	if (filterTag == "true")
+	{
+		LogManager::GetInstance()->LogHideDevConsole();
+		return;
+	}
+	if (filterTag == "false")
+	{
+		LogManager::GetInstance()->LogShowDevConsole();
+		return;
+	}
+	DevConsole::GetInstance()->PushToOutputText("INVALID PARAM - toggle_devconsole_log_filter <true/false>", Rgba::RED);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

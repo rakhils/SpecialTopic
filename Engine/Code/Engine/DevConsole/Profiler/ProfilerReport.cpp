@@ -39,7 +39,9 @@ void ProfilerReport::GenerateFlatReportFromFrame(ProfileMeasurement_t *root)
 	m_root = new ProfilerReportEntry(root->m_name.c_str());
 	m_root->AddChild(m_root);
 	m_root->PopulateFlat(root, root->m_elapsedTimeInSec);
-	switch (ProfilerManager::s_profilerReportSortType)
+	SortFlatReportByTotalTime();
+	SortFlatReportBySelfTime();
+	/*switch (ProfilerManager::s_profilerReportSortType)
 	{
 	case TOTAL:
 		SortFlatReportByTotalTime();
@@ -51,7 +53,7 @@ void ProfilerReport::GenerateFlatReportFromFrame(ProfileMeasurement_t *root)
 		break;
 	default:
 		break;
-	}
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -25,7 +25,8 @@ public:
 	double		m_totalTimeInSec        = 0.0;
 	double		m_selfTimeInSec         = 0.0;
 	double		m_totalPercentTimeInSec = 0.0;
-	double		m_selfPercentTimeInSec  = 0.0; 
+	double		m_selfPercentTimeInSec  = 0.0;
+	double		m_averageTimeInSec		= 0.0;
 
 	ProfilerReportEntry *m_parent;
 	std::map<std::string, ProfilerReportEntry*> m_children;

@@ -8,6 +8,7 @@
 #include "Engine/Renderer/ParticleSystem/ParticleEmitter.hpp"
 #include "Engine/Physics/RigidBody3D.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 
 #include "Game/GamePlay/Entity/EnemyBase.hpp"
 #include "Game/GamePlay/Entity/Bullet.hpp"
@@ -77,7 +78,8 @@ Vector3 EnemyTank::GetCurrentForward()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EnemyTank::Update(float deltatime)
 {
-	
+	//ProfilerManager::PushProfiler("EnemyTank::Update");
+
 	m_timeLeftForNextDirectionChange -= deltatime;
 	Vector3 pos = m_transform.GetWorldPosition();
 	//DebugDraw::GetInstance()->DebugRenderLogf("TANK POS %f %f %f", pos.x, pos.y, pos.z);
@@ -96,10 +98,12 @@ void EnemyTank::Update(float deltatime)
 	//UpdateBounds(deltatime);
 	if (((SceneLevel1*)m_scene)->m_mode)
 	{
+		//ProfilerManager::PoPProfiler();
 		return;
 	}
 	DebugDraw::GetInstance()->DebugRenderLine(pos + Vector3(0,2,0), pos + m_forward * 10,Rgba::YELLOW);
 	GameObject::Update(deltatime);
+	//ProfilerManager::PoPProfiler();
 
 }
 

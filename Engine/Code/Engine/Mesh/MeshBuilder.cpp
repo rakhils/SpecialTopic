@@ -1143,7 +1143,8 @@ Mesh * MeshBuilder::CreateMeshFromFile(std::string imageFilePath)
 		{
 			oneLine = oneLine.substr(1, oneLine.length());
 			oneLine = TrimString(oneLine);
-			std::vector<std::string> vertices = Split(oneLine, ' ');
+			std::vector<std::string> vertices;
+			Split(vertices,oneLine, ' ');
 			float xPos = std::stof(vertices.at(0), 0);
 			float yPos = std::stof(vertices.at(1), 0);
 			float zPos = std::stof(vertices.at(2), 0);
@@ -1155,7 +1156,8 @@ Mesh * MeshBuilder::CreateMeshFromFile(std::string imageFilePath)
 		{
 			oneLine = oneLine.substr(2, oneLine.length());
 			oneLine = TrimString(oneLine);
-			std::vector<std::string> normals = Split(oneLine, ' ');
+			std::vector<std::string> normals;
+			Split(normals,oneLine, ' ');
 			float xPos = std::stof(normals.at(0), 0);
 			float yPos = std::stof(normals.at(1), 0);
 			float zPos = std::stof(normals.at(2), 0);
@@ -1167,7 +1169,8 @@ Mesh * MeshBuilder::CreateMeshFromFile(std::string imageFilePath)
 		{
 			oneLine = oneLine.substr(2, oneLine.length());
 			oneLine = TrimString(oneLine);
-			std::vector<std::string> uvs = Split(oneLine, ' ');
+			std::vector<std::string> uvs;
+			Split(uvs,oneLine, ' ');
 			float xPos = std::stof(uvs.at(0), 0);
 			float yPos = std::stof(uvs.at(1), 0);
 			Vector2 uv(xPos, yPos);
@@ -1179,11 +1182,13 @@ Mesh * MeshBuilder::CreateMeshFromFile(std::string imageFilePath)
 			oneLine = oneLine.substr(1, oneLine.length());
 			oneLine = TrimString(oneLine);
 			int faceCount = static_cast<int>(meshBuilder->m_vertices.size());
-			std::vector<std::string> vertexPCUN = Split(oneLine, ' ');
+			std::vector<std::string> vertexPCUN;
+			Split(vertexPCUN,oneLine, ' ');
 			int count =  static_cast<int>(vertexPCUN.size());
 			for (int faceIndex = 0; faceIndex < count; faceIndex++)
 			{
-				std::vector<std::string> vertexElements = Split(vertexPCUN.at(faceIndex), '/');
+				std::vector<std::string> vertexElements;
+				Split(vertexElements,vertexPCUN.at(faceIndex), '/');
 				int positionIndex = 0;
 				int uvIndex       = 0;
 				int normalIndex   = 0;

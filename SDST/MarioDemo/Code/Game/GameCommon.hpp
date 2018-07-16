@@ -26,6 +26,8 @@ extern Clock*				g_theGameClock;
 extern int					g_initialMarioCount;
 extern int					g_maxMarioCountedForNextGen;
 extern bool					g_controlMode;
+extern std::string			g_neuralNetFilePath;
+extern std::string			g_marioFitnessFilePath;
 
 extern bool g_isQuitting;
 

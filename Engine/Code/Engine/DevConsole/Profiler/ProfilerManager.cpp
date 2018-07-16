@@ -10,7 +10,9 @@ bool					      ProfilerManager::s_profilerEnabled;
 PROFILER_VIEW		          ProfilerManager::s_profilerView;
 REPORT_SORT			          ProfilerManager::s_profilerReportSortType;
 Profiler*					  ProfilerManager::s_profiler		  = nullptr;
-std::vector<ProfilerReport*>  ProfilerManager::s_profilerReports;
+std::vector<ProfilerReport*>  ProfilerManager::s_profilerTreeReports;
+std::vector<ProfilerReport*>  ProfilerManager::s_profilerFlatReports;
+
 ReportUI					  ProfilerManager::s_report;
 Graph						  ProfilerManager::s_performanceGraph;
 int							  ProfilerManager::s_maxSample = g_profilerMaxSamples;
@@ -50,6 +52,7 @@ void ProfilerManager::StartUp()
 	s_report.AddReportColumn("TOTAL_TIME"	, 50);
 	s_report.AddReportColumn("SELF%"		, 50);
 	s_report.AddReportColumn("SELF_TIME"	, 50);
+	s_report.AddReportColumn("AVG_TIME"	    , 50);
 	
 	s_performanceGraph.SetBounds(AABB2(g_profilerTimeGraphPosition, g_profilerTimeGraphWidth, g_profilerTimeGraphHeight));
 	s_performanceGraph.SetMaxSamplesCount(g_profilerMaxSamples);
@@ -98,6 +101,7 @@ void ProfilerManager::Update(float deltaTime)
 			s_showSpecificReport = true;
 			s_isPaused = true;
 			s_showReportIndex = static_cast<int>(index);
+
 			//DebugDraw::GetInstance()->DebugRenderLogf(2, "REPORT INDEX %i", s_showReportIndex);
 		}
 	}
@@ -111,27 +115,16 @@ void ProfilerManager::Update(float deltaTime)
 	{
 		if(InputSystem::GetInstance()->m_mouse.m_mouseMode == MOUSEMODE_RELATIVE)
 		{
-			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_ABSOLUTE;
-			InputSystem::GetInstance()->ShowCursor(true);
-			InputSystem::GetInstance()->MouseLockToScreen(false);
-		}
+			
+		}/*
 		else
 		{
 			InputSystem::GetInstance()->m_mouse.m_mouseMode = MOUSEMODE_RELATIVE;
 			InputSystem::GetInstance()->ShowCursor(false);
 			InputSystem::GetInstance()->MouseLockToScreen(true);
-		}
-
-		
+		}*/
 	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_P))
-	{
-		s_isPaused = s_isPaused ? false : true;
-	}
-	if(s_isPaused)
-	{
-		return;
-	}
+	
 
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_V))
 	{
@@ -147,6 +140,7 @@ void ProfilerManager::Update(float deltaTime)
 			break;
 		}
 	}
+	
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_L))
 	{
 		if(s_profilerView == FLAT)
@@ -167,27 +161,23 @@ void ProfilerManager::Update(float deltaTime)
 			}
 		}
 	}
-
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_P))
+	{
+		s_isPaused = s_isPaused ? false : true;
+	}
+	if (s_isPaused)
+	{
+		return;
+	}
 
 	if(s_profiler->m_measurements.size() >= 1)
 	{
-		ProfilerReport *lastReport = nullptr;
-
-		if(s_showReportIndex != -1 && s_showReportIndex < s_profilerReports.size())
+		ProfileMeasurement_t* measurement = s_profiler->m_measurements.at(s_profiler->m_measurements.size() - 1);
+		GenerateReport(measurement);
+		ProfilerReport* lastReport = s_profilerTreeReports.at(s_profilerTreeReports.size() - 1);
+		if (lastReport != nullptr)
 		{
-			//ProfileMeasurement_t* measurement = s_profiler->m_measurements.at(s_showReportIndex);
-			//GenerateReport(measurement);
-			lastReport = s_profilerReports.at(s_showReportIndex);
-		}
-		else
-		{
-			ProfileMeasurement_t* measurement = s_profiler->m_measurements.at(s_profiler->m_measurements.size() - 1);
-			GenerateReport(measurement);
-			lastReport = s_profilerReports.at(s_profilerReports.size() - 1);
-			if (lastReport != nullptr)
-			{
-				s_performanceGraph.UpdateGraphPoints((lastReport->m_root->m_totalTimeInSec));
-			}
+			s_performanceGraph.UpdateGraphPoints((lastReport->m_root->m_totalTimeInSec));
 		}
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_J))
@@ -237,14 +227,14 @@ void ProfilerManager::RenderAttributes()
 	Vector2 startPosition = g_profilerUIStartPos;
 	Renderer *renderer = Renderer::GetInstance();
 	int indent = static_cast<int>(g_profilerUIParaSpace);
-	std::string headings = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s ", indent, "",
+	std::string headings = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s %-14s", indent, "",
 		(3 * indent), s_report.m_attribs.at(0).c_str(),
 		s_report.m_attribs.at(1).c_str(),
 		s_report.m_attribs.at(2).c_str(),
 		s_report.m_attribs.at(3).c_str(),
 		s_report.m_attribs.at(4).c_str(),
-		s_report.m_attribs.at(5).c_str());
-
+		s_report.m_attribs.at(5).c_str(),
+		s_report.m_attribs.at(6).c_str());
 	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
 	renderer->BindMaterial(material);
 	renderer->DrawTextOn3DPoint(Vector3(startPosition, 0), Vector3::RIGHT, Vector3::UP, headings, g_profilerUIFontSize, Rgba::WHITE);
@@ -259,11 +249,11 @@ void ProfilerManager::RenderAttributes()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ProfilerManager::RenderCurrentTreeView()
 {
-	Vector2 startPosition  =  g_profilerUIStartPos;
-	startPosition         -= Vector2(0,g_profilerUILineSpace*2);
-	if (s_showReportIndex != -1 && s_showReportIndex < s_profilerReports.size())
+	Vector3 startPosition  =  g_profilerUIStartPos;
+	startPosition         -= Vector3(0,g_profilerUILineSpace*2,0);
+	if (s_showReportIndex != -1 && s_showReportIndex < s_profilerTreeReports.size())
 	{
-		ProfilerReport *lastReport = s_profilerReports.at(s_showReportIndex);
+		ProfilerReport *lastReport = s_profilerTreeReports.at(s_showReportIndex);
 		RenderTreeView(lastReport->m_root, startPosition, 0);
 		float XPos = RangeMapFloat(static_cast<float>(s_showReportIndex), 0, static_cast<float>(g_profilerMaxSamples), 0, s_performanceGraph.m_bounds.GetDimensions().x);
 		XPos	   += s_performanceGraph.m_bounds.mins.x;
@@ -276,9 +266,9 @@ void ProfilerManager::RenderCurrentTreeView()
 		return;
 	}
 	
-	if (s_profilerReports.size() > 0)
+	if (s_profilerTreeReports.size() > 0)
 	{
-		ProfilerReport *lastReport = s_profilerReports.at(s_profilerReports.size() - 1);
+		ProfilerReport *lastReport = s_profilerTreeReports.at(s_profilerTreeReports.size() - 1);
 		RenderTreeView(lastReport->m_root, startPosition, 0);
 	}
 }
@@ -293,10 +283,24 @@ void ProfilerManager::RenderCurrentFlatView()
 {
 	Vector2 startPosition = g_profilerUIStartPos;
 	startPosition -= Vector2(0, g_profilerUILineSpace * 2);
-	if (s_showReportIndex != -1 && s_showReportIndex < s_profilerReports.size())
+	if (s_showReportIndex != -1 && s_showReportIndex < s_profilerFlatReports.size())
 	{
-		ProfilerReport *lastReport = s_profilerReports.at(s_showReportIndex);
-		RenderFlatView(lastReport->m_root, startPosition);
+		ProfilerReport *lastReport = s_profilerFlatReports.at(s_showReportIndex);
+		//RenderFlatView(lastReport->m_root, startPosition);
+		switch (s_profilerReportSortType)
+		{
+		case TOTAL:
+			RenderFlatViewByTotalTime(nullptr, startPosition);
+			break;
+		case SELF:
+			RenderFlatViewBySelfTime(nullptr, startPosition);
+			break;
+		case NONE:
+			RenderFlatView(lastReport->m_root, startPosition);
+			break;
+		default:
+			break;
+		}
 		float XPos = RangeMapFloat(static_cast<float>(s_showReportIndex), 0.f, static_cast<float>(g_profilerMaxSamples), 0.f, s_performanceGraph.m_bounds.GetDimensions().x);
 		XPos	   += s_performanceGraph.m_bounds.mins.x;
 		float minY = s_performanceGraph.m_bounds.mins.y + s_performanceGraph.m_bounds.GetDimensions().y / 2.f;
@@ -308,7 +312,7 @@ void ProfilerManager::RenderCurrentFlatView()
 		return;
 	}
 
-	if (s_profilerReports.size() > 0)
+	if (s_profilerFlatReports.size() > 0)
 	{
 		switch (s_profilerReportSortType)
 		{
@@ -323,7 +327,7 @@ void ProfilerManager::RenderCurrentFlatView()
 		default:
 			break;
 		}
-		ProfilerReport *lastReport = s_profilerReports.at(s_profilerReports.size() - 1);
+		ProfilerReport *lastReport = s_profilerTreeReports.at(s_profilerTreeReports.size() - 1);
 		RenderFlatView(lastReport->m_root, startPosition);
 	}
 }
@@ -334,17 +338,18 @@ void ProfilerManager::RenderCurrentFlatView()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ProfilerManager::RenderTreeView(ProfilerReportEntry *entry,Vector3 position,int depth)
+void ProfilerManager::RenderTreeView(ProfilerReportEntry *entry,Vector3 &position,int depth)
 {
 	Renderer *renderer = Renderer::GetInstance();
 	int indent = static_cast<int>(g_profilerUIParaSpace);
-	std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s ", indent + depth, "",
+	std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s %-14s ", indent + depth, "",
 		3*indent, entry->m_id.c_str(),
 		ToString(entry->m_callCount).c_str(),
 		ToString(entry->m_totalPercentTimeInSec).c_str(),
 		ToString(entry->m_totalTimeInSec).c_str(),
 		ToString(entry->m_selfPercentTimeInSec).c_str(),
-		ToString(entry->m_selfTimeInSec).c_str());
+		ToString(entry->m_selfTimeInSec).c_str(),
+		ToString(entry->m_totalTimeInSec/static_cast<double>(entry->m_callCount)).c_str());
 	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
 	renderer->BindMaterial(material);
 	renderer->DrawTextOn3DPoint(position, Vector3::RIGHT, Vector3::UP, entryString, g_profilerUIFontSize, Rgba::WHITE);
@@ -371,13 +376,14 @@ void ProfilerManager::RenderFlatView(ProfilerReportEntry* root,Vector3 startPos)
 		ProfilerReportEntry* children = it->second;
 		Renderer *renderer = Renderer::GetInstance();
 		int indent = static_cast<int>(g_profilerUIParaSpace);
-		std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s ", indent, "",
+		std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s %-14s ", indent, "",
 			(3*indent), children->m_id.c_str(),
 			ToString(children->m_callCount).c_str(),
 			ToString(children->m_totalPercentTimeInSec).c_str(),
 			ToString(children->m_totalTimeInSec).c_str(),
 			ToString(children->m_selfPercentTimeInSec).c_str(),
-			ToString(children->m_selfTimeInSec).c_str());
+			ToString(children->m_selfTimeInSec).c_str(),
+			ToString(children->m_totalTimeInSec/static_cast<double>(children->m_callCount)).c_str());
 		Renderer::GetInstance()->BindShader(Shader::GetDefaultShader());
 		Shader::SetCurrentShader(Shader::GetDefaultShader());
 		renderer->DrawTextOn3DPoint(startPos, Vector3::RIGHT, Vector3::UP, entryString, g_profilerUIFontSize, Rgba::WHITE);
@@ -394,19 +400,25 @@ void ProfilerManager::RenderFlatView(ProfilerReportEntry* root,Vector3 startPos)
 void ProfilerManager::RenderFlatViewBySelfTime(ProfilerReportEntry* root, Vector3 startPos)
 {
 	UNUSED(root);
-	std::map<std::string, ProfilerReportEntry*>::iterator it;
-	for(int index = 0;index < s_profilerReports.at(s_profilerReports.size()-1)->m_sortedBySelfTime.size();index++)
+	int reportIndex = s_showReportIndex;
+	if (reportIndex == -1)
 	{
-		ProfilerReportEntry* children = s_profilerReports.at(s_profilerReports.size()-1)->m_sortedBySelfTime.at(index);
+		reportIndex = static_cast<int>(s_profilerFlatReports.size()) - 1;
+	}
+	std::map<std::string, ProfilerReportEntry*>::iterator it;
+	for(int index = 0;index < s_profilerFlatReports.at(reportIndex)->m_sortedBySelfTime.size();index++)
+	{
+		ProfilerReportEntry* children = s_profilerFlatReports.at(reportIndex)->m_sortedBySelfTime.at(index);
 		Renderer *renderer = Renderer::GetInstance();
 		int indent = static_cast<int>(g_profilerUIParaSpace);
-		std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s ", indent, "",
+		std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s %-14s", indent, "",
 			(3 * indent), children->m_id.c_str(),
 			ToString(children->m_callCount).c_str(),
 			ToString(children->m_totalPercentTimeInSec).c_str(),
 			ToString(children->m_totalTimeInSec).c_str(),
 			ToString(children->m_selfPercentTimeInSec).c_str(),
-			ToString(children->m_selfTimeInSec).c_str());
+			ToString(children->m_selfTimeInSec).c_str(),
+			ToString(children->m_totalTimeInSec/static_cast<double>(children->m_callCount)).c_str());
 		Renderer::GetInstance()->BindShader(Shader::GetDefaultShader());
 		Shader::SetCurrentShader(Shader::GetDefaultShader());
 		renderer->DrawTextOn3DPoint(startPos, Vector3::RIGHT, Vector3::UP, entryString, g_profilerUIFontSize, Rgba::WHITE);
@@ -422,20 +434,27 @@ void ProfilerManager::RenderFlatViewBySelfTime(ProfilerReportEntry* root, Vector
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ProfilerManager::RenderFlatViewByTotalTime(ProfilerReportEntry* root, Vector3 startPos)
 {
+	int reportIndex = s_showReportIndex;
+	if(reportIndex == -1)
+	{
+		reportIndex = static_cast<int>(s_profilerFlatReports.size()) - 1;
+	}
+
 	UNUSED(root);
 	std::map<std::string, ProfilerReportEntry*>::iterator it;
-	for (int index = 0; index < s_profilerReports.at(s_profilerReports.size() - 1)->m_sortedByTime.size(); index++)
+	for (int index = 0; index < s_profilerFlatReports.at(reportIndex)->m_sortedByTime.size(); index++)
 	{
-		ProfilerReportEntry* children = s_profilerReports.at(s_profilerReports.size() - 1)->m_sortedByTime.at(index);
+		ProfilerReportEntry* children = s_profilerFlatReports.at(reportIndex)->m_sortedByTime.at(index);
 		Renderer *renderer = Renderer::GetInstance();
 		int indent = static_cast<int>(g_profilerUIParaSpace);
-		std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s ", indent, "",
+		std::string entryString = Stringf("%*s%-*s %-10s %-10s %-14s %-10s %-14s %-14s", indent, "",
 			(3 * indent), children->m_id.c_str(),
 			ToString(children->m_callCount).c_str(),
 			ToString(children->m_totalPercentTimeInSec).c_str(),
 			ToString(children->m_totalTimeInSec).c_str(),
 			ToString(children->m_selfPercentTimeInSec).c_str(),
-			ToString(children->m_selfTimeInSec).c_str());
+			ToString(children->m_selfTimeInSec).c_str(),
+			ToString(children->m_totalTimeInSec/static_cast<double>(children->m_callCount)).c_str());
 		Renderer::GetInstance()->BindShader(Shader::GetDefaultShader());
 		Shader::SetCurrentShader(Shader::GetDefaultShader());
 		renderer->DrawTextOn3DPoint(startPos, Vector3::RIGHT, Vector3::UP, entryString, g_profilerUIFontSize, Rgba::WHITE);
@@ -544,17 +563,8 @@ void ProfilerManager::PoPProfiler()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ProfilerManager::GenerateReport(ProfileMeasurement_t* root)
 {
-	switch (s_profilerView)
-	{
-	case TREE:
-		GenerateReportTree(root);
-		break;
-	case FLAT:
-		GenerateReportFlat(root);
-		break;
-	default:
-		break;
-	}
+	GenerateReportTree(root);
+	GenerateReportFlat(root);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -567,12 +577,12 @@ void ProfilerManager::GenerateReportTree(ProfileMeasurement_t *root)
 {
 	ProfilerReport *report = new ProfilerReport();
 	report->GenerateTreeReportFromFrame(root);
-	s_profilerReports.push_back(report);
-	if(s_profilerReports.size() >= s_maxSample)
+	s_profilerTreeReports.push_back(report);
+	if(s_profilerTreeReports.size() >= s_maxSample)
 	{
-		ProfilerReport *lastReport = s_profilerReports.at(0);
+		ProfilerReport *lastReport = s_profilerTreeReports.at(0);
 		delete lastReport;
-		s_profilerReports.erase(s_profilerReports.begin(), s_profilerReports.begin() + 1);
+		s_profilerTreeReports.erase(s_profilerTreeReports.begin(), s_profilerTreeReports.begin() + 1);
 	}
 	
 }
@@ -585,16 +595,14 @@ void ProfilerManager::GenerateReportTree(ProfileMeasurement_t *root)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ProfilerManager::GenerateReportFlat(ProfileMeasurement_t* root)
 {
-	UNUSED(root);
-
 	ProfilerReport *report = new ProfilerReport();
 	report->GenerateFlatReportFromFrame(root);
-	s_profilerReports.push_back(report);
-	if (s_profilerReports.size() >= s_maxSample)
+	s_profilerFlatReports.push_back(report);
+	if (s_profilerFlatReports.size() >= s_maxSample)
 	{
-		ProfilerReport *lastReport = s_profilerReports.at(0);
+		ProfilerReport *lastReport = s_profilerFlatReports.at(0);
 		delete lastReport;
-		s_profilerReports.erase(s_profilerReports.begin(), s_profilerReports.begin() + 1);
+		s_profilerFlatReports.erase(s_profilerFlatReports.begin(), s_profilerFlatReports.begin() + 1);
 	}
 }
 

@@ -13,6 +13,7 @@
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Math/Matrix44.hpp"
 #include "Engine/Core/Time.hpp"
+#include "Engine/Core/StringUtils.hpp"
 float MATH_PIE = (float)3.1415926535897932384626433832795;
 
 float GetRandomFloatInRange(float minInclusive,float maxExclusive)
@@ -1358,7 +1359,6 @@ bool Quadratic(Vector2 *out, float a, float b, float c)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SetRandomSRAND()
 {
-	double val = GetSystemTimeInSeconds();
 	srand(static_cast<int>(GetSystemTimeInSeconds()));
 }
 
@@ -1546,6 +1546,40 @@ Vector3 ConvertSphericalToCartesian(Vector3 position)
 	//float z = position.x * CosDegrees(position.z);
 
 	return Vector3(x,y,z);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/14
+*@purpose : Gets hexa decimal equivalent of number
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string GetHexaDecimalEquivalent(int value)
+{
+	if(value == 0)
+	{
+		return "00";
+	}
+	std::string hex;
+	int reminder = 0;
+	while(value > 0)
+	{
+		reminder = value % 16;
+		if(reminder > 9)
+		{
+			char ch = 'A' + static_cast<char>((reminder - 10));
+			std::string rem;
+			rem += ch;
+			hex.insert(0, rem);
+			value = value / 16;
+
+			continue;
+		}
+		hex.insert(0,ToString(reminder));
+		value = value / 16;
+
+	}
+	return hex;
 }
 
 const Vector2 Interpolate(const Vector2& start, const Vector2& end, float fractionTowardEnd)

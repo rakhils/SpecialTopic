@@ -69,6 +69,7 @@ void ProfilerReportEntry::AccumulateData(ProfileMeasurement_t *leafnode)
 {
 	m_callCount++;
 	m_totalTimeInSec += leafnode->m_elapsedTimeInSec;
+	m_averageTimeInSec += leafnode->m_elapsedTimeInSec;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -6,7 +6,8 @@
 #include <mutex>
 #include "Engine/System/Thread/Thread.hpp"
 #include "Engine/Time/TimeSystem.hpp"
-
+#include "Engine/Core/Rgba.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 /*\class  : LogManager		   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -21,6 +22,21 @@ struct LogDefine
 {
 	std::string m_tag;
 	Rgba        m_color;
+	LogDefine() 
+	{
+		m_tag   = "default";
+		m_color = Rgba::WHITE;
+	};
+	LogDefine(char *tag, Rgba color)
+	{
+		m_tag = tag;
+		m_color = color;
+	}
+	LogDefine(const LogDefine &copy)
+	{
+		m_tag   = copy.m_tag;
+		m_color = copy.m_color;
+	}
 };
 struct Log_t
 {
@@ -124,10 +140,13 @@ public:
 	ThreadSafeQueue								m_logQueue; 
 	bool										m_isRunning =  true;
 	std::string									m_defaultFileName;
+	std::string									m_defaultHTMLFileName;
 	std::string									m_timeStampFilePath;
 	std::map<std::string,LogForwardCallBack>    m_logForwardCallBacks;
-	ThreadSafeSet						    	m_filters;  
+	ThreadSafeSet						    	m_filters; 
+	ThreadSafeSet						    	m_devConsolefilters;
 	bool										m_globalFilterCheck		= false;
+	bool										m_devConsoleFilterCheck	= false;
 	//Static_Member_Variables
 	static bool									s_logEnabled;
 	static std::map<std::string, FILE*>			s_logIdMaps;
@@ -139,6 +158,7 @@ public:
 	~LogManager();
 	static void LogThreadWorker(void* data)
 	{
+		UNUSED(data);
 		while (s_logger->isRunning())
 		{
 			s_logger->LogFlush();
@@ -169,11 +189,15 @@ public:
 	void				DetachLogForwardCallBacks(std::string id);
 	void				AddFilter(std::string tag);
 	void				RemoveFilter(std::string tag);
+	void				AddDevConsoleFilter(std::string tag);
+	void			    RemoveDevConsoleFilter(std::string tag);
 
 	void				LogShowAll();
 	void				LogHideAll();
 	void				LogShowTag(char const *tag);
 	void				LogHideTag(char const *tag);
+	void				LogShowDevConsole();
+	void				LogHideDevConsole();
 
 	
 
@@ -201,3 +225,4 @@ private:
 
 void				LogFileWriteCallBack(Log_t* log_t);
 void				LogDevConsoleWriteCallBack(Log_t* log_t);
+void				LogHTMLWriteCallBack(Log_t* log_t);

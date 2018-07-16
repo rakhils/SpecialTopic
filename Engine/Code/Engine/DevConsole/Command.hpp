@@ -110,6 +110,9 @@ void AttachDevConsoleToLogging(Command &cmd);
 void DetachDevConsoleLogging(Command &cmd);
 void AddLogFilter(Command &cmd);
 void RemoveLogFilter(Command &cmd);
+void AddDevConsoleLogForwardFilter(Command &cmd);
+void RemoveDevConsoleLogForwardFilter(Command &cmd);
+void ToggleDevConsoleLogFilterCheck(Command &cmd);
 void ToggleGlobalLogFilterCheck(Command &cmd);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static std::vector<std::string> GetCommandHistory();

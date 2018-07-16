@@ -133,7 +133,8 @@ Vector2			 ConvertCartesianToPolar(float xPos, float yPos);
 Vector3			 ConvertCartesianToSpherical(Vector3 position);
 Vector3		     ConvertSphericalToCartesian(Vector3 position);
 //////////////////////////////////////////////////////////////////////////
-
+// NUMBER SYSTEM
+std::string      GetHexaDecimalEquivalent(int value);
 
 // BIT RELATED FUNCTIONS
 bool			 AreBitsSet( unsigned char bitFlags8, unsigned char flagsToCheck );

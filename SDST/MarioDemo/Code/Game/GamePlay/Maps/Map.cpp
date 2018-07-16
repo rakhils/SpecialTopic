@@ -11,6 +11,9 @@
 #include "Engine/AI/GA/Gene.hpp"
 #include "Engine/AI/GA/SimpleCharGene.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetGA.hpp"
+#include "Engine/FileUtil/File.h"
+#include "Engine/Core/StringUtils.hpp"
+
 //#include "Engine/AI/NeuralNetwork/NeuralNetworkConstants.h"
 #include "Engine/AI/NeuralNetwork/NeuralNetwork.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetworkGene.hpp"
@@ -34,6 +37,8 @@ Map::Map(MapDefinition *mapDef)
 	CreateCharacters();
 	InitMiniMap();
 	InitGA();
+	std::string fitness = GetFileContentAsString(g_marioFitnessFilePath.c_str());
+	ToFloat(fitness, &m_bestFitness);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,6 +264,17 @@ void Map::CreateInvisibleEnemies(Vector2 position, float radius)
 	m_invisibleEnemies.push_back(enemy);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::GetBestMario()
+{
+	m_mario->m_neuralNet->LoadFromFile(g_neuralNetFilePath.c_str());
+}
+
 void Map::Update(float deltaTime)
 {
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -333,7 +349,7 @@ void Map::Update(float deltaTime)
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_B))
 	{
 		m_bestMode = m_bestMode ? false : true;
-		m_bestNeuralNet->CopyWeightsTo(*(m_mario->m_neuralNet));
+		GetBestMario();
 	}
 	
 	//m_mario->Update(deltaTime);
@@ -784,7 +800,9 @@ void Map::PickMostSuccessfulMario()
 		Mario *mario = m_marios.at(index);
 		successFulMarios.at(index)->m_neuralNet->CopyWeightsTo(*(mario->m_neuralNet));
 		mario->m_neuralNet->Mutate();
+		
 		m_marios.at(index)->ResetPosition();
+		
 	}
 	m_generations++;
 }
@@ -809,7 +827,7 @@ void Map::SortMariosInOrderOfFitness()
 			}
 		}
 	}
-	m_lastBestFitness = m_marios.at(0)->m_fitness;
+	m_lastBestFitness   = m_marios.at(0)->m_fitness;
 	m_lastBestMarioJump = m_marios.at(0)->m_numOfJumps;
 	m_lastBestMarioX    = m_marios.at(0)->m_transform.GetWorldPosition().x;
 	if(m_marios.at(0)->m_fitness > m_bestFitness)
@@ -818,6 +836,10 @@ void Map::SortMariosInOrderOfFitness()
 		m_bestMarioJump = m_marios.at(0)->m_numOfJumps;
 		m_bestMarioX    = m_marios.at(0)->m_transform.GetWorldPosition().x;
 		m_marios.at(0)->m_neuralNet->CopyWeightsTo(*m_bestNeuralNet);
+		m_marios.at(0)->m_neuralNet->StoreToFile(g_neuralNetFilePath.c_str());
+		FILE *fp = FileOpenForWrite(g_marioFitnessFilePath);
+		FileAppendString(fp, ToString(m_bestFitness));
+		FileClose(fp);
 	}
 	m_mario = m_marios.at(0);
 }
