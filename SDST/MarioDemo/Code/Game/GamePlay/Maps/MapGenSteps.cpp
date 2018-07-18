@@ -71,7 +71,7 @@ void MapGenSteps_SpawnActor::Run(Map &newMap)
 	}
 	if(m_name == "Pipe")
 	{
-		newMap.CreatePipes(m_position, m_dimensions);
+		newMap.CreatePipes(m_position, m_dimensions,false);
 	}
 	if (m_name == "Pit")
 	{

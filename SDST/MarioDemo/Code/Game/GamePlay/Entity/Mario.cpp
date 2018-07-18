@@ -763,6 +763,7 @@ void Mario::OnCollisionEnter(Collider *collider)
 		}
 		if(boxcollider->m_colliderDirection == SOUTH)
 		{
+			m_upVelocity = 0;
 			circleColliderPosition = GetCircleCollider()->m_disc.center;
 			float distanceToPush = ((circleColliderPosition.y + radius) - boxcollider->m_aabb2.mins.y); 
 			m_transform.SetLocalPosition(Vector3(position.x, position.y - distanceToPush, 0));
@@ -826,6 +827,8 @@ void Mario::OnCollisionEnter(Collider *collider)
 		}
 		if (boxcollider->m_colliderDirection == SOUTH_WEST)
 		{
+			m_upVelocity = 0;
+
 			circleColliderPosition = GetCircleCollider()->m_disc.center;
 			Vector2 southWestCornerPosition(boxcollider->m_aabb2.mins.x, boxcollider->m_aabb2.mins.y);
 			Vector2 distance = circleColliderPosition - southWestCornerPosition;
@@ -842,6 +845,7 @@ void Mario::OnCollisionEnter(Collider *collider)
 		}
 		if (boxcollider->m_colliderDirection == SOUTH_EAST)
 		{
+			m_upVelocity = 0;
 			circleColliderPosition   = GetCircleCollider()->m_disc.center;
 			Vector2 southEastCornerPosition(boxcollider->m_aabb2.maxs.x, boxcollider->m_aabb2.mins.y);
 			Vector2 distance		  = circleColliderPosition - southEastCornerPosition;

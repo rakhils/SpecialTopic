@@ -25,8 +25,9 @@ struct LogDefine
 	LogDefine() 
 	{
 		m_tag   = "default";
-		m_color = Rgba::WHITE;
-	};
+		m_color = Rgba::BLACK;
+	}
+	~LogDefine(){}
 	LogDefine(char *tag, Rgba color)
 	{
 		m_tag = tag;
@@ -40,18 +41,23 @@ struct LogDefine
 };
 struct Log_t
 {
-	std::string m_logTime;
+	std::string m_logTime = "";
 	//std::string m_tag;
-	std::string m_text;
+	std::string m_text = "";
 	LogDefine   m_define;
-	Log_t();
+	Log_t() {};
+	~Log_t(){}
+	Log_t(std::string text)
+	{
+		m_text = text;
+	}
 	Log_t(std::string tag, std::string text)
 	{
 		m_text			  = text;
 		m_define.m_tag	  = tag;
 		m_logTime = TimeSystem::GetCurrentDateAndTimeInString();
 	}
-	Log_t(LogDefine define, std::string text)
+	Log_t(LogDefine &define, std::string text)
 	{
 		m_text    = text;
 		m_define  = define;
@@ -83,6 +89,7 @@ public:
 
 		m_lock.unlock();
 		return ret;
+		//return ret;
 	}
 
 	std::queue<Log_t*> m_data;
@@ -176,12 +183,16 @@ public:
 	
 	void				Init(std::string fileName);
 	void				LogFlush();
+	void				LogFlushImmediate();
 	void				LogFlushAll();
 	void				LogFlushTest();
+	void				LogReadWriteTest(char const *srcFile, int threadCount);
+
 	void				LogTaggedPrintv(std::string tag,char const *format, va_list args);
 	void				LogTaggedPrintf(std::string tag,char const *format, ...);
-	void				LogTaggedPrintf(std::string tag,std::string text);
-	void				LogPrintf(char const *format,...);
+	void				LogTaggedPrintf(std::string tag,std::string text,bool needDetails = true);
+	void				LogPrintf(bool needDetails,char const *format,...);
+	void				LogPrintf(char const *format, ...);
 	void				LogWarningf(char const *format,...);
 	void				LogErrorf( char const *format, ... );
 

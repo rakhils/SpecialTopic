@@ -230,6 +230,7 @@ void CommandStartup()
 	CommandRegister("thread_test_thread",				NewThreadTest,						"DO THREAD TEST ON NEW THREAD");
 	CommandRegister("thread_test_main"  ,				MainThreadTest,						"DO THREAD TEST ON MAIN THREAD");
 	CommandRegister("log_flush_test",					LogFlushTest,						"DO THE LOGS FLUSH TEST");
+	CommandRegister("log_read_write_test",				LogReadWriteTest,					"DO THE LOGS READ MULTIPLE WRITE ONE TEST");
 	CommandRegister("attach_devconsole_tolog",			AttachDevConsoleToLogging,			"ATTACHES DEVCONSOLE OUTPUT TO LOGGER");
 	CommandRegister("detach_devconsole_tolog",			DetachDevConsoleLogging,			"DETACHES DEVCONSOLE OUTPUT TO LOGGER");
 	CommandRegister("add_log_filter",					AddLogFilter,						"ADDS LOG FILTER ");
@@ -789,6 +790,20 @@ void LogFlushTest(Command &cmd)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/17
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogReadWriteTest(Command &cmd)
+{
+	std::string filepath = cmd.GetNextString();
+	int threadCount;
+	cmd.GetNextInt(&threadCount);
+	Thread::TestLogReadWrite(filepath.c_str(), threadCount);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/07/10
 *@purpose : NIL
 *@param   : NIL
@@ -813,6 +828,10 @@ void AttachDevConsoleToLogging(Command &cmd)
 void DetachDevConsoleLogging(Command &cmd)
 {
 	std::string logForwardId = cmd.GetNextString();
+	if (logForwardId == "")
+	{
+		logForwardId = "devconsole";
+	}
 	LogManager::GetInstance()->DetachLogForwardCallBacks(logForwardId);
 }
 

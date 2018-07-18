@@ -13,6 +13,7 @@ void		FileAppendChar(FILE *fp, char ch);
 FILE*       FileOpenForWrite(std::string filename);
 void		FileFlush(FILE *fp);
 void		FileClose(FILE* fp);
+std::string FileReadNextLine(FILE *fp);
 std::string GetFileContentAsString(char const* filename);
 bool		DoFileExist(std::string filepath);
 

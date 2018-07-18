@@ -395,9 +395,11 @@ void Tank::UpdateTurretOrientation1(float deltaTime,Vector3 direction)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Tank::OnCollisionEnter(Collider* collider)
 {
-	if (EnemyTank *tank = dynamic_cast<EnemyTank*>(collider->m_gameObject))
+	//can use template trick
+	//getuniqueid for each Game object 
+	if (EnemyTank *tank = dynamic_cast<EnemyTank*>(collider->m_gameObject)) // WONT GIVE INHERITANCE 
 	{
-		m_health -= 1;
+		//m_health -= 1;
 		if(m_health <=0)
 		{
 			m_markForDead = true;

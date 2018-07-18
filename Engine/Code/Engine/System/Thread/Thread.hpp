@@ -1,6 +1,6 @@
 #pragma once
 #include <process.h>
-
+#include <string>
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 /*\class  : Thread	   
@@ -31,7 +31,7 @@ public:
 	//Member_Variables
 	
 	//Static_Member_Variables
-
+	static std::string bigTest;
 	//Methods
 
 	Thread();
@@ -67,6 +67,8 @@ public:
 	static void TestOnThread(int numThreads);
 	static void TestOnMainThread();
 	static void TestWriteToFile(void *data);
+	static void TestLogReadWrite(char const *srcFile, int threadCount);
+	static void TestLogRead(void *threadNum);
 	void		SetName( char const *name );
 
 	//Static_Methods

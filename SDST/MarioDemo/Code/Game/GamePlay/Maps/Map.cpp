@@ -177,7 +177,7 @@ void Map::CreateBricks(Vector2 position,Vector2 dimension,bool hidden,bool physi
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::CreatePipes(Vector2 position, Vector2 dimensions)
+void Map::CreatePipes(Vector2 position, Vector2 dimensions,bool isViewable)
 {
 	int size = m_pipes.size();
 	std::string name = ("pipe_" + ToString(size));
@@ -188,6 +188,10 @@ void Map::CreatePipes(Vector2 position, Vector2 dimensions)
 	pipe->m_height = dimensions.y;
 	pipe->AddBoxCollider2D(Vector3(0, 0, 0), dimensions/2.f, Vector3::FORWARD);
 	pipe->GetBoxCollider2D()->m_isStatic = true;
+	if(isViewable)
+	{
+		m_viewablePipes.push_back(pipe);
+	}
 	m_pipes.push_back(pipe);
 }
 
@@ -313,6 +317,11 @@ void Map::Update(float deltaTime)
 	{
 		m_isDebugMode = m_isDebugMode ? false : true;
 	}
+	if(InputSystem::GetInstance()->WasLButtonJustPressed())
+	{
+		Vector2 mousePos = InputSystem::GetInstance()->GetMouseClientPosition();
+		AddPipe(mousePos);
+	}
 	if (g_theInput->wasKeyJustReleased(InputSystem::KEYBOARD_Q))
 	{
 		EndOnePlay();
@@ -388,6 +397,7 @@ void Map::UpdateCamera()
 
 	cameraX = ClampFloat(cameraX, minX, maxX);
 	cameraY = ClampFloat(cameraY, minY, maxY);
+	m_cameraMins = Vector2(cameraX - minX , minY);
 	m_camera->m_transform.SetLocalPosition(Vector3(cameraX, cameraY, 0));
 }
 
@@ -667,6 +677,55 @@ void Map::TrainNN(bool isDead)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/16
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::AddPipe(Vector2 MousePos)
+{
+	if(true)
+	{
+		return;
+	}
+	/*	<Brick actor = "Pipe"  position = "1500,120"  dimension = "60,120" / >
+		<Brick actor = "Brick" position = "1485,75"  dimension = "30,30" physics = "false" / >
+		<Brick actor = "Brick" position = "1485,105"  dimension = "30,30" physics = "false" / >
+		<Brick actor = "Brick" position = "1485,135"  dimension = "30,30" physics = "false" / >
+		<Brick actor = "Brick" position = "1485,165"  dimension = "30,30" physics = "false" / >
+		<Brick actor = "Brick" position = "1515,75"  dimension = "30,30" physics = "false" / >
+		<Brick actor = "Brick" position = "1515,105"  dimension = "30,30" physics = "false" / >
+		<Brick actor = "Brick" position = "1515,135"  dimension = "30,30" physics = "false" / >
+		<Brick actor = "Brick" position = "1515,165"  dimension = "30,30" physics = "false" / >*/
+	Vector2 pos(m_cameraMins.x + MousePos.x, 120);
+	Vector2 centre(pos.x , pos.y);
+	CreatePipes(centre, Vector2(64, 128),true);
+
+	pos.y = 115 - 32;
+	Vector2 brickPos1(pos.x - 16, pos.y + 16);
+	Vector2 brickPos2(pos.x + 16, pos.y + 16);
+
+	Vector2 brickPos3(pos.x - 16, pos.y + 32);
+	Vector2 brickPos4(pos.x + 16, pos.y + 32);
+
+	Vector2 brickPos5(pos.x - 16, pos.y + 48);
+	Vector2 brickPos6(pos.x + 16, pos.y + 48);
+
+	Vector2 brickPos7(pos.x - 16, pos.y + 90);
+	Vector2 brickPos8(pos.x + 16, pos.y + 90);
+
+	CreateBricks(brickPos1, Vector2(32, 32), true, true);
+	CreateBricks(brickPos2, Vector2(32, 32), true, true);
+	CreateBricks(brickPos3, Vector2(32, 32), true, true);
+	CreateBricks(brickPos4, Vector2(32, 32), true, true);
+	CreateBricks(brickPos5, Vector2(32, 32), true, true);
+	CreateBricks(brickPos6, Vector2(32, 32), true, true);
+	CreateBricks(brickPos7, Vector2(32, 32), true, true);
+	CreateBricks(brickPos8, Vector2(32, 32), true, true);
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/20
 *@purpose : Checks if mario is out of bounds and respawn
 *@param   : NIL
@@ -937,7 +996,7 @@ void Map::Render()
 	delete defaultMaterial;
 
 	RenderBricks();
-	//RenderPipes();
+	RenderPipes();
 	RenderMario();
 	RenderInvisibleEnemies();
 	//RenderMiniMap(m_minimapAABB, m_minimapObjs);
@@ -1044,14 +1103,31 @@ void Map::RenderBricks()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::RenderPipes()
 {
-	for (size_t pipeIndex = 0; pipeIndex < m_pipes.size(); pipeIndex++)
+	/*for (size_t pipeIndex = 0; pipeIndex < m_pipes.size(); pipeIndex++)
 	{
 		if (m_pipes.at(pipeIndex)->m_isHidden)
 		{
 			continue;
 		}
 		m_pipes.at(pipeIndex)->Render();
+	}*/
+	Material *defaultMaterial = Material::AquireResource("default");
+	Texture  *texture		  = Texture::CreateOrGetTexture("Data\\Images\\pipe.png", true, true);
+	defaultMaterial->m_textures.at(0) = texture;
+	Texture::SetCurrentTexture(texture);
+	Renderer::GetInstance()->BindMaterial(defaultMaterial);
+	for (size_t pipeIndex = 0; pipeIndex < m_viewablePipes.size(); pipeIndex++)
+	{
+		Pipe *pipe = m_viewablePipes.at(pipeIndex);
+		Vector2 entityPosition = pipe->m_transform.GetWorldPosition().GetXY();
+	
+
+		AABB2 m_aabb2(entityPosition, pipe->m_length / 2, pipe->m_height / 2);
+
+		g_theRenderer->DrawTexturedAABB(m_aabb2, texture, Vector2::ZERO, Vector2::ONE, Rgba::WHITE);
 	}
+	delete defaultMaterial;
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

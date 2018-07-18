@@ -48,6 +48,7 @@ public:
 	int								m_generations = 0;
 	std::vector<Brick*>				m_bricks;
 	std::vector<Pipe*>				m_pipes;
+	std::vector<Pipe*>				m_viewablePipes;
 	std::vector<Pit>				m_pits;
 	std::vector<InvisibleEnemies*>  m_invisibleEnemies;
 
@@ -72,6 +73,7 @@ public:
 	float						m_bestMarioX = 0.f;
 	int						    m_bestMarioJump = 0;
 
+	Vector2						m_cameraMins;
 	GeneticAlgorithm *m_ga = nullptr;
 	GeneticAlgorithm *m_gaString = nullptr;
 	Map(MapDefinition* def);
@@ -84,7 +86,7 @@ public:
 	
 	void CreatePit(Vector2 position);
 	void CreateBricks(Vector2 position,Vector2 dimension,bool hidden,bool physics);
-	void CreatePipes(Vector2 position, Vector2 dimensions);
+	void CreatePipes(Vector2 position, Vector2 dimensions,bool isViewable);
 	void CreateGround();
 	void CreateCharacters();
 	void CreateMario();
@@ -100,6 +102,7 @@ public:
 	void UpdatePipes(float deltaTime);
 	void UpdateMarios(float deltaTime);
 	void TrainNN(bool isDead);
+	void AddPipe(Vector2 mousePos);
 
 	void CheckForMarioOutOfBounds();
 	void QueryAndDie(float deltaTime);

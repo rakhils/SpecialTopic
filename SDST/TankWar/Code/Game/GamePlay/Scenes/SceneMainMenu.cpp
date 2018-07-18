@@ -11,6 +11,7 @@
 #include "Engine/Logger/LogManager.hpp"
 #include "Game/GamePlay/Scenes/SceneMainMenu.hpp"
 #include "Game/GameCommon.hpp"
+
 // CONSTRUCTOR
 SceneMainMenu::SceneMainMenu()
 {
@@ -66,8 +67,8 @@ void SceneMainMenu::Update(float deltaTime)
 	{
 		UpdateExitingTime(deltaTime);
 	}
-	LogManager::GetInstance()->LogTaggedPrintf("warning", "WARNING TEST = %f", static_cast<float>(Clock::g_theMasterClock->total.m_seconds));
-	LogManager::GetInstance()->LogTaggedPrintf("error",   "ERROR   TEST = %f", static_cast<float>(Clock::g_theMasterClock->total.m_seconds));
+	LogManager::GetInstance()->LogTaggedPrintf("warning", "WARNING TEST = %f", static_cast<float>(Clock::g_theMasterClock->total.m_seconds),true);
+	LogManager::GetInstance()->LogTaggedPrintf("error",   "ERROR   TEST = %f", static_cast<float>(Clock::g_theMasterClock->total.m_seconds),true);
 
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_UP_ARROW))
 	{

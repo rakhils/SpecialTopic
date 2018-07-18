@@ -102,6 +102,12 @@ void LogManager::LogSystemShutdown()
 {
 	s_logger->Stop();
 	Thread::ThreadJoin(s_logger->m_thread);
+
+	std::map<std::string, FILE*>::iterator it = s_logIdMaps.begin();
+	for(;it != s_logIdMaps.end();it++)
+	{
+		FileClose(it->second);
+	}
 	s_logger->m_thread = nullptr;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -112,33 +118,66 @@ void LogManager::LogSystemShutdown()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void LogManager::LogFlush()
 {
-	Log_t *log_t = m_logQueue.dequeue();
-	if (log_t == nullptr)
-	{
-		return;
-	}
+	/*while (!m_log_queue.dequeue(&data)) {
+		// do something with the data
+		WriteLogToFile(data);
+		delete data;
+	}*/
 
-	if(m_globalFilterCheck && m_filters.HasTag(log_t->m_define.m_tag))
+	Log_t *data = nullptr;
+	while ((data = m_logQueue.dequeue()) != nullptr)
 	{
-		delete log_t;
-		return;
-	}
-
-	std::map<std::string, LogForwardCallBack>::iterator it = m_logForwardCallBacks.begin();
-	for(;it != m_logForwardCallBacks.end();it++)
-	{
-		if(it->first == "devconsole")
+		if (m_globalFilterCheck && m_filters.HasTag(data->m_define.m_tag))
 		{
-			if (m_devConsoleFilterCheck && m_devConsolefilters.HasTag(log_t->m_define.m_tag))
-			{
-				continue;
-			}
+			delete data;
+			continue;
 		}
 
-		(*it->second)(log_t);
-	}
+		std::map<std::string, LogForwardCallBack>::iterator it = m_logForwardCallBacks.begin();
+		for (; it != m_logForwardCallBacks.end(); it++)
+		{
+			if (it->first == "devconsole")
+			{
+				if (m_devConsoleFilterCheck && m_devConsolefilters.HasTag(data->m_define.m_tag))
+				{
+					continue;
+				}
+			}
 
-	delete log_t;
+			(*it->second)(data);
+		}
+
+		delete data;
+		data = nullptr;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/17
+*@purpose : Flushes all files immediately
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::LogFlushImmediate()
+{
+	std::map<std::string, FILE*>::iterator it = LogManager::GetInstance()->s_logIdMaps.find(LogManager::GetInstance()->m_defaultHTMLFileName);
+	FILE *fileHTMLPtr = it->second;
+	if(fileHTMLPtr != nullptr)
+	{
+		FileFlush(fileHTMLPtr);
+	}
+	it = LogManager::GetInstance()->s_logIdMaps.find(LogManager::GetInstance()->m_defaultFileName);
+	FILE *filePtr = it->second;
+	if (filePtr != nullptr)
+	{
+		FileFlush(filePtr);
+	}
+	it = LogManager::GetInstance()->s_logIdMaps.find(LogManager::GetInstance()->m_timeStampFilePath);
+	FILE *filePtrTimeStamp = it->second;
+	if (filePtrTimeStamp != nullptr)
+	{
+		FileFlush(filePtrTimeStamp);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -162,6 +201,7 @@ void LogManager::LogFlushTest()
 {
 	LogPrintf("FLUSH TEST");
 	LogFlush();
+	LogFlushImmediate();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -268,7 +308,7 @@ void LogManager::LogTaggedPrintf(std::string tag, char const *format, ...)
 *@param   : Tag and text
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void LogManager::LogTaggedPrintf(std::string tag, std::string text)
+void LogManager::LogTaggedPrintf(std::string tag, std::string text,bool needDetails)
 {
 	std::map<std::string, LogDefine>::iterator it = s_logDefines.find(tag);
 	LogDefine define;
@@ -281,7 +321,15 @@ void LogManager::LogTaggedPrintf(std::string tag, std::string text)
 		define = s_logDefines["default"]; 
 	}
 
-	Log_t *log = new Log_t(define, text);
+	Log_t *log = nullptr;// new Log_t(define, text);
+	if(needDetails)
+	{
+		log = new Log_t(define, text);
+	}
+	else
+	{
+		log = new Log_t(text);
+	}
 	m_logQueue.enqueue(log);
 }
 
@@ -291,7 +339,7 @@ void LogManager::LogTaggedPrintf(std::string tag, std::string text)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void LogManager::LogPrintf(char const *format,...)
+void LogManager::LogPrintf(bool needDetails,char const *format,...)
 {
 	if (!s_logEnabled)
 	{
@@ -299,8 +347,28 @@ void LogManager::LogPrintf(char const *format,...)
 	}
 	va_list args;
 	va_start(args, format);
-	char buffer[1000];
-	vsnprintf_s(buffer, 1000, format, args);
+	char buffer[5000];
+	vsnprintf_s(buffer, 5000, format, args);
+	va_end(args);
+	LogTaggedPrintf("log", std::string(buffer),needDetails);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/17
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::LogPrintf(char const *format, ...)
+{
+	if (!s_logEnabled)
+	{
+		return;
+	}
+	va_list args;
+	va_start(args, format);
+	char buffer[5000];
+	vsnprintf_s(buffer, 5000, format, args);
 	va_end(args);
 	LogTaggedPrintf("log", std::string(buffer));
 }

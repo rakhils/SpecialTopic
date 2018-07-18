@@ -24,16 +24,11 @@ void RigidBody3D::Update(float deltaTime)
 	m_previousTransform = m_gameObject->m_transform;
 	ApplyGravity(deltaTime);
 	ApplyFriction(deltaTime);
-
-
-
-	//m_velocity				= m_acceleration ;//* deltaTime;
-	//Vector3 displacement	= m_velocity     ;//* deltaTime;
+	m_velocity = m_acceleration * deltaTime;
+	Vector3 displacement = m_velocity * deltaTime;
 	Vector3 currentPosition = m_gameObject->m_transform.GetLocalPosition();
-	Vector3 nextPosition    = currentPosition + m_velocity*deltaTime;
-	m_velocity				+= m_acceleration*deltaTime; 
-	m_gameObject->m_transform.SetLocalPosition(nextPosition);
-	//m_acceleration			-= m_acceleration*m_friction;
+	m_gameObject->m_transform.SetLocalPosition(currentPosition + displacement);
+	m_acceleration -= m_acceleration * m_friction;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -45,13 +40,13 @@ void RigidBody3D::Update(float deltaTime)
 void RigidBody3D::ApplyFriction(float deltaTime)
 {
 	UNUSED(deltaTime);
-	if(m_velocity == Vector3::ZERO)
+	if (m_velocity == Vector3::ZERO)
 	{
 		return;
 	}
-	Vector3 frictionForce = m_velocity * (-1 * m_friction * m_mass);
-	//frictionForce.y = 0;
-	AddForce(frictionForce, deltaTime);
+	Vector3 frictionForce = m_velocity * (-1 * m_friction * m_mass * m_gravity.GetLength());
+	frictionForce.y = 0;
+	//AddForce(frictionForce, deltaTime);
 }
 
 //////////////////////////////////////////////////////////////

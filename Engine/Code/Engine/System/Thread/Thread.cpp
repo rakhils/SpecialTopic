@@ -1,6 +1,9 @@
 #include "Engine/System/Thread/Thread.hpp"
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/FileUtil/File.h"
+#include "Engine/Logger/LogManager.hpp"
+std::string Thread::bigTest;
+
 // CONSTRUCTOR
 Thread::Thread()
 {
@@ -158,7 +161,7 @@ void Thread::ThreadSleep(int ms)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Thread::TestOnThread(int numofThreads)
 {
-	FILE *file = FileOpenForAppend("Data\\Logs\\Garbage.txt");
+	FILE *file = FileOpenForWrite("Garbage.txt");
 	for(int threadIndex = 0;threadIndex < numofThreads;threadIndex++)
 	{
 		ThreadCreateAndDetach("TestThread", TestWriteToFile, file);
@@ -173,7 +176,8 @@ void Thread::TestOnThread(int numofThreads)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Thread::TestOnMainThread()
 {
-	TestWriteToFile(nullptr);
+	FILE *fp = FileOpenForAppend("garbage.txt");
+	TestWriteToFile(fp);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -185,9 +189,65 @@ void Thread::TestOnMainThread()
 void Thread::TestWriteToFile(void *data)
 { 
 	FILE *file = (FILE*)data;
-	for (int charIndex = 0; charIndex < 10000000; charIndex++) 
+	for (int charIndex = 0; charIndex < 12000000; charIndex++) 
 	{
 		char ch = GetRandomCharacter();
 		FileAppendChar(file, ch);
+	}
+	FileClose(file);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/17
+*@purpose : Test log's read and write
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Thread::TestLogReadWrite(char const *srcFile, int threadCount)
+{
+	bigTest = std::string(srcFile);
+	for (int threadIndex = 0; threadIndex < threadCount; threadIndex++)
+	{
+		ThreadCreateAndDetach("TestThread", TestLogRead, &threadIndex);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/17
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Thread::TestLogRead(void *data)
+{
+	int *threadCount = (int*)(void*)&data;
+	int	 count		 = *threadCount;
+	//int threadC     = *(int*)data;
+	char *ch     = (char*)FileReadToBuffer(bigTest.c_str());
+	char *chcopy = ch;
+	int lineCount    = 0;
+	int index = 0;
+	while(*ch != NULL)
+	{
+		index  = 0;
+		chcopy = ch;
+		while(*ch != '\n' && *ch != NULL) // && index < 200)
+		{
+			ch++;
+			index++;
+		}
+		lineCount++;
+		if(*ch == '\n')
+		{
+			ch++;
+		}
+		if(index == 0 || index == 1)
+		{
+			std::string onestring = "";
+			LogManager::GetInstance()->LogPrintf(true,"[ %i : %i ] %s\n", count, lineCount, onestring.c_str());
+			continue;
+		}
+		std::string onestring(chcopy, index );
+		LogManager::GetInstance()->LogPrintf( true,"[ %i : %i ] %s\n", count, lineCount, onestring.c_str()); 
 	}
 }

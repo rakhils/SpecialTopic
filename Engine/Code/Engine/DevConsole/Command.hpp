@@ -105,6 +105,7 @@ void ProfilerTreeView(Command &cmd);
 void MainThreadTest(Command &cmd);
 void NewThreadTest (Command &cmd);
 void LogFlushTest(Command &cmd);
+void LogReadWriteTest(Command &cmd);
 
 void AttachDevConsoleToLogging(Command &cmd);
 void DetachDevConsoleLogging(Command &cmd);

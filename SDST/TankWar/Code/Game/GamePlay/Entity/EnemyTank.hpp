@@ -26,7 +26,7 @@ public:
 	//Member_Variables
 	Vector3 m_forward;
 	Vector3 m_seekPosition;
-	float   m_velocity = 500;
+	float   m_velocity = 500 ;
 	float   m_minDistanceToFollow = 70;
 	float   m_minDistanceForSeperation = 7.5;
 	float   m_minDistanceForCohesion   = 15;
