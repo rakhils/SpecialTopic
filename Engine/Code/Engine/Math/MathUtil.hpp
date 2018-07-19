@@ -38,6 +38,7 @@ Vector3			 GetMin(Vector3 a, Vector3 b);
 Vector2			 GetMax(Vector2 a, Vector2 b);
 Vector3			 GetMax(Vector3 a, Vector3 b);
 int				 GetMax(int a, int b);
+float			 GetMax(float a, float b);
 float		     GetMaxOf2 (float value1, float value2);
 float		     GetMinOf2 (float value1, float value2);
 bool		     IsInRangeOf(int value,int lowerLimit,int upperLimit);

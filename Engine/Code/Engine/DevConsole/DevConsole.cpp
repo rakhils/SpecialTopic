@@ -209,7 +209,6 @@ void DevConsole::Render()
 	Renderer *renderer = Renderer::GetInstance();
 	Camera::SetCurrentCamera(Camera::GetUICamera());
 	//Renderer::GetInstance()->BeginFrame();
-	GL_CHECK_ERROR();
 	RenderBoundaries(renderer);
 	
 	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
@@ -224,7 +223,7 @@ void DevConsole::Render()
 	RenderCursor(renderer);
 	
 	RenderScrollBar(renderer);
-	if(m_predictionOn)
+	//if(m_predictionOn)
 	{
 		RenderPredictionBox(renderer);
 	}
@@ -243,8 +242,9 @@ void DevConsole::Render()
 void DevConsole::RenderOutputBox(Renderer *renderer)
 {
 	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
+	material->GetShader()->DisableDepth();
 	renderer->BindMaterial(material);
-	float positionY = m_outputBox.mins.y + static_cast<float>(m_outputString.size()) * m_fontSize;
+	float positionY = m_outputBox.mins.y + static_cast<float>(m_outputString.size()) * m_fontSize + m_fontSize*3;
 	positionY -= (m_lastOutputIndex * m_fontSize);
 	for (int index = 0; index < m_outputString.size() - m_lastOutputIndex; index++)
 	{
@@ -399,7 +399,9 @@ void DevConsole::RenderPredictionBox(Renderer *renderer)
 
 	AABB2 predictionBox(Vector2(boxStartX - m_fontSize, boxStartY), Vector2(boxMaxX,boxStartY + m_fontSize*m_predictions.size()));
 	AABB2 predictionSelectionBox(Vector2(boxStartX - m_fontSize, boxStartY + m_predictionIndex * m_fontSize), Vector2(boxMaxX, boxStartY + (m_predictionIndex + 1)*m_fontSize));
+
 	Material *defaultMaterial = Material::AquireResource("default");
+	//defaultMaterial->GetShader()->m_state = material->GetShader()->m_state;
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	renderer->DrawAABB(predictionBox,Rgba::BLACK);
 	renderer->DrawRectangle(predictionBox);
@@ -411,6 +413,7 @@ void DevConsole::RenderPredictionBox(Renderer *renderer)
 
 
 	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
+	material->GetShader()->DisableDepth();
 	Renderer::GetInstance()->BindMaterial(material);
 
 	for(int predictionIndex = 0;predictionIndex < m_predictions.size();predictionIndex++)

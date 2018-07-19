@@ -1,7 +1,13 @@
 #pragma once
-#include "Engine/DevConsole/Profiler/ProfileLogScoped.hpp"
+#include "Engine/DevConsole/Profiler/ProfileScope.hpp"
+#include "Engine/DevConsole/Profiler/ProfileLogScope.hpp"
 #define	PROFILER_ENABLED
-#define PROFILE_LOG_SCOPE(tag) ProfileLogScoped __FUNCTION__ ##__LINE__ ## (tag)
+#define COMBINE1(X,Y) X##Y
+#define COMBINE(X,Y) COMBINE1(X,Y)
+#define _QUOTE(x) # x
+#define QUOTE(x) _QUOTE(x)
+#define PROFILE_LOG_SCOPE(tag) ProfileLogScope COMBINE(__score_profile_,__LINE__) ## (tag)
+#define PROFILE_LOG_SCOPE_FUNCTION() PROFILE_LOG_SCOPE(QUOTE(__FUNCTION__))
 enum PROFILER_VIEW
 {
 	FLAT,

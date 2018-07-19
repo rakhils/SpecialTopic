@@ -33,6 +33,8 @@ public:
 	Vector3				  m_turretForwardDirection;
 	float				  m_bulletCoolDown = 0;
 	bool				  m_isArcherBullet = false;
+	Vector3				  m_newDirection;
+	float				  m_timeToLookNewDir = 0.f;
 	//Static_Member_Variables
 
 	//Methods

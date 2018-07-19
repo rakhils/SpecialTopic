@@ -244,10 +244,10 @@ void Thread::TestLogRead(void *data)
 		if(index == 0 || index == 1)
 		{
 			std::string onestring = "";
-			LogManager::GetInstance()->LogPrintf(true,"[ %i : %i ] %s\n", count, lineCount, onestring.c_str());
+			LogManager::GetInstance()->LogPrintf("[ %i : %i ] %s\n", count, lineCount, onestring.c_str());
 			continue;
 		}
 		std::string onestring(chcopy, index );
-		LogManager::GetInstance()->LogPrintf( true,"[ %i : %i ] %s\n", count, lineCount, onestring.c_str()); 
+		LogManager::GetInstance()->LogPrintf("[ %i : %i ] %s\n", count, lineCount, onestring.c_str()); 
 	}
 }

@@ -230,15 +230,22 @@ void CommandStartup()
 	CommandRegister("thread_test_thread",				NewThreadTest,						"DO THREAD TEST ON NEW THREAD");
 	CommandRegister("thread_test_main"  ,				MainThreadTest,						"DO THREAD TEST ON MAIN THREAD");
 	CommandRegister("log_flush_test",					LogFlushTest,						"DO THE LOGS FLUSH TEST");
+	
+	// LOGGER
 	CommandRegister("log_read_write_test",				LogReadWriteTest,					"DO THE LOGS READ MULTIPLE WRITE ONE TEST");
-	CommandRegister("attach_devconsole_tolog",			AttachDevConsoleToLogging,			"ATTACHES DEVCONSOLE OUTPUT TO LOGGER");
+	CommandRegister("attach_devconsole_tolog",			AttachDevConsoleLogging,			"ATTACHES DEVCONSOLE OUTPUT TO LOGGER");
 	CommandRegister("detach_devconsole_tolog",			DetachDevConsoleLogging,			"DETACHES DEVCONSOLE OUTPUT TO LOGGER");
-	CommandRegister("add_log_filter",					AddLogFilter,						"ADDS LOG FILTER ");
-	CommandRegister("removes_log_filter",				RemoveLogFilter,					"REMOVES LOG FILTER");
-	CommandRegister("add_devconsole_log_filter",		AddDevConsoleLogForwardFilter,		"ADDS DEVCONSOLE LOG FILTER ");
-	CommandRegister("removes_devconsole_log_filter",	RemoveDevConsoleLogForwardFilter,	"REMOVES DEVCONSOLE LOG FILTER");
-	CommandRegister("toggle_global_log_filter",			ToggleGlobalLogFilterCheck,			"TOGGLE LOG FILTER CHECK");
-	CommandRegister("toggle_devconsole_log_filter",		ToggleDevConsoleLogFilterCheck,		"TOGGLE DEVCONSOLE LOG FILTER CHECK");
+
+	CommandRegister("log_hide",							LogHideTag,							"ADDS LOG FILTER ");
+	CommandRegister("log_show",							LogShowTag,							"REMOVES LOG FILTER");
+	CommandRegister("log_show_devconsole",				LogShowDevConsoleTag,				"ADDS DEVCONSOLE LOG FILTER ");
+	CommandRegister("log_hide_devconsole",			    LogHideDevConsoleTag,				"REMOVES DEVCONSOLE LOG FILTER");
+
+	CommandRegister("log_show_all",						LogShowAllTag,						"SHOWS ALL TAGS");
+	CommandRegister("log_hide_all",						LogHideAllTag,						"HIDES ALL TAGS");
+	CommandRegister("log_show_all_devconsole",			LogShowAllDevConsoleTag,			"SHOWS ALL DEVCONSOLE TAGS");
+	CommandRegister("log_hide_all_devconsole",			LogHideAllDevConsoleTag,			"HIDES ALL DEVCONSOLE TAGS");
+
 }
 
 //////////////////////////////////////////////////////////////
@@ -809,7 +816,7 @@ void LogReadWriteTest(Command &cmd)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void AttachDevConsoleToLogging(Command &cmd)
+void AttachDevConsoleLogging(Command &cmd)
 {
 	std::string logForwardId = cmd.GetNextString();
 	if(logForwardId == "")
@@ -841,10 +848,10 @@ void DetachDevConsoleLogging(Command &cmd)
 *@param   : Command
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void AddLogFilter(Command &cmd)
+void LogShowTag(Command &cmd)
 {
 	std::string filterTag = cmd.GetNextString();
-	LogManager::GetInstance()->AddFilter(filterTag);
+	LogManager::GetInstance()->LogShowTag(filterTag);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -853,78 +860,83 @@ void AddLogFilter(Command &cmd)
 *@param   : Command
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void RemoveLogFilter(Command &cmd)
+void LogHideTag(Command &cmd)
 {
 	std::string filterTag = cmd.GetNextString();
-	LogManager::GetInstance()->RemoveFilter(filterTag);
+	LogManager::GetInstance()->LogHideTag(filterTag);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/07/15
+/*DATE    : 2018/07/18
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void AddDevConsoleLogForwardFilter(Command &cmd)
+void LogShowDevConsoleTag(Command &cmd)
 {
 	std::string filterTag = cmd.GetNextString();
-	LogManager::GetInstance()->AddDevConsoleFilter(filterTag);
+	LogManager::GetInstance()->LogShowDevConsoleTag(filterTag);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/07/15
+/*DATE    : 2018/07/18
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void RemoveDevConsoleLogForwardFilter(Command &cmd)
+void LogHideDevConsoleTag(Command &cmd)
 {
 	std::string filterTag = cmd.GetNextString();
-	LogManager::GetInstance()->RemoveDevConsoleFilter(filterTag);
+	LogManager::GetInstance()->LogHideDevConsoleTag(filterTag);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/07/15
+/*DATE    : 2018/07/18
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ToggleDevConsoleLogFilterCheck(Command &cmd)
+void LogShowAllDevConsoleTag(Command &cmd)
 {
-	std::string filterTag = cmd.GetNextString();
-	if (filterTag == "true")
-	{
-		LogManager::GetInstance()->LogHideDevConsole();
-		return;
-	}
-	if (filterTag == "false")
-	{
-		LogManager::GetInstance()->LogShowDevConsole();
-		return;
-	}
-	DevConsole::GetInstance()->PushToOutputText("INVALID PARAM - toggle_devconsole_log_filter <true/false>", Rgba::RED);
+	UNUSED(cmd);
+	LogManager::GetInstance()->LogShowAllDevConsoleTag();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/07/14
+/*DATE    : 2018/07/18
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ToggleGlobalLogFilterCheck(Command &cmd)
+void LogHideAllDevConsoleTag(Command &cmd)
 {
-	std::string filterTag = cmd.GetNextString();
-	if(filterTag == "true")
-	{
-		LogManager::GetInstance()->LogHideAll();
-		return;
-	}
-	if (filterTag == "false")
-	{
-		LogManager::GetInstance()->LogShowAll();
-		return;
-	}
-	DevConsole::GetInstance()->PushToOutputText("INVALID PARAM - toggle_global_log_filter <true/false>", Rgba::RED);
+	UNUSED(cmd);
+	LogManager::GetInstance()->LogHideAllDevConsoleTag();
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogShowAllTag(Command &cmd)
+{
+	UNUSED(cmd);
+	LogManager::GetInstance()->LogShowAllTag();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogHideAllTag(Command &cmd)
+{
+	UNUSED(cmd);
+	LogManager::GetInstance()->LogHideAllTag();
 }
 
 /*

@@ -63,7 +63,12 @@ void Tank::FireBullet(float deltaTime,Vector3 direction,bool isArcher)
 	AudioSystem::GetInstance()->PlaySoundFromGroup("shoot");
 	UNUSED(deltaTime);
 	Vector3 bulletSpawnPosition = m_turretHead->m_transform.GetWorldPosition();
-	Bullet *bullet			    = new Bullet("bullet_" + ToString((m_bullets.size())),1, bulletSpawnPosition, direction, 1,isArcher);
+	Bullet *bullet			    = new Bullet("bullet_" + ToString((m_bullets.size())),1, bulletSpawnPosition, direction, 1,isArcher,m_mouseWorldPos);
+	if(isArcher)
+	{
+		m_newDirection = bullet->m_newDirection;
+		m_timeToLookNewDir = 2;
+	}
 	Light *light			    = (Light*)bullet->GetComponentByType(LIGHT);
 	//LIGHT IS NULL IF IT EXCEED MAX LIMIT
 	if(light != nullptr)
@@ -187,7 +192,18 @@ void Tank::Update(float deltaTime)
 	ParticleEmitter *emitter = (ParticleEmitter*)GetComponentByType(PARTICLE);
 	emitter->SpawnParticles(4);
 	UpdateTankOrientation();
-	UpdateRaycastFromTurret(deltaTime);
+	if(m_timeToLookNewDir > 0)
+	{
+		m_timeToLookNewDir -= deltaTime;
+		UpdateTurretOrientation1(deltaTime, m_newDirection);
+		m_mouseWorldPos = m_newDirection;
+		m_mouseWorldPos.y = m_mouseWorldPos.y*-1;
+		DebugDraw::GetInstance()->DebugRenderLogf("NEW DIR %f,%f,%f", m_newDirection.x, m_newDirection.y, m_newDirection.z);
+	}
+	else
+	{
+		UpdateRaycastFromTurret(deltaTime);
+	}
 	UpdateBreadCrumb(deltaTime);
 	UpdateBullet(deltaTime);
 	GameObject::Update(deltaTime);

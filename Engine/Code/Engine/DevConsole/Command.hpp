@@ -104,17 +104,25 @@ void ProfilerTreeView(Command &cmd);
 // THREAD TEST COMMANDS
 void MainThreadTest(Command &cmd);
 void NewThreadTest (Command &cmd);
+// LOG TEST
 void LogFlushTest(Command &cmd);
 void LogReadWriteTest(Command &cmd);
 
-void AttachDevConsoleToLogging(Command &cmd);
+void AttachDevConsoleLogging(Command &cmd);
 void DetachDevConsoleLogging(Command &cmd);
-void AddLogFilter(Command &cmd);
-void RemoveLogFilter(Command &cmd);
-void AddDevConsoleLogForwardFilter(Command &cmd);
-void RemoveDevConsoleLogForwardFilter(Command &cmd);
-void ToggleDevConsoleLogFilterCheck(Command &cmd);
-void ToggleGlobalLogFilterCheck(Command &cmd);
+
+void LogShowTag(Command &cmd);
+void LogHideTag(Command &cmd);
+
+void LogShowDevConsoleTag(Command &cmd);
+void LogHideDevConsoleTag(Command &cmd);
+
+void LogShowAllDevConsoleTag(Command &cmd);
+void LogHideAllDevConsoleTag(Command &cmd);
+
+void LogShowAllTag(Command &cmd);
+void LogHideAllTag(Command &cmd);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static std::vector<std::string> GetCommandHistory();
 

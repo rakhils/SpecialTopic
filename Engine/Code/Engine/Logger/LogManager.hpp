@@ -119,6 +119,13 @@ public:
 		m_lock.unlock();
 	}
 
+	void RemoveAll()
+	{
+		m_lock.lock();
+		m_data.clear();
+		m_lock.unlock();
+	}
+
 	bool HasTag(std::string tag)
 	{	
 		bool hasTag = false;
@@ -153,6 +160,8 @@ public:
 	ThreadSafeSet						    	m_filters; 
 	ThreadSafeSet						    	m_devConsolefilters;
 	bool										m_globalFilterCheck		= false;
+	bool										m_isActingAsBlackList   = true;
+	bool										m_isActingAsBlackListForDevConsole   = true;
 	bool										m_devConsoleFilterCheck	= false;
 	//Static_Member_Variables
 	static bool									s_logEnabled;
@@ -188,27 +197,25 @@ public:
 	void				LogFlushTest();
 	void				LogReadWriteTest(char const *srcFile, int threadCount);
 
-	void				LogTaggedPrintv(std::string tag,char const *format, va_list args);
 	void				LogTaggedPrintf(std::string tag,char const *format, ...);
 	void				LogTaggedPrintf(std::string tag,std::string text,bool needDetails = true);
-	void				LogPrintf(bool needDetails,char const *format,...);
+	//void				LogPrintf(bool needDetails,char const *format,...);
 	void				LogPrintf(char const *format, ...);
 	void				LogWarningf(char const *format,...);
 	void				LogErrorf( char const *format, ... );
 
 	void				AttachLogForwardCallBacks(std::string id,LogForwardCallBack cb);
 	void				DetachLogForwardCallBacks(std::string id);
-	void				AddFilter(std::string tag);
-	void				RemoveFilter(std::string tag);
-	void				AddDevConsoleFilter(std::string tag);
-	void			    RemoveDevConsoleFilter(std::string tag);
 
-	void				LogShowAll();
-	void				LogHideAll();
-	void				LogShowTag(char const *tag);
-	void				LogHideTag(char const *tag);
-	void				LogShowDevConsole();
-	void				LogHideDevConsole();
+	void				LogShowTag(std::string tag);
+	void			    LogHideTag(std::string tag);
+	void				LogShowAllTag();
+	void				LogHideAllTag();
+
+	void				LogShowDevConsoleTag(std::string tag);
+	void				LogHideDevConsoleTag(std::string tag);
+	void				LogShowAllDevConsoleTag();
+	void				LogHideAllDevConsoleTag();
 
 	
 

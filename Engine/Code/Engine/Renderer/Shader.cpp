@@ -12,6 +12,7 @@ Shader::Shader(Renderer *renderer)
 	SetFrontFace(WIND_COUNTER_CLOCKWISE);
 	EnableColorBlending(COMPARE_ADD, BLEND_SRC_ALPHA, BLEND_INV_SRC_ALPHA);
 	EnableAlphaBlending(COMPARE_ADD, BLEND_SRC_ALPHA, BLEND_INV_SRC_ALPHA);
+	//SetDepth(COMPARE_LESS, true);
 	DisableDepth();
 }
 

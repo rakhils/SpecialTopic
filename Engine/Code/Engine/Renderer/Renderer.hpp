@@ -115,6 +115,7 @@ struct RenderState
 	eBlendOperation  m_alpha_blend_op;		// COMPARE_ADD
 	eBlendFactor     m_alpha_src_factor;	// BLEND_ONE
 	eBlendFactor     m_alpha_dst_factor;	// BLEND_ONE
+
 };
 struct FogFactor
 {

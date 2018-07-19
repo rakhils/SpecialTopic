@@ -1,30 +1,30 @@
 #pragma once
-
-/*\class  : ProfileLogScoped		   
+#include "Engine/Time/Clock.hpp"
+/*\class  : ProfileLogScope		   
 * \group  : <GroupName>	   
 * \brief  :		   
 * \TODO:  :		   
 * \note   :		   
 * \author : Rakhil Soman		   
 * \version: 1.0		   
-* \date   : 7/6/2018 12:09:09 AM
+* \date   : 7/18/2018 5:42:28 PM
 * \contact: srsrakhil@gmail.com
 */
-class ProfileLogScoped
+ 
+class ProfileLogScope
 {
 
 public:
 	//Member_Variables
-	
+	double	    m_startTime;
+	uint64_t    m_startHPC;
+	char const *m_tag;
 	//Static_Member_Variables
 
 	//Methods
-public:
-	ProfileLogScoped(char const *tag);
-	~ProfileLogScoped();
 
-	double   m_seconds;
-	char const *tag;
+	ProfileLogScope(char* tag);
+	~ProfileLogScope();
 	
 	//Static_Methods
 

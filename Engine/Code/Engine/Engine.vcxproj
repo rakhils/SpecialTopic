@@ -328,7 +328,11 @@
       <SubType>
       </SubType>
     </ClCompile>
-    <ClCompile Include="DevConsole\Profiler\ProfileLogScoped.cpp">
+    <ClCompile Include="DevConsole\Profiler\ProfileLogScope.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\ProfileScope.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -701,7 +705,11 @@
       <SubType>
       </SubType>
     </ClInclude>
-    <ClInclude Include="DevConsole\Profiler\ProfileLogScoped.hpp">
+    <ClInclude Include="DevConsole\Profiler\ProfileLogScope.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="DevConsole\Profiler\ProfileScope.hpp">
       <SubType>
       </SubType>
     </ClInclude>

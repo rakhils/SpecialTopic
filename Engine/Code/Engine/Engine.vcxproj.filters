@@ -430,10 +430,13 @@
     <ClCompile Include="DevConsole\Profiler\ProfilerReport.cpp">
       <Filter>General</Filter>
     </ClCompile>
-    <ClCompile Include="DevConsole\Profiler\ProfileLogScoped.cpp">
+    <ClCompile Include="System\Thread\Thread.cpp">
       <Filter>General</Filter>
     </ClCompile>
-    <ClCompile Include="System\Thread\Thread.cpp">
+    <ClCompile Include="DevConsole\Profiler\ProfileScope.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="DevConsole\Profiler\ProfileLogScope.cpp">
       <Filter>General</Filter>
     </ClCompile>
   </ItemGroup>
@@ -729,8 +732,9 @@
     <ClInclude Include="DevConsole\Profiler\ProfilerReportEntry.hpp" />
     <ClInclude Include="DevConsole\Profiler\ProfilerReport.hpp" />
     <ClInclude Include="DevConsole\Profiler\ProfilerConstants.hpp" />
-    <ClInclude Include="DevConsole\Profiler\ProfileLogScoped.hpp" />
     <ClInclude Include="System\Thread\Thread.hpp" />
+    <ClInclude Include="DevConsole\Profiler\ProfileScope.hpp" />
+    <ClInclude Include="DevConsole\Profiler\ProfileLogScope.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">
