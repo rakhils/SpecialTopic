@@ -23,7 +23,7 @@
 
 
    <!--ALL PIPES-->
-  <Brick actor ="Pipe"   position="930,90"    dimension="60,60"/>
+  <Brick actor ="Pipe"   position="930,95"    dimension="60,60"/>
   </SpawnActor>
   <SpawnActor>
     <Brick actor ="Brick" position="915,75"  dimension="30,30" physics="false"/>
@@ -40,7 +40,7 @@
   
   
   <SpawnActor>
-    <Brick actor ="Pipe" position="1245,105"  dimension="60,90"/>
+    <Brick actor ="Pipe" position="1245,113"  dimension="60,90"/>
   </SpawnActor>
   <SpawnActor>
     <Brick actor ="Brick" position="1230,75"  dimension="30,30" physics="false"/>
@@ -63,7 +63,7 @@
   
   
   <SpawnActor>
-  <Brick actor ="Pipe"    position="1500,120"  dimension="60,120"/>
+  <Brick actor ="Pipe"    position="1500,128"  dimension="60,120"/>
   </SpawnActor>
   <SpawnActor>
     <Brick actor ="Brick" position="1485,75"  dimension="30,30" physics="false"/>
@@ -94,7 +94,7 @@
   
   
   <SpawnActor>
-  <Brick actor ="Pipe"    position="1860,120"  dimension="60,120"/>
+  <Brick actor ="Pipe"    position="1860,125"  dimension="60,120"/>
   </SpawnActor>
   <SpawnActor>
     <Brick actor ="Brick" position="1845,75"  dimension="30,30" physics="false" hidden="false"/>
@@ -126,7 +126,7 @@
   
   
   <SpawnActor>
-  <Brick actor ="Pipe" position="5280,90"   dimension="60,60"/>
+  <Brick actor ="Pipe" position="5280,98"   dimension="60,60"/>
   </SpawnActor>
   <SpawnActor>
     <Brick actor ="Brick" position="5265,75"  dimension="30,30" physics="false"/>
@@ -143,7 +143,7 @@
   
   
   <SpawnActor>
-  <Brick actor ="Pipe" position="5790,90"   dimension="30,30"/>
+  <Brick actor ="Pipe" position="5790,98"   dimension="60,60"/>
   </SpawnActor>
   <SpawnActor>
     <Brick actor ="Brick" position="5775,75"  dimension="30,30" physics="false"/>

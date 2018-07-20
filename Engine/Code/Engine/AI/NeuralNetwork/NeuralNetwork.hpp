@@ -11,10 +11,7 @@
 * \date   : 6/20/2018 2:10:47 PM
 * \contact: srsrakhil@gmail.com
 */
-struct NeuralNetStruct_t
-{
 
-};
 struct Neuron
 {
 	float				m_value = 0;

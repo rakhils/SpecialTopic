@@ -328,27 +328,27 @@ void Map::Update(float deltaTime)
 	}
 	if(InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_Z))
 	{
-		((OrthographicCamera*)m_camera)->ZoomIn(Vector2(100*deltaTime,100*deltaTime));
+		((OrthographicCamera*)m_camera)->ZoomIn(Vector2(1000*deltaTime,1000*deltaTime));
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_X))
 	{
-		((OrthographicCamera*)m_camera)->ZoomOut(Vector2(100*deltaTime,100*deltaTime));
+		((OrthographicCamera*)m_camera)->ZoomOut(Vector2(1000*deltaTime,1000*deltaTime));
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_A))
 	{
-		((OrthographicCamera*)m_camera)->MoveLeft(deltaTime * 120);
+		((OrthographicCamera*)m_camera)->MoveLeft(deltaTime * 1200);
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_S))
 	{
-		((OrthographicCamera*)m_camera)->MoveDown(deltaTime*120);
+		((OrthographicCamera*)m_camera)->MoveDown(deltaTime*1200);
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_D))
 	{
-		((OrthographicCamera*)m_camera)->MoveRigth(deltaTime*120);
+		((OrthographicCamera*)m_camera)->MoveRigth(deltaTime*1200);
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_W))
 	{
-		((OrthographicCamera*)m_camera)->MoveUp(deltaTime*120);
+		((OrthographicCamera*)m_camera)->MoveUp(deltaTime*1200);
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_R))
 	{
