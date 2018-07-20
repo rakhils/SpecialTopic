@@ -2,6 +2,8 @@
 #include "Engine/FileUtil/File.h"
 #include "Engine/DevConsole/DevConsole.hpp"
 #include "Engine/Core/Rgba.hpp"
+#include <string>
+#include "../Core/StringUtils.hpp"
 bool								 LogManager::s_logEnabled = true;
 std::map<std::string, FILE*>		 LogManager::s_logIdMaps;
 LogManager *						 LogManager::s_logger = nullptr;
@@ -89,7 +91,7 @@ void LogManager::LogSystemStartup(std::string fileName)
 	defautlDefine.m_tag     = "default";
 	defautlDefine.m_color   = Rgba::GREEN;
 	s_logDefines["default"] = defautlDefine;
-	 
+	GetInstance()->DeleteOlderFiles();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -274,7 +276,7 @@ void LogManager::Init(std::string fileName)
 	time(&rawtime);
 	struct tm info;
 	localtime_s(&info, &rawtime);
-	strftime(buffer, 50, "_%Y-%m-%d_%H-%M-%S", &info);
+	strftime(buffer, 50, "_%Y_%m_%d_%H_%M_%S", &info);
 
 	std::string timeStamp = fileName;
 	timeStamp.append(buffer);// +".png");
@@ -483,7 +485,7 @@ void LogManager::LogShowTag(std::string tag)
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void LogManager::LogHideTag(std::string tag)
-{
+{ 
 	if(m_isActingAsBlackList)
 	{
 		m_filters.Add(tag);
@@ -563,6 +565,83 @@ void LogManager::LogShowAllDevConsoleTag()
 void LogManager::LogHideAllDevConsoleTag()
 {
 	m_devConsoleFilterCheck = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/07/19
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void LogManager::DeleteOlderFiles()
+{
+	// GET THE CURRENT TIME DATE
+	////////////////////////////////////////////////////////////////////
+	time_t rawtime;
+	char buffer[80];
+	time(&rawtime);
+
+	struct tm info;
+	localtime_s(&info, &rawtime);
+	strftime(buffer, 50, "%Y_%m_%d", &info);
+	std::string date(buffer);
+
+	std::vector<std::string> dateSet;
+	Split(dateSet,date, '_');
+	int year;
+	int month;
+	int day;
+	ToInt(dateSet.at(0), &year);
+	ToInt(dateSet.at(1), &month);
+	ToInt(dateSet.at(2), &day);
+	int totalDays = year * 365 + month * 30 + day;
+	////////////////////////////////////////////////////////////////////
+	WIN32_FIND_DATA search_data;
+
+	memset(&search_data, 0, sizeof(WIN32_FIND_DATA));
+	std::wstring folder(L"Logs\\*.txt");
+
+	HANDLE handle = FindFirstFile(folder.c_str(), &search_data);
+	std::vector<std::string> fileDates;
+	while (handle != INVALID_HANDLE_VALUE)
+	{
+		//sample file name defaultLog_2018-07-19_22-44-40
+
+		char ch[260];
+		char DefChar = ' ';
+		WideCharToMultiByte(CP_ACP, 0, search_data.cFileName, -1, ch, 260, &DefChar, NULL);
+
+		std::string fileName(ch);
+
+		Split(fileDates, fileName, '_');
+		if(fileDates.size() > 3)
+		{
+			int fileYear;
+			int fileMonth;
+			int fileDay;
+			ToInt(fileDates.at(1), &fileYear);
+			ToInt(fileDates.at(2), &fileMonth);
+			ToInt(fileDates.at(3), &fileDay);
+
+			int totalFileDays = fileYear * 365 + fileMonth * 30 + fileDay;
+			if(totalDays - totalFileDays > 10) // less than 10 days delete .. not the best calculation available
+			{
+				std::string fullLengthFileName;
+				fullLengthFileName.append("Logs\\");
+				fullLengthFileName.append(fileName);
+				remove(fullLengthFileName.c_str());
+			}
+		}
+		fileDates.clear();
+		
+
+
+		if (FindNextFile(handle, &search_data) == FALSE)
+		{
+			break;
+			
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

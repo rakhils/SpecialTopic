@@ -1,13 +1,17 @@
 #pragma once
 #include <string>
+#include <iostream>
 #include <map>
 #include <stdarg.h>
 #include <queue>
 #include <mutex>
+#include <windows.h>
+
 #include "Engine/System/Thread/Thread.hpp"
 #include "Engine/Time/TimeSystem.hpp"
 #include "Engine/Core/Rgba.hpp"
 #include "Engine/Core/EngineCommon.hpp"
+
 /*\class  : LogManager		   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -18,6 +22,7 @@
 * \date   : 5/20/2018 2:03:29 AM
 * \contact: srsrakhil@gmail.com
 */
+//namespace fs = std::filesystem//;
 struct LogDefine
 {
 	std::string m_tag;
@@ -216,6 +221,8 @@ public:
 	void				LogHideDevConsoleTag(std::string tag);
 	void				LogShowAllDevConsoleTag();
 	void				LogHideAllDevConsoleTag();
+
+	void				DeleteOlderFiles();
 
 	
 

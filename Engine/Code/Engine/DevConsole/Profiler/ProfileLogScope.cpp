@@ -14,7 +14,7 @@ ProfileLogScope::~ProfileLogScope()
 {
 	double endTime = GetCurrentTimeSeconds();
 	double timeDiff = endTime - m_startTime;
-	uint64_t diff   = Clock::g_theMasterClock->total.m_hpc - m_startHPC;
+	//uint64_t diff   = Clock::g_theMasterClock->total.m_hpc - m_startHPC;
 	std::string text(m_tag);
 	LogManager::GetInstance()->LogPrintf("%s Took Time : %f SECONDS ", m_tag,static_cast<double>(timeDiff));
 }
