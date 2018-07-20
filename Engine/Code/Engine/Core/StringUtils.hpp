@@ -38,3 +38,4 @@ std::string				 TrimString(std::string);
 
 bool					 ToInt(std::string value,int *intvalue);
 bool					 ToFloat(std::string value, float *floatvalue);
+bool					 ToDouble(std::string value, double *doublevalue);

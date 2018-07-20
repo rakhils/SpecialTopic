@@ -577,7 +577,7 @@ void LogManager::DeleteOlderFiles()
 {
 	// GET THE CURRENT TIME DATE
 	////////////////////////////////////////////////////////////////////
-	time_t rawtime;
+	/*time_t rawtime;
 	char buffer[80];
 	time(&rawtime);
 
@@ -594,7 +594,7 @@ void LogManager::DeleteOlderFiles()
 	ToInt(dateSet.at(0), &year);
 	ToInt(dateSet.at(1), &month);
 	ToInt(dateSet.at(2), &day);
-	int totalDays = year * 365 + month * 30 + day;
+	int totalDays = year * 365 + month * 30 + day;*/
 	////////////////////////////////////////////////////////////////////
 	WIN32_FIND_DATA search_data;
 
@@ -603,6 +603,9 @@ void LogManager::DeleteOlderFiles()
 
 	HANDLE handle = FindFirstFile(folder.c_str(), &search_data);
 	std::vector<std::string> fileDates;
+	
+	std::vector<double> totalTimeList;
+	std::map<double, std::string> totalTimeMap;
 	while (handle != INVALID_HANDLE_VALUE)
 	{
 		//sample file name defaultLog_2018-07-19_22-44-40
@@ -616,31 +619,62 @@ void LogManager::DeleteOlderFiles()
 		Split(fileDates, fileName, '_');
 		if(fileDates.size() > 3)
 		{
-			int fileYear;
-			int fileMonth;
-			int fileDay;
-			ToInt(fileDates.at(1), &fileYear);
-			ToInt(fileDates.at(2), &fileMonth);
-			ToInt(fileDates.at(3), &fileDay);
+			double fileYear;
+			double fileMonth;
+			double fileDay;
+			double fileHour;
+			double fileMin;
+			double fileSec;
 
-			int totalFileDays = fileYear * 365 + fileMonth * 30 + fileDay;
-			if(totalDays - totalFileDays > 10) // less than 10 days delete .. not the best calculation available
+			ToDouble(fileDates.at(1), &fileYear);
+			ToDouble(fileDates.at(2), &fileMonth);
+			ToDouble(fileDates.at(3), &fileDay);
+			ToDouble(fileDates.at(4), &fileHour);
+			ToDouble(fileDates.at(5), &fileMin);
+			ToDouble(fileDates.at(6), &fileSec);
+
+			double totalFileTime = fileYear *365*30*24*60*60 + fileMonth * 30*24*60*60 + fileDay*24*60*60 + fileHour*60*60 + fileMin*60 + fileSec;
+			// calculating the time from the AD 0 (total time) can start from later years as well may be from 1970 TODO
+
+			totalTimeList.push_back(totalFileTime);
+			std::string fullLengthFileName;
+			fullLengthFileName.append("Logs\\");
+			fullLengthFileName.append(fileName);
+			totalTimeMap[totalFileTime] = fullLengthFileName; // Dont need to check duplication as excat date and time wont exist for multiple logs
+			/*if(totalDays - totalFileDays > 10) // less than 10 days delete .. not the best calculation available
 			{
 				std::string fullLengthFileName;
 				fullLengthFileName.append("Logs\\");
 				fullLengthFileName.append(fileName);
 				remove(fullLengthFileName.c_str());
-			}
+			}*/
 		}
 		fileDates.clear();
 		
-
-
 		if (FindNextFile(handle, &search_data) == FALSE)
 		{
 			break;
 			
 		}
+	}
+
+
+	for(int index = 0;index < totalTimeList.size();index++)
+	{
+		for (int index1 = index + 1; index1 < totalTimeList.size(); index1++)
+		{
+			if(totalTimeList.at(index) < totalTimeList.at(index1))
+			{
+				double temp = totalTimeList.at(index);
+				totalTimeList.at(index) = totalTimeList.at(index1);
+				totalTimeList.at(index1) = temp;
+			}
+		}
+	}
+	int maxIndexCount = 5;
+	for (int index = maxIndexCount; index < totalTimeList.size(); index++)
+	{
+		remove(totalTimeMap[totalTimeList.at(index)].c_str());
 	}
 }
 
