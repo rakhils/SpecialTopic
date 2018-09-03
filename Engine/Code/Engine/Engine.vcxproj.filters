@@ -439,6 +439,24 @@
     <ClCompile Include="DevConsole\Profiler\ProfileLogScope.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Net\Net.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\NetAddress.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\TCP\TCPSocket.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\TCP\TCPServer.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\Endianness.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Core\BytePacker.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -735,6 +753,12 @@
     <ClInclude Include="System\Thread\Thread.hpp" />
     <ClInclude Include="DevConsole\Profiler\ProfileScope.hpp" />
     <ClInclude Include="DevConsole\Profiler\ProfileLogScope.hpp" />
+    <ClInclude Include="Net\Net.hpp" />
+    <ClInclude Include="Net\NetAddress.hpp" />
+    <ClInclude Include="Net\TCP\TCPSocket.hpp" />
+    <ClInclude Include="Net\TCP\TCPServer.hpp" />
+    <ClInclude Include="Core\Endianness.hpp" />
+    <ClInclude Include="Core\BytePacker.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

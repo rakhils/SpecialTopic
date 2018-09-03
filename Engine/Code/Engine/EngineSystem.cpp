@@ -1,3 +1,4 @@
+#include "Engine/Net/Net.hpp"
 #include "Engine/EngineSystem.hpp"
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/DevConsole/Command.hpp"
@@ -29,6 +30,7 @@ void EngineSystem::StartUp()
 	RendererStartUp();
 	DevConsoleStartUp();
 	LoggerStartUp();
+	Net::StartUp();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -60,6 +62,7 @@ void EngineSystem::Render()
 {
 	ProfilerManager::PushProfiler("EngineSystem::Render");
 	RenderDevConsoleSystem();
+	RenderDebugRenderSystem();
 	ProfilerManager::PoPProfiler();
 }
 
@@ -186,4 +189,15 @@ void EngineSystem::RenderProfiler()
 #endif
 	ProfilerManager::PoPProfiler();
 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/08/31
+*@purpose : Renders all debug systems
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EngineSystem::RenderDebugRenderSystem()
+{
+	DebugDraw::Render();
 }

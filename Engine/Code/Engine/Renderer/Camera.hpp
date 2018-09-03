@@ -44,8 +44,8 @@ public:
 	Matrix44	m_view;
 	Matrix44	m_model;
 
-	float		m_xZoomIn;
-	float       m_yZoomIn;
+	float		m_xZoomIn = 0.f;
+	float       m_yZoomIn = 0.f;
 
 	FrameBuffer *m_defaultFrameBuffer = nullptr;
 	

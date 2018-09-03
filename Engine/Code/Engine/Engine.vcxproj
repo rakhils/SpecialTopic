@@ -311,7 +311,15 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Core\BytePacker.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Core\Component.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Core\Endianness.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -421,6 +429,22 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="Mesh\MeshBuilder.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\Net.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\NetAddress.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\TCP\TCPServer.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\TCP\TCPSocket.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -687,7 +711,15 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="Core\BytePacker.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Core\Component.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Core\Endianness.hpp">
       <SubType>
       </SubType>
     </ClInclude>
@@ -800,6 +832,22 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Mesh\MeshBuilder.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\Net.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\NetAddress.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\TCP\TCPServer.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\TCP\TCPSocket.hpp">
       <SubType>
       </SubType>
     </ClInclude>

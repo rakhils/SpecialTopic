@@ -123,7 +123,13 @@ void LogHideAllDevConsoleTag(Command &cmd);
 void LogShowAllTag(Command &cmd);
 void LogHideAllTag(Command &cmd);
 
+
+void Connect(Command &cmd);// char *ip, char *port, char* data, int dataLength);
+void Listen(Command &cmd);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
 static std::vector<std::string> GetCommandHistory();
 
 void CommandRunScript(char const *script);

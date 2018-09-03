@@ -93,10 +93,10 @@ void Camera::SetOrthoProjection()
 	float width  = static_cast<float>(Windows::GetInstance()->GetDimensions().x);
 	float height = static_cast<float>(Windows::GetInstance()->GetDimensions().y);
 
-	width -= m_xZoomIn;
+	width  -= m_xZoomIn;
 	height -= m_yZoomIn;
 
-	Vector3 cameraPosition = m_transform.GetWorldPosition();
+	Vector3 cameraPosition    = m_transform.GetWorldPosition();
 	Vector3 minCameraPosition = cameraPosition - Vector3(width / 2, height / 2, 0);
 	Vector3 maxCameraPosition = cameraPosition + Vector3(width / 2, height / 2, 0);
 

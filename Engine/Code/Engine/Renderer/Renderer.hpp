@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <time.h>
 
+#include "Engine/Math/Disc2.hpp"
 #include "Engine/Math/Vector2.hpp"
 #include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/IntVector2.hpp"
@@ -205,9 +206,10 @@ public:
 	
 	// FUNCTION TO DRAW CIRCLE
 	void			DrawDottedCircle(float centreX,float centreY,float radius);
+	void			DrawCircle(Disc2 disc, Rgba color);
 	void			DrawCircle(float centreX,float centreY,float nradius);
 	void			DrawCircle(Vector2 centre,float nradius);
-	void			DrawCircle(float centreX,float centreY,float nradius,const float MAX_NUM_VERTEX);
+	void			DrawCircle(float centreX,float centreY,float nradius,Rgba color,const float MAX_NUM_VERTEX);
 	
 	// FUNCTION TO DRAW RECTANGLE
 	void			DrawRectangle(AABB2 aabb2);

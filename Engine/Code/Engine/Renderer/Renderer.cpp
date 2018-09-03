@@ -431,10 +431,10 @@ void Renderer::DrawDottedCircle(float centreX,float centreY,float nradius)
 
 void Renderer::DrawCircle(float centreX,float centreY,float radius)
 {
-	DrawCircle(centreX,centreY,radius,10);
+	DrawCircle(centreX,centreY,radius,Rgba::WHITE,10);
 }
 
-void Renderer::DrawCircle(float centreX,float centreY,float nradius,float numofSize)
+void Renderer::DrawCircle(float centreX,float centreY,float nradius,Rgba color,float numofSize)
 {
 	UNUSED(numofSize);
 	const int MAX_NUM_VERTEX = 31;
@@ -447,7 +447,7 @@ void Renderer::DrawCircle(float centreX,float centreY,float nradius,float numofS
 
 		float endX   =  centreX + (nradius)*CosDegrees((i+1)*nangle);
 		float endY   =  centreY + (nradius)*SinDegrees((i+1)*nangle);
-		line[i].setRGBA(Rgba::RED);
+		line[i].setRGBA(Rgba::WHITE);
 		line[i].setPoint(startX,startY);
 		line[i + 1].setRGBA(Rgba::WHITE);
 		line[i + 1].setPoint(endX,endY);
@@ -458,6 +458,11 @@ void Renderer::DrawCircle(float centreX,float centreY,float nradius,float numofS
 void Renderer::DrawCircle(Vector2 centre, float nradius)
 {
 	DrawCircle(centre.x,centre.y,nradius);
+}
+
+void Renderer::DrawCircle(Disc2 disc, Rgba color)
+{
+	DrawCircle(disc.center.x,disc.center.y,disc.radius,Rgba::WHITE,20);
 }
 
 //////////////////////////////////////////////////////////////

@@ -240,6 +240,7 @@ void Initialize( HINSTANCE applicationInstanceHandle )
 	g_theRenderer = Renderer::GetInstance();
 	g_theRenderer->RenderStartup();
 	g_theRenderer->PostStartup();
+	//CommandStartup();
 	CommandRunScript("");
 	CommandRegister("quit",QuitApp,"QUITS APPLICATION");
 	g_theApp = new App();

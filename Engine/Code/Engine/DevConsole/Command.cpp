@@ -1,3 +1,4 @@
+#include "Engine/Net/TCP/TCPSocket.hpp"
 #include "Engine/DevConsole/Command.hpp"
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/DevConsole/DevConsole.hpp"
@@ -10,6 +11,7 @@
 #include "Engine/DevConsole/Profiler/ProfilerConstants.hpp"
 #include "Engine/Logger/LogManager.hpp"
 #include "Engine/System/Thread/Thread.hpp"
+#include "Engine/Net/TCP/TCPServer.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Command::Command()
@@ -245,6 +247,9 @@ void CommandStartup()
 	CommandRegister("log_hide_all",						LogHideAllTag,						"HIDES ALL TAGS");
 	CommandRegister("log_show_all_devconsole",			LogShowAllDevConsoleTag,			"SHOWS ALL DEVCONSOLE TAGS");
 	CommandRegister("log_hide_all_devconsole",			LogHideAllDevConsoleTag,			"HIDES ALL DEVCONSOLE TAGS");
+
+	CommandRegister("a01_test_server", Listen, "Starts server and listen in a port");
+	CommandRegister("a01_test_connect", Connect, "Connects to a port and server");
 
 }
 
@@ -937,6 +942,34 @@ void LogHideAllTag(Command &cmd)
 {
 	UNUSED(cmd);
 	LogManager::GetInstance()->LogHideAllTag();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/08/24
+*@purpose : Sends messages
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Connect(Command &cmd)
+{
+	std::string ip   = cmd.GetNextString();
+	std::string port = cmd.GetNextString();
+	std::string data = cmd.GetNextString();
+
+	TCPSocket::SendMessage((char*)ip.c_str(), (char*)port.c_str(), (char*)data.c_str(), data.length());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/08/25
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Listen(Command &cmd)
+{
+	int port;
+	bool success  = cmd.GetNextInt(&port);
+	Thread::ThreadCreateAndDetach("net_listen", TCPServer::ListenOnThread, &port);
 }
 
 /*

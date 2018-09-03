@@ -12,8 +12,26 @@
 //	Purpose: Each game can now direct the engine via #defines to build differently for that game.
 //	Downside: ALL games must now have this Code/Game/EngineBuildPreferences.hpp file.
 //
+AudioSystem *			AudioSystem::s_audioSystem = nullptr;
 #include "Engine/EngineBuildPreferences.hpp"
-//#if !defined( ENGINE_DISABLE_AUDIO )
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/05/20
+*@purpose : Gets static instance of audio system
+*@param   : NIL
+*@return  : AudioSystem static pointer
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+AudioSystem* AudioSystem::GetInstance()
+{
+#if !defined( ENGINE_DISABLE_AUDIO )
+
+	if (s_audioSystem == nullptr)
+	{
+		s_audioSystem = new AudioSystem();
+	}
+#endif
+	return s_audioSystem;
+}
+#if !defined( ENGINE_DISABLE_AUDIO )
 //-----------------------------------------------------------------------------------------------
 // Link in the appropriate FMOD static library (32-bit or 64-bit)
 //
@@ -26,22 +44,8 @@
 // Initialization code based on example from "FMOD Studio Programmers API for Windows"
 //
 
-AudioSystem *			AudioSystem::s_audioSystem = nullptr;
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/05/20
-*@purpose : Gets static instance of audio system
-*@param   : NIL
-*@return  : AudioSystem static pointer
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-AudioSystem* AudioSystem::GetInstance()
-{
-	if(s_audioSystem == nullptr)
-	{
-		s_audioSystem = new AudioSystem();
-	}
-	return s_audioSystem;
-}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 AudioSystem::AudioSystem()
@@ -330,4 +334,4 @@ void AudioSystem::ValidateResult( FMOD_RESULT result )
 	}
 }
 
-//#endif // !defined( ENGINE_DISABLE_AUDIO )
+#endif // !defined( ENGINE_DISABLE_AUDIO )

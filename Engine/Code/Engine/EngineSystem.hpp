@@ -40,6 +40,7 @@ public:
 
 	static void RenderDevConsoleSystem();
 	static void RenderProfiler();
+	static void RenderDebugRenderSystem();
 	//Static_Methods
 
 protected:
