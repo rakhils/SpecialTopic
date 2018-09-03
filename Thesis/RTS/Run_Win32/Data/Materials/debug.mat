@@ -1,0 +1,5 @@
+<material id="default">
+  <shader id="debug" />
+  <texture bind="0" src="default" />
+  
+</material>
