@@ -48,6 +48,7 @@ int			     GetAbsolute(int value);
 Vector2			 GetAbsolute(Vector2 value);
 Vector3          GetAbsolute(Vector3 value);
 Vector4			 GetAbsolute(Vector4 value);
+double			 GetPower(int value, int power);
 			     
 float		     GetDistance( const Vector2 a, const Vector2 b );
 float		     GetDistanceSquared( const Vector2 a, const Vector2 b );
@@ -138,12 +139,16 @@ Vector3		     ConvertSphericalToCartesian(Vector3 position);
 std::string      GetHexaDecimalEquivalent(int value);
 
 // BIT RELATED FUNCTIONS
-bool			 AreBitsSet( unsigned char bitFlags8, unsigned char flagsToCheck );
-bool			 AreBitsSet( unsigned int bitFlags32, unsigned int flagsToCheck );
-void			 SetBits   ( unsigned char& bitFlags8, unsigned char flagsToSet );
-void			 SetBits   ( unsigned int& bitFlags32, unsigned int flagsToSet );
-void			 ClearBits ( unsigned char& bitFlags8, unsigned char flagToClear );
-void			 ClearBits ( unsigned int& bitFlags32, unsigned int flagToClear );
+bool			 AreBitsSet( unsigned char value8, unsigned char flagsToCheck );
+bool			 AreBitsSet( unsigned int value32, unsigned int flagsToCheck );
+bool			 AreBitsSet(size_t value64, size_t flagsToCheck);
+void			 SetBits   (unsigned char& value8, unsigned char flagsToSet);
+void			 SetBits   (unsigned int&  value32, unsigned int flagsToSet);
+void			 SetBits   (size_t&  value32, size_t flagsToSet);
+void			 ClearBits (unsigned char& value8, unsigned char flagToClear);
+void			 ClearBits (unsigned int&  value32, unsigned int flagToClear);
+void			 ClearBits (size_t&  value32, size_t flagToClear);
+
 
 //INTERPOLATE FUNCTIONS
 int				 Interpolate( int start, int end, float fractionTowardEnd );

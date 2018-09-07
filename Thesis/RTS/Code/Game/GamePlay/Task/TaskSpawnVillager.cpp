@@ -1,6 +1,7 @@
 #include "Game/GamePlay/Task//TaskSpawnVillager.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 TaskSpawnVillager::TaskSpawnVillager(Map* map,TownCenter *townCenter)
 {
@@ -22,6 +23,7 @@ TaskSpawnVillager::~TaskSpawnVillager()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool TaskSpawnVillager::DoTask(float deltaTime)
 {
+	UNUSED(deltaTime);
 	int tileIndex = m_map->GetTileIndex(m_entity->GetPosition());
 	IntVector2 tileCords = m_map->GetCordinates(tileIndex);
 

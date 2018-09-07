@@ -64,6 +64,7 @@ public:
 // Command callbacks take a Command.
 static std::vector<std::string> commandHistory;
 static int commandHistoryIndex = 0;
+static bool isDevConsoleOutputActive = true;
 
 void CommandStartup();
 void CommandShutdown();
@@ -126,6 +127,15 @@ void LogHideAllTag(Command &cmd);
 
 void Connect(Command &cmd);// char *ip, char *port, char* data, int dataLength);
 void Listen(Command &cmd);
+
+// RC COMMANDS
+void TestRCSMsg(Command &cmd);
+void RCExecute(Command &cmd);
+void RCHost(Command &cmd);
+void RCJoin(Command &cmd);
+void RCBExecute(Command &cmd);
+void RCAExecute(Command &cmd);
+void RCEcho(Command &cmd);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

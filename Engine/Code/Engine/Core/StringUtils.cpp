@@ -1,6 +1,6 @@
 #include "Engine/Core/StringUtils.hpp"
+#include "Engine/Math/MathUtil.hpp"
 #include <stdarg.h>
-
 
 //-----------------------------------------------------------------------------------------------
 const int STRINGF_STACK_LOCAL_TEMP_LENGTH = 2048;
@@ -386,6 +386,82 @@ std::string ToString(int value)
 
 	}
 	return integer;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/02
+*@purpose : returns string representation of bits in the param
+*@param   : int of which bit representation needed
+*@return  : bit representation in string
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string ToBitString(size_t value)
+{
+	int size = sizeof(size_t);
+	size_t bitFlag = 1;
+	std::string bitString;
+	for(int index = 0;index < size*8;index++)
+	{
+		if(index % 8 == 0)
+		{
+			bitString.push_back(' ');
+		}
+		if(AreBitsSet(value,bitFlag))
+		{
+			bitString.push_back('1');
+		}
+		else
+		{
+			bitString.push_back('0');
+		}
+		bitFlag = bitFlag << 1;
+	}
+	return Reverse(bitString);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string ToBitString(char value)
+{
+	std::string bitString = "";
+	unsigned char bitFlag = 1;
+	for (int index = 0; index < 8; index++)
+	{
+		if (AreBitsSet(value, bitFlag))
+		{
+			bitString.push_back('1');
+		}
+		else
+		{
+			bitString.push_back('0');
+		}
+		bitFlag = bitFlag << 1;
+	}
+	return Reverse(bitString);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/02
+*@purpose : Reverses string
+*@param   : original string
+*@return  : reversed string
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Reverse(std::string str)
+{
+	std::string reversedString;
+	for(size_t indexI = str.length() - 1;indexI >=0 ;indexI--)
+	{
+		reversedString.push_back(str[indexI]);
+		if(indexI == 0)
+		{
+			break;
+		}
+	}
+	return reversedString;
+
 }
 
 //////////////////////////////////////////////////////////////

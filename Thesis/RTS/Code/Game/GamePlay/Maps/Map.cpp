@@ -160,6 +160,7 @@ IntVector2 Map::GetTilePosition(Vector2 position)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IntVector2 Map::GetTilePosition(int tilePosition)
 {
+	UNUSED(tilePosition);
 	return IntVector2::ONE;
 }
 
@@ -608,6 +609,7 @@ IntVector2 Map::GetCordinates(Vector2 mapPosition)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::ProcessInputs(float deltaTime)
 {
+	UNUSED(deltaTime);
 	Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
 	mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
 	m_currentTileIndex = GetTileIndex(mousePosition);
@@ -641,6 +643,7 @@ void Map::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::UpdateCamera(float deltaTime)
 {
+	UNUSED(deltaTime);
 	m_camera->SetOrthoProjection();
 }
 
@@ -861,13 +864,13 @@ void Map::RenderGrids()
 {
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
-	for(int x = 0; x < (m_maxWidth + 1)*g_unitDistance ;x += g_unitDistance)
+	for(float x = 0; x < (static_cast<float>(m_maxWidth) + 1)*g_unitDistance ;x += g_unitDistance)
 	{
-		g_theRenderer->DrawLine(Vector3(x, 0, 0), Vector3(x, (m_maxHeight + 2)*g_unitDistance, 0));
+		g_theRenderer->DrawLine(Vector3(x, 0.f, 0.f), Vector3(x, (static_cast<float>(m_maxHeight) + 2)*g_unitDistance, 0));
 	}
-	for (int y = 0; y < (m_maxHeight + 2)* g_unitDistance; y += g_unitDistance)
+	for (float y = 0; y < (static_cast<float>(m_maxHeight) + 2)* g_unitDistance; y += g_unitDistance)
 	{
-		g_theRenderer->DrawLine(Vector3(0, y, 0), Vector3((m_maxWidth + 1)* g_unitDistance,y,0));
+		g_theRenderer->DrawLine(Vector3(0.f, y, 0.f), Vector3((m_maxWidth + 1.f)* g_unitDistance,y,0.f));
 	}
 	delete defaultMaterial;
 }

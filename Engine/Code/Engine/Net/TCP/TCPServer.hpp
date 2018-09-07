@@ -1,4 +1,5 @@
 #pragma once
+#include "Engine/Net/NetAddress.hpp"
 /*\class  : TCPServer		   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -15,8 +16,11 @@ class TCPServer
 
 public:
 	//Member_Variables
+	bool m_blocking = false;
 	bool m_isListening = true;
 	int  m_port = 0;
+	bool m_isDisconnected = false;
+	SOCKET m_socket;
 	//Static_Member_Variablesk
 
 	//Methods
@@ -27,6 +31,7 @@ public:
 
 	void Listen(int port);
 	void Listen();
+	void Disconnect();
 	
 	//Static_Methods
 	static void ListenOnThread(void *data);

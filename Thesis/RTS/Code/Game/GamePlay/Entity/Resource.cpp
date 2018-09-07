@@ -32,6 +32,7 @@ Resource::~Resource()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Resource::ProcessInputs(float deltaTime)
 {
+	UNUSED(deltaTime);
 	Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
 	mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
 

@@ -1,5 +1,5 @@
 #include "Engine/Net/Net.hpp"
-
+#include "Engine/Core/StringUtils.hpp"
 std::string Net::m_ipaddr = "";
 //#include "Engine/Logger/LogManager.hpp"
 // CONSTRUCTOR
@@ -135,7 +135,7 @@ bool Net::GetBindableAddress(sockaddr *out,int *out_addrlen,int port)
 		return false;
 	}
 
-	char const *service = "80";
+	char const *service = ToString(port).c_str();
 
 	addrinfo hints;
 	memset(&hints, 0, sizeof(hints));

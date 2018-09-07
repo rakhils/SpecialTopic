@@ -4,6 +4,7 @@
 #include "Engine/System/Thread/Thread.hpp"
 #include "Engine/DevConsole/DevConsole.hpp"
 #include "Engine/Core/StringUtils.hpp"
+#include "Engine/Net/RCS.hpp"
 //#include "Engine/Net/NetAddress.hpp"
 // CONSTRUCTOR
 TCPServer::TCPServer(int port)
@@ -38,45 +39,48 @@ void TCPServer::Listen(int port)
 {
 	NetAddress addr;
 
-	int count = NetAddress::GetBindableAddress(&addr, port);
-	SOCKET sock = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	NetAddress::GetBindableAddress(&addr, port);
 
+	m_socket = ::socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	
 	sockaddr_storage saddr;
 	size_t			 addrlen;
 	addr.ToSockAddr((sockaddr*)&saddr, &addrlen);
 
-	int result = ::bind(sock, (sockaddr*)&saddr, addrlen);
+	int result = ::bind(m_socket, (sockaddr*)&saddr, static_cast<int>(addrlen));
 	if (result == SOCKET_ERROR)
 	{
-		::closesocket(sock);
+		Disconnect();
 		return;
 	}
 
+	u_long non_blocking = m_blocking ? 0 : 1;
+	::ioctlsocket((SOCKET)m_socket, FIONBIO, &non_blocking);
+	
 	int maxQueued = 16;
-	result = ::listen(sock, maxQueued);
+	result = ::listen(m_socket, maxQueued);
 	if (result == SOCKET_ERROR)
 	{
-		::closesocket(sock);
+		Disconnect();
 		return;
 	}
+	
+	::ioctlsocket((SOCKET)m_socket, FIONBIO, &non_blocking);
 
 	while (m_isListening)
 	{
 		sockaddr_storage remoteAddr;
 		int remoteAddrLen = sizeof(sockaddr_storage);
 
-		SOCKET remoteSock = ::accept(sock, (sockaddr*)&remoteAddr, &remoteAddrLen);
-		int error		  =  WSAGetLastError();
-
-		std::string pong = "pong";
-		::send(remoteSock, pong.c_str(), pong.length(), 0);
-		//int error1 = WSAGetLastError();
-
+		SOCKET remoteSock = ::accept(m_socket, (sockaddr*)&remoteAddr, &remoteAddrLen);
 
 		if (remoteSock != INVALID_SOCKET)
 		{
-			TCPSocket* tcpSocket = new TCPSocket(remoteSock);
-			Thread::ThreadCreateAndDetach("NetworkRecvToDevConsole", TCPSocket::RecvAndPushToDevConsole, tcpSocket);
+			if (port == RCS::GetInstance()->m_rcsPort)
+			{
+				TCPSocket *tcpSocket = new TCPSocket(remoteSock,(char*)NetAddress::GetIP().c_str(),false);
+				RCS::GetInstance()->PushNewConnection(tcpSocket);
+			}
 		}
 	}
 }
@@ -93,6 +97,23 @@ void TCPServer::Listen()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void TCPServer::Disconnect()
+{
+	if(m_port == RCS::GetInstance()->m_rcsPort)
+	{
+		RCS::GetInstance()->FailedToHost();
+	}
+	m_isListening = false;
+	m_isDisconnected = true;
+	::closesocket(m_socket);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/25
 *@purpose : NIL
 *@param   : NIL
@@ -100,11 +121,10 @@ void TCPServer::Listen()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TCPServer::ListenOnThread(void *data)
 {
-	int *value = (int*)(void*)&data;
-	int	 port = *value;
-	std::string ip = NetAddress::GetIP();
-	DevConsole::GetInstance()->PushToOutputText("Starting to listen on IP " + ip + " PORT "+ToString(1),Rgba::GREEN);
-	TCPServer *server = new TCPServer();
-	server->Listen(12345);
+	TCPServer *server = (TCPServer*)(data);
+	int	 port		  = server->m_port;
+	std::string ip    = NetAddress::GetIP();
+	DevConsole::GetInstance()->PushToOutputText("Starting to listen on IP " + ip + " PORT "+ToString(port),Rgba::GREEN);
+	server->Listen(port);
 }
 

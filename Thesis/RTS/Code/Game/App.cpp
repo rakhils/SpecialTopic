@@ -11,15 +11,27 @@
 #include "Engine\EngineSystem.hpp"
 #include "Engine\DevConsole\Profiler\ProfilerManager.hpp"
 #include "Engine\Core\Endianness.hpp"
+#include "Engine\Core\BytePacker.hpp"
+
 App::App()
 {
-	g_theRenderer = Renderer::GetInstance();
-	g_theInput = InputSystem::GetInstance();
-	g_audio = AudioSystem::GetInstance();
-	g_theGame = new Game();
+	g_theRenderer   = Renderer::GetInstance();
+	g_theInput		= InputSystem::GetInstance();
+	g_audio			= AudioSystem::GetInstance();
+	g_theGame		= new Game();
 
 	Clock::g_theMasterClock = new Clock();
 	g_theGameClock = new Clock();
+
+	/*BytePacker *bp = new BytePacker(4,LITTLE_ENDIAN);
+	size_t si = bp->WriteSize(8675309);
+	size_t out = 0;
+	bp->ReadSize(&out);
+	int a = 1;*/
+	//BytePacker *bp = new BytePacker(BIG_ENDIAN);
+	//bp->WriteString("join");
+	//std::string str = bp->GetString();
+	//int a = 1;
 }
 
 App::~App()

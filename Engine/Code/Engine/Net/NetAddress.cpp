@@ -29,6 +29,7 @@ bool NetAddress::GetBindableAddress(NetAddress *netaddr,int port)
 	}
 	netaddr->FromSockAddr((sockaddr*)&saddr);
 	netaddr->m_port = port;
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -53,7 +54,8 @@ bool NetAddress::GetRemoteAddress(NetAddress *netaddr,sockaddr *out, int *out_ad
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::string NetAddress::GetIP()
 {
-	return Net::GetIP();
+	std::string ip = Net::GetIP();
+	return ip;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,7 +96,7 @@ bool NetAddress::ToSockAddr(sockaddr *addr, size_t *out_size)
 
 	ipv4->sin_family		   = AF_INET;
 	ipv4->sin_addr.S_un.S_addr = m_address;
-	ipv4->sin_port			   = ::htons(m_port);
+	ipv4->sin_port			   = static_cast<USHORT>(::htons(m_port));
 	return true;
 
 	// to string

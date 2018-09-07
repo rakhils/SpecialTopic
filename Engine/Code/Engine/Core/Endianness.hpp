@@ -1,5 +1,6 @@
 #pragma once
-
+#include <stdio.h>
+#include <stdint.h>
 /*\class  : Endianness		   
 * \group  : <GroupName>		   
 * \brief  :	   
@@ -32,6 +33,8 @@ public:
 	static eEndianness GetPlatformEndianness();
 	static void		   ToEndianness( size_t const size, void *data, eEndianness targetEndianness );
 	static void		   FromEndianness( size_t const size, void *data, eEndianness SourceEndianness );
+
+	static uint16_t    ToBigEndian(uint16_t value);
 
 	//Static_Methods
 

@@ -440,6 +440,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Net\RCS.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Net\TCP\TCPServer.cpp">
       <SubType>
       </SubType>
@@ -840,6 +844,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Net\NetAddress.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\RCS.hpp">
       <SubType>
       </SubType>
     </ClInclude>

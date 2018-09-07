@@ -33,7 +33,10 @@ std::string				 ToString(size_t value);
 std::string				 ToString(Vector2 value);
 std::string				 ToString(Vector3 value);
 std::string				 ToString(Vector4 value);
+std::string				 ToBitString(size_t value);
+std::string				 ToBitString(char value);
 
+std::string				 Reverse(std::string str);
 std::string				 TrimString(std::string);
 
 bool					 ToInt(std::string value,int *intvalue);

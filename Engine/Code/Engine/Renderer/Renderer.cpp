@@ -437,6 +437,7 @@ void Renderer::DrawCircle(float centreX,float centreY,float radius)
 void Renderer::DrawCircle(float centreX,float centreY,float nradius,Rgba color,float numofSize)
 {
 	UNUSED(numofSize);
+	UNUSED(color);
 	const int MAX_NUM_VERTEX = 31;
 	Vertex_3DPCU line[MAX_NUM_VERTEX];
 	float nangle = 360.0f/(MAX_NUM_VERTEX -1);
@@ -462,7 +463,7 @@ void Renderer::DrawCircle(Vector2 centre, float nradius)
 
 void Renderer::DrawCircle(Disc2 disc, Rgba color)
 {
-	DrawCircle(disc.center.x,disc.center.y,disc.radius,Rgba::WHITE,20);
+	DrawCircle(disc.center.x,disc.center.y,disc.radius,color,20);
 }
 
 //////////////////////////////////////////////////////////////

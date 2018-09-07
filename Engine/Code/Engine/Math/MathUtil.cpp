@@ -474,6 +474,17 @@ Vector4 GetAbsolute(Vector4 value)
 	return Vector4(GetAbsolute(value.x), GetAbsolute(value.y), GetAbsolute(value.z), GetAbsolute(value.w));
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/03
+*@purpose : Finds the power of a value
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double GetPower(int value, int power)
+{
+	return pow(value, power);
+}
+
 bool IsVectorAlmostEqual(Vector2 value1, Vector2 value2,float diff)
 {
 	float modulusValue = GetAbsolute(GetDistance(value1,value2));
@@ -1377,18 +1388,33 @@ void SetRandomSRAND()
 	srand(static_cast<int>(GetSystemTimeInSeconds()));
 }
 
-bool AreBitsSet(unsigned char bitFlags8, unsigned char flagsToCheck)
+bool AreBitsSet(unsigned char value, unsigned char flagsToCheck)
 {
-	if((bitFlags8 & flagsToCheck) == flagsToCheck)
+	if((value & flagsToCheck) == flagsToCheck)
 	{
 		return true;
 	}
 	return false;
 }
 
-bool AreBitsSet(unsigned int bitFlags32, unsigned int flagsToCheck)
+bool AreBitsSet(unsigned int value, unsigned int flagsToCheck)
 {
-	if((bitFlags32 & flagsToCheck) == flagsToCheck)
+	if((value & flagsToCheck) == flagsToCheck)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/03
+*@purpose : Checks if bits are set
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool AreBitsSet(size_t value64, size_t flagsToCheck)
+{
+	if ((value64 & flagsToCheck) == flagsToCheck)
 	{
 		return true;
 	}
@@ -1405,6 +1431,17 @@ void SetBits(unsigned int& bitFlags32, unsigned int flagsToSet)
 	bitFlags32 = (bitFlags32 | flagsToSet);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/03
+*@purpose : Sets bit to one at pos
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetBits(size_t& value32, size_t flagsToSet)
+{
+	value32 = (value32 | flagsToSet);
+}
+
 void ClearBits(unsigned char& bitFlags8, unsigned char flagToClear)
 {
 	bitFlags8 = (bitFlags8 & ~flagToClear);
@@ -1413,6 +1450,17 @@ void ClearBits(unsigned char& bitFlags8, unsigned char flagToClear)
 void ClearBits(unsigned int& bitFlags32, unsigned int flagToClear)
 {
 	bitFlags32 = (bitFlags32 & ~flagToClear);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/03
+*@purpose : Clears bits at position
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClearBits(size_t& value32, size_t flagToClear)
+{
+	value32 = (value32 & ~flagToClear);
 }
 
 const Vector2 GetProjectedVector(const Vector2& vectorToProject, const Vector2& projectOnto)

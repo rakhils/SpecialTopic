@@ -33,6 +33,7 @@ TownCenter::~TownCenter()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TownCenter::ProcessInputs(float deltaTime)
 {
+	UNUSED(deltaTime);
 	if (g_currentSelectedEntity == this)
 	{
 		if(InputSystem::GetInstance()->WasLButtonJustPressed())

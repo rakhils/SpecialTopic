@@ -45,14 +45,37 @@ void Endianness::ToEndianness(size_t const size, void *data, eEndianness targetE
 
 	char *byte_buffer = (char*)data;
 
-	int indexI = 0;
-	int indexJ = size - 1U;
+	size_t indexI = 0;
+	size_t indexJ = size - 1U;
 	while(indexI < indexJ)
 	{
 		std::swap(byte_buffer[indexI], byte_buffer[indexJ]);
 		indexI++;
 		indexJ--;
 	}
+}
 
-	//data[ind] == *(byte_buffer + i);
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Endianness::FromEndianness(size_t const size, void *data, eEndianness SourceEndianness)
+{
+	if (SourceEndianness != GetPlatformEndianness())
+	{
+		return;
+	}
+
+	char *byte_buffer = (char*)data;
+
+	size_t indexI = 0;
+	size_t indexJ = size - 1U;
+	while (indexI < indexJ)
+	{
+		std::swap(byte_buffer[indexI], byte_buffer[indexJ]);
+		indexI++;
+		indexJ--;
+	}
 }

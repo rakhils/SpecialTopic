@@ -2,6 +2,8 @@
 
 #include "Game/GamePlay/Entity/Entity.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
+
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 TaskShortRangeAttack::TaskShortRangeAttack(Entity *entity, int tileIndex)
 {
@@ -21,8 +23,9 @@ TaskShortRangeAttack::~TaskShortRangeAttack()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool TaskShortRangeAttack::DoTask(float delatTime)
+bool TaskShortRangeAttack::DoTask(float deltaTime)
 {
+	UNUSED(deltaTime);
 	m_entity->m_map->AttackOnPosition(m_attackTile, 1);
 	m_entity->m_map->CreateExplosions(m_entity->m_map->GetMapPosition(m_attackTile));
 	return true;

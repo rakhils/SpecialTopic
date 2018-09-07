@@ -12,6 +12,7 @@
 #include "Engine/Logger/LogManager.hpp"
 #include "Engine/System/Thread/Thread.hpp"
 #include "Engine/Net/TCP/TCPServer.hpp"
+#include "Engine/Net/RCS.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Command::Command()
@@ -250,6 +251,10 @@ void CommandStartup()
 
 	CommandRegister("a01_test_server", Listen, "Starts server and listen in a port");
 	CommandRegister("a01_test_connect", Connect, "Connects to a port and server");
+
+	CommandRegister("testrcs", TestRCSMsg, "TESTS RCS MSG");
+	CommandRegister("rc", RCExecute, "Executes RC Commands");
+	CommandRegister("rc_host", RCHost, "HOST IN NEW PORT");
 
 }
 
@@ -955,8 +960,8 @@ void Connect(Command &cmd)
 	std::string ip   = cmd.GetNextString();
 	std::string port = cmd.GetNextString();
 	std::string data = cmd.GetNextString();
-
-	TCPSocket::SendMessage((char*)ip.c_str(), (char*)port.c_str(), (char*)data.c_str(), data.length());
+	char *returnMsg = nullptr;
+	TCPSocket::SendMsg((char*)ip.c_str(), (char*)port.c_str(), (char*)data.c_str(), data.length(),returnMsg);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -969,7 +974,138 @@ void Listen(Command &cmd)
 {
 	int port;
 	bool success  = cmd.GetNextInt(&port);
-	Thread::ThreadCreateAndDetach("net_listen", TCPServer::ListenOnThread, &port);
+	if(success)
+	{
+		Thread::ThreadCreateAndDetach("net_listen", TCPServer::ListenOnThread, &port);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void TestRCSMsg(Command &cmd)
+{
+	int connectionIndex;
+	cmd.GetNextInt(&connectionIndex);
+	std::string msg = cmd.GetNextString();
+	RCS::GetInstance()->SendMsg(connectionIndex, false, msg.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCExecute(Command &cmd)
+{
+	std::string indexString = cmd.GetNextString();
+	size_t equalIndex = indexString.find('=');
+	std::string connectionIndexString = indexString.substr(equalIndex + 1, indexString.size());
+	int index = -1;
+	bool success = ToInt(connectionIndexString,&index);
+	if(success)
+	{
+		std::string rcmd = cmd.GetNextString();
+		RCS::GetInstance()->SendMsg(index, false, rcmd.c_str());
+	}
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : RCHost 
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCHost(Command &cmd)
+{
+	std::string portString = cmd.GetNextString();
+	size_t equalIndex = portString.find('=');
+	std::string portnumString = portString.substr(equalIndex + 1, portString.size());
+	int port = -1;
+	bool success = ToInt(portnumString, &port);
+	if(!success)
+	{
+		port = RCS::GetInstance()->m_rcsPort;
+	}
+	if (RCS::GetInstance()->m_tcpServer != nullptr)
+	{
+		RCS::GetInstance()->m_tcpServer->Disconnect();
+		delete RCS::GetInstance()->m_tcpServer;
+		RCS::GetInstance()->m_rcsPort = port;
+		RCS::GetInstance()->Host();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : Joins new sessions
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCJoin(Command &cmd)
+{
+	std::string addressString    = cmd.GetNextString();
+	size_t colonIndex			     = addressString.find(':');
+	std::string ipaddress        = addressString.substr(0, colonIndex);
+	std::string portStr		     = addressString.substr(colonIndex+1,addressString.size());
+
+	RCS::GetInstance()->DisconnectAndCleanUpAllConnections();
+	RCS::GetInstance()->m_ipaddress  = ipaddress;
+	int port = 0;
+	if(ToInt(portStr, &port))
+	{
+		RCS::GetInstance()->m_rcsPort = port;
+		RCS::GetInstance()->m_state = RCS_STATE_CLIENT;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : Executes command 
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCBExecute(Command &cmd)
+{
+	std::string command    = cmd.GetNextString();
+	RCS::GetInstance()->SendMsg(false, command.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCAExecute(Command &cmd)
+{
+	std::string command = cmd.GetNextString();
+	RCS::GetInstance()->SendMsg(false, command.c_str());
+	CommandRun(command.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCEcho(Command &cmd)
+{
+	std::string toggle    = cmd.GetNextString();
+	size_t colonIndex		  = toggle.find(':');
+	std::string value     = toggle.substr(colonIndex+1, toggle.size());
+	bool echoEnabled	  = false;
+	if (value == "enabled")
+	{
+		echoEnabled = true;
+	}
+	RCS::GetInstance()->m_isHookedToDevConsole = echoEnabled;
 }
 
 /*

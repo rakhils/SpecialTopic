@@ -457,6 +457,9 @@
     <ClCompile Include="Core\BytePacker.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Net\RCS.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -759,6 +762,7 @@
     <ClInclude Include="Net\TCP\TCPServer.hpp" />
     <ClInclude Include="Core\Endianness.hpp" />
     <ClInclude Include="Core\BytePacker.hpp" />
+    <ClInclude Include="Net\RCS.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

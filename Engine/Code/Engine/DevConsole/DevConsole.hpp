@@ -55,6 +55,7 @@ public:
 	int								m_predictionIndex      = 0;
 	std::vector<CommandDefinition>  m_predictions;
 	std::vector<OutputBox*>		    m_outputString;
+	bool							m_isDevConsoleOuputEnabled = true;
 private:
 	DevConsole();
 	~DevConsole();
@@ -76,6 +77,8 @@ public:
 	void RenderSelections(Renderer *renderer);
 	void RenderScrollBar(Renderer *renderer);
 	void RenderPredictionBox(Renderer *renderer);
+	void RenderRCSInfo(Renderer *renderer);
+
 	void UpdateInputText(char ch);
 	void UpdateInputWithPrediction();
 	void PushToOutputText();

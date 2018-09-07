@@ -1,5 +1,7 @@
 #include "Game/GamePlay/Task/Task.hpp"
 #include "Game/GamePlay/Entity/Entity.hpp"
+
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 Task::Task()
 {
@@ -20,5 +22,5 @@ Task::~Task()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Task::Update(float deltaTime)
 {
-
+	UNUSED(deltaTime);
 }
