@@ -442,29 +442,7 @@ void DevConsole::RenderPredictionBox(Renderer *renderer)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void DevConsole::RenderRCSInfo(Renderer *renderer)
 {
-	Material *material = Material::AquireResource("Data\\Materials\\text.mat");
-	Material *defaultMaterial = Material::AquireResource("default");
-	Renderer::GetInstance()->BindMaterial(defaultMaterial);
-	renderer->DrawAABB(AABB2(Vector2(1750, 900), 200, 100), Rgba::FADED_WHITE);
-
-	if(RCS::GetInstance()->m_state == RCS_STATE_CLIENT)
-	{
-		std::string RCSInfoText = "";// RCS.GetConnectionByIndex(0)->;
-		Vector2 RCSInfoTextPosition(1500, 900);
-		renderer->DrawTextOnPoint(RCSInfoText, 0, static_cast<int>(RCSInfoText.length()), RCSInfoTextPosition, static_cast<float>(m_fontSize) / 2.0f, Rgba::WHITE);
-	}
-	if (RCS::GetInstance()->m_state == RCS_STATE_HOST)
-	{
-		for(size_t index = 0;index < RCS::GetInstance()->m_tcpSocketArray.size();index++)
-		{
-			std::string RCSInfoText = ToString((int)index);
-			//RCSInfoText += " " + RCS::GetInstance()->m_tcpSocketArray.at(index)->GetRemoteIp();
-
-			Vector2 RCSInfoTextPosition(1770, 900);
-			Renderer::GetInstance()->BindMaterial(material);
-			renderer->DrawTextOnPoint(RCSInfoText, 0, static_cast<int>(RCSInfoText.length()), RCSInfoTextPosition, static_cast<float>(m_fontSize) / 4.0f, Rgba::WHITE);
-		}
-	}
+	RCS::GetInstance()->RenderInfo();
 }
 
 //////////////////////////////////////////////////////////////

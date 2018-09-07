@@ -20,13 +20,13 @@ class TCPSocket
 
 public:
 	//Member_Variables
-	SOCKET m_socket;
-	BytePacker *m_bytePacketer;
-	bool   m_blocking       = true;
-	bool   m_isListening	= true;
-	bool   m_isDisconnected = false;
-	int    m_port;
-	std::string				m_ip;
+	SOCKET					m_socket;
+	BytePacker *			m_bytePacketer;
+	bool					m_blocking       = true;
+	bool					m_isListening	 = true;
+	bool					m_isDisconnected = false;
+	int						m_port;
+	std::string				m_ipaddress;
 
 	//Static_Member_Variables
 
@@ -51,9 +51,12 @@ public:
 	void   CloseSocket();
 	void   Disconnect();
 
+	bool   IsDisconnected();
+
 	bool   HasFatalError();
 
 	std::string GetRemoteIp();
+	int			GetRemotePort();
 
 	static size_t SendMsg(char *ip, char *port, char *msg, size_t msgLength,char *out_msg);
 	static void   RecvAndPushToDevConsole(void *data);

@@ -7,9 +7,8 @@
 #include "Engine/DevConsole/Command.hpp"
 #include "Engine/DevConsole/DevConsole.hpp"
 #include "Engine/Core/BytePacker.hpp"
-#include "Engine/Net/TCP/TCPServer.hpp"
 #include "Engine/Core/EngineCommon.hpp"
-
+#include "Engine/Renderer/Materials/Material.hpp"
 RCS * RCS::s_theRCS = nullptr;
 // CONSTRUCTOR
 RCS::RCS()
@@ -46,11 +45,17 @@ bool RCS::Join()
 	tcpSocket->m_blocking = false;
 	if(tcpSocket->Connect((char*)m_ipaddress.c_str(),m_rcsPort))
 	{
-		m_state = RCS_STATE_CLIENT;
+		//m_state = RCS_STATE_CLIENT;
 		m_tcpSocketArray.push_back(tcpSocket);
 		return true;
 	}
+	if(m_state == RCS_STATE_FORCE_JOIN)
+	{
+		m_state = RCS_STATE_CLIENT;
+		return false;
+	}
 	m_state = RCS_STATE_CLIENT_FAILED;
+	CleanUpHosting();
 	return false;
 }
 
@@ -62,11 +67,30 @@ bool RCS::Join()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool RCS::Host()
 {
-	m_tcpServer = new TCPServer();
-	m_tcpServer->m_port = m_rcsPort;
-	Thread::ThreadCreateAndDetach("net_listen", TCPServer::ListenOnThread,((void *)m_tcpServer));
-	m_state = RCS_STATE_HOST;
+	if(m_tcpServer == nullptr)
+	{
+		m_tcpServer = new TCPServer();
+		m_tcpServer->m_port = m_rcsPort;
+		Thread::ThreadCreateAndDetach("net_listen", TCPServer::ListenOnThread,((void *)m_tcpServer));
+		m_state = RCS_STATE_HOST;
+	}
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCS::CleanUpHosting()
+{
+	if(m_tcpServer != nullptr)
+	{
+		m_tcpServer->Disconnect();
+		delete m_tcpServer;
+		m_tcpServer = nullptr;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,15 +107,34 @@ void RCS::Update(float deltaTime)
 	case RCS_STATE_CLIENT:
 		if(m_tcpSocketArray.size() == 0)
 		{
+			m_rcsPort = m_rcsDefaultPort;
 			Join();
 			break;
 		}
 		if(m_tcpSocketArray.size() == 1)
 		{
 			TCPSocket *tcpSocket = m_tcpSocketArray.at(0);
-			if(tcpSocket->m_isDisconnected)
+			if (tcpSocket->IsDisconnected())
 			{
 				m_tcpSocketArray.erase(m_tcpSocketArray.begin(), m_tcpSocketArray.begin() + 1);
+				delete tcpSocket;
+			}
+		}
+		break;
+	case RCS_STATE_FORCE_JOIN:
+		if (m_tcpSocketArray.size() == 0)
+		{
+			Join();
+			break;
+		}
+		if (m_tcpSocketArray.size() == 1)
+		{
+			TCPSocket *tcpSocket = m_tcpSocketArray.at(0);
+			if (tcpSocket->IsDisconnected())
+			{
+				m_tcpSocketArray.erase(m_tcpSocketArray.begin(), m_tcpSocketArray.begin() + 1);
+				delete tcpSocket;
+				m_state = RCS_STATE_CLIENT;
 			}
 		}
 		break;
@@ -108,6 +151,14 @@ void RCS::Update(float deltaTime)
 	case RCS_STATE_HOST:
 		for(size_t index = 0;index < m_tcpSocketArray.size();index++)
 		{
+			if(m_tcpSocketArray.at(index)->m_isDisconnected)
+			{
+				TCPSocket *tcpSocket = m_tcpSocketArray.at(index);
+				m_tcpSocketArray.erase(m_tcpSocketArray.begin() + index, m_tcpSocketArray.begin() + index + 1);
+				delete tcpSocket;
+				index--;
+				continue;
+			}
 			TCPSocket *tcpSocket = m_tcpSocketArray.at(index);
 			ProcessConnection(tcpSocket);
 		}
@@ -139,6 +190,58 @@ void RCS::DisconnectAndCleanUpAllConnections()
 		delete tcpSocket;
 		m_tcpSocketArray.erase(m_tcpSocketArray.begin() + index, m_tcpSocketArray.begin() + index + 1);
 		index--;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCS::RenderInfo()
+{
+	Material *textmaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	Material *defaultMaterial = Material::AquireResource("default");
+	Renderer::GetInstance()->BindMaterial(defaultMaterial);
+	Renderer::GetInstance()->DrawAABB(AABB2(Vector2(1650, 900), 250, 100), Rgba::FADED_WHITE);
+	float m_fontSize = 7.5;
+	std::string rcsState = RCS::GetInstance()->GetState();
+	Vector2 RCSInfoTextPosition(1450, 990);
+	Renderer::GetInstance()->BindMaterial(textmaterial);
+	Renderer::GetInstance()->DrawTextOnPoint(rcsState, 0, static_cast<int>(rcsState.length()), RCSInfoTextPosition, m_fontSize, Rgba::WHITE);
+	RCSInfoTextPosition.y -= 2*m_fontSize;
+
+	if (RCS::GetInstance()->m_state == RCS_STATE_HOST)
+	{
+		std::string joinAddress = "JOIN ADDRESS ";
+		Renderer::GetInstance()->DrawTextOnPoint(joinAddress, 0, static_cast<int>(joinAddress.length()), RCSInfoTextPosition, m_fontSize, Rgba::WHITE);
+		RCSInfoTextPosition.y -= 2*m_fontSize;
+		if(RCS::GetInstance()->m_tcpServer != nullptr)
+		{
+		joinAddress = RCS::GetInstance()->m_tcpServer->GetIp() + ":" + ToString(RCS::GetInstance()->m_tcpServer->m_port);
+		Renderer::GetInstance()->DrawTextOnPoint(joinAddress, 0, static_cast<int>(joinAddress.length()), RCSInfoTextPosition+ Vector2(m_fontSize*2,0), m_fontSize, Rgba::WHITE);
+		RCSInfoTextPosition.y -= 2*m_fontSize;
+
+		}
+
+	}
+
+	if (RCS::GetInstance()->m_state == RCS_STATE_HOST || RCS::GetInstance()->m_state == RCS_STATE_CLIENT)
+	{
+		std::string text = "CONNECTIONS ";
+		Renderer::GetInstance()->DrawTextOnPoint(text, 0, static_cast<int>(text.length()), RCSInfoTextPosition , m_fontSize, Rgba::WHITE);
+		RCSInfoTextPosition.y -= 2*m_fontSize;
+
+		for (size_t index = 0; index < m_tcpSocketArray.size(); index++)
+		{
+			std::string RCSInfoText = "["+ToString((int)index)+"]";
+			RCSInfoText += " " + m_tcpSocketArray.at(index)->GetRemoteIp()+":"+ToString(m_tcpSocketArray.at(index)->m_port);
+
+			RCSInfoTextPosition.y -= index*2*m_fontSize;
+			Renderer::GetInstance()->BindMaterial(textmaterial);
+			Renderer::GetInstance()->DrawTextOnPoint(RCSInfoText, 0, static_cast<int>(RCSInfoText.length()), RCSInfoTextPosition+ Vector2(m_fontSize*2,0), static_cast<float>(m_fontSize), Rgba::WHITE);
+		}
 	}
 }
 
@@ -331,6 +434,40 @@ TCPSocket * RCS::GetConnectionByIndex(int index)
 		return nullptr;
 	}
 	return m_tcpSocketArray.at(index);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string RCS::GetState()
+{
+	switch (m_state)
+	{
+	case RCS_STATE_CLIENT:
+		return "RCS_STATE_CLIENT";
+		break;
+	case RCS_STATE_FORCE_JOIN:
+		return "RCS_STATE_FORCE_JOIN";
+		break;
+	case RCS_STATE_CLIENT_FAILED:
+		return "RCS_STATE_CLIENT_FAILED";
+		break;
+	case RCS_STATE_CLIENT_FAILED_SUPPLIED_ADDRESS:
+		return "RCS_STATE_CLIENT_FAILED_SUPPLIED_ADDRESS";
+		break;
+	case RCS_STATE_HOST:
+		return "RCS_STATE_HOST";
+		break;
+	case RCS_STATE_HOST_FAILED:
+		return "RCS_STATE_HOST_FAILED";
+		break;
+	default:
+		break;
+	}
+	return "INVALID";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

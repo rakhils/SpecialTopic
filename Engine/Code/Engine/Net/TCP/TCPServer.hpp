@@ -20,6 +20,7 @@ public:
 	bool m_isListening = true;
 	int  m_port = 0;
 	bool m_isDisconnected = false;
+	std::string m_ipaddress;
 	SOCKET m_socket;
 	//Static_Member_Variablesk
 
@@ -32,7 +33,8 @@ public:
 	void Listen(int port);
 	void Listen();
 	void Disconnect();
-	
+	bool   HasFatalError();
+	std::string GetIp();
 	//Static_Methods
 	static void ListenOnThread(void *data);
 

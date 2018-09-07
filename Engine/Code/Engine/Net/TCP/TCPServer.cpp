@@ -37,6 +37,7 @@ TCPServer::~TCPServer()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TCPServer::Listen(int port)
 {
+	m_ipaddress = NetAddress::GetIP();
 	NetAddress addr;
 
 	NetAddress::GetBindableAddress(&addr, port);
@@ -64,8 +65,12 @@ void TCPServer::Listen(int port)
 		Disconnect();
 		return;
 	}
+	if(HasFatalError())
+	{
+		Disconnect();
+		return;
+	}
 	
-	::ioctlsocket((SOCKET)m_socket, FIONBIO, &non_blocking);
 
 	while (m_isListening)
 	{
@@ -73,12 +78,21 @@ void TCPServer::Listen(int port)
 		int remoteAddrLen = sizeof(sockaddr_storage);
 
 		SOCKET remoteSock = ::accept(m_socket, (sockaddr*)&remoteAddr, &remoteAddrLen);
+		
+
+		/*remoteAddr.ss_family.
+
+		sockaddr_in const *ipv4 = (sockaddr_in const*)remoteAddr;
+
+		int ip   = ipv4->sin_addr.S_un.S_addr;
+		int port = ::ntohs(ipv4->sin_port);* /*/
 
 		if (remoteSock != INVALID_SOCKET)
 		{
 			if (port == RCS::GetInstance()->m_rcsPort)
 			{
-				TCPSocket *tcpSocket = new TCPSocket(remoteSock,(char*)NetAddress::GetIP().c_str(),false);
+				RCS::GetInstance()->m_state = RCS_STATE_HOST;
+				TCPSocket *tcpSocket = new TCPSocket(remoteSock,(char*)(NetAddress::GetIP()+":"+ToString(m_port)).c_str(),false);
 				RCS::GetInstance()->PushNewConnection(tcpSocket);
 			}
 		}
@@ -111,6 +125,33 @@ void TCPServer::Disconnect()
 	m_isListening = false;
 	m_isDisconnected = true;
 	::closesocket(m_socket);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool TCPServer::HasFatalError()
+{
+	int error = WSAGetLastError();
+	if (error == WSAEWOULDBLOCK || error == WSAEMSGSIZE || error == WSAECONNRESET)
+	{
+		return false;
+	}
+	return error > 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string TCPServer::GetIp()
+{
+	return m_ipaddress;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -254,7 +254,12 @@ void CommandStartup()
 
 	CommandRegister("testrcs", TestRCSMsg, "TESTS RCS MSG");
 	CommandRegister("rc", RCExecute, "Executes RC Commands");
-	CommandRegister("rc_host", RCHost, "HOST IN NEW PORT");
+	CommandRegister("rca", RCAExecute, "SEND COMMAND TO ALL CONNECTIONS AND EXECUTE LOCAL");
+	CommandRegister("rcb", RCBExecute, "SEND COMMAND TO ALL CONNECTIONS AND NOT EXECUTE LOCAL");
+	CommandRegister("rc_join", RCJoin, "TRIES TO JOIN TO A PARTICULAR IP PORT");
+	CommandRegister("rc_host", RCHost, "HOST IN A PARTICULAR PORT");
+	CommandRegister("rc_echo", RCEcho, "TOGGLES THE ECHO TO DEVCONSOLE");
+
 
 }
 
@@ -1003,16 +1008,18 @@ void TestRCSMsg(Command &cmd)
 void RCExecute(Command &cmd)
 {
 	std::string indexString = cmd.GetNextString();
-	size_t equalIndex = indexString.find('=');
-	std::string connectionIndexString = indexString.substr(equalIndex + 1, indexString.size());
 	int index = -1;
-	bool success = ToInt(connectionIndexString,&index);
-	if(success)
+	bool success = false;
+	if(StartsWith(indexString,"idx"))
 	{
+		size_t equalIndex = indexString.find('=');
+		std::string connectionIndexString = indexString.substr(equalIndex + 1, indexString.size());
+		success = ToInt(connectionIndexString, &index);
 		std::string rcmd = cmd.GetNextString();
 		RCS::GetInstance()->SendMsg(index, false, rcmd.c_str());
+		return;
 	}
-
+	RCS::GetInstance()->SendMsg(0, false, indexString.c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1034,11 +1041,16 @@ void RCHost(Command &cmd)
 	}
 	if (RCS::GetInstance()->m_tcpServer != nullptr)
 	{
-		RCS::GetInstance()->m_tcpServer->Disconnect();
-		delete RCS::GetInstance()->m_tcpServer;
+		RCS::GetInstance()->CleanUpHosting();
 		RCS::GetInstance()->m_rcsPort = port;
 		RCS::GetInstance()->Host();
 	}
+	else
+	{
+		RCS::GetInstance()->m_rcsPort = port;
+		RCS::GetInstance()->Host();
+	}
+	//RCS::GetInstance()->m_state = RCS_STATE_CLIENT_FAILED;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1050,7 +1062,7 @@ void RCHost(Command &cmd)
 void RCJoin(Command &cmd)
 {
 	std::string addressString    = cmd.GetNextString();
-	size_t colonIndex			     = addressString.find(':');
+	size_t colonIndex			 = addressString.find(':');
 	std::string ipaddress        = addressString.substr(0, colonIndex);
 	std::string portStr		     = addressString.substr(colonIndex+1,addressString.size());
 
@@ -1060,7 +1072,7 @@ void RCJoin(Command &cmd)
 	if(ToInt(portStr, &port))
 	{
 		RCS::GetInstance()->m_rcsPort = port;
-		RCS::GetInstance()->m_state = RCS_STATE_CLIENT;
+		RCS::GetInstance()->m_state = RCS_STATE_FORCE_JOIN;
 	}
 }
 
