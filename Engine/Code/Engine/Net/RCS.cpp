@@ -45,7 +45,19 @@ bool RCS::Join()
 	tcpSocket->m_blocking = false;
 	if(tcpSocket->Connect((char*)m_ipaddress.c_str(),m_rcsPort))
 	{
-		//m_state = RCS_STATE_CLIENT;
+		if (m_state == RCS_STATE_CLIENT)
+		{
+			m_state = RCS_STATE_CLIENT;
+		}
+		else if (m_state == RCS_STATE_FORCE_JOIN)
+		{
+			m_state = RCS_STATE_FORCE_JOIN;
+		}
+		else
+		{
+			m_state = RCS_STATE_CLIENT;
+		}
+
 		m_tcpSocketArray.push_back(tcpSocket);
 		return true;
 	}
