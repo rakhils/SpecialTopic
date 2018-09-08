@@ -53,16 +53,15 @@ public:
 	void CleanUpHosting();
 	void Update(float deltaTime);
 	void DisconnectAndCleanUpAllConnections();
-
 	void RenderInfo();
 
 	void FailedToHost();
 	void ResetDelay();
 
 	void ConstructBytePacketer(BytePacker *bp,void *data,size_t size);
-	void RecvMsg();
 	bool SendMsg(int idx, bool isEcho, char const *str);
 	bool SendMsg(bool isEcho, char const *str);
+	void SendMsg(TCPSocket *tcpSocket, char* data);
 	void ProcessConnection(TCPSocket* tcp);
 	bool ProcessMessage(TCPSocket *socket, BytePacker *data);
 	//void ProcessRCSRecvMsg(TCPSocket *socket, bool echo, std::string str);

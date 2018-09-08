@@ -322,6 +322,17 @@ bool CommandRun(char const *command)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool CommandRun(char const *command, char const *output)
+{
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/23
 *@purpose : Commands to test the dev console feature
 *@param   : Command
@@ -376,8 +387,9 @@ void HelpCommand(Command &cmd)
 	std::map<std::string,CommandDefinition>::iterator iter = commandRegistery.begin();
 	for(;iter != commandRegistery.end();iter++)
 	{
-		DevConsole::GetInstance()->PushToOutputText(iter->first);
+		DevConsole::GetInstance()->PushToOutputText(iter->first,Rgba::WHITE,false);
 	}
+	DevConsole::GetInstance()->PushToOutputText("", Rgba::WHITE, true);
 }
 
 //////////////////////////////////////////////////////////////

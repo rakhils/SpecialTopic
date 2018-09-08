@@ -11,6 +11,7 @@
 #include "Engine/DevConsole/Profiler/ProfilerManager.hpp"
 #include "Engine/Input/InputSystem.hpp"
 #include "Engine/Net/RCS.hpp"
+//
 // CONSTRUCTOR
 
 DevConsole* DevConsole::s_devConsole = nullptr;
@@ -167,6 +168,17 @@ bool DevConsole::IsTextSelected()
 bool DevConsole::IsPredictionOn()
 {
 	return m_predictionOn;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DevConsole::AttachDevConsoleCallBacks(RCSStruct *rcsData)
+{
+	m_rcsCallBacks.push_back(rcsData);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -578,16 +590,39 @@ void DevConsole::PushToOutputText(Rgba rgb)
 //////////////////////////////////////////////////////////////
 void DevConsole::PushToOutputText(std::string str, Rgba rgb)
 {
-	if(!m_isDevConsoleOuputEnabled)
+	PushToOutputText(str, rgb, true);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DevConsole::PushToOutputText(std::string data, Rgba rgb, bool isComplete)
+{
+	if (!m_isDevConsoleOuputEnabled)
 	{
 		return;
 	}
 	OutputBox *outputBox = new OutputBox();
-	outputBox->m_string = str;
+	outputBox->m_string = data;
 	outputBox->rgba = rgb;
 	m_outputString.push_back(outputBox);
 	m_endPoint = -1;
 	m_startPoint = -1;
+	// Hacky solution (TODO ::)
+	for (size_t index = 0; index < m_rcsCallBacks.size(); index++)
+	{
+		RCS::GetInstance()->SendMsg(m_rcsCallBacks.at(index)->m_socket, data.c_str());
+		RCSStruct *rcsData = m_rcsCallBacks.at(index);
+		if(isComplete)
+		{
+			m_rcsCallBacks.erase(m_rcsCallBacks.begin() + index, m_rcsCallBacks.begin() + index + 1);
+			delete rcsData;
+			index--;
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

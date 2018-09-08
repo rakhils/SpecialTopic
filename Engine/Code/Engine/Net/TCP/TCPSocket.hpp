@@ -83,3 +83,5 @@ private:
 	//Static_Methods
 
 };
+
+size_t SendTCPData(void *socket,std::string data);

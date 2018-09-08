@@ -119,6 +119,11 @@ void RCS::Update(float deltaTime)
 				m_tcpSocketArray.erase(m_tcpSocketArray.begin(), m_tcpSocketArray.begin() + 1);
 				delete tcpSocket;
 			}
+			else
+			{
+				TCPSocket *tcpSocket = m_tcpSocketArray.at(0);
+				ProcessConnection(tcpSocket);
+			}
 		}
 		break;
 	case RCS_STATE_FORCE_JOIN:
@@ -135,6 +140,11 @@ void RCS::Update(float deltaTime)
 				m_tcpSocketArray.erase(m_tcpSocketArray.begin(), m_tcpSocketArray.begin() + 1);
 				delete tcpSocket;
 				m_state = RCS_STATE_CLIENT;
+			}
+			else
+			{
+				TCPSocket *tcpSocket = m_tcpSocketArray.at(0);
+				ProcessConnection(tcpSocket);
 			}
 		}
 		break;
@@ -351,6 +361,24 @@ bool RCS::SendMsg(bool isEcho, char const *str)
 	return true;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCS::SendMsg(TCPSocket *tcpSocket, char* data)
+{
+	for(int index = 0;index < m_tcpSocketArray.size();index++)
+	{
+		if(tcpSocket == m_tcpSocketArray.at(index))
+		{
+			SendMsg(index,true,data);
+			return;
+		}
+	}
+}
+
 void RCS::ProcessConnection(TCPSocket* tcp)
 {
 	if (tcp->m_isDisconnected)
@@ -387,7 +415,7 @@ void RCS::ProcessConnection(TCPSocket* tcp)
 
 	if (isReadyToProcess)
 	{
-		//buffer->AdvanceReadHead(2U);
+		buffer->AdvanceReadHead(2U);
 		ProcessMessage(tcp, buffer);
 		buffer->ResetWrite();
 	}
@@ -402,11 +430,36 @@ void RCS::ProcessConnection(TCPSocket* tcp)
 bool RCS::ProcessMessage(TCPSocket *socket, BytePacker *data)
 {
 	UNUSED(socket);
-	std::string str = data->GetAsString();
+	bool isEcho = false;
+	data->ReadBool(&isEcho);
+
+	size_t size = 0;
+	data->ReadSize(&size);
+
+	char str[1000];
+	data->ReadString(str, size);
+
+	
+	std::string dataStr(str, size);
+
+	std::string strr = data->GetAsString();
+	
 	if(m_isHookedToDevConsole)
 	{
-		DevConsole::GetInstance()->PushToOutputText(str, Rgba::YELLOW);
+		if(isEcho)
+		{
+			DevConsole::GetInstance()->PushToOutputText(dataStr, Rgba::YELLOW);
+		}
+		else
+		{
+			DevConsole::GetInstance()->PushToOutputText(dataStr,Rgba::YELLOW);
+			RCSStruct *rcsData = new RCSStruct(socket);
+			DevConsole::GetInstance()->AttachDevConsoleCallBacks(rcsData);
+			CommandRun(dataStr.c_str());
+		}
 	}
+	data->ResetRead();
+	
 	return true;
 }
 

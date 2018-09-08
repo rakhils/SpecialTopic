@@ -168,6 +168,7 @@ size_t BytePacker::WriteSize(size_t size)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t BytePacker::ReadSize(size_t *outSize)
 {
+	std::string str = GetAsString();
 	size_t bitIndex = 1;
 	size_t bitIndexForRead = 1;
 	do
@@ -238,10 +239,6 @@ bool BytePacker::WriteString(char const *chararr)
 	default:
 		break;
 	}
-
-
-
-	
 	return true;
 }
 
@@ -298,6 +295,7 @@ size_t BytePacker::ReadBool(bool *out_value)
 	}
 	int bitValue = 0;
 	memcpy((void *)&bitValue,(char*)m_buffer + m_currentReadPosition, 1);
+	m_currentReadPosition++;
 	if(bitValue == 0)
 	{
 		*out_value = false;
@@ -318,6 +316,17 @@ size_t BytePacker::ReadBool(bool *out_value)
 void BytePacker::ResetWrite()
 {
 	m_currentWritePosition = 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void BytePacker::ResetRead()
+{
+	m_currentReadPosition = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -539,14 +548,14 @@ std::string BytePacker::GetBitString()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::string BytePacker::GetAsString()
 {
-	if(m_bufferSize <= 2)
+	if(m_bufferSize <= 3)
 	{
 		return "";
 	}
 	size_t size = m_bufferSize;
 	std::string fullString = "";
 
-	for (int index = 2; index < size; index++)
+	for (int index = 3; index < size; index++)
 	{
 		char bb = ((char *)m_buffer)[index];
 		

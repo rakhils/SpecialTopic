@@ -17,11 +17,19 @@
 * \date   : 2/2/2018 10:26:23 PM
 * \contact: srsrakhil@gmail.com
 */
-
+class TCPSocket;
 struct OutputBox 
 {
 	std::string m_string;
 	Rgba rgba;
+};
+struct RCSStruct
+{
+	RCSStruct(TCPSocket *tcpSocket)
+	{
+		m_socket = tcpSocket;
+	}
+	TCPSocket *m_socket = nullptr;
 };
 
 class DevConsole
@@ -32,7 +40,7 @@ public:
 	static DevConsole* GetInstance();
 	
 	//Member_Variables
-
+	bool							m_RCSActive			   = false;
 	bool							m_isActive             = false;
 	bool							m_wasJustActive		   = false;
 	int								m_cursorBlinkCount     = 0;
@@ -55,6 +63,8 @@ public:
 	int								m_predictionIndex      = 0;
 	std::vector<CommandDefinition>  m_predictions;
 	std::vector<OutputBox*>		    m_outputString;
+	std::vector<RCSStruct*>         m_rcsCallBacks;
+
 	bool							m_isDevConsoleOuputEnabled = true;
 private:
 	DevConsole();
@@ -68,6 +78,8 @@ public:
 	bool IsTextSelected();
 	bool IsPredictionOn();
 	
+	void AttachDevConsoleCallBacks(RCSStruct *rcsData);
+
 	void Update(float deltaTime);
 	void UpdateDimensions(Vector2 mins,Vector2 maxs);
 	void Render();
@@ -83,8 +95,9 @@ public:
 	void UpdateInputWithPrediction();
 	void PushToOutputText();
 	void PushToOutputText(Rgba rgb);
-	void PushToOutputText(std::string);
-	void PushToOutputText(std::string,Rgba rgb);
+	void PushToOutputText(std::string data);
+	void PushToOutputText(std::string data,Rgba rgb);
+	void PushToOutputText(std::string data,Rgba rgb,bool isComplete);
 	void UpdateInputWithEnterKey();
 	void UpdateInputTextWithLeftKey();
 	void UpdateInputTextWithRightKey();
@@ -111,8 +124,10 @@ public:
 
 	void SetShiftPressed(bool value);
 	void SetControlPressed(bool value);
+
 	//Static_Methods
 	static void StartUp();
+
 protected:
 	//Member_Variables
 

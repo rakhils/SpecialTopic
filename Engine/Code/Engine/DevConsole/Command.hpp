@@ -74,6 +74,7 @@ void CommandRegister(char const *name, command_cb cmdCB,std::string helpText);
 std::vector<CommandDefinition> RetrieveAllCommands();
 
 bool CommandRun(char const *command);
+bool CommandRun(char const *command, char const *output);
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //COMMANDS
 void TestCommand(Command &cmd);
