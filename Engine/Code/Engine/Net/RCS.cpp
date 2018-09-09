@@ -34,6 +34,20 @@ void RCS::Initialize()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/09
+*@purpose : Shuts down engine system
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void RCS::ShutDown()
+{
+	if(m_tcpServer != nullptr && m_tcpServer->m_isListening)
+	{
+		m_tcpServer->m_isListening = false;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/04
 *@purpose : Joins the session
 *@param   : NIL
@@ -439,9 +453,8 @@ void RCS::ProcessConnection(TCPSocket* tcp)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool RCS::ProcessMessage(TCPSocket *socket, BytePacker *data)
+bool RCS::ProcessMessage(TCPSocket *tcpSocket, BytePacker *data)
 {
-	UNUSED(socket);
 	bool isEcho = false;
 	data->ReadBool(&isEcho);
 
@@ -456,16 +469,17 @@ bool RCS::ProcessMessage(TCPSocket *socket, BytePacker *data)
 
 	std::string strr = data->GetAsString();
 	
+	std::string netaddr = "[" + tcpSocket->GetRemoteIp() + ":" + ToString(tcpSocket->m_port) + "]";
 	if(m_isHookedToDevConsole)
 	{
 		if(isEcho)
 		{
-			DevConsole::GetInstance()->PushToOutputText(dataStr, Rgba::YELLOW);
+			DevConsole::GetInstance()->PushToOutputText(netaddr+dataStr, Rgba::YELLOW);
 		}
 		else
 		{
-			DevConsole::GetInstance()->PushToOutputText(dataStr,Rgba::YELLOW);
-			RCSStruct *rcsData = new RCSStruct(socket);
+			DevConsole::GetInstance()->PushToOutputText(netaddr+dataStr,Rgba::YELLOW);
+			RCSStruct *rcsData = new RCSStruct(tcpSocket);
 			DevConsole::GetInstance()->AttachDevConsoleCallBacks(rcsData);
 			CommandRun(dataStr.c_str());
 		}

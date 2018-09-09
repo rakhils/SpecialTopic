@@ -48,6 +48,7 @@ public:
 	
 	//Static_Methods
 	void Initialize();
+	void ShutDown();
 	bool Join();
 	bool Host();
 	void CleanUpHosting();

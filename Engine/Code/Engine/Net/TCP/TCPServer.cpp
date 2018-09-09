@@ -71,7 +71,6 @@ void TCPServer::Listen(int port)
 		return;
 	}
 	
-
 	while (m_isListening)
 	{
 		sockaddr_storage remoteAddr;
@@ -79,6 +78,8 @@ void TCPServer::Listen(int port)
 
 		SOCKET remoteSock = ::accept(m_socket, (sockaddr*)&remoteAddr, &remoteAddrLen);
 		
+		NetAddress netaddr;
+		netaddr.FromSockAddr((sockaddr*)&remoteAddr);
 
 		/*remoteAddr.ss_family.
 
@@ -92,7 +93,7 @@ void TCPServer::Listen(int port)
 			if (port == RCS::GetInstance()->m_rcsPort)
 			{
 				RCS::GetInstance()->m_state = RCS_STATE_HOST;
-				TCPSocket *tcpSocket = new TCPSocket(remoteSock,(char*)(NetAddress::GetIP()+":"+ToString(m_port)).c_str(),false);
+				TCPSocket *tcpSocket = new TCPSocket(remoteSock,(char*)(netaddr.GetIP()+":"+ToString(netaddr.m_port)).c_str(),false);
 				RCS::GetInstance()->PushNewConnection(tcpSocket);
 			}
 		}

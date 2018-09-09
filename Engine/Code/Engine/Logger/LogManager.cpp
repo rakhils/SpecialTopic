@@ -1,9 +1,10 @@
 #include "Engine/Logger/LogManager.hpp"
+#include <string>
 #include "Engine/FileUtil/File.h"
+#include "Engine/Math/MathUtil.hpp"
 #include "Engine/DevConsole/DevConsole.hpp"
 #include "Engine/Core/Rgba.hpp"
-#include <string>
-#include "../Core/StringUtils.hpp"
+#include "Engine/Core/StringUtils.hpp"
 bool								 LogManager::s_logEnabled = true;
 std::map<std::string, FILE*>		 LogManager::s_logIdMaps;
 LogManager *						 LogManager::s_logger = nullptr;
@@ -266,6 +267,10 @@ void LogManager::LogToFile(std::string filename, char const *format, ...)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void LogManager::Init(std::string fileName)
 {
+	if(true)
+	{
+		return;
+	}
 	m_defaultFileName = fileName;
 	m_defaultFileName.append(".txt");
 	m_defaultHTMLFileName = fileName + "HTML.html";
@@ -278,8 +283,14 @@ void LogManager::Init(std::string fileName)
 	localtime_s(&info, &rawtime);
 	strftime(buffer, 50, "_%Y_%m_%d_%H_%M_%S", &info);
 
+	char buf[100];
+	_itoa_s(GetCurrentThreadId(),buf,2);
+	//std::string threadID(GetCurrentThreadId());
+	
+
 	std::string timeStamp = fileName;
 	timeStamp.append(buffer);// +".png");
+	timeStamp.append(buf);
 	timeStamp.append(".txt");
 	m_timeStampFilePath = timeStamp;
 	/////////////////////////////////////////////
@@ -302,8 +313,6 @@ void LogManager::Init(std::string fileName)
 	}
 	AttachLogForwardCallBacks("defualtfilewrite",LogFileWriteCallBack);
 	AttachLogForwardCallBacks("defualthtmlwrite", LogHTMLWriteCallBack);
-
-	//AttachLogForwardCallBacks(LogDevConsoleWriteCallBack);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
