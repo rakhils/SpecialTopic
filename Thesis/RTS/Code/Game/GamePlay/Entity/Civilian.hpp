@@ -10,6 +10,12 @@
 * \date   : 8/18/2018 11:21:22 PM
 * \contact: srsrakhil@gmail.com
 */
+enum PendingTask
+{
+	NOTASK,
+	BUILD_HOUSE,
+	BUILD_ARMYCENTER
+};
 class Map;
 class Civilian : public Entity
 {
@@ -17,6 +23,7 @@ class Civilian : public Entity
 public:
 	//Member_Variables
 	Entity * m_resourceType = nullptr;
+	PendingTask m_pendingTask;
 	//Static_Member_Variables
 
 	//Methods

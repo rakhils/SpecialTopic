@@ -14,9 +14,13 @@
 */
 struct Resources
 {
-	int m_food = 0;
-	int m_wood = 0;
-	int m_stone = 0;
+	int m_food			= 0;
+	int m_wood			= 0;
+	int m_stone			= 0;
+	int m_buildings     = 0;
+	int m_units			= 0;
+	int m_unitsKilled   = 0;
+
 };
 class TownCenter : public Entity
 {

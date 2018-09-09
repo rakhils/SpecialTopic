@@ -18,17 +18,23 @@ int					g_mapMaxWidth	= 40;
 int					g_mapMaxHeight	= 20;
 
 //HUD
-float				g_fontSize				= 10;
-Vector3				g_resourceFoodPositionPopulationA	(200,1050,0);
-Vector3				g_resourceStonePositionPopulationA	(200,1025,0);
-Vector3				g_resourceWoodPositionPopulationA	(200,1000,0);
+float				g_fontSize							 = 10;
+Vector3				g_resourceFoodPositionPopulationA	 (100, 1050, 0);
+Vector3				g_resourceStonePositionPopulationA	 (100, 1025, 0);
+Vector3				g_resourceWoodPositionPopulationA	 (100, 1000, 0);
+Vector3				g_buildingCountPositionPopulationA   (400, 1050, 0);
+Vector3             g_unitsCountPositionPopulationA      (400, 1025, 0);
+Vector3             g_unitsKilledCountPositionPopulationA(400, 1000, 0);
 
-Vector3				g_resourceFoodPositionPopulationB	(600, 1050, 0);
-Vector3				g_resourceStonePositionPopulationB	(600, 1025, 0);
-Vector3				g_resourceWoodPositionPopulationB	(600, 1000, 0);
+Vector3				g_resourceFoodPositionPopulationB	 (600, 1050, 0);
+Vector3				g_resourceStonePositionPopulationB	 (600, 1025, 0);
+Vector3				g_resourceWoodPositionPopulationB	 (600, 1000, 0);
+Vector3				g_buildingCountPositionPopulationB   (900, 1050, 0);
+Vector3             g_unitsCountPositionPopulationB      (900, 1025, 0);
+Vector3             g_unitsKilledCountPositionPopulationB(900, 1000, 0);
 
-Vector3				g_unitTypePosition		(100,100,0);
-Vector3				g_unitHealthPosition	(400,100,0);
+Vector3				g_unitTypePosition					  (100, 100, 0);
+Vector3				g_unitHealthPosition				  (400, 100, 0);
 AABB2				g_resourceStatHUD(Vector2::ONE,Vector2::ONE);
 AABB2				g_unitStatHUD(Vector2::ONE, Vector2::ONE);
 Vector3				g_unitStatHUDHealthInfoPosition(Vector3::ONE);

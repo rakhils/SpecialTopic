@@ -29,9 +29,16 @@ extern float				g_fontSize;
 extern Vector3				g_resourceFoodPositionPopulationA;
 extern Vector3				g_resourceStonePositionPopulationA;
 extern Vector3				g_resourceWoodPositionPopulationA;
+extern Vector3				g_buildingCountPositionPopulationA;
+extern Vector3				g_unitsCountPositionPopulationA;     
+extern Vector3				g_unitsKilledCountPositionPopulationA;
+
 extern Vector3				g_resourceFoodPositionPopulationB;
 extern Vector3				g_resourceStonePositionPopulationB;
 extern Vector3				g_resourceWoodPositionPopulationB;
+extern Vector3				g_buildingCountPositionPopulationB;
+extern Vector3				g_unitsCountPositionPopulationB;
+extern Vector3				g_unitsKilledCountPositionPopulationB;
 extern Vector3				g_unitTypePosition;
 extern Vector3				g_unitHealthPosition;
 extern AABB2				g_resourceStatHUD;

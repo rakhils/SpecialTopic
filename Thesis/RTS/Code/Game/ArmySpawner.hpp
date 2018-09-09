@@ -10,12 +10,12 @@
 * \date   : 8/29/2018 4:51:25 PM
 * \contact: srsrakhil@gmail.com
 */
+
 class ArmySpawner :public Entity
 {
 
 public:
 	//Member_Variables
-	// 
 	//Static_Member_Variables
 
 	//Methods
@@ -24,7 +24,7 @@ public:
 	ArmySpawner(Map *map, Vector2 position, int teamID);
 	~ArmySpawner();
 
-	void ProcessInput();
+	void ProcessInput(float deltaTime);
 	void Update(float deltaTime);
 	void Render();
 	//Static_Methods

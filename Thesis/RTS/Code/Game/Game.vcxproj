@@ -319,6 +319,14 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskBuildArmySpawner.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskBuildHouse.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="GamePlay\Task\TaskGatherResource.cpp">
       <SubType>
       </SubType>
@@ -388,6 +396,14 @@
     <ClInclude Include="GamePlay\Maps\MapDefinition.hpp" />
     <ClInclude Include="GamePlay\Maps\MapGenSteps.hpp" />
     <ClInclude Include="GamePlay\Task\Task.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskBuildArmySpawner.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskBuildHouse.hpp">
       <SubType>
       </SubType>
     </ClInclude>

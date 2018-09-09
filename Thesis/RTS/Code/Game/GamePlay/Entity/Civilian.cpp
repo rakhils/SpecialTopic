@@ -5,6 +5,8 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Task/TaskGatherResource.hpp"
 #include "Game/GamePlay/Task/TaskMove.hpp"
+#include "Game/GamePlay/Task/TaskBuildArmySpawner.hpp"
+#include "Game/GamePlay/Task/TaskBuildHouse.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 // CONSTRUCTOR
 Civilian::Civilian()
@@ -38,10 +40,24 @@ void Civilian::ProcessInputs(float deltaTime)
 		Vector2 mousePosition   = InputSystem::GetInstance()->GetMouseClientPosition();
 		mousePosition.y			= Windows::GetInstance()->GetDimensions().y - mousePosition.y;
 
-		if (InputSystem::GetInstance()->WasLButtonJustPressed())
+		if (InputSystem::GetInstance()->WasLButtonJustPressed() && m_map->IsPositionInsideMap(mousePosition))
 		{
 			int tileIndex = m_map->GetTileIndex(mousePosition);
 			Entity *entity = m_map->GetEntityFromPosition(tileIndex);
+			if (m_pendingTask == BUILD_ARMYCENTER)
+			{
+				Task *task = new TaskBuildArmySpawner(m_map, this, mousePosition);
+				m_taskQueue.push(task);
+				m_pendingTask = NOTASK;
+				return;
+			}
+			if (m_pendingTask == BUILD_HOUSE)
+			{
+				Task *task = new TaskBuildHouse(m_map, this, mousePosition);
+				m_taskQueue.push(task);
+				m_pendingTask = NOTASK;
+				return;
+			}
 			if(entity == nullptr)
 			{
 				EmptyTaskQueue();
@@ -57,7 +73,16 @@ void Civilian::ProcessInputs(float deltaTime)
 				m_taskQueue.push(task);
 			}
 		}
+		if (g_unitStatHUDFirstButton.IsPointInside(mousePosition))
+		{
+			m_pendingTask = BUILD_ARMYCENTER;
+		}
+		if (g_unitStatHUDSecondButton.IsPointInside(mousePosition))
+		{
+			m_pendingTask = BUILD_HOUSE;
+		}
 	}
+
 	Entity::ProcessInputs(deltaTime);
 }
 

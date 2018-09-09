@@ -1,34 +1,35 @@
 #pragma once
 #include "Game/GamePlay/Task/Task.hpp"
-#include "Game/GamePlay/Maps/Map.hpp"
-#include "Game/GamePlay/Entity/Entity.hpp"
-
-/*\class  : TaskSpawnClassAWarrior		   
+#include "Engine/Math/Vector2.hpp"
+/*\class  : TaskBuildArmySpawner	   
 * \group  : <GroupName>		   
 * \brief  :		   
 * \TODO:  :		   
 * \note   :		   
 * \author : Rakhil Soman		   
 * \version: 1.0		   
-* \date   : 8/29/2018 4:52:40 PM
+* \date   : 9/8/2018 8:56:12 PM
 * \contact: srsrakhil@gmail.com
 */
 class Map;
 class Entity;
-class TaskSpawnClassAWarrior : public Task
+class TaskBuildArmySpawner : public Task
 {
 
 public:
 	//Member_Variables
-	
+	Vector2 m_buildPosition;
+	float   m_buildDelay    = 0;
+	float   m_buildMaxDelay = 1;
+	float   m_speed			= 100;
 	//Static_Member_Variables
 
 	//Methods
-	TaskSpawnClassAWarrior(Map *map,Entity *entity);
-	~TaskSpawnClassAWarrior();
 
-	bool DoTask(float delatTime);
+	TaskBuildArmySpawner(Map *map, Entity *entity,Vector2 position);
+	~TaskBuildArmySpawner();
 	
+	bool DoTask(float delatTime);
 	//Static_Methods
 
 protected:

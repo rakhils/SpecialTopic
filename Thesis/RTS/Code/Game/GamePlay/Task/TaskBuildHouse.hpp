@@ -1,38 +1,35 @@
 #pragma once
-#include "Game/GamePlay/Entity/Entity.hpp"
-
-/*\class  : ClassBWarrior   
+#include "Game/GamePlay/Task/Task.hpp"
+#include "Engine/Math/Vector2.hpp"
+/*\class  : TaskBuildArmySpawner
 * \group  : <GroupName>
 * \brief  :
 * \TODO:  :
 * \note   :
 * \author : Rakhil Soman
 * \version: 1.0
-* \date   : 8/19/2018 12:12:21 AM
+* \date   : 9/8/2018 8:56:12 PM
 * \contact: srsrakhil@gmail.com
 */
 class Map;
-class ClassBWarrior : public Entity
+class Entity;
+class TaskBuildHouse : public Task
 {
 
 public:
 	//Member_Variables
-	
+	Vector2 m_buildPosition;
+	float   m_buildDelay = 0;
+	float   m_buildMaxDelay = 1;
+	float   m_speed = 100;
 	//Static_Member_Variables
 
 	//Methods
 
-	ClassBWarrior();
-	ClassBWarrior(Map *map,Vector2 position, int teamID);
-	~ClassBWarrior();
-	
-	void ProcessInputs(float deltaTime);
-	void Update(float deltaTime);
-	void Render();
+	TaskBuildHouse(Map *map, Entity *entity, Vector2 position);
+	~TaskBuildHouse();
 
-	bool IsInRange(int tileIndex);
-	bool IsInRange(Vector2 position);
-	bool IsInRange(IntVector2 cords);
+	bool DoTask(float delatTime);
 	//Static_Methods
 
 protected:

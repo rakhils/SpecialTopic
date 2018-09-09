@@ -28,11 +28,12 @@ void Map::Initialize()
 	m_maxWidth  = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
 
+	CreateTownCenter(Vector2(20, 340),1);
 	CreateCivilian(Vector2::ONE * 100, 1);
 	CreateResources(Vector2(200,300),RESOURCE_FOOD);
 	CreateResources(Vector2(200, 500), RESOURCE_WOOD);
-	CreateTownCenter(Vector2(20, 340),1);
-	CreateClassAWarrior(Vector2(500, 300), 1);
+	//CreateClassAWarrior(Vector2(500, 300), 1);
+	CreateArmySpawner(Vector2(500, 300), 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -65,6 +66,20 @@ void Map::CreateCivilian(Vector2 position, int teamID)
 {
 	Civilian *civilian = new Civilian(this,position,teamID);
 	m_civilians.push_back(civilian);
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::CreateArmySpawner(Vector2 position, int teamID)
+{
+	ArmySpawner * armySpawner = new ArmySpawner(this,position,teamID);
+	m_armySpawners.push_back(armySpawner);
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -77,6 +92,7 @@ void Map::CreateClassAWarrior(Vector2 position, int teamID)
 {
 	ClassAWarrior *classAWarrior = new ClassAWarrior(this,position,teamID);
 	m_classAWarriors.push_back(classAWarrior);
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -89,6 +105,7 @@ void Map::CreateClassBWarrior(Vector2 position, int teamID)
 {
 	ClassBWarrior *classBWarrior = new ClassBWarrior(this,position,teamID);
 	m_classBWarriors.push_back(classBWarrior);
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -101,6 +118,7 @@ void Map::CreateHouse(Vector2 position, int teamID)
 {
 	House *house = new House(this,position,teamID);
 	m_houses.push_back(house);
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,6 +131,7 @@ void Map::CreateTownCenter(Vector2 position, int teamID)
 {
 	TownCenter *townCenter = new TownCenter(this,position,teamID);
 	m_townCenters.push_back(townCenter);
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -137,6 +156,123 @@ void Map::CreateExplosions(Vector2 position)
 {
 	Explosion *explosion = new Explosion(position);
 	m_explosions.push_back(explosion);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/08
+*@purpose : Cheks if a position is inside map
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::IsPositionInsideMap(Vector2 position)
+{
+	IntVector2 cords = GetCordinates(position);
+	if(cords.x == -1 || cords.y ==-1)
+	{
+		return false;
+	}
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/08
+*@purpose : Check if 2 position are neighbours
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::IsNeighbours(IntVector2 position1, IntVector2 position2)
+{
+	IntVector2 displacement = position1 - position2;
+	int neighbourDistance = 1;
+	if(position1 == position2)
+	{
+		return false;
+	}
+	if(displacement.x <= neighbourDistance && displacement.x >= -neighbourDistance && displacement.y <= neighbourDistance && displacement.y >= -neighbourDistance)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/08
+*@purpose : Gets a free neighbour tile
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Map::GetFreeNeighbourTile(Vector2 position)
+{
+	int tileIndex = GetTileIndex(position);
+	IntVector2 tileCords = GetCordinates(tileIndex);
+
+	IntVector2 tileCordsE  = IntVector2(tileCords.x + 1, tileCords.y + 0);
+	IntVector2 tileCordsN  = IntVector2(tileCords.x + 0, tileCords.y + 1);
+	IntVector2 tileCordsW  = IntVector2(tileCords.x - 1, tileCords.y + 0);
+	IntVector2 tileCordsS  = IntVector2(tileCords.x + 0, tileCords.y - 1);
+
+	IntVector2 tileCordsNE = IntVector2(tileCords.x + 1, tileCords.y + 1);
+	IntVector2 tileCordsNW = IntVector2(tileCords.x - 1, tileCords.y + 1);
+	IntVector2 tileCordsSW = IntVector2(tileCords.x - 1, tileCords.y - 1);
+	IntVector2 tileCordsSE = IntVector2(tileCords.x + 1, tileCords.y - 1);
+
+	if (IsValidCordinate(tileCordsE))
+	{
+		if (!HasAnyEntityInTile(tileCordsE))
+		{
+			return tileCordsE;
+		}
+	}
+	if (IsValidCordinate(tileCordsN))
+	{
+		if (!HasAnyEntityInTile(tileCordsN))
+		{
+			return tileCordsN;
+		}
+	}
+	if (IsValidCordinate(tileCordsW))
+	{
+		if (!HasAnyEntityInTile(tileCordsW))
+		{
+			return tileCordsW;
+		}
+	}
+	if (IsValidCordinate(tileCordsS))
+	{
+		if (!HasAnyEntityInTile(tileCordsS))
+		{
+			return tileCordsS;
+		}
+	}
+	if (IsValidCordinate(tileCordsNE))
+	{
+		if (!HasAnyEntityInTile(tileCordsNE))
+		{
+			return tileCordsNE;
+		}
+	}
+	if (IsValidCordinate(tileCordsNW))
+	{
+		if (!HasAnyEntityInTile(tileCordsNW))
+		{
+			return tileCordsNW;
+		}
+	}
+	if (IsValidCordinate(tileCordsSW))
+	{
+		if (!HasAnyEntityInTile(tileCordsSW))
+		{
+			return tileCordsSW;
+		}
+	}
+	if (IsValidCordinate(tileCordsSE))
+	{
+		if (!HasAnyEntityInTile(tileCordsSE))
+		{
+			return tileCordsSE;
+		}
+	}
+	return IntVector2(-1, -1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -628,6 +764,7 @@ void Map::Update(float deltaTime)
 	UpdateCamera(deltaTime);
 	UpdateResources(deltaTime);
 	UpdateCivilans(deltaTime);
+	UpdateArmySpawners(deltaTime);
 	UpdateClassAWarriors(deltaTime);
 	UpdateClassBWarriors(deltaTime);
 	UpdateHouses(deltaTime);
@@ -658,6 +795,20 @@ void Map::UpdateCivilans(float deltaTime)
 	for (size_t civiliansIndex = 0; civiliansIndex < m_civilians.size(); civiliansIndex++)
 	{
 		m_civilians.at(civiliansIndex)->Update(deltaTime);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::UpdateArmySpawners(float deltaTime)
+{
+	for (size_t armySpawnerIndex = 0; armySpawnerIndex < m_armySpawners.size(); armySpawnerIndex++)
+	{
+		m_armySpawners.at(armySpawnerIndex)->Update(deltaTime);
 	}
 }
 
@@ -759,6 +910,7 @@ void Map::Render()
 	RenderCivilians();
 	RenderClassAWarriors();
 	RenderClassBWarriors();
+	RenderArmySpawners();
 	RenderHouses();
 	RenderTownCenters();
 	RenderResources();
@@ -781,6 +933,20 @@ void Map::RenderCivilians()
 	for (size_t civilianIndex = 0; civilianIndex < m_civilians.size(); civilianIndex++)
 	{
 		m_civilians.at(civilianIndex)->Render();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderArmySpawners()
+{
+	for (size_t armySpawnerIndex = 0; armySpawnerIndex < m_armySpawners.size(); armySpawnerIndex++)
+	{
+		m_armySpawners.at(armySpawnerIndex)->Render();
 	}
 }
 
@@ -915,11 +1081,23 @@ void Map::RenderHUDGameStat()
 	g_theRenderer->DrawTextOn3DPoint(g_resourceStonePositionPopulationA, Vector3::RIGHT, Vector3::UP, "STONE : " + ToString(populationATownCenter->m_resourceStat.m_stone), g_fontSize, Rgba::RED);																																   
 	g_theRenderer->DrawTextOn3DPoint(g_resourceWoodPositionPopulationA, Vector3::RIGHT, Vector3::UP , "WOOD  : " + ToString(populationATownCenter->m_resourceStat.m_wood),  g_fontSize, Rgba::RED);
 
+	g_theRenderer->DrawTextOn3DPoint(g_unitsCountPositionPopulationA, Vector3::RIGHT, Vector3::UP ,       "UNITS         : " + ToString(populationATownCenter->m_resourceStat.m_units),  g_fontSize, Rgba::RED);
+
+	g_theRenderer->DrawTextOn3DPoint(g_unitsKilledCountPositionPopulationA, Vector3::RIGHT, Vector3::UP , "UNITS KILLED  : " + ToString(populationATownCenter->m_resourceStat.m_unitsKilled),  g_fontSize, Rgba::RED);
+
+	g_theRenderer->DrawTextOn3DPoint(g_buildingCountPositionPopulationA, Vector3::RIGHT, Vector3::UP ,    "BUILDINGS     : " + ToString(populationATownCenter->m_resourceStat.m_buildings),  g_fontSize, Rgba::RED);
+
 	if(populationBTownCenter != nullptr)
 	{
 		g_theRenderer->DrawTextOn3DPoint(g_resourceFoodPositionPopulationB, Vector3::RIGHT, Vector3::UP, "FOOD  : " + ToString(populationBTownCenter->m_resourceStat.m_food), g_fontSize, Rgba::RED);
 		g_theRenderer->DrawTextOn3DPoint(g_resourceStonePositionPopulationB, Vector3::RIGHT, Vector3::UP, "STONE : " + ToString(populationBTownCenter->m_resourceStat.m_stone), g_fontSize, Rgba::RED);
 		g_theRenderer->DrawTextOn3DPoint(g_resourceWoodPositionPopulationB, Vector3::RIGHT, Vector3::UP, "WOOD  : " + ToString(populationBTownCenter->m_resourceStat.m_wood), g_fontSize, Rgba::RED);
+		g_theRenderer->DrawTextOn3DPoint(g_unitsCountPositionPopulationB, Vector3::RIGHT, Vector3::UP,       "UNITS         : " + ToString(populationBTownCenter->m_resourceStat.m_units), g_fontSize, Rgba::RED);
+
+		g_theRenderer->DrawTextOn3DPoint(g_unitsKilledCountPositionPopulationB, Vector3::RIGHT, Vector3::UP, "UNITS KILLED  : " + ToString(populationBTownCenter->m_resourceStat.m_unitsKilled), g_fontSize, Rgba::RED);
+
+		g_theRenderer->DrawTextOn3DPoint(g_buildingCountPositionPopulationB, Vector3::RIGHT, Vector3::UP,    "BUILDINGS     : " + ToString(populationBTownCenter->m_resourceStat.m_buildings), g_fontSize, Rgba::RED);
+
 	}
 
 
@@ -944,10 +1122,6 @@ void Map::RenderHUDUnitStat()
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	g_theRenderer->DrawAABB(g_unitStatHUD, Rgba::BLUE);
 
-
-
-
-
 	
 	switch (g_currentSelectedEntity->m_type)
 	{
@@ -959,25 +1133,46 @@ void Map::RenderHUDUnitStat()
 
 	case WARRIOR_SHORT_RANGE:
 	case WARRIOR_LONG_RANGE:
+		Renderer::GetInstance()->BindMaterial(textMaterial);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDHealthInfoPosition - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "HEALTH : " + ToString(g_currentSelectedEntity->m_health), g_fontSize, Rgba::YELLOW);
+		break;
 	case CIVILIAN:
+		Renderer::GetInstance()->BindMaterial(textMaterial);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDHealthInfoPosition - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "HEALTH : " + ToString(g_currentSelectedEntity->m_health), g_fontSize, Rgba::YELLOW);
+
+		Renderer::GetInstance()->BindMaterial(defaultMaterial);
+		g_theRenderer->DrawAABB(g_unitStatHUDFirstButton, Rgba::WHITE);
+		Renderer::GetInstance()->BindMaterial(textMaterial);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDFirstButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "BUILD ARMY UNIT ", g_fontSize, Rgba::YELLOW);
+
+		Renderer::GetInstance()->BindMaterial(defaultMaterial);
+		g_theRenderer->DrawAABB(g_unitStatHUDSecondButton, Rgba::WHITE);
+		Renderer::GetInstance()->BindMaterial(textMaterial);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDSecondButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "BUILD HOUSE ", g_fontSize, Rgba::YELLOW);
+		break;
 	case HOUSE:
 	case RESOURCE_FOOD:
 	case RESOURCE_STONE:
 	case RESOURCE_WOOD:
+		break;
 	case ARMY_SPAWNER:
 		Renderer::GetInstance()->BindMaterial(textMaterial);
 		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDHealthInfoPosition - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "HEALTH : "+ToString(g_currentSelectedEntity->m_health), g_fontSize, Rgba::YELLOW);
+
+		Renderer::GetInstance()->BindMaterial(defaultMaterial);
+		g_theRenderer->DrawAABB(g_unitStatHUDFirstButton, Rgba::WHITE);
+		Renderer::GetInstance()->BindMaterial(textMaterial);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDFirstButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "CREATE SHORT ARMY ", g_fontSize, Rgba::YELLOW);
+
+		Renderer::GetInstance()->BindMaterial(defaultMaterial);
+		g_theRenderer->DrawAABB(g_unitStatHUDSecondButton, Rgba::WHITE);
+		Renderer::GetInstance()->BindMaterial(textMaterial);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDSecondButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "CREATE LONG ARMY ", g_fontSize, Rgba::YELLOW);
 		
 		break;
 	default:
 		break;
 	}
-
-
-	/*Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
-	Renderer::GetInstance()->BindMaterial(textMaterial);
-	g_theRenderer->DrawTextOn3DPoint(g_resourceFoodPosition, Vector3::RIGHT, Vector3::UP, "FOOD  : " + ToString(m_resourceStats.m_food), g_fontSize, Rgba::RED);
-	delete textMaterial;*/
 
 	delete textMaterial;
 	delete defaultMaterial;

@@ -52,6 +52,7 @@ public:
 	void InitCamera();
 
 	void CreateCivilian(Vector2 position,int teamID);
+	void CreateArmySpawner(Vector2 position, int teamID);
 	void CreateClassAWarrior(Vector2 position, int teamID);
 	void CreateClassBWarrior(Vector2 position, int teamID);
 	void CreateHouse(Vector2 position, int teamID);
@@ -59,6 +60,9 @@ public:
 	void CreateResources(Vector2 position,EntityType type);
 	void CreateExplosions(Vector2 position);
 
+	bool       IsPositionInsideMap(Vector2 position);
+	bool       IsNeighbours(IntVector2 position1, IntVector2 position2);
+	IntVector2 GetFreeNeighbourTile(Vector2 position);
 	IntVector2 GetTilePosition(int tilePosition);
 	IntVector2 GetTilePosition(Vector2 position);
 	int		   GetTileIndex(Vector2 mapPosition);
@@ -86,30 +90,32 @@ public:
 	IntVector2  GetCordinates(int tileIndex);
 	IntVector2  GetCordinates(Vector2 mapPosition);
 
-	void ProcessInputs(float deltaTime);
-	void ProcessInputsOnHUD(float deltaTime);
+	void		ProcessInputs(float deltaTime);
+	void		ProcessInputsOnHUD(float deltaTime);
 
-	void Update(float deltaTime);
-	void UpdateCamera(float deltaTime);
-	void UpdateCivilans(float deltaTime);
-	void UpdateClassAWarriors(float deltaTime);
-	void UpdateClassBWarriors(float deltaTime);
-	void UpdateHouses(float deltaTime);
-	void UpdateTownCenters(float deltaTime);
-	void UpdateResources(float deltaTime);
-	void UpdateExplosions(float deltaTime);
+	void		Update(float deltaTime);
+	void		UpdateCamera(float deltaTime);
+	void		UpdateCivilans(float deltaTime);
+	void        UpdateArmySpawners(float deltaTime);
+	void		UpdateClassAWarriors(float deltaTime);
+	void		UpdateClassBWarriors(float deltaTime);
+	void		UpdateHouses(float deltaTime);
+	void		UpdateTownCenters(float deltaTime);
+	void		UpdateResources(float deltaTime);
+	void		UpdateExplosions(float deltaTime);
 
-	void Render();
-	void RenderCivilians();
-	void RenderClassAWarriors();
-	void RenderClassBWarriors();
-	void RenderHouses();
-	void RenderTownCenters();
-	void RenderResources();
-	void RenderGrids();
-	void RenderExplosions();
-	void RenderHUDGameStat();
-	void RenderHUDUnitStat();
+	void		Render();
+	void		RenderCivilians();
+	void        RenderArmySpawners();
+	void		RenderClassAWarriors();
+	void		RenderClassBWarriors();
+	void		RenderHouses();
+	void		RenderTownCenters();
+	void		RenderResources();
+	void		RenderGrids();
+	void		RenderExplosions();
+	void		RenderHUDGameStat();
+	void		RenderHUDUnitStat();
 
-	void RenderMousePosition();
+	void		RenderMousePosition();
 };

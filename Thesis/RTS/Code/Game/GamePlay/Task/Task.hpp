@@ -44,6 +44,7 @@ public:
 
 	void Update(float deltaTime);
 	virtual bool DoTask(float delatTime) = 0;
+
 	//Static_Methods
 
 protected:

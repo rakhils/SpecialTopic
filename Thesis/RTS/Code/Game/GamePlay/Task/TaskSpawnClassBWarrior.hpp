@@ -1,25 +1,18 @@
 #pragma once
-
-/*\class  : TaskSpawnClassBWarrior
-*		   
-* \group  : <GroupName>
-*		   
-* \brief  :
-*		   
-* \TODO:  :
-*		   
-* \note   :
-*		   
-* \author : Rakhil Soman
-*		   
-* \version: 1.0
-*		   
+#include "Game/GamePlay/Task/Task.hpp"
+/*\class  : TaskSpawnClassBWarrior	   
+* \group  : <GroupName>		   
+* \brief  :		   
+* \TODO:  :		   
+* \note   :		   
+* \author : Rakhil Soman		   
+* \version: 1.0		   
 * \date   : 8/29/2018 4:52:55 PM
-*
 * \contact: srsrakhil@gmail.com
 */
- 
-class TaskSpawnClassBWarrior
+class Map;
+class Entity;
+class TaskSpawnClassBWarrior : public Task
 {
 
 public:
@@ -29,8 +22,10 @@ public:
 
 	//Methods
 
-	TaskSpawnClassBWarrior();
+	TaskSpawnClassBWarrior(Map *map,Entity *entity);
 	~TaskSpawnClassBWarrior();
+
+	bool DoTask(float delatTime);
 	
 	//Static_Methods
 
