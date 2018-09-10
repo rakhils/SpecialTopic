@@ -31,11 +31,11 @@ public:
 	//Member_Variables
 	std::string							m_ipaddress;
 	int									m_rcsDefaultPort = 29283;
-	int									m_rcsPort  = 29283;
+	int									m_rcsPort        = 29283;
 	RCS_State							m_state;
 	std::vector<TCPSocket*>				m_tcpSocketArray;
 	TCPServer*							m_tcpServer		= nullptr;
-	float								m_maxDelay		= 15.f;
+	float								m_maxDelay		= 7.f;
 	float								m_currentDelay  = 0.f;
 	bool								m_isHookedToDevConsole = true;
 //	TCPSocket*							m_tcpListenSocket;

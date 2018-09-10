@@ -454,6 +454,7 @@ void DevConsole::RenderPredictionBox(Renderer *renderer)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void DevConsole::RenderRCSInfo(Renderer *renderer)
 {
+	UNUSED(renderer);
 	RCS::GetInstance()->RenderInfo();
 }
 
@@ -614,14 +615,16 @@ void DevConsole::PushToOutputText(std::string data, Rgba rgb, bool isComplete)
 	// Hacky solution (TODO ::)
 	for (size_t index = 0; index < m_rcsCallBacks.size(); index++)
 	{
-		RCS::GetInstance()->SendMsg(m_rcsCallBacks.at(index)->m_socket, data.c_str());
 		RCSStruct *rcsData = m_rcsCallBacks.at(index);
 		if(isComplete)
 		{
 			m_rcsCallBacks.erase(m_rcsCallBacks.begin() + index, m_rcsCallBacks.begin() + index + 1);
 			delete rcsData;
 			index--;
+			continue;
 		}
+		RCS::GetInstance()->SendMsg(m_rcsCallBacks.at(index)->m_socket, data.c_str());
+
 	}
 }
 

@@ -117,6 +117,14 @@ void RCS::CleanUpHosting()
 		delete m_tcpServer;
 		m_tcpServer = nullptr;
 	}
+	for(size_t index = 0;index < m_tcpSocketArray.size();index++)
+	{
+		TCPSocket *tcpSocket = m_tcpSocketArray.at(index);
+		tcpSocket->Disconnect();
+		m_tcpSocketArray.erase(m_tcpSocketArray.begin(), m_tcpSocketArray.begin() + 1);
+		delete tcpSocket;
+		index--;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,6 +139,7 @@ void RCS::Update(float deltaTime)
 	{
 
 	case RCS_STATE_CLIENT:
+		
 		if(m_tcpSocketArray.size() == 0)
 		{
 			m_rcsPort = m_rcsDefaultPort;
@@ -147,7 +156,6 @@ void RCS::Update(float deltaTime)
 			}
 			else
 			{
-				TCPSocket *tcpSocket = m_tcpSocketArray.at(0);
 				ProcessConnection(tcpSocket);
 			}
 		}
@@ -169,7 +177,6 @@ void RCS::Update(float deltaTime)
 			}
 			else
 			{
-				TCPSocket *tcpSocket = m_tcpSocketArray.at(0);
 				ProcessConnection(tcpSocket);
 			}
 		}
@@ -204,6 +211,7 @@ void RCS::Update(float deltaTime)
 		if (m_currentDelay > m_maxDelay)
 		{
 			m_state = RCS_STATE_CLIENT;
+			CleanUpHosting();
 		}
 		break;
 	default:
@@ -263,7 +271,7 @@ void RCS::RenderInfo()
 
 	}
 
-	if (RCS::GetInstance()->m_state == RCS_STATE_HOST || RCS::GetInstance()->m_state == RCS_STATE_CLIENT)
+	if (RCS::GetInstance()->m_state == RCS_STATE_HOST || RCS::GetInstance()->m_state == RCS_STATE_CLIENT || RCS::GetInstance()->m_state == RCS_STATE_FORCE_JOIN)
 	{
 		std::string text = "CONNECTIONS ";
 		Renderer::GetInstance()->DrawTextOnPoint(text, 0, static_cast<int>(text.length()), RCSInfoTextPosition , m_fontSize, Rgba::WHITE);
@@ -463,7 +471,6 @@ bool RCS::ProcessMessage(TCPSocket *tcpSocket, BytePacker *data)
 
 	char str[1000];
 	data->ReadString(str, size);
-
 	
 	std::string dataStr(str, size);
 

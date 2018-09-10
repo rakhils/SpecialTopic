@@ -22,9 +22,12 @@ TCPSocket::TCPSocket(SOCKET socket,char *ip,bool blocking)
 	InitiateBytePacker();
 	m_blocking = blocking;
 	std::string ipaddress(ip);
-	int colonIndex = ipaddress.find(':');
-	m_ipaddress = ipaddress.substr(0, colonIndex);
-	ToInt(ipaddress.substr(colonIndex + 1, ipaddress.length()),&m_port);
+	int colonIndex = static_cast<int>(ipaddress.find(':'));
+	if(colonIndex > 0)
+	{
+		m_ipaddress = ipaddress.substr(0, colonIndex);
+		ToInt(ipaddress.substr(colonIndex + 1, ipaddress.length()),&m_port);
+	}
 }
 
 
@@ -282,6 +285,7 @@ bool TCPSocket::IsDisconnected()
 	{
 		return true;
 	}*/
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
