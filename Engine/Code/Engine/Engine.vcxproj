@@ -440,7 +440,23 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Net\NetConnection.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\NetMessage.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\NetSession.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Net\RCS.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\Socket.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -449,6 +465,14 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="Net\TCP\TCPSocket.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\UDP\UDPSocket.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\UDP\UDPTest.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -847,7 +871,23 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="Net\NetConnection.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\NetMessage.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\NetSession.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Net\RCS.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\Socket.hpp">
       <SubType>
       </SubType>
     </ClInclude>
@@ -856,6 +896,14 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Net\TCP\TCPSocket.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\UDP\UDPSocket.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\UDP\UDPTest.hpp">
       <SubType>
       </SubType>
     </ClInclude>

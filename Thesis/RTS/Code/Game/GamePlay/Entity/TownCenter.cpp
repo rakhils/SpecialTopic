@@ -43,7 +43,12 @@ void TownCenter::ProcessInputs(float deltaTime)
 			if (g_unitStatHUDFirstButton.IsPointInside(mousePosition))
 			{
 				Task *task = new TaskSpawnVillager(m_map, this);
-				m_taskQueue.push(task);
+				if (task->CheckAndReduceResources())
+				{
+					m_taskQueue.push(task);
+					return;
+				}
+				delete task;
 			}
 		}
 	}
@@ -69,9 +74,13 @@ void TownCenter::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void TownCenter::Render()
 {
+	if (m_health <= 0)
+	{
+		return;
+	}
 	Entity::Render();
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
-	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "T", g_fontSize, GetTeamColor());
+	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "T", g_fontSize, Rgba::WHITE);
 	delete textMaterial;
 }

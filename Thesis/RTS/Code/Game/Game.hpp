@@ -17,6 +17,7 @@ class Game
 {
 public:
 	bool isQuitTriggered = false;
+	
 	static Game *s_game;
 
 	Map *m_map			 = nullptr;
@@ -27,5 +28,10 @@ public:
 
 	static Game* Game::GetInstance();
 
+	
 
 };
+/*
+void UDPTestStart(Command &cmd);
+void UDPTestSend(Command &cmd);
+void UDPTestStop(Command &cmd);*/

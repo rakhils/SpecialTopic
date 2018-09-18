@@ -137,9 +137,10 @@ void RCJoin(Command &cmd);
 void RCBExecute(Command &cmd);
 void RCAExecute(Command &cmd);
 void RCEcho(Command &cmd);
+
+void UDPPacketSend(Command &cmd);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
 
 static std::vector<std::string> GetCommandHistory();
 

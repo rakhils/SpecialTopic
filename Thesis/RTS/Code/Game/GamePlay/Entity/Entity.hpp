@@ -40,7 +40,7 @@ public:
 	Entity(float x,float y);
 
 	Vector2 GetPosition();
-
+	int     GetTileIndex();
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
 	void Render();

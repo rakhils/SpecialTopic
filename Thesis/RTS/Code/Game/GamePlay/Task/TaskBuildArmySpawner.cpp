@@ -7,6 +7,8 @@ TaskBuildArmySpawner::TaskBuildArmySpawner(Map *map, Entity *entity,Vector2 posi
 	m_map = map;
 	m_entity = entity;
 	m_buildPosition = position;
+	m_resourcesNeeded.m_stone = 5;
+	m_resourcesNeeded.m_wood  = 5;
 }
 
 // DESTRUCTOR
@@ -24,11 +26,11 @@ TaskBuildArmySpawner::~TaskBuildArmySpawner()
 bool TaskBuildArmySpawner::DoTask(float deltaTime)
 {
 	IntVector2 entityPosition = m_map->GetTilePosition(m_entity->GetPosition());
-	IntVector2 buildPosition  = m_map->GetTilePosition(m_buildPosition);
-	if(m_map->IsNeighbours(buildPosition,entityPosition))
+	IntVector2 buildPosition = m_map->GetTilePosition(m_buildPosition);
+	if (m_map->IsNeighbours(buildPosition, entityPosition))
 	{
 		m_buildDelay += deltaTime;
-		if(m_buildDelay < m_buildMaxDelay)
+		if (m_buildDelay < m_buildMaxDelay)
 		{
 			return false;
 		}
@@ -43,7 +45,7 @@ bool TaskBuildArmySpawner::DoTask(float deltaTime)
 		return true;
 	}
 	Vector2 currentPosition = m_entity->GetPosition();
-	Vector2 direction		= m_buildPosition - currentPosition;
+	Vector2 direction = m_buildPosition - currentPosition;
 	direction = direction.GetNormalized();
 	currentPosition += direction * m_speed * deltaTime;
 	m_entity->SetPositionInFloat(currentPosition);

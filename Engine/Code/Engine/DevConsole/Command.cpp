@@ -13,6 +13,7 @@
 #include "Engine/System/Thread/Thread.hpp"
 #include "Engine/Net/TCP/TCPServer.hpp"
 #include "Engine/Net/RCS.hpp"
+#include "Engine/Net/UDP/UDPTest.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Command::Command()
@@ -260,7 +261,7 @@ void CommandStartup()
 	CommandRegister("rc_host", RCHost, "HOST IN A PARTICULAR PORT");
 	CommandRegister("rc_echo", RCEcho, "TOGGLES THE ECHO TO DEVCONSOLE");
 
-
+	CommandRegister("udp_send", UDPPacketSend, "SENDS PACKET FROM UDP");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1132,6 +1133,30 @@ void RCEcho(Command &cmd)
 		echoEnabled = true;
 	}
 	RCS::GetInstance()->m_isHookedToDevConsole = echoEnabled;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/12
+*@purpose : Sends a msg via UDP protocol
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void UDPPacketSend(Command &cmd)
+{
+	std::string ip = "192.168.0.123";
+	int port = 10084;
+	std::string msg = "hello";
+	/*std::string ip = cmd.GetNextString();
+	int port = 0;
+	if(!cmd.GetNextInt(&port))
+	{
+		return;
+	}
+	std::string msg = cmd.GetNextString();*/
+	size_t writeSize = UDPSend(ip.c_str(), port, msg.c_str());
+	DevConsole::GetInstance()->PushToOutputText("SEND " + ToString(writeSize) + " SUCCESSFULLY");
 }
 
 /*

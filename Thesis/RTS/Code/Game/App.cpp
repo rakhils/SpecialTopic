@@ -12,6 +12,7 @@
 #include "Engine\DevConsole\Profiler\ProfilerManager.hpp"
 #include "Engine\Core\Endianness.hpp"
 #include "Engine\Core\BytePacker.hpp"
+#include "Engine\Net\NetSession.hpp"
 
 App::App()
 {
@@ -23,15 +24,24 @@ App::App()
 	Clock::g_theMasterClock = new Clock();
 	g_theGameClock = new Clock();
 
-	/*BytePacker *bp = new BytePacker(4,LITTLE_ENDIAN);
-	size_t si = bp->WriteSize(8675309);
-	size_t out = 0;
-	bp->ReadSize(&out);
-	int a = 1;*/
-	//BytePacker *bp = new BytePacker(BIG_ENDIAN);
-	//bp->WriteString("join");
-	//std::string str = bp->GetString();
-	//int a = 1;
+
+	Net::StartUp();
+	m_netSession = new NetSession();
+	//m_netSession->Bind(10084);
+	/*m_udp.start(10088);*/
+
+
+	/*NetAddress *addr = new NetAddress();
+	sockaddr_storage out;
+	int out_addrlen;
+
+
+
+	NetAddress::GetRemoteAddress(addr, (sockaddr*)&out,&out_addrlen, "10.8.128.15", "10084");
+	std::string str = "hello";
+	char const *chararr = str.c_str();*/
+
+	//m_udp.send_to(*addr, chararr, str.length());
 }
 
 App::~App()
@@ -80,6 +90,7 @@ void App::Update(float deltaTime)
 	ProfilerManager::PoPProfiler();
 	EngineSystem::Update(MAX_DELTA_VALUE);
 	EngineSystem::UpdateProfiler(deltaTime);
+	//m_udp.Update();
 }
 
 void App::Render()

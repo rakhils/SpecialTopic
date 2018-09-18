@@ -1,5 +1,5 @@
 #pragma once
-
+#include "Game/GameCommon.hpp"
 /*\class  : Task	   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -35,12 +35,15 @@ public:
 	Entity * m_entity = nullptr;
 	Map    * m_map    = nullptr;
 	TaskType m_taskType;
+	Resources m_resourcesNeeded;
 	//Static_Member_Variables
 
 	//Methods
 
 	Task();
 	~Task();
+
+	bool CheckAndReduceResources();
 
 	void Update(float deltaTime);
 	virtual bool DoTask(float delatTime) = 0;

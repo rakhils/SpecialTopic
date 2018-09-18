@@ -7,6 +7,8 @@ TaskSpawnVillager::TaskSpawnVillager(Map* map,TownCenter *townCenter)
 {
 	m_entity	 = townCenter;
 	m_map		 = map;
+	m_resourcesNeeded.m_food = 2;
+	m_resourcesNeeded.m_wood = 2;
 }
 
 // DESTRUCTOR

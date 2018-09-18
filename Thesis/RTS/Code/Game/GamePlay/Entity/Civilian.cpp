@@ -47,16 +47,24 @@ void Civilian::ProcessInputs(float deltaTime)
 			if (m_pendingTask == BUILD_ARMYCENTER)
 			{
 				Task *task = new TaskBuildArmySpawner(m_map, this, mousePosition);
-				m_taskQueue.push(task);
-				m_pendingTask = NOTASK;
-				return;
+				if(task->CheckAndReduceResources())
+				{
+					m_taskQueue.push(task);
+					m_pendingTask = NOTASK;
+					return;
+				}
+				delete task;
 			}
 			if (m_pendingTask == BUILD_HOUSE)
 			{
 				Task *task = new TaskBuildHouse(m_map, this, mousePosition);
-				m_taskQueue.push(task);
-				m_pendingTask = NOTASK;
-				return;
+				if(task->CheckAndReduceResources())
+				{
+					m_taskQueue.push(task);
+					m_pendingTask = NOTASK;
+					return;
+				}
+				delete task;
 			}
 			if(entity == nullptr)
 			{
@@ -106,6 +114,10 @@ void Civilian::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::Render()
 {
+	if (m_health <= 0)
+	{
+		return;
+	}
 	Entity::Render();
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);

@@ -17,7 +17,7 @@ class TaskSpawnVillager : public Task
 
 public:
 	//Member_Variables
-	// 
+
 	//Static_Member_Variables
 
 	//Methods

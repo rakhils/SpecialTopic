@@ -45,13 +45,23 @@ void ArmySpawner::ProcessInput(float deltaTime)
 			if (g_unitStatHUDFirstButton.IsPointInside(mousePosition))
 			{
 				Task *task = new TaskSpawnClassAWarrior(m_map, this);
-				m_taskQueue.push(task);
+				if (task->CheckAndReduceResources())
+				{
+					m_taskQueue.push(task);
+					return;
+				}
+				delete task;
 			}
 			
 			if (g_unitStatHUDSecondButton.IsPointInside(mousePosition))
 			{
 				Task *task = new TaskSpawnClassBWarrior(m_map, this);
-				m_taskQueue.push(task);
+				if (task->CheckAndReduceResources())
+				{
+					m_taskQueue.push(task);
+					return;
+				}
+				delete task;
 			}
 		}
 	}
@@ -77,9 +87,13 @@ void ArmySpawner::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ArmySpawner::Render()
 {
+	if(m_health <= 0)
+	{
+		return;
+	}
 	Entity::Render();
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
-	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "A", g_fontSize, GetTeamColor());
+	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "A", g_fontSize, Rgba::WHITE);
 	delete textMaterial;
 }

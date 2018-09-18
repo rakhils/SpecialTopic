@@ -10,6 +10,18 @@ class Clock;
 class Entity;
 #define UNUSED(x) (void)(x);
 using namespace tinyxml2;
+
+struct Resources
+{
+	int m_food = 0;
+	int m_wood = 0;
+	int m_stone = 0;
+	int m_buildings = 0;
+	int m_units = 0;
+	int m_unitsKilled = 0;
+
+};
+
 extern Renderer*			g_theRenderer;
 extern InputSystem*			g_theInput;
 extern DevConsole*			g_theDevConsole;
@@ -51,4 +63,6 @@ extern AABB2				g_unitStatHUDSecondButton;
 
 void InitVariables();
 void QuitApp(Command &cmd);
+
+
 

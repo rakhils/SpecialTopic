@@ -52,7 +52,7 @@ void ClassAWarrior::ProcessInputs(float deltaTime)
 		if (InputSystem::GetInstance()->WasLButtonJustPressed())
 		{
 			int tileIndex = m_map->GetTileIndex(mousePosition);
-			Entity *entity = m_map->GetEntityFromPosition(tileIndex);
+			Entity *entity = m_map->GetEntityFromPosition(tileIndex);	
 			if (entity == nullptr)
 			{
 				EmptyTaskQueue();
@@ -60,13 +60,14 @@ void ClassAWarrior::ProcessInputs(float deltaTime)
 				Task *task = new TaskMove(m_map, this, mapPosition);
 				m_taskQueue.push(task);
 			}
-			else if (entity != nullptr && IsInRange(m_map->GetCordinates(entity->GetPosition())))
+			else if (entity != nullptr && m_map->IsEnemies(entity,this) && IsInRange(m_map->GetCordinates(entity->GetPosition())))
 			{
 				EmptyTaskQueue();
 				Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
 				Task *task = new TaskShortRangeAttack(this, m_map->GetTileIndex(mapPosition));
 				m_taskQueue.push(task);
 			}
+		
 		}
 	}
 	Entity::ProcessInputs(deltaTime);
@@ -92,6 +93,10 @@ void ClassAWarrior::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::Render()
 {
+	if (m_health <= 0)
+	{
+		return;
+	}
 	Entity::Render();
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);

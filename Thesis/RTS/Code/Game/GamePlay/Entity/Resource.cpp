@@ -88,6 +88,6 @@ void Resource::Render()
 
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
-	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, resourceName, g_fontSize, Rgba::YELLOW);
+	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, resourceName, g_fontSize, Rgba::WHITE);
 	delete textMaterial;
 }

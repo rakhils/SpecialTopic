@@ -26,12 +26,12 @@ Vector3				g_buildingCountPositionPopulationA   (400, 1050, 0);
 Vector3             g_unitsCountPositionPopulationA      (400, 1025, 0);
 Vector3             g_unitsKilledCountPositionPopulationA(400, 1000, 0);
 
-Vector3				g_resourceFoodPositionPopulationB	 (600, 1050, 0);
-Vector3				g_resourceStonePositionPopulationB	 (600, 1025, 0);
-Vector3				g_resourceWoodPositionPopulationB	 (600, 1000, 0);
-Vector3				g_buildingCountPositionPopulationB   (900, 1050, 0);
-Vector3             g_unitsCountPositionPopulationB      (900, 1025, 0);
-Vector3             g_unitsKilledCountPositionPopulationB(900, 1000, 0);
+Vector3				g_resourceFoodPositionPopulationB	 (800, 1050, 0);
+Vector3				g_resourceStonePositionPopulationB	 (800, 1025, 0);
+Vector3				g_resourceWoodPositionPopulationB	 (800, 1000, 0);
+Vector3				g_buildingCountPositionPopulationB   (1100, 1050, 0);
+Vector3             g_unitsCountPositionPopulationB      (1100, 1025, 0);
+Vector3             g_unitsKilledCountPositionPopulationB(1100, 1000, 0);
 
 Vector3				g_unitTypePosition					  (100, 100, 0);
 Vector3				g_unitHealthPosition				  (400, 100, 0);

@@ -8,6 +8,7 @@
 #include "Engine/Math/Vector3.hpp"
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/Math/MathUtil.hpp"
 
 Map::Map()
 {
@@ -29,9 +30,38 @@ void Map::Initialize()
 	m_maxHeight = g_mapMaxHeight;
 
 	CreateTownCenter(Vector2(20, 340),1);
-	CreateCivilian(Vector2::ONE * 100, 1);
+	CreateTownCenter(Vector2(800, 600), 2);
+	CreateCivilian(Vector2(850, 600), 2);
+	CreateCivilian(Vector2::ONE * 500, 1);
+/*
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);
+	CreateCivilian(Vector2::ONE * 500, 1);*/
+
+
+
+
 	CreateResources(Vector2(200,300),RESOURCE_FOOD);
 	CreateResources(Vector2(200, 500), RESOURCE_WOOD);
+	CreateResources(Vector2(300, 500), RESOURCE_STONE);
+
+
+	CreateResources(Vector2(900, 800), RESOURCE_FOOD);
+	CreateResources(Vector2(900, 500), RESOURCE_WOOD);
+	CreateResources(Vector2(1100, 500), RESOURCE_STONE);
 	//CreateClassAWarrior(Vector2(500, 300), 1);
 	CreateArmySpawner(Vector2(500, 300), 1);
 }
@@ -66,6 +96,7 @@ void Map::CreateCivilian(Vector2 position, int teamID)
 {
 	Civilian *civilian = new Civilian(this,position,teamID);
 	m_civilians.push_back(civilian);
+	m_movableEntities.push_back(civilian);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
 }
 
@@ -79,6 +110,7 @@ void Map::CreateArmySpawner(Vector2 position, int teamID)
 {
 	ArmySpawner * armySpawner = new ArmySpawner(this,position,teamID);
 	m_armySpawners.push_back(armySpawner);
+	m_standAloneEntities.push_back(armySpawner);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
 }
 
@@ -92,6 +124,7 @@ void Map::CreateClassAWarrior(Vector2 position, int teamID)
 {
 	ClassAWarrior *classAWarrior = new ClassAWarrior(this,position,teamID);
 	m_classAWarriors.push_back(classAWarrior);
+	m_movableEntities.push_back(classAWarrior);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
 }
 
@@ -105,6 +138,7 @@ void Map::CreateClassBWarrior(Vector2 position, int teamID)
 {
 	ClassBWarrior *classBWarrior = new ClassBWarrior(this,position,teamID);
 	m_classBWarriors.push_back(classBWarrior);
+	m_movableEntities.push_back(classBWarrior);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
 }
 
@@ -118,6 +152,7 @@ void Map::CreateHouse(Vector2 position, int teamID)
 {
 	House *house = new House(this,position,teamID);
 	m_houses.push_back(house);
+	m_standAloneEntities.push_back(house);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
 }
 
@@ -131,6 +166,7 @@ void Map::CreateTownCenter(Vector2 position, int teamID)
 {
 	TownCenter *townCenter = new TownCenter(this,position,teamID);
 	m_townCenters.push_back(townCenter);
+	m_standAloneEntities.push_back(townCenter);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
 }
 
@@ -591,6 +627,21 @@ void Map::AttackOnPosition(Vector2 position, float damagePoint)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/14
+*@purpose : Check if 2 entities are enemies
+*@param   : 2 entities
+*@return  : true if teamId not matched
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::IsEnemies(Entity *entityOne, Entity *entityTwo)
+{
+	if(entityOne->m_teamID != entityTwo->m_teamID)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
 *@purpose : Destroys entity
 *@param   : NIL
@@ -757,8 +808,63 @@ void Map::ProcessInputs(float deltaTime)
 
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/14
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::CheckAndUpdateOnWinCondition()
+{
+	for(size_t townCenterIndex = 0;townCenterIndex < m_townCenters.size();townCenterIndex++)
+	{
+		if(m_townCenters.at(townCenterIndex)->m_health <= 0)
+		{
+			m_gameFinished = true;
+			return;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/14
+*@purpose : If two entities overlap make the distant
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::CheckAndClearEntityOverlap()
+{
+	for (size_t entityOneIndex = 0; entityOneIndex < m_movableEntities.size(); entityOneIndex++)
+	{
+		for (size_t entityTwoIndex = entityOneIndex + 1; entityTwoIndex < m_movableEntities.size(); entityTwoIndex++)
+		{
+			if(m_movableEntities.at(entityOneIndex)->m_taskQueue.size() == 0)
+			{
+
+				if (m_movableEntities.at(entityOneIndex)->GetTileIndex() == m_movableEntities.at(entityTwoIndex)->GetTileIndex())
+				{
+					IntVector2 freeCords = GetFreeNeighbourTile(m_movableEntities.at(entityOneIndex)->GetPosition());
+
+					if (freeCords == IntVector2(-1, -1))
+					{
+						freeCords = GetCordinates(m_movableEntities.at(entityOneIndex)->GetPosition());
+						freeCords = freeCords + IntVector2(GetRandomIntInRange(-1,2), GetRandomIntInRange(-1,2));
+					}
+					m_movableEntities.at(entityOneIndex)->SetPosition(GetMapPosition(freeCords));
+				}
+			}
+		}
+	}
+}
+
 void Map::Update(float deltaTime)
 {
+	CheckAndUpdateOnWinCondition();
+	CheckAndClearEntityOverlap();
+	if(m_gameFinished)
+	{
+		return;
+	}
 	ProcessInputs(deltaTime);
 
 	UpdateCamera(deltaTime);
@@ -907,6 +1013,7 @@ void Map::Render()
 {
 	Camera::SetCurrentCamera(m_camera);
 	Renderer::GetInstance()->BeginFrame();
+
 	RenderCivilians();
 	RenderClassAWarriors();
 	RenderClassBWarriors();
@@ -920,6 +1027,11 @@ void Map::Render()
 	RenderHUDUnitStat();
 
 	RenderMousePosition();
+
+	if (m_gameFinished)
+	{
+		RenderWinState();
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1077,15 +1189,15 @@ void Map::RenderHUDGameStat()
 		populationBTownCenter = m_townCenters.at(1);
 	}
 
-	g_theRenderer->DrawTextOn3DPoint(g_resourceFoodPositionPopulationA, Vector3::RIGHT, Vector3::UP , "FOOD  : " + ToString(populationATownCenter->m_resourceStat.m_food),  g_fontSize, Rgba::RED);																																   
-	g_theRenderer->DrawTextOn3DPoint(g_resourceStonePositionPopulationA, Vector3::RIGHT, Vector3::UP, "STONE : " + ToString(populationATownCenter->m_resourceStat.m_stone), g_fontSize, Rgba::RED);																																   
-	g_theRenderer->DrawTextOn3DPoint(g_resourceWoodPositionPopulationA, Vector3::RIGHT, Vector3::UP , "WOOD  : " + ToString(populationATownCenter->m_resourceStat.m_wood),  g_fontSize, Rgba::RED);
+	g_theRenderer->DrawTextOn3DPoint(g_resourceFoodPositionPopulationA, Vector3::RIGHT, Vector3::UP , "FOOD  : " + ToString(populationATownCenter->m_resourceStat.m_food),  g_fontSize, Rgba::GREEN);																																   
+	g_theRenderer->DrawTextOn3DPoint(g_resourceStonePositionPopulationA, Vector3::RIGHT, Vector3::UP, "STONE : " + ToString(populationATownCenter->m_resourceStat.m_stone), g_fontSize, Rgba::GREEN);																																   
+	g_theRenderer->DrawTextOn3DPoint(g_resourceWoodPositionPopulationA, Vector3::RIGHT, Vector3::UP , "WOOD  : " + ToString(populationATownCenter->m_resourceStat.m_wood),  g_fontSize, Rgba::GREEN);
 
-	g_theRenderer->DrawTextOn3DPoint(g_unitsCountPositionPopulationA, Vector3::RIGHT, Vector3::UP ,       "UNITS         : " + ToString(populationATownCenter->m_resourceStat.m_units),  g_fontSize, Rgba::RED);
+	g_theRenderer->DrawTextOn3DPoint(g_unitsCountPositionPopulationA, Vector3::RIGHT, Vector3::UP ,       "UNITS         : " + ToString(populationATownCenter->m_resourceStat.m_units),  g_fontSize, Rgba::GREEN);
 
-	g_theRenderer->DrawTextOn3DPoint(g_unitsKilledCountPositionPopulationA, Vector3::RIGHT, Vector3::UP , "UNITS KILLED  : " + ToString(populationATownCenter->m_resourceStat.m_unitsKilled),  g_fontSize, Rgba::RED);
+	g_theRenderer->DrawTextOn3DPoint(g_unitsKilledCountPositionPopulationA, Vector3::RIGHT, Vector3::UP , "UNITS KILLED  : " + ToString(populationATownCenter->m_resourceStat.m_unitsKilled),  g_fontSize, Rgba::GREEN);
 
-	g_theRenderer->DrawTextOn3DPoint(g_buildingCountPositionPopulationA, Vector3::RIGHT, Vector3::UP ,    "BUILDINGS     : " + ToString(populationATownCenter->m_resourceStat.m_buildings),  g_fontSize, Rgba::RED);
+	g_theRenderer->DrawTextOn3DPoint(g_buildingCountPositionPopulationA, Vector3::RIGHT, Vector3::UP ,    "BUILDINGS     : " + ToString(populationATownCenter->m_resourceStat.m_buildings),  g_fontSize, Rgba::GREEN);
 
 	if(populationBTownCenter != nullptr)
 	{
@@ -1099,7 +1211,6 @@ void Map::RenderHUDGameStat()
 		g_theRenderer->DrawTextOn3DPoint(g_buildingCountPositionPopulationB, Vector3::RIGHT, Vector3::UP,    "BUILDINGS     : " + ToString(populationBTownCenter->m_resourceStat.m_buildings), g_fontSize, Rgba::RED);
 
 	}
-
 
 	delete textMaterial;
 	delete defaultMaterial;
@@ -1192,5 +1303,23 @@ void Map::RenderMousePosition()
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	g_theRenderer->DrawAABB(AABB2(mapPosition,g_radius,g_radius), Rgba::FADED_BLUE);
 	delete defaultMaterial;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/14
+*@purpose : Renders win condition
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderWinState()
+{
+	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	Renderer::GetInstance()->BindMaterial(textMaterial);
+	if(m_townCenters.at(0)->m_health <= 0)
+	{
+		g_theRenderer->DrawTextOn3DPoint(Windows::GetInstance()->GetDimensions().GetAsVector2()/2.f, Vector3::RIGHT, Vector3::UP, "TEAM 2 WINS ", g_fontSize, Rgba::YELLOW);
+		return;
+	}
+	g_theRenderer->DrawTextOn3DPoint(Windows::GetInstance()->GetDimensions().GetAsVector2()/2.f, Vector3::RIGHT, Vector3::UP, "TEAM 1 WINS ", g_fontSize, Rgba::YELLOW);
 }
 

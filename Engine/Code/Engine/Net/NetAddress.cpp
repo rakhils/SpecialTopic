@@ -41,8 +41,8 @@ bool NetAddress::GetBindableAddress(NetAddress *netaddr,int port)
 bool NetAddress::GetRemoteAddress(NetAddress *netaddr,sockaddr *out, int *out_addrlen, char const *hostname, char const *service)
 {
 	Net::GetHostAddress(out, out_addrlen, hostname, service);
-	netaddr->FromSockAddr((sockaddr*)&out);
-	netaddr->ToSockAddr((sockaddr*)&out,(size_t*)&out_addrlen);
+	netaddr->FromSockAddr(out);
+	//netaddr->ToSockAddr((sockaddr*)&out,(size_t*)&out_addrlen);
 	return true;
 }
 

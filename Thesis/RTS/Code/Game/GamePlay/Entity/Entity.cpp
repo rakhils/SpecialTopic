@@ -12,7 +12,7 @@
 
 Entity::Entity()
 {
-
+	
 }
 
 Entity::Entity(float x, float y)
@@ -50,6 +50,17 @@ Vector2 Entity::GetPosition()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/14
+*@purpose : Gets tile index of position
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Entity::GetTileIndex()
+{
+	return m_map->GetTileIndex(GetPosition());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
 *@purpose : Process all inputs
 *@param   : NIL
@@ -62,6 +73,10 @@ void Entity::ProcessInputs(float deltaTime)
 
 void Entity::Update(float deltaTime)
 {
+	if(m_health <= 0)
+	{
+		return;
+	}
 	Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
 	mousePosition.y		  = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
 
@@ -126,6 +141,10 @@ void Entity::Update(float deltaTime)
 
 void Entity::Render()
 {
+	if (m_health <= 0)
+	{
+		return;
+	}	
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 
@@ -134,7 +153,7 @@ void Entity::Render()
 	case CIVILIAN:
 	case WARRIOR_SHORT_RANGE:
 	case WARRIOR_LONG_RANGE:
-		g_theRenderer->DrawCircle(m_disc,m_color);
+		g_theRenderer->DrawCircle(m_disc,GetTeamColor());
 		break;
 	case HOUSE:
 	case ARMY_SPAWNER:
@@ -142,7 +161,7 @@ void Entity::Render()
 	case RESOURCE_FOOD:
 	case RESOURCE_STONE:
 	case RESOURCE_WOOD:
-		g_theRenderer->DrawAABB(m_aabb2,m_color);
+		g_theRenderer->DrawAABB(m_aabb2,GetTeamColor());
 		break;
 	default:
 		break;
@@ -242,7 +261,11 @@ Rgba Entity::GetTeamColor()
 	{
 		return Rgba::GREEN;
 	}
-	return Rgba::GREEN;
+	if(m_teamID == 2)
+	{
+		return Rgba::RED;
+	}
+	return Rgba::YELLOW;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
