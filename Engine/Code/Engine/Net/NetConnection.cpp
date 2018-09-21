@@ -4,7 +4,7 @@
 
 NetConnection::NetConnection(char *address)
 {
-	UDPSocket *m_udpSocket = new UDPSocket(address);
+	m_udpSocket = new UDPSocket(address);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -15,7 +15,7 @@ NetConnection::NetConnection(char *address)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 NetConnection::NetConnection(int port)
 {
-	UDPSocket *m_udpSocket = new UDPSocket(port);
+	m_udpSocket = new UDPSocket(port);
 }
 
 // DESTRUCTOR
@@ -65,7 +65,7 @@ size_t NetConnection::Send(NetMessage netmsg)
 		bytePacker.WriteBytes(sizeof(uint16_t), (char*)&netmsg.m_index);
 		bytePacker.WriteBytes(endIndex - startIndex, ((char*)netmsg.m_bytePacker.m_buffer + startIndex));
 	}
-	uint16_t totalPacketCount = index;
+	uint16_t totalPacketCount = static_cast<uint16_t>(index);
 	// sneding the index ofdata and how many total packets coming along
 	// can do a handshake similar to tcp
 	// Node1 : send request 

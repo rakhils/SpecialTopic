@@ -1,8 +1,8 @@
 #include "Engine/Net/UDP/UDPSocket.hpp"
-
+#include "Engine/Core/EngineCommon.hpp"
 UDPSocket::UDPSocket(char *address)
 {
-	NetAddress *addr = new NetAddress();
+	//NetAddress *addr = new NetAddress();
 	sockaddr_storage out;
 	int out_addrlen;
 
@@ -32,6 +32,7 @@ UDPSocket::~UDPSocket()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool UDPSocket::Bind(NetAddress &addr, uint16_t port_range /*= 0U*/)
 {
+	UNUSED(port_range);
 	SOCKET my_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	sockaddr_storage sock_addr;
 	size_t			 sock_addr_len;
@@ -67,9 +68,9 @@ size_t UDPSocket::SendTo(NetAddress &addr, void const *data, size_t const byte_c
 	addr.ToSockAddr((sockaddr*)&sockaddrr, &addr_len);
 	
 	SOCKET sock = (SOCKET)m_handle;
-	int error = WSAGetLastError();
-	int sent = ::sendto(sock, (char const *)&data, (int)byte_count, 0, (sockaddr*)&sockaddrr, addr_len);
-	int error1 = WSAGetLastError();
+	//int error = WSAGetLastError();
+	int sent = ::sendto(sock, (char const *)&data, static_cast<int>(byte_count), 0, (sockaddr*)&sockaddrr, static_cast<int>(addr_len));
+	//int error1 = WSAGetLastError();
 	if(sent > 0)
 	{
 		return (size_t)sent;
@@ -89,6 +90,7 @@ size_t UDPSocket::SendTo(NetAddress &addr, void const *data, size_t const byte_c
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t UDPSocket::ReceiveFrom(NetAddress *out_addr, void *buffer, size_t max_read_size)
 {
+	UNUSED(out_addr);
 	if (is_closed())
 	{
 		return 0U;
@@ -100,7 +102,7 @@ size_t UDPSocket::ReceiveFrom(NetAddress *out_addr, void *buffer, size_t max_rea
 
 
 	int recvd = ::recvfrom(sock, (char*)buffer, (int)max_read_size, 0, (sockaddr*)&fromaddr, &addr_len);
-	int error = WSAGetLastError();
+	//int error = WSAGetLastError();
 	if (recvd > 0)
 	{
 		return recvd;

@@ -1,6 +1,7 @@
 #include "Engine/Net/UDP/UDPTest.hpp"
 #include "Engine/DevConsole/DevConsole.hpp"
 #include "Engine/Core/StringUtils.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 UDPTest::UDPTest()
 {
@@ -32,8 +33,8 @@ size_t UDPTest::send_to(NetAddress &addr, void const *buffer, int byte_count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void UDPTest::Update()
 {
-	char buffer[PACKET_MTU];
-
+	char *buffer;// [PACKET_MTU];
+	buffer = new char[PACKET_MTU];
 	NetAddress from_addr;
 	size_t read = m_socket.receive_from(&from_addr, buffer, PACKET_MTU);
 
@@ -42,7 +43,7 @@ void UDPTest::Update()
 		int max_bytes;
 		if(read < 128)
 		{
-			max_bytes = read;
+			max_bytes = static_cast<int>(read);
 		}
 		else
 		{
@@ -50,7 +51,7 @@ void UDPTest::Update()
 		}
 
 		int string_size = max_bytes * 13U + 3U;
-		char *buffer = new char[string_size];
+		buffer = new char[string_size];
 		sprintf_s(buffer, 3U, "0x");
 
 		/*std::string output = "0x";
@@ -69,7 +70,7 @@ void UDPTest::Update()
 		//output.recalculate_sizes();
 
 		DevConsole::GetInstance()->PushToOutputText(buffer);
-		delete[] buffer;
+		delete buffer;
 		//ConsolePrintf("Received from %s;\n%s", from_addr.to_string().c_str(),output.c_str());
 	}
 }
@@ -87,7 +88,7 @@ bool UDPTest::start(int port)
 
 	if (!m_socket.bind(addr, 10)) 
 	{
-		int error = WSAGetLastError();
+		//int error = WSAGetLastError();
 		return false;
 	}
 	else 
@@ -107,8 +108,8 @@ bool UDPTest::start(int port)
 void UDPTest::stop()
 {
 	m_socket.close();
-	int error = WSAGetLastError();
-	int a = 1;
+	//int error = WSAGetLastError();
+	//int a = 1;
 }
 
 
@@ -131,7 +132,7 @@ size_t UDPSend(const char *ip, int port, const char* msg)
 	NetAddress::GetRemoteAddress(addr, (sockaddr*)&out, &out_addrlen, ip, ToString(port).c_str());
 	std::string str = msg;
 
-	size_t sendSize = udptest.send_to(*addr, msg, str.length());
+	size_t sendSize = udptest.send_to(*addr, msg, static_cast<int>(str.length()));
 	udptest.stop();
 	return sendSize;
 }
@@ -144,6 +145,7 @@ size_t UDPSend(const char *ip, int port, const char* msg)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void UDPRecvOnConsole(char *ip, int port)
 {
+	UNUSED(ip);
 	UDPTest udptest;
 	udptest.start(port);
 
@@ -153,7 +155,7 @@ void UDPRecvOnConsole(char *ip, int port)
 
 	NetAddress::GetRemoteAddress(addr, (sockaddr*)&out, &out_addrlen, "10.8.128.15", "10084");
 	std::string str = "hello";
-	char const *chararr = str.c_str();
+	//char const *chararr = str.c_str();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,5 +166,5 @@ void UDPRecvOnConsole(char *ip, int port)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void UDPListen(void *data)
 {
-
+	UNUSED(data);
 }
