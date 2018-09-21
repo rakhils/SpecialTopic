@@ -34,6 +34,7 @@ public:
 	//Member_Variables
 	Entity * m_entity = nullptr;
 	Map    * m_map    = nullptr;
+	bool     m_isValid = false;
 	TaskType m_taskType;
 	Resources m_resourcesNeeded;
 	//Static_Member_Variables

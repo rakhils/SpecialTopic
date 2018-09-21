@@ -51,16 +51,13 @@ void Map::Initialize()
 	CreateCivilian(Vector2::ONE * 500, 1);
 	CreateCivilian(Vector2::ONE * 500, 1);*/
 
-
-
-
-	CreateResources(Vector2(200,300),RESOURCE_FOOD);
+	CreateResources(Vector2(200,300),  RESOURCE_FOOD);
 	CreateResources(Vector2(200, 500), RESOURCE_WOOD);
 	CreateResources(Vector2(300, 500), RESOURCE_STONE);
 
 
-	CreateResources(Vector2(900, 800), RESOURCE_FOOD);
-	CreateResources(Vector2(900, 500), RESOURCE_WOOD);
+	CreateResources(Vector2(900, 800),  RESOURCE_FOOD);
+	CreateResources(Vector2(900, 500),  RESOURCE_WOOD);
 	CreateResources(Vector2(1100, 500), RESOURCE_STONE);
 	//CreateClassAWarrior(Vector2(500, 300), 1);
 	CreateArmySpawner(Vector2(500, 300), 1);
@@ -218,13 +215,24 @@ bool Map::IsPositionInsideMap(Vector2 position)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Map::IsNeighbours(IntVector2 position1, IntVector2 position2)
 {
+	return IsNeighbours(position1, position2, 1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/19
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::IsNeighbours(IntVector2 position1, IntVector2 position2, int distance)
+{
 	IntVector2 displacement = position1 - position2;
-	int neighbourDistance = 1;
-	if(position1 == position2)
+	int neighbourDistance = distance;
+	if (position1 == position2)
 	{
 		return false;
 	}
-	if(displacement.x <= neighbourDistance && displacement.x >= -neighbourDistance && displacement.y <= neighbourDistance && displacement.y >= -neighbourDistance)
+	if (displacement.x <= neighbourDistance && displacement.x >= -neighbourDistance && displacement.y <= neighbourDistance && displacement.y >= -neighbourDistance)
 	{
 		return true;
 	}
@@ -239,18 +247,29 @@ bool Map::IsNeighbours(IntVector2 position1, IntVector2 position2)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IntVector2 Map::GetFreeNeighbourTile(Vector2 position)
 {
+	return GetFreeNeighbourTile(position, 1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/19
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Map::GetFreeNeighbourTile(Vector2 position, int distance)
+{
 	int tileIndex = GetTileIndex(position);
 	IntVector2 tileCords = GetCordinates(tileIndex);
 
-	IntVector2 tileCordsE  = IntVector2(tileCords.x + 1, tileCords.y + 0);
-	IntVector2 tileCordsN  = IntVector2(tileCords.x + 0, tileCords.y + 1);
-	IntVector2 tileCordsW  = IntVector2(tileCords.x - 1, tileCords.y + 0);
-	IntVector2 tileCordsS  = IntVector2(tileCords.x + 0, tileCords.y - 1);
+	IntVector2 tileCordsE = IntVector2(tileCords.x + distance, tileCords.y + 0);
+	IntVector2 tileCordsN = IntVector2(tileCords.x + 0, tileCords.y + distance);
+	IntVector2 tileCordsW = IntVector2(tileCords.x - distance, tileCords.y + 0);
+	IntVector2 tileCordsS = IntVector2(tileCords.x + 0, tileCords.y - distance);
 
-	IntVector2 tileCordsNE = IntVector2(tileCords.x + 1, tileCords.y + 1);
-	IntVector2 tileCordsNW = IntVector2(tileCords.x - 1, tileCords.y + 1);
-	IntVector2 tileCordsSW = IntVector2(tileCords.x - 1, tileCords.y - 1);
-	IntVector2 tileCordsSE = IntVector2(tileCords.x + 1, tileCords.y - 1);
+	IntVector2 tileCordsNE = IntVector2(tileCords.x + distance, tileCords.y + distance);
+	IntVector2 tileCordsNW = IntVector2(tileCords.x - distance, tileCords.y + distance);
+	IntVector2 tileCordsSW = IntVector2(tileCords.x - distance, tileCords.y - distance);
+	IntVector2 tileCordsSE = IntVector2(tileCords.x + distance, tileCords.y - distance);
 
 	if (IsValidCordinate(tileCordsE))
 	{
@@ -345,7 +364,7 @@ IntVector2 Map::GetTilePosition(int tilePosition)
 int Map::GetTileIndex(Vector2 mapPosition)
 {
 	//mapPosition.y = Windows::GetInstance()->GetDimensions().y - mapPosition.y;
-	DebugDraw::GetInstance()->DebugRenderLogf("MousePOs %f ", mapPosition.y);
+	//DebugDraw::GetInstance()->DebugRenderLogf("MousePOs %f ", mapPosition.y);
 	int x = static_cast<int>((mapPosition.x - m_xOffset) / g_unitDistance);
 	int y = static_cast<int>((mapPosition.y - m_yOffset) / g_unitDistance);
 	if(x > m_maxWidth || y > m_maxHeight || x < 0 || y < 0)
@@ -805,6 +824,30 @@ void Map::ProcessInputs(float deltaTime)
 	{
 		g_currentSelectedEntity = nullptr;
 	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_1))
+	{
+		m_townCenters.at(0)->m_resourceStat.m_food++;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_2))
+	{
+		m_townCenters.at(0)->m_resourceStat.m_stone++;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_3))
+	{
+		m_townCenters.at(0)->m_resourceStat.m_wood++;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_4))
+	{
+		m_townCenters.at(1)->m_resourceStat.m_food++;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_5))
+	{
+		m_townCenters.at(1)->m_resourceStat.m_stone++;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_6))
+	{
+		m_townCenters.at(1)->m_resourceStat.m_wood++;
+	}
 
 }
 
@@ -838,9 +881,8 @@ void Map::CheckAndClearEntityOverlap()
 	{
 		for (size_t entityTwoIndex = entityOneIndex + 1; entityTwoIndex < m_movableEntities.size(); entityTwoIndex++)
 		{
-			if(m_movableEntities.at(entityOneIndex)->m_taskQueue.size() == 0)
+			if(m_movableEntities.at(entityOneIndex)->m_taskQueue.size() == 0 && m_movableEntities.at(entityTwoIndex)->m_taskQueue.size() == 0)
 			{
-
 				if (m_movableEntities.at(entityOneIndex)->GetTileIndex() == m_movableEntities.at(entityTwoIndex)->GetTileIndex())
 				{
 					IntVector2 freeCords = GetFreeNeighbourTile(m_movableEntities.at(entityOneIndex)->GetPosition());
@@ -1298,7 +1340,7 @@ void Map::RenderHUDUnitStat()
 void Map::RenderMousePosition()
 {
 	Vector2 mapPosition = GetMapPosition(m_currentTileIndex);
-	DebugDraw::GetInstance()->DebugRenderLogf("CurrentTile %d ", m_currentTileIndex);
+	//DebugDraw::GetInstance()->DebugRenderLogf("CurrentTile %d ", m_currentTileIndex);
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	g_theRenderer->DrawAABB(AABB2(mapPosition,g_radius,g_radius), Rgba::FADED_BLUE);

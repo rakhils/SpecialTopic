@@ -98,6 +98,8 @@ data/log/
 
 
 data/screenshot/
+Thesis/RTS/Run_Win32/Logs/*.txt
+Thesis/RTS/Temporary/*
 *.log
 data/config/user.config
 *.ipch

@@ -67,7 +67,10 @@ public:
 
 	bool        IsPositionInsideMap(Vector2 position);
 	bool        IsNeighbours(IntVector2 position1, IntVector2 position2);
+	bool        IsNeighbours(IntVector2 position1, IntVector2 position2,int distance);
+
 	IntVector2  GetFreeNeighbourTile(Vector2 position);
+	IntVector2  GetFreeNeighbourTile(Vector2 position,int distance);
 	IntVector2  GetTilePosition(int tilePosition);
 	IntVector2  GetTilePosition(Vector2 position);
 	int		    GetTileIndex(Vector2 mapPosition);

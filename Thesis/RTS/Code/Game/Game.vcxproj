@@ -331,6 +331,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskLongRangeAttack.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="GamePlay\Task\TaskMove.cpp">
       <SubType>
       </SubType>
@@ -408,6 +412,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="GamePlay\Task\TaskGatherResource.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskLongRangeAttack.hpp">
       <SubType>
       </SubType>
     </ClInclude>

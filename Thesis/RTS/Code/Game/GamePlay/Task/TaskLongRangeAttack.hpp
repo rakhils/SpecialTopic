@@ -1,12 +1,12 @@
 #pragma once
 #include "Game/GamePlay/Task/Task.hpp"
-/*\class  : TaskShortRangeAttack	   
-* \group  : <GroupName>		   
-* \brief  :		   
-* \TODO:  :		   
-* \note   :		   
-* \author : Rakhil Soman		   
-* \version: 1.0		   
+/*\class  : TaskShortRangeAttack
+* \group  : <GroupName>
+* \brief  :
+* \TODO:  :
+* \note   :
+* \author : Rakhil Soman
+* \version: 1.0
 * \date   : 9/1/2018 8:26:19 PM
 * \contact: srsrakhil@gmail.com
 */
@@ -15,7 +15,7 @@ enum AttackSubTask
 	DEAL_DAMAGE,
 	ANIMATION
 };
-class TaskShortRangeAttack : public Task
+class TaskLongRangeAttack : public Task
 {
 
 public:
@@ -30,11 +30,11 @@ public:
 
 	//Methods
 
-	TaskShortRangeAttack(Map* map,Entity *entity,int tileIndex);
-	~TaskShortRangeAttack();
+	TaskLongRangeAttack(Map* map, Entity *entity, int tileIndex);
+	~TaskLongRangeAttack();
 
 	bool DoTask(float delatTime);
-	
+
 	//Static_Methods
 
 protected:

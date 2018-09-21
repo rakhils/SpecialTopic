@@ -5,7 +5,7 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Task/TaskMove.hpp"
-#include "Game/GamePlay/Task/TaskShortRangeAttack.hpp"
+#include "Game/GamePlay/Task/TaskLongRangeAttack.hpp"
 // CONSTRUCTOR
 ClassBWarrior::ClassBWarrior()
 {
@@ -60,11 +60,11 @@ void ClassBWarrior::ProcessInputs(float deltaTime)
 				Task *task = new TaskMove(m_map, this, mapPosition);
 				m_taskQueue.push(task);
 			}
-			else if (entity != nullptr && m_map->IsEnemies(entity,this) && IsInRange(m_map->GetCordinates(entity->GetPosition())))
+			else if (entity != nullptr && m_map->IsEnemies(entity,this))// && IsInRange(m_map->GetCordinates(entity->GetPosition())))
 			{
 				EmptyTaskQueue();
 				Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
-				Task *task = new TaskShortRangeAttack(this, m_map->GetTileIndex(mapPosition));
+				Task *task = new TaskLongRangeAttack(m_map,this, m_map->GetTileIndex(mapPosition));
 				m_taskQueue.push(task);
 			}
 		}

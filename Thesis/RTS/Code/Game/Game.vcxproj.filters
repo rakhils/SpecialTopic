@@ -115,6 +115,9 @@
     <ClCompile Include="GamePlay\Task\TaskBuildHouse.cpp">
       <Filter>General\GamePlay\Task</Filter>
     </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskLongRangeAttack.cpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -193,6 +196,9 @@
       <Filter>General\GamePlay\Task</Filter>
     </ClInclude>
     <ClInclude Include="GamePlay\Task\TaskBuildHouse.hpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskLongRangeAttack.hpp">
       <Filter>General\GamePlay\Task</Filter>
     </ClInclude>
   </ItemGroup>

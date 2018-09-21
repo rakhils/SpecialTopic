@@ -60,12 +60,19 @@ void ClassAWarrior::ProcessInputs(float deltaTime)
 				Task *task = new TaskMove(m_map, this, mapPosition);
 				m_taskQueue.push(task);
 			}
-			else if (entity != nullptr && m_map->IsEnemies(entity,this) && IsInRange(m_map->GetCordinates(entity->GetPosition())))
+			else if (entity != nullptr && m_map->IsEnemies(entity,this))// && IsInRange(m_map->GetCordinates(entity->GetPosition())))
 			{
 				EmptyTaskQueue();
 				Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
-				Task *task = new TaskShortRangeAttack(this, m_map->GetTileIndex(mapPosition));
-				m_taskQueue.push(task);
+				Task *task = new TaskShortRangeAttack(m_map,this, m_map->GetTileIndex(mapPosition));
+				if(task->m_isValid)
+				{
+					m_taskQueue.push(task);
+				}
+				else
+				{
+					delete task;
+				}
 			}
 		
 		}
