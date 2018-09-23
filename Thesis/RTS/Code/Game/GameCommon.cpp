@@ -58,7 +58,7 @@ void InitVariables()
 
 	g_unitStatHUD						= AABB2(Vector2(windowsSizeX - 160, windowsSizeY / 2.f), 160, windowsSizeY/2.f);
 	g_unitStatHUDHealthInfoPosition		= Vector3(windowsSizeX - 160, windowsSizeY - 100, 0);
-	g_unitStatHUDResourceInfoPosition   = Vector3(windowsSizeX - 160, windowsSizeY - 300, 0);
+	g_unitStatHUDResourceInfoPosition   = Vector3(windowsSizeX - 300, windowsSizeY - 300, 0);
 	g_unitStatHUDFirstButton			= AABB2(Vector2(windowsSizeX - 160, windowsSizeY - 500),g_unitDistance*4,g_unitDistance);
 	g_unitStatHUDSecondButton			= AABB2(Vector2(windowsSizeX - 160, windowsSizeY - 750),g_unitDistance*4,g_unitDistance);
 }

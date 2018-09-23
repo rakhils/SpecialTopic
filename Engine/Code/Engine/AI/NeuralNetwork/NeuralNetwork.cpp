@@ -7,7 +7,7 @@
 // CONSTRUCTOR
 NeuralNetwork::NeuralNetwork()
 {
-	CreateNeuralNetwork(100,144,2);
+	//CreateNeuralNetwork(100,144,2);
 }
 
 NeuralNetwork::NeuralNetwork(int numberOfInputNeurons, int numberOfHiidenNeurons, int numberOfOutputNeuron)
@@ -112,6 +112,32 @@ void NeuralNetwork::FeedForward(std::vector<float> &inputs)
 		if (inputIndex < inputs.size())
 		{
 			m_inputs->m_neurons.at(inputIndex).m_value = inputs.at(inputIndex);
+		}
+	}
+	Update();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/23
+*@purpose : Feed forward inpus from 2 sources
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NeuralNetwork::FeedForward(std::vector<float> &inputs, std::vector<float> &inputs1)
+{
+	int inputIndex = 0;
+	for (; inputIndex < inputs.size(); inputIndex++)
+	{
+		if(inputIndex < m_inputs->m_neurons.size())
+		{
+			m_inputs->m_neurons.at(inputIndex).m_value = inputs.at(inputIndex);
+		}
+	}
+	for(;inputIndex < inputs.size() + inputs1.size(); inputIndex++)
+	{
+		if(inputIndex < m_inputs->m_neurons.size())
+		{
+			m_inputs->m_neurons.at(inputIndex).m_value = inputs1.at(inputIndex - inputs.size());
 		}
 	}
 	Update();

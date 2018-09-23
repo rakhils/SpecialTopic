@@ -24,6 +24,9 @@ ClassBWarrior::ClassBWarrior(Map *map, Vector2 position, int teamID)
 	m_type = WARRIOR_SHORT_RANGE;
 	SetPosition(position);
 	SetTeam(teamID);
+	m_taskTypeSupported.push_back(TASK_LONG_ATTACK);
+	m_taskTypeSupported.push_back(TASK_MOVE);
+	InitNeuralNet();
 }
 
 // DESTRUCTOR
@@ -176,3 +179,4 @@ bool ClassBWarrior::IsInRange(IntVector2 cords)
 
 	return false;
 }
+

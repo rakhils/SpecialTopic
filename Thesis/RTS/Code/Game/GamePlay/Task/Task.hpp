@@ -15,13 +15,13 @@ class Map;
 enum TaskType
 {
 	TASK_MOVE,
-	TASK_GATHER_RESOURCEA,
-	TASK_GATHER_RESOURCEB,
-	TASK_GATHER_RESOURCEC,
+	TASK_GATHER_RESOURCE,
+	TASK_DROP_RESOURCE,
 	TASK_BUILD_TOWNCENTER,
 	TASK_BUILD_HOUSE,
 	TASK_BUILD_ARMY_SPAWNER,
-	TASK_ATTACK,
+	TASK_LONG_ATTACK,
+	TASK_SHORT_ATTACK,
 	TASK_SPAWN_VILLAGER,
 	TASK_SPAWN_CLASSA_WARRIOR,
 	TASK_SPAWN_CLASSB_WARRIOR,
@@ -50,6 +50,7 @@ public:
 	virtual bool DoTask(float delatTime) = 0;
 
 	//Static_Methods
+	static std::string GetTaskTypeAsString(TaskType type);
 
 protected:
 	//Member_Variables

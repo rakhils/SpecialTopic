@@ -17,6 +17,8 @@ TownCenter::TownCenter(Map *map,Vector2 position, int teamId)
 	m_type	= TOWN_CENTER;
 	m_teamID = teamId;
 	SetPosition(position);
+	m_taskTypeSupported.push_back(TASK_SPAWN_VILLAGER);
+	InitNeuralNet();
 }
 
 // DESTRUCTOR
@@ -52,6 +54,7 @@ void TownCenter::ProcessInputs(float deltaTime)
 			}
 		}
 	}
+	Entity::ProcessInputs(deltaTime);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

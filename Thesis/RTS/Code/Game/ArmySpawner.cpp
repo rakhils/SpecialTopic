@@ -18,6 +18,9 @@ ArmySpawner::ArmySpawner(Map *map, Vector2 position, int teamID)
 	m_map = map;
 	SetPosition(position);
 	SetTeam(teamID);
+	m_taskTypeSupported.push_back(TASK_SPAWN_CLASSA_WARRIOR);
+	m_taskTypeSupported.push_back(TASK_SPAWN_CLASSB_WARRIOR);
+	InitNeuralNet();
 }
 
 // DESTRUCTOR
@@ -65,6 +68,7 @@ void ArmySpawner::ProcessInput(float deltaTime)
 			}
 		}
 	}
+	Entity::ProcessInputs(deltaTime);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

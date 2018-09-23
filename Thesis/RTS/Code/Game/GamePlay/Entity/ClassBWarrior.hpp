@@ -33,6 +33,7 @@ public:
 	bool IsInRange(int tileIndex);
 	bool IsInRange(Vector2 position);
 	bool IsInRange(IntVector2 cords);
+	
 	//Static_Methods
 
 protected:

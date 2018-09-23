@@ -17,7 +17,6 @@ class ArmySpawner :public Entity
 public:
 	//Member_Variables
 	//Static_Member_Variables
-
 	//Methods
 
 	ArmySpawner();

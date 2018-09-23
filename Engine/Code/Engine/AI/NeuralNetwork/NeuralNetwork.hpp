@@ -84,6 +84,7 @@ public:
 	void				 SetRandomWeight();
 	void				 CreateNeuralNetwork(int numberOfInputNeuron, int numberOfHiidenNeurons, int numberOfOutputNeuron);
 	void				 FeedForward(std::vector<float> &inputs);
+	void				 FeedForward(std::vector<float> &inputs,std::vector<float> &inputs1);
 	void				 DoBackPropogation(std::vector<float> &knownOutputs);
 	void				 TrainHiddenOutputLayer(std::vector<float> &outputErrors);
 	void				 TrainInputHiddenLayer(std::vector<float> &outputErrors);

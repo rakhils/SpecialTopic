@@ -24,6 +24,9 @@ ClassAWarrior::ClassAWarrior(Map *map,Vector2 position, int teamID)
 	m_type		  = WARRIOR_SHORT_RANGE;
 	SetPosition(position);
 	SetTeam(teamID);
+	m_taskTypeSupported.push_back(TASK_SHORT_ATTACK);
+	m_taskTypeSupported.push_back(TASK_MOVE);
+	InitNeuralNet();
 }
 
 // DESTRUCTOR

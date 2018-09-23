@@ -7,6 +7,7 @@
 #include "Game/GamePlay/Task/TaskMove.hpp"
 #include "Game/GamePlay/Task/TaskBuildArmySpawner.hpp"
 #include "Game/GamePlay/Task/TaskBuildHouse.hpp"
+#include "Game/GamePlay/Task/TaskDropResource.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 // CONSTRUCTOR
 Civilian::Civilian()
@@ -19,6 +20,10 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_map		  = map;
 	m_teamID	  = teamID;
 	SetPosition(position);
+	m_taskTypeSupported.push_back(TASK_GATHER_RESOURCE);
+	m_taskTypeSupported.push_back(TASK_DROP_RESOURCE);
+	m_taskTypeSupported.push_back(TASK_MOVE);
+	InitNeuralNet();
 }
 
 // DESTRUCTOR
@@ -76,8 +81,14 @@ void Civilian::ProcessInputs(float deltaTime)
 			else if(entity != nullptr && (entity->m_type == RESOURCE_FOOD || entity->m_type == RESOURCE_STONE|| entity->m_type == RESOURCE_WOOD))
 			{
 				EmptyTaskQueue();
-				Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
+				//Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
 				Task *task = new TaskGatherResource(this, entity, FindMyTownCenter());
+				m_taskQueue.push(task);
+			}
+			else if(entity != nullptr && (entity->m_type == TOWN_CENTER))
+			{
+				EmptyTaskQueue();
+				Task *task = new TaskDropResource(this,FindMyTownCenter());
 				m_taskQueue.push(task);
 			}
 		}
@@ -90,7 +101,6 @@ void Civilian::ProcessInputs(float deltaTime)
 			m_pendingTask = BUILD_HOUSE;
 		}
 	}
-
 	Entity::ProcessInputs(deltaTime);
 }
 
@@ -102,6 +112,10 @@ void Civilian::ProcessInputs(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::Update(float deltaTime)
 {
+	if(m_taskQueue.size() == 0)
+	{
+		UpdateNN(deltaTime);
+	}
 	ProcessInputs(deltaTime);
 	Entity::Update(deltaTime);
 }
@@ -122,6 +136,8 @@ void Civilian::Render()
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
 	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "C", g_fontSize, GetTeamColor());
+	
+	
 	delete textMaterial;
 }
 

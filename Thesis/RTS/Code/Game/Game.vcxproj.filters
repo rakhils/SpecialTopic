@@ -118,6 +118,9 @@
     <ClCompile Include="GamePlay\Task\TaskLongRangeAttack.cpp">
       <Filter>General\GamePlay\Task</Filter>
     </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskDropResource.cpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -199,6 +202,9 @@
       <Filter>General\GamePlay\Task</Filter>
     </ClInclude>
     <ClInclude Include="GamePlay\Task\TaskLongRangeAttack.hpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskDropResource.hpp">
       <Filter>General\GamePlay\Task</Filter>
     </ClInclude>
   </ItemGroup>

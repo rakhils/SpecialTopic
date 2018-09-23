@@ -37,7 +37,6 @@ public:
 	void Render();
 
 	void GatherResource(Vector2 resourcePosition);
-	
 	//Static_Methods
 
 protected:

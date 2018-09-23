@@ -1,35 +1,36 @@
 #pragma once
-#include "Game/GamePlay/Entity/Entity.hpp"
 #include "Engine/Math/Vector2.hpp"
-/*\class  : House		   
+
+#include "Game/GamePlay/Task/Task.hpp"
+/*\class  : TaskGatherResource
 * \group  : <GroupName>
 * \brief  :
 * \TODO:  :
 * \note   :
 * \author : Rakhil Soman
 * \version: 1.0
-* \date   : 8/21/2018 3:04:07 PM
+* \date   : 8/21/2018 9:13:19 PM
 * \contact: srsrakhil@gmail.com
 */
-class Map;
-class House : public Entity
+class Entity;
+class TownCenter;
+class TaskDropResource : public Task
 {
 
 public:
 	//Member_Variables
-	
+	TownCenter*				m_townCenter = nullptr;
+	float					m_speed = 100;
 	//Static_Member_Variables
 
 	//Methods
 
-	House();
-	House(Map* map,Vector2 position, int teamID);
-	~House();
+	TaskDropResource(Entity *entity, Entity* townCenter);
+	~TaskDropResource();
 
-	void Update(float deltaTime);
-	void Render();
+	void UpdateResourceStorageStat(Entity *entityResourceType, int count);
+	bool DoTask(float deltaTime);
 
-	
 	//Static_Methods
 
 protected:

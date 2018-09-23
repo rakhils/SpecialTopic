@@ -9,6 +9,7 @@ TaskGatherResource::TaskGatherResource(Entity *entity,Entity *resource,Entity* t
 	m_entity     = entity;
 	m_resource   = resource;
 	m_townCenter = (TownCenter*)townCenter;
+	m_map        = entity->m_map;
 	SetStoragePosition(m_townCenter->GetPosition());
 	SetResourcePosition(resource->GetPosition());
 }
@@ -69,7 +70,7 @@ void TaskGatherResource::UpdateResourceStorageStat(Entity *entityResourceType,in
 	switch (entityResourceType->m_type)
 	{
 	case RESOURCE_FOOD:
-		m_townCenter->m_resourceStat.m_food += count;
+		m_townCenter->m_resourceStat.m_food  += count;
 		break;
 	case RESOURCE_STONE:
 		m_townCenter->m_resourceStat.m_stone += count;
@@ -90,7 +91,14 @@ void TaskGatherResource::UpdateResourceStorageStat(Entity *entityResourceType,in
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool TaskGatherResource::DoTask(float deltaTime)
 {
-	Vector2 targetPosition;
+	UNUSED(deltaTime);
+	if (m_map->IsNeighbours(m_map->GetCordinates(m_resource->GetPosition()), m_map->GetCordinates(m_entity->GetPosition())))
+	{
+		((Civilian*)m_entity)->m_resourceType = m_resource;
+	}
+	return true;
+
+	/*Vector2 targetPosition;
 	switch (m_subTask)
 	{
 	case MOVE_TOWARDS_RESOURCE:
@@ -133,5 +141,5 @@ bool TaskGatherResource::DoTask(float deltaTime)
 			break;
 		}
 	}
-	return false;
+	return false;*/
 }

@@ -327,6 +327,7 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskDropResource.cpp" />
     <ClCompile Include="GamePlay\Task\TaskGatherResource.cpp">
       <SubType>
       </SubType>
@@ -408,6 +409,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="GamePlay\Task\TaskBuildHouse.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskDropResource.hpp">
       <SubType>
       </SubType>
     </ClInclude>

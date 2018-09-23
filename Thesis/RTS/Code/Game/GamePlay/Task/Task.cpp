@@ -52,3 +52,52 @@ void Task::Update(float deltaTime)
 {
 	UNUSED(deltaTime);
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/22
+*@purpose : Gets task type as string
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Task::GetTaskTypeAsString(TaskType type)
+{
+	switch (type)
+	{
+	case TASK_MOVE:
+		return "TASK_MOVE";
+		break;
+	case TASK_GATHER_RESOURCE:
+		return "TASK_GATHER";
+		break;
+	case TASK_DROP_RESOURCE:
+		return "TASK_DROP";
+		break;
+	case TASK_BUILD_TOWNCENTER:
+		return "TASK_BUILD_TOWNCENTER";
+		break;
+	case TASK_BUILD_HOUSE:
+		return "TASK_BUILD_HOUSE";
+		break;
+	case TASK_BUILD_ARMY_SPAWNER:
+		return "TASK_BUILD_ARMY_CENTER";
+		break;
+	case TASK_LONG_ATTACK:
+		return "TASK_LONG_ATTACK";
+		break;
+	case TASK_SHORT_ATTACK:
+		return "TASK_SHORT_ATTACK";
+		break;
+	case TASK_SPAWN_VILLAGER:
+		return "TASK_SPAWN_VILLAGER";
+		break;
+	case TASK_SPAWN_CLASSA_WARRIOR:
+		return "TASK_SPAWN_CLASSA";
+		break;
+	case TASK_SPAWN_CLASSB_WARRIOR:
+		return "TASK_SPAWN_CLASSB";
+		break;
+	default:
+		break;
+	}
+	return "";
+}

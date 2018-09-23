@@ -61,6 +61,7 @@ void Map::Initialize()
 	CreateResources(Vector2(1100, 500), RESOURCE_STONE);
 	//CreateClassAWarrior(Vector2(500, 300), 1);
 	CreateArmySpawner(Vector2(500, 300), 1);
+	InitMiniMap();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -237,6 +238,81 @@ bool Map::IsNeighbours(IntVector2 position1, IntVector2 position2, int distance)
 		return true;
 	}
 	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/22
+*@purpose : Init all mini map values
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitMiniMap()
+{
+	for(int indexY = 0;indexY < m_maxHeight;indexY++)
+	{
+		for(int indexX = 0;indexX < m_maxWidth;indexX++)
+		{
+			m_minimapValue.push_back(0.f);
+			//SetMiniMapValues(rowIndex, columnIndex, 0);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/22
+*@purpose : Updates mini map object with current entities
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::UpdateMiniMap()
+{
+	int count = 0;
+	for (int indexY = 0; indexY < m_maxHeight; indexY++)
+	{
+		for (int indexX = 0; indexX < m_maxWidth; indexX++)
+		{
+			int tileIndex = indexY * m_maxWidth + indexX;
+			Entity *entity = GetEntityFromPosition(tileIndex);
+			if (entity != nullptr)
+			{
+				count++;
+				SetMiniMapValues(indexX, indexY, entity->GetMiniMapValue());
+				continue;
+			}
+			SetMiniMapValues(indexX, indexY, 0.f);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/22
+*@purpose : Retrives values from minimap object
+*@param   : Row and column index
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Map::GetMiniMapValueAtPosition(int x, int y)
+{
+	int tileIndex = y * m_maxWidth + x;
+	if (tileIndex < m_maxHeight * m_maxWidth)
+	{
+		return m_minimapValue.at(tileIndex);
+	}
+	return -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/22
+*@purpose : Sets the values of minimap 
+*@param   : Row,column and minimap value
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::SetMiniMapValues(int x, int y, float minimapValue)
+{
+	int tileIndex = y * m_maxWidth + x;
+	if(tileIndex < m_maxHeight * m_maxWidth)
+	{
+		m_minimapValue.at(tileIndex) = minimapValue;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -918,6 +994,8 @@ void Map::Update(float deltaTime)
 	UpdateHouses(deltaTime);
 	UpdateTownCenters(deltaTime);
 	UpdateExplosions(deltaTime);
+
+	UpdateMiniMap();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1282,7 +1360,7 @@ void Map::RenderHUDUnitStat()
 		g_theRenderer->DrawAABB(g_unitStatHUDFirstButton, Rgba::WHITE);
 		Renderer::GetInstance()->BindMaterial(textMaterial);
 		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDFirstButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize/2.f,0), Vector3::RIGHT, Vector3::UP, "CREATE CIVILIAN ",g_fontSize, Rgba::YELLOW);
-
+		
 
 	case WARRIOR_SHORT_RANGE:
 	case WARRIOR_LONG_RANGE:
@@ -1302,6 +1380,11 @@ void Map::RenderHUDUnitStat()
 		g_theRenderer->DrawAABB(g_unitStatHUDSecondButton, Rgba::WHITE);
 		Renderer::GetInstance()->BindMaterial(textMaterial);
 		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDSecondButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "BUILD HOUSE ", g_fontSize, Rgba::YELLOW);
+
+		if (((Civilian*)g_currentSelectedEntity)->m_resourceType != nullptr)
+		{
+			g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDResourceInfoPosition, Vector3::RIGHT, Vector3::UP, Entity::GetEntityTypeAsString(((Civilian*)g_currentSelectedEntity)->m_resourceType->m_type), g_fontSize, Rgba::YELLOW);
+		}
 		break;
 	case HOUSE:
 	case RESOURCE_FOOD:

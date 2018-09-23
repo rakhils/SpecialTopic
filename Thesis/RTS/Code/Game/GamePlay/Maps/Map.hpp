@@ -45,6 +45,8 @@ public:
 	std::vector<Entity*>			m_movableEntities;
 	std::vector<Entity*>			m_standAloneEntities;
 
+	std::vector<float>				m_minimapValue;
+
 	int								m_currentTileIndex = 0;
 	int								m_maxWidth;
 	int								m_maxHeight;
@@ -52,83 +54,93 @@ public:
 	float							m_yOffset;
 
 	Map();
+	~Map();
 
-	void		Initialize();
-	void		InitCamera();
+	void							Initialize();
+	void							InitCamera();
 
-	void		CreateCivilian(Vector2 position, int teamID);
-	void		CreateArmySpawner(Vector2 position, int teamID);
-	void		CreateClassAWarrior(Vector2 position, int teamID);
-	void		CreateClassBWarrior(Vector2 position, int teamID);
-	void		CreateHouse(Vector2 position, int teamID);
-	void		CreateTownCenter(Vector2 position, int teamID);
-	void		CreateResources(Vector2 position, EntityType type);
-	void		CreateExplosions(Vector2 position);
+	void							CreateCivilian(Vector2 position, int teamID);
+	void							CreateArmySpawner(Vector2 position, int teamID);
+	void							CreateClassAWarrior(Vector2 position, int teamID);
+	void							CreateClassBWarrior(Vector2 position, int teamID);
+	void							CreateHouse(Vector2 position, int teamID);
+	void							CreateTownCenter(Vector2 position, int teamID);
+	void							CreateResources(Vector2 position, EntityType type);
+	void							CreateExplosions(Vector2 position);
 
-	bool        IsPositionInsideMap(Vector2 position);
-	bool        IsNeighbours(IntVector2 position1, IntVector2 position2);
-	bool        IsNeighbours(IntVector2 position1, IntVector2 position2,int distance);
+	bool							IsPositionInsideMap(Vector2 position);
+	bool							IsNeighbours(IntVector2 position1, IntVector2 position2);
+	bool							IsNeighbours(IntVector2 position1, IntVector2 position2,int distance);
 
-	IntVector2  GetFreeNeighbourTile(Vector2 position);
-	IntVector2  GetFreeNeighbourTile(Vector2 position,int distance);
-	IntVector2  GetTilePosition(int tilePosition);
-	IntVector2  GetTilePosition(Vector2 position);
-	int		    GetTileIndex(Vector2 mapPosition);
-	int		    GetTileIndex(IntVector2 position);
+	//MINIMAP
+	void							InitMiniMap();
+	void							UpdateMiniMap();
+	float							GetMiniMapValueAtPosition(int row, int column);
+	void							SetMiniMapValues(int row, int column, float minimapValue);
 
-	bool	    HasAnyEntityInTile(int index);
-	bool        HasAnyEntityInTile(IntVector2 index);
-	bool	    HasAnyEntityInTile(Vector2 index);
 
-	Entity *    GetEntityFromPosition(int index);
-	Entity *    GetEntityFromPosition(IntVector2 index);
-	Entity *    GetEntityFromPosition(Vector2 index);
+	///////////////////////////////////////////////////////////////////////
 
-	bool	    IsValidCordinate(IntVector2 cords);
+	IntVector2						GetFreeNeighbourTile(Vector2 position);
+	IntVector2						GetFreeNeighbourTile(Vector2 position,int distance);
+	IntVector2						GetTilePosition(int tilePosition);
+	IntVector2						GetTilePosition(Vector2 position);
+	int								GetTileIndex(Vector2 mapPosition);
+	int								GetTileIndex(IntVector2 position);
 
-	void		AttackOnPosition(int tileIndex   ,float damagePoint);
-	void		AttackOnPosition(IntVector2 cords,float damagePoint);
-	void		AttackOnPosition(Vector2 cords   ,float damagePoint);
+	bool							HasAnyEntityInTile(int index);
+	bool							HasAnyEntityInTile(IntVector2 index);
+	bool							HasAnyEntityInTile(Vector2 index);
 
-	bool		IsEnemies(Entity *entityOne, Entity *entityTwo);
-	void		DestroyEntity(Entity *entity);
+	Entity *						GetEntityFromPosition(int index);
+	Entity *						GetEntityFromPosition(IntVector2 index);
+	Entity *						GetEntityFromPosition(Vector2 index);
+
+	bool							IsValidCordinate(IntVector2 cords);
+
+	void							AttackOnPosition(int tileIndex   ,float damagePoint);
+	void							AttackOnPosition(IntVector2 cords,float damagePoint);
+	void							AttackOnPosition(Vector2 cords   ,float damagePoint);
+
+	bool							IsEnemies(Entity *entityOne, Entity *entityTwo);
+	void							DestroyEntity(Entity *entity);
 	
-	Vector2     GetMapPosition(int tileIndex);
-	Vector2	    GetMapPosition(IntVector2 tilecords);
+	Vector2							GetMapPosition(int tileIndex);
+	Vector2							GetMapPosition(IntVector2 tilecords);
 
-	IntVector2  GetCordinates(int tileIndex);
-	IntVector2  GetCordinates(Vector2 mapPosition);
+	IntVector2						GetCordinates(int tileIndex);
+	IntVector2						GetCordinates(Vector2 mapPosition);
 
-	void		ProcessInputs(float deltaTime);
-	void		ProcessInputsOnHUD(float deltaTime);
+	void							ProcessInputs(float deltaTime);
+	void							ProcessInputsOnHUD(float deltaTime);
 	
-	void		CheckAndUpdateOnWinCondition();
-	void		CheckAndClearEntityOverlap();
+	void							CheckAndUpdateOnWinCondition();
+	void							CheckAndClearEntityOverlap();
 
-	void		Update(float deltaTime);
-	void		UpdateCamera(float deltaTime);
-	void		UpdateCivilans(float deltaTime);
-	void        UpdateArmySpawners(float deltaTime);
-	void		UpdateClassAWarriors(float deltaTime);
-	void		UpdateClassBWarriors(float deltaTime);
-	void		UpdateHouses(float deltaTime);
-	void		UpdateTownCenters(float deltaTime);
-	void		UpdateResources(float deltaTime);
-	void		UpdateExplosions(float deltaTime);
+	void							Update(float deltaTime);
+	void							UpdateCamera(float deltaTime);
+	void							UpdateCivilans(float deltaTime);
+	void							UpdateArmySpawners(float deltaTime);
+	void							UpdateClassAWarriors(float deltaTime);
+	void							UpdateClassBWarriors(float deltaTime);
+	void							UpdateHouses(float deltaTime);
+	void							UpdateTownCenters(float deltaTime);
+	void							UpdateResources(float deltaTime);
+	void							UpdateExplosions(float deltaTime);
 
-	void		Render();
-	void		RenderCivilians();
-	void        RenderArmySpawners();
-	void		RenderClassAWarriors();
-	void		RenderClassBWarriors();
-	void		RenderHouses();
-	void		RenderTownCenters();
-	void		RenderResources();
-	void		RenderGrids();
-	void		RenderExplosions();
-	void		RenderHUDGameStat();
-	void		RenderHUDUnitStat();
+	void							Render();
+	void							RenderCivilians();
+	void							RenderArmySpawners();
+	void							RenderClassAWarriors();
+	void							RenderClassBWarriors();
+	void							RenderHouses();
+	void							RenderTownCenters();
+	void							RenderResources();
+	void							RenderGrids();
+	void							RenderExplosions();
+	void							RenderHUDGameStat();
+	void							RenderHUDUnitStat();
 
-	void		RenderMousePosition();
-	void		RenderWinState();
+	void							RenderMousePosition();
+	void							RenderWinState();
 };

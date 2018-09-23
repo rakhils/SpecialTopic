@@ -42,19 +42,20 @@ TaskLongRangeAttack::~TaskLongRangeAttack()
 bool TaskLongRangeAttack::DoTask(float deltaTime)
 {
 	UNUSED(deltaTime);
-	Vector2 targetPosition = m_map->GetMapPosition(m_nearestAttackTile);
+/*
 	Vector2 currentPosition = m_entity->GetPosition();
 	Vector2 direction = targetPosition - currentPosition;
 	direction = direction.GetNormalized();
 	currentPosition += direction * m_speed * deltaTime;
-	m_entity->SetPositionInFloat(currentPosition);
+	m_entity->SetPositionInFloat(currentPosition);*/
 
+	Vector2 targetPosition = m_map->GetMapPosition(m_nearestAttackTile);
 	Vector2 distance = m_entity->GetPosition() - targetPosition;
 	if (distance.GetLength() < 1)
 	{
 		m_entity->m_map->AttackOnPosition(m_attackTile, 1);
 		m_entity->m_map->CreateExplosions(m_entity->m_map->GetMapPosition(m_attackTile));
-		return true;
+		//return true;
 	}
-	return false;
+	return true;
 }
