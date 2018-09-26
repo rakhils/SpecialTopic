@@ -16,7 +16,7 @@ float				g_unitDistance  = g_radius * 2;
 bool				g_isQuitting	= false;
 int					g_mapMaxWidth	= 40;
 int					g_mapMaxHeight	= 20;
-
+bool				g_disableNeuralNet = false;
 //HUD
 float				g_fontSize							 = 10;
 Vector3				g_resourceFoodPositionPopulationA	 (100, 1050, 0);
@@ -45,7 +45,7 @@ AABB2				g_unitStatHUDSecondButton(Vector2::ONE,Vector2::ONE);
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31
-*@purpose : Init all un initilaized variables
+*@purpose : Init all uninitilaized variables
 *@param   : NIL
 *@return  : NIL
 *//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

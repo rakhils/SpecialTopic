@@ -35,6 +35,7 @@ extern float				g_unitDistance;
 extern int					g_mapMaxWidth;
 extern int					g_mapMaxHeight;
 extern bool					g_isQuitting;
+extern bool					g_disableNeuralNet;
 
 //HUD
 extern float				g_fontSize;

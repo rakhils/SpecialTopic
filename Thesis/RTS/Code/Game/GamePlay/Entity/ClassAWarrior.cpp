@@ -26,6 +26,7 @@ ClassAWarrior::ClassAWarrior(Map *map,Vector2 position, int teamID)
 	SetTeam(teamID);
 	m_taskTypeSupported.push_back(TASK_SHORT_ATTACK);
 	m_taskTypeSupported.push_back(TASK_MOVE);
+	m_taskTypeSupported.push_back(TASK_IDLE);
 	InitNeuralNet();
 }
 

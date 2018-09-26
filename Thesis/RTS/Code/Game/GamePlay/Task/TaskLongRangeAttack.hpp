@@ -10,11 +10,7 @@
 * \date   : 9/1/2018 8:26:19 PM
 * \contact: srsrakhil@gmail.com
 */
-enum AttackSubTask
-{
-	DEAL_DAMAGE,
-	ANIMATION
-};
+
 class TaskLongRangeAttack : public Task
 {
 

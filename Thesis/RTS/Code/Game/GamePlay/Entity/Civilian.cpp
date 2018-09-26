@@ -23,6 +23,7 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_GATHER_RESOURCE);
 	m_taskTypeSupported.push_back(TASK_DROP_RESOURCE);
 	m_taskTypeSupported.push_back(TASK_MOVE);
+	m_taskTypeSupported.push_back(TASK_IDLE);
 	InitNeuralNet();
 }
 
@@ -112,10 +113,7 @@ void Civilian::ProcessInputs(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::Update(float deltaTime)
 {
-	if(m_taskQueue.size() == 0)
-	{
-		UpdateNN(deltaTime);
-	}
+	
 	ProcessInputs(deltaTime);
 	Entity::Update(deltaTime);
 }

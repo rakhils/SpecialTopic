@@ -9,7 +9,16 @@
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Task/TaskMove.hpp"
 #include "Game/GamePlay/Task/TaskGatherResource.hpp"
+#include "Game/GamePlay/Task/TaskDropResource.hpp"
+#include "Game/GamePlay/Task/TaskBuildHouse.hpp"
+#include "Game/GamePlay/Task/TaskBuildArmySpawner.hpp"
+#include "Game/GamePlay/Task/TaskLongRangeAttack.hpp"
+#include "Game/GamePlay/Task/TaskShortRangeAttack.hpp"
+#include "Game/GamePlay/Task/TaskSpawnVillager.hpp"
+#include "Game/GamePlay/Task/TaskSpawnClassAWarrior.hpp"
+#include "Game/GamePlay/Task/TaskSpawnClassBWarrior.hpp"
 #include "Game/GameCommon.hpp"
+
 Entity::Entity()
 {
 	
@@ -149,6 +158,15 @@ void Entity::Update(float deltaTime)
 			m_taskQueue.pop();
 		}
 	}
+	if(m_type == TOWN_CENTER && m_taskQueue.size() == 0)
+	{
+		//UpdateNN(deltaTime);
+	}
+
+	if (m_taskQueue.size() == 0 && m_type != RESOURCE_FOOD && m_type != RESOURCE_STONE && m_type != RESOURCE_WOOD && m_type == CIVILIAN)
+	{
+		UpdateNN(deltaTime);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -159,6 +177,11 @@ void Entity::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateNN(float deltaTime)
 {
+	if(g_disableNeuralNet)
+	{
+		return;
+	}
+
 	TownCenter *townCenter = m_map->m_townCenters.at(m_teamID - 1);
 	if(townCenter == nullptr)
 	{
@@ -175,9 +198,13 @@ void Entity::UpdateNN(float deltaTime)
 
 	m_neuralNet.FeedForward(m_map->m_minimapValue,m_gameStats);
 
+	// not needed after training
 	m_neuralNet.SetRandomWeight();
+	////
 	TaskType task			= GetTaskFromNNOutput();
 	IntVector2 taskPosition = GetTaskPositonFromNNOutput();
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	float logTime = 3;
 	std::string debugNN;
 	debugNN.append("     ");
@@ -188,71 +215,80 @@ void Entity::UpdateNN(float deltaTime)
 		debugNN.append(ToString(m_neuralNet.m_outputs->m_neurons.at(index).m_value));
 		debugNN.append(" :: ");
 	}
+
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	deltaTime = logTime;
 	switch (task)
 	{
 	case TASK_MOVE:
 		{
 			DebugDraw::GetInstance()->DebugRenderLogf(logTime,GetTeamColor(), "TASK MOVE POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-			EmptyTaskQueue();
-			Vector2 mapPosition = m_map->GetMapPosition(taskPosition);
-			Task *moveTask = new TaskMove(m_map, this, mapPosition);
-			m_taskQueue.push(moveTask);
+			CreateAndPushMoveTask(taskPosition);
 		}
 		break;
 	case TASK_GATHER_RESOURCE:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,GetTeamColor(), "TASK GATHER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
 		logTime = deltaTime;
+		CreateAndPushGatherResourceTask(taskPosition);
 	}
 		break;
 	case TASK_DROP_RESOURCE:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK DROP POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
 		logTime = deltaTime;
+		CreateAndPushDropResourceTask(taskPosition);
 	}
 		break;
 	case TASK_BUILD_TOWNCENTER:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD TOWNCENTER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
 		logTime = deltaTime;
+		CreateAndPushBuildTownCenterTask(taskPosition);
 	}
 		break;
 	case TASK_BUILD_HOUSE:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD HOUSE POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
 		logTime = deltaTime;
+		CreateAndPushBuildHouseTask(taskPosition);
 	}
 		break;
 	case TASK_BUILD_ARMY_SPAWNER:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD ARMY CENTER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
 		logTime = deltaTime;
+		CreateAndPushBuildArmySpawnerTask(taskPosition);
 	}
 		break;
 	case TASK_LONG_ATTACK:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK LONG ATTACK POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		CreateAndPushLongRangeAttackTask(taskPosition);
 	}
 		break;
 	case TASK_SHORT_ATTACK:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SHORT ATTACK POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		CreateAndPushShortRangeAttackTask(taskPosition);
 	}
 		break;
 	case TASK_SPAWN_VILLAGER:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN VILLAGER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		CreateAndPushSpawnVillagerTask(taskPosition);
 	}
 		break;
 	case TASK_SPAWN_CLASSA_WARRIOR:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN CLASSA POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		CreateAndPushSpawnClassAArmyTask(taskPosition);
 	}
 		break;
 	case TASK_SPAWN_CLASSB_WARRIOR:
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN CLASS B POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		CreateAndPushSpawnClassBArmyTask(taskPosition);
 	}
 		break;
 	default:
@@ -594,11 +630,206 @@ TaskType Entity::GetTaskFromNNOutput()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IntVector2 Entity::GetTaskPositonFromNNOutput()
 {
-	float xPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size()).m_value;
-	float yPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() + 1).m_value;
+	float xPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size()).m_value;
+	float yPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() + 1).m_value;
 	float xRangedValue = RangeMapFloat(xPosition, 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxWidth));
 	float yRangedValue = RangeMapFloat(yPosition, 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxHeight));
 	return IntVector2(static_cast<int>(xRangedValue), static_cast<int>(yRangedValue));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creates task to move to position and push to queue
+*@param   : Move cordinate in map
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushMoveTask(IntVector2 cordinate)
+{
+	EmptyTaskQueue();
+	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
+	Task *moveTask = new TaskMove(m_map, this, mapPosition);
+	m_taskQueue.push(moveTask);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creates and push build house task at position
+*@param   : Map cord where house should be built
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushBuildHouseTask(IntVector2 cordinate)
+{
+	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
+	Task *task = new TaskBuildHouse(m_map, this, mapPosition);
+	if (task->CheckAndReduceResources())
+	{
+		m_taskQueue.push(task);
+		return true;
+	}
+	delete task;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creates and pushes task to gather resources 
+*@param   : Resource cords
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushGatherResourceTask(IntVector2 cordinate)
+{
+	if(m_map->GetEntityFromPosition(cordinate) == nullptr)
+	{
+		return false;
+	}
+	EmptyTaskQueue();
+	Task *task = new TaskGatherResource(this,m_map->GetEntityFromPosition(cordinate), FindMyTownCenter());
+	m_taskQueue.push(task);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creates and push drop resource task in queue
+*@param   : 
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushDropResourceTask(IntVector2 cordinate)
+{
+	UNUSED(cordinate);
+	EmptyTaskQueue();
+	Task *task = new TaskDropResource(this, FindMyTownCenter());
+	m_taskQueue.push(task);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creats and pushes building town center task in queue
+*@param   : Town center build location
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushBuildTownCenterTask(IntVector2 cordinate)
+{
+	UNUSED(cordinate);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creates and pushes build army spawner task into the queue
+*@param   : Build location in map
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushBuildArmySpawnerTask(IntVector2 cordinate)
+{
+	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
+	Task *task = new TaskBuildArmySpawner(m_map, this, mapPosition);
+	if (task->CheckAndReduceResources())
+	{
+		m_taskQueue.push(task);
+		return true;
+	}
+	delete task;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creates and pushes long range attack task in queue
+*@param   : Attack position in map
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushLongRangeAttackTask(IntVector2 cordinate)
+{
+	EmptyTaskQueue();
+	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
+	Task *task = new TaskLongRangeAttack(m_map, this, m_map->GetTileIndex(mapPosition));
+	if (task->m_isValid)
+	{
+		m_taskQueue.push(task);
+		return true;
+	}
+	delete task;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushShortRangeAttackTask(IntVector2 cordinate)
+{
+	EmptyTaskQueue();
+	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
+	Task *task = new TaskShortRangeAttack(m_map, this, m_map->GetTileIndex(mapPosition));
+	if (task->m_isValid)
+	{
+		m_taskQueue.push(task);
+		return true;
+	}
+	delete task;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creates and push task to push villager task in queue
+*@param   : Spawn villager task
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushSpawnVillagerTask(IntVector2 cordinate)
+{
+	UNUSED(cordinate);
+	Task *task = new TaskSpawnVillager(m_map, (TownCenter*)this);
+	if (task->CheckAndReduceResources())
+	{
+		m_taskQueue.push(task);
+		return true;
+	}
+	delete task;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creates and push spawn class A army in queue
+*@param   : Cords to spawn//(NOT NEEDED)
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushSpawnClassAArmyTask(IntVector2 cordinate)
+{
+	UNUSED(cordinate);
+	Task *task = new TaskSpawnClassAWarrior(m_map, this);
+	if (task->CheckAndReduceResources())
+	{
+		m_taskQueue.push(task);
+		return true;
+	}
+	delete task;
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Creates and push spawn class B army task
+*@param   : Cords not needed
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushSpawnClassBArmyTask(IntVector2 cordinate)
+{
+	UNUSED(cordinate);
+	Task *task = new TaskSpawnClassBWarrior(m_map, this);
+	if (task->CheckAndReduceResources())
+	{
+		m_taskQueue.push(task);
+		return true;
+	}
+	delete task;
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -71,5 +71,17 @@ public:
 	TaskType	GetTaskFromNNOutput();
 	IntVector2  GetTaskPositonFromNNOutput();
 
+	bool		CreateAndPushMoveTask(IntVector2 cordinate);
+	bool		CreateAndPushBuildHouseTask(IntVector2 cordinate);
+	bool        CreateAndPushGatherResourceTask(IntVector2 cordinate);
+	bool		CreateAndPushDropResourceTask(IntVector2 cordinate);
+	bool		CreateAndPushBuildTownCenterTask(IntVector2 cordinate);
+	bool		CreateAndPushBuildArmySpawnerTask(IntVector2 cordinate);
+	bool		CreateAndPushLongRangeAttackTask(IntVector2 cordinate);
+	bool		CreateAndPushShortRangeAttackTask(IntVector2 cordinate);
+	bool		CreateAndPushSpawnVillagerTask(IntVector2 cordinate);
+	bool		CreateAndPushSpawnClassAArmyTask(IntVector2 cordinate);
+	bool		CreateAndPushSpawnClassBArmyTask(IntVector2 cordinate);
+
 	static std::string GetEntityTypeAsString(EntityType entityType);
 };

@@ -18,6 +18,7 @@ TownCenter::TownCenter(Map *map,Vector2 position, int teamId)
 	m_teamID = teamId;
 	SetPosition(position);
 	m_taskTypeSupported.push_back(TASK_SPAWN_VILLAGER);
+	m_taskTypeSupported.push_back(TASK_IDLE);
 	InitNeuralNet();
 }
 

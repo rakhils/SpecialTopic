@@ -25,8 +25,13 @@ enum TaskType
 	TASK_SPAWN_VILLAGER,
 	TASK_SPAWN_CLASSA_WARRIOR,
 	TASK_SPAWN_CLASSB_WARRIOR,
+	TASK_IDLE,
 };
-
+enum AttackSubTask
+{
+	DEAL_DAMAGE,
+	ANIMATION
+};
 class Task
 {
 

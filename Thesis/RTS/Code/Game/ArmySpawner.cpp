@@ -20,6 +20,7 @@ ArmySpawner::ArmySpawner(Map *map, Vector2 position, int teamID)
 	SetTeam(teamID);
 	m_taskTypeSupported.push_back(TASK_SPAWN_CLASSA_WARRIOR);
 	m_taskTypeSupported.push_back(TASK_SPAWN_CLASSB_WARRIOR);
+	m_taskTypeSupported.push_back(TASK_IDLE);
 	InitNeuralNet();
 }
 
