@@ -14,6 +14,7 @@
 #include "Engine/Net/TCP/TCPServer.hpp"
 #include "Engine/Net/RCS.hpp"
 #include "Engine/Net/UDP/UDPTest.hpp"
+#include "Engine/Net/NetSession.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Command::Command()
@@ -262,6 +263,8 @@ void CommandStartup()
 	CommandRegister("rc_echo", RCEcho, "TOGGLES THE ECHO TO DEVCONSOLE");
 
 	CommandRegister("udp_send", UDPPacketSend, "SENDS PACKET FROM UDP");
+	CommandRegister("add_connection", AddUDPConnection, "ADDS A NEW UDP CONNECTION");
+	CommandRegister("send", SendCommandOverUDP, "SENDS COMMANDS OVER UDP");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1158,6 +1161,58 @@ void UDPPacketSend(Command &cmd)
 	std::string msg = cmd.GetNextString();*/
 	size_t writeSize = UDPSend(ip.c_str(), port, msg.c_str());
 	DevConsole::GetInstance()->PushToOutputText("SEND " + ToString(writeSize) + " SUCCESSFULLY");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/23
+*@purpose : Adds a new UDP Connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AddUDPConnection(Command &cmd)
+{
+	int index = -1;
+	cmd.GetNextInt(&index);
+	if(index == -1)
+	{
+		return;
+	}
+	std::string ipaddress   = cmd.GetNextString();
+	std::string ip			= ipaddress.substr(0, ipaddress.find(':'));
+	std::string port		= ipaddress.substr(ipaddress.find(':')+1,ipaddress.length());
+	int portNum = -1;
+	if(ToInt(port,&portNum))
+	{
+		NetSession::GetInstance()->AddConnection(index,ip,portNum);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Sends command over UDP
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendCommandOverUDP(Command &cmd)
+{
+	//send add 0 24 32
+	std::string netcmd  = cmd.GetNextString();
+	int connectionIndex = -1;
+	if(cmd.GetNextInt(&connectionIndex))
+	{
+		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+		if(connection)
+		{
+			NetMessage msg(netcmd);
+			size_t size = 7;
+			msg.WriteBytes(2, (char*)&size);
+			msg.WriteCommandIndex();
+			msg.m_currentWritePosition = 3;
+			msg.WriteString("hello");
+			std::string str = msg.GetBitString();
+			connection->Send(msg);
+		}
+	}
 }
 
 /*

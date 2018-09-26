@@ -448,6 +448,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Net\NetPacket.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Net\NetSession.cpp">
       <SubType>
       </SubType>
@@ -876,6 +880,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Net\NetMessage.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\NetPacket.hpp">
       <SubType>
       </SubType>
     </ClInclude>

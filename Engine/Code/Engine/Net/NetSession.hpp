@@ -1,6 +1,5 @@
 #pragma once
 #include <map>
-#include <vector>
 #include "Engine/Net/NetMessage.hpp"
 #include "Engine/Net/NetConnection.hpp"
 #include "Engine/Core/BytePacker.hpp"
@@ -14,43 +13,62 @@
 * \date   : 9/16/2018 6:52:56 PM
 * \contact: srsrakhil@gmail.com
 */
-typedef void (*ExeFunction_cb)(NetMessage const &msg, NetConnection const &from); 
+typedef bool (*NetMessageCB)(NetMessage &msg, NetAddress &from);
+struct NetMessageDefinition
+{
+	NetMessageDefinition(std::string name, NetMessageCB callback, std::string description)
+	{
+		m_name = name;
+		m_callback = callback;
+		m_description = description;
+	}
+	std::string m_name;
+	NetMessageCB m_callback;
+	std::string  m_description;
+};
 
 class NetSession
 {
 
 public:
 	//Member_Variables
-	std::map<int, NetConnection*>		  m_remoteConnections;
-	NetConnection*						  m_connection;
-	std::map<std::string, ExeFunction_cb> m_exeFunction;
+	std::map<int, NetConnection*>					m_remoteConnections;
+	NetConnection *									m_channel;
+	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;
 
-	std::vector<NetMessage*> m_udpSendData;
-	std::vector<NetMessage*> m_udpRecvData;
-	BytePacker bytePacker;
 	//Static_Member_Variables
+	static NetSession *s_netSession;
+	static int		   s_defaultPort;
 
 	//Methods
-	NetSession();
+	NetSession(int listenPort);
 	~NetSession();
 
-	void Bind(int port);
-	void Update(float deltaTime);
-	void ProcessIncomingMessage();
-	void ProcessOutgoingMessage();
+	void					Init();
+	void					Update(float deltaTime);
 
-	//virtual void   Send(uint16_t idx, char *data, size_t length);
-	virtual size_t Recv();
+	void					RegisterMessage(std::string id, NetMessageCB netMsgCB,std::string description);
+	NetMessageDefinition *  GetMsgDefinition(std::string cmdid);
+	NetMessageDefinition *  GetMsgDefinition(int index);
+	int						GetMsgIndex(std::string cmdname);
+	bool					VerifyMessage(std::string cmd,std::string msg);
 
-	void		   AddBinding(int port);
-	NetConnection* AddConnection(int index, char *address);
-	NetConnection* GetConnection(int index);
+	void					ProcessIncomingMessage();
+	void					ProcessOutgoingMessage();
 
-	void ProcessMsg(NetMessage *netmsg);
+	//virtual void			 Send(uint16_t idx, char *data, size_t length);
+	void					AddBinding(int port);
+	NetConnection*			AddConnection(int index,std::string ip, int port);
+	NetConnection*			AddConnection(int index,NetAddress *netaddress);
+	NetConnection*			GetConnection(int index);
 
-	float			GetTimeStamp();
-	
+	void					CloseAllConnections();
+
+	NetMessage *			ConstructNetMsgFromData(void *data);
+	void					ProcessMsg(NetMessage *netmsg);
+
 	//Static_Methods
+	static NetSession*				GetInstance();
 
 protected:
 	//Member_Variables
@@ -71,3 +89,8 @@ private:
 	//Static_Methods
 
 };
+
+bool OnPing(NetMessage &netMsg, NetAddress &netAddress);
+bool OnAdd(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnPong(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnAddResponse(NetMessage  &netMsg, NetAddress &netAddress);

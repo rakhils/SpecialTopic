@@ -1,4 +1,5 @@
 #pragma once
+#include <vector>
 #include "Engine/Net/NetAddress.hpp"
 #include "Engine/Net/NetMessage.hpp"
 /*\class  : NetConnection		   
@@ -12,37 +13,44 @@
 * \contact: srsrakhil@gmail.com
 */
 class UDPSocket;
-enum ConnectionStates
+class NetSession;
+struct UDPHeader
 {
-	IDLE,
-	START_DATA_SEND,
-	START_DATA_RECV,
-	ACK_DATA_SEND,
-	ACK_DATA_RECV,
-	DATA_TRASMISSION
+	uint8_t m_connectionindex  = static_cast<uint8_t>(~(0U));
+	uint8_t m_unrealiableCount = static_cast<uint8_t>(0U);
 };
 class NetConnection
 {
 
 public:
 	//Member_Variables
-	UDPSocket *m_udpSocket;
-	NetAddress m_address;
-	ConnectionStates m_state;
+	UDPSocket *					m_udpSocket;
+	NetAddress					m_address;
+	int							m_index;
+	std::vector<NetMessage*>	m_outboundMsgs;
+	BytePacker					m_packet;
+	UDPHeader					m_header;
+	NetSession *				m_session;
 	//Static_Member_Variables
 
 	//Methods
 
-	NetConnection(char *address);
-	NetConnection(int port);
+	NetConnection(int index,NetAddress netAddress); // As Client
+	NetConnection(int listenPort);					// As Server
 	~NetConnection();
 
-	void   Bind(int port);
+	void   SetConnectionIndex(int index);
+	void   SetUnrealiableMsgCount(int count);
+		   
+	void   WriteConnectionIndex();
+	void   WriteUnrealiableMsgCount();
+	void   WriteHeader();
+	void   WritePayload(NetMessage *msg);
 
 	size_t Send(NetMessage msg);
+	void   Append(NetMessage *msg);
 	void   Recv(char *data,size_t &length);
 	
-	float GetTimeStamp();
 	//Static_Methods
 
 protected:
