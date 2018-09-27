@@ -58,17 +58,19 @@ std::string Command::GetName()
 std::string Command::GetNextString()
 {
 	bool isInsideDoubleQuotes = false;
+	bool hasDoubleQuotes = false;
 	int startPosition = m_readIndex;
 	for(;m_readIndex< m_command.length();m_readIndex++)
 	{
 		if(m_command[m_readIndex] == '\"' )
 		{
-			if(m_readIndex == 0)
+			if(m_readIndex == startPosition)
 			{
+				hasDoubleQuotes = true;
 				isInsideDoubleQuotes = true;
 				continue;
 			}
-			if(m_readIndex > 0 && m_command[m_readIndex - 1] != '\\')
+			if(m_readIndex > startPosition && m_command[m_readIndex - 1] != '\\')
 			{
 				if (isInsideDoubleQuotes)
 				{
@@ -83,8 +85,16 @@ std::string Command::GetNextString()
 		if(m_command[m_readIndex] == ' ' && !isInsideDoubleQuotes)
 		{
 			m_readIndex++;
+			if (hasDoubleQuotes)
+			{
+				return m_command.substr(startPosition + 1, m_readIndex - startPosition - 3);
+			}
 			return m_command.substr(startPosition,m_readIndex-startPosition-1);
 		}
+	}
+	if(hasDoubleQuotes)
+	{
+		return m_command.substr(startPosition + 1, m_readIndex - startPosition - 2);
 	}
 	return m_command.substr(startPosition,m_readIndex-startPosition);
 }
