@@ -26,7 +26,7 @@ App::App()
 
 
 	Net::StartUp();
-	m_netSession = new NetSession();
+	m_netSession = NetSession::GetInstance();
 	//m_netSession->Bind(10084);
 	/*m_udp.start(10088);*/
 
@@ -87,6 +87,7 @@ void App::Update(float deltaTime)
 {
 	ProfilerManager::PushProfiler("App::Update");
 	g_theGame->Update(deltaTime);
+	m_netSession->Update(deltaTime);
 	ProfilerManager::PoPProfiler();
 	EngineSystem::Update(MAX_DELTA_VALUE);
 	EngineSystem::UpdateProfiler(deltaTime);

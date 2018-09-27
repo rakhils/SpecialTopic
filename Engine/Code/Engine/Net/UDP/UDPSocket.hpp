@@ -29,7 +29,7 @@ public:
 
 	bool   Bind(NetAddress &addr,uint16_t port_range = 0U);		  
 	size_t SendTo(NetAddress &addr, void const *data, size_t const byte_count);
-	size_t ReceiveFrom(void *buffer, size_t max_read_size);
+	size_t ReceiveFrom(void *buffer, size_t max_read_size,NetAddress *addr);
 	
 	//Static_Methods
 

@@ -159,6 +159,10 @@ void Entity::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateNN(float deltaTime)
 {
+	if(true)
+	{
+		return;
+	}
 	TownCenter *townCenter = m_map->m_townCenters.at(m_teamID - 1);
 	if(townCenter == nullptr)
 	{

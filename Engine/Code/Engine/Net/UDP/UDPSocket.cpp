@@ -73,7 +73,7 @@ size_t UDPSocket::SendTo(NetAddress &addr, void const *data, size_t const byte_c
 	SOCKET sock = (SOCKET)m_handle;
 	//int error = WSAGetLastError();
 	int sent = ::sendto(sock, (char const *)&data, static_cast<int>(byte_count), 0, (sockaddr*)&sockaddrr, static_cast<int>(addr_len));
-	//int error1 = WSAGetLastError();
+	int error1 = WSAGetLastError();
 	if(sent > 0)
 	{
 		return (size_t)sent;
@@ -91,7 +91,7 @@ size_t UDPSocket::SendTo(NetAddress &addr, void const *data, size_t const byte_c
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-size_t UDPSocket::ReceiveFrom(void *buffer, size_t max_read_size)
+size_t UDPSocket::ReceiveFrom(void *buffer, size_t max_read_size,NetAddress *addr)
 {
 	if (IsClosed())
 	{
@@ -104,14 +104,11 @@ size_t UDPSocket::ReceiveFrom(void *buffer, size_t max_read_size)
 
 
 	int recvd = ::recvfrom(sock, (char*)buffer, (int)max_read_size, 0, (sockaddr*)&fromaddr, &addr_len);
-	int error = WSAGetLastError();
+	addr->FromSockAddr((sockaddr*)&fromaddr);
+	//int error = WSAGetLastError();
 	if (recvd > 0)
 	{
 		return recvd;
-	}
-	else
-	{
-		//close();
 	}
 	return 0;
 }

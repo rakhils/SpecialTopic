@@ -35,8 +35,8 @@ size_t NetConnection::Send(NetMessage msg)
 	WriteHeader();
 	std::string header = m_packet.GetBitString();
 	WritePayload(&msg);
-	//00 02
-	//07 00 02 05
+	//00 01
+	//07 00 02 05 'hello'
 	std::string finalMsg = m_packet.GetBitString();
 	size_t length = m_packet.m_bufferSize;
 	return m_session->m_channel->m_udpSocket->SendTo(m_address, m_packet.m_buffer, length);
@@ -115,9 +115,9 @@ size_t NetConnection::Send(NetMessage netmsg)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetConnection::Recv(char *data,size_t &length)
+size_t NetConnection::Recv(char *data,size_t &length,NetAddress *netAddress)
 {
-	m_udpSocket->ReceiveFrom(data, length);
+	return m_udpSocket->ReceiveFrom(data, length,netAddress);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -33,6 +33,7 @@ public:
 	//NetMessageDefinition* m_definition;
 	uint8_t				  m_definitionIndex;
 	std::string			  m_definitionName;
+	int					  m_connectionIndex;
 	//Static_Member_Variables
 
 	//Methods

@@ -49,7 +49,7 @@ public:
 
 	size_t Send(NetMessage msg);
 	void   Append(NetMessage *msg);
-	void   Recv(char *data,size_t &length);
+	size_t   Recv(char *data,size_t &maxlength,NetAddress *netAddress);
 	
 	//Static_Methods
 
