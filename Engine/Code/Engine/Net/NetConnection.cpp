@@ -39,7 +39,9 @@ size_t NetConnection::Send(NetMessage msg)
 	//07 00 02 05 'hello'
 	std::string finalMsg = m_packet.GetBitString();
 	size_t length = m_packet.m_bufferSize;
-	return m_session->m_channel->m_udpSocket->SendTo(m_address, m_packet.m_buffer, length);
+	size_t sendCount = m_session->m_channel->m_udpSocket->SendTo(m_address, (char *)m_packet.m_buffer, length);
+	int a = 1;
+	return sendCount;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

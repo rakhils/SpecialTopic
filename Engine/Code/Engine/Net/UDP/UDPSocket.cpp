@@ -58,7 +58,7 @@ bool UDPSocket::Bind(NetAddress &addr, uint16_t port_range /*= 0U*/)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-size_t UDPSocket::SendTo(NetAddress &addr, void const *data, size_t const byte_count)
+size_t UDPSocket::SendTo(NetAddress &addr, void *data, size_t const byte_count)
 {
 	if(IsClosed())
 	{
@@ -72,7 +72,7 @@ size_t UDPSocket::SendTo(NetAddress &addr, void const *data, size_t const byte_c
 	
 	SOCKET sock = (SOCKET)m_handle;
 	//int error = WSAGetLastError();
-	int sent = ::sendto(sock, (char const *)&data, static_cast<int>(byte_count), 0, (sockaddr*)&sockaddrr, static_cast<int>(addr_len));
+	int sent = ::sendto(sock, (char *)data, static_cast<int>(byte_count), 0, (sockaddr*)&sockaddrr, static_cast<int>(addr_len));
 	int error1 = WSAGetLastError();
 	if(sent > 0)
 	{

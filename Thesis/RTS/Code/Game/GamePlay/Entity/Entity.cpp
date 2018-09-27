@@ -177,7 +177,7 @@ void Entity::UpdateNN(float deltaTime)
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<float>(townCenter->m_resourceStat.m_units)));
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<float>(townCenter->m_resourceStat.m_unitsKilled)));
 
-	m_neuralNet.FeedForward(m_map->m_minimapValue,m_gameStats);
+	//m_neuralNet.FeedForward(m_map->m_minimapValue,m_gameStats);
 
 	m_neuralNet.SetRandomWeight();
 	TaskType task			= GetTaskFromNNOutput();

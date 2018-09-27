@@ -357,18 +357,6 @@ void NetSession::ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *fromAdd
 	// check for the all function pointers stored in session and call back
 }
 
-/*
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2018/09/23
-*@purpose : Add msg
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool OnAdd(NetMessage &netMsg, NetAddress &netAddress)
-{
-
-}*/
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/23
 *@purpose : NIL
@@ -379,16 +367,19 @@ bool OnPing(NetMessage &netMsg, NetAddress &netAddress)
 {
 	UNUSED(netAddress);
 	NetMessage pongMsg("pong");
-	uint16_t size = 1;
+	uint16_t size = 2;
 	pongMsg.WriteBytes(2, (void*)&size);
 	pongMsg.WriteCommandIndex();
-	char data = '\0';
+	uint8_t size2 = 0;
+	pongMsg.m_currentWritePosition = 3;
+	pongMsg.WriteBytes(1, (void*)&size2);
+	//char data = '\0';
 	//pongMsg.WriteBytes(1, &data);
 	std::string pongMsgStr = pongMsg.GetBitString();
 
 	NetConnection *netConnection = NetSession::GetInstance()->GetConnection(&netAddress);
-	netConnection->Send(pongMsg);
-
+	size_t size1 = netConnection->Send(pongMsg);
+	int a = 1;
 	/*std::string str;
 	msg.read_string(&str);
 

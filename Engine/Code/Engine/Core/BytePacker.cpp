@@ -552,7 +552,14 @@ std::string BytePacker::GetBitString()
 	{
 		char bb = ((char *)m_buffer)[index];
 		std::string byteString = ToBitString(bb);
-		fullString += (byteString + " ");
+		if(index == size - 1)
+		{
+			fullString += (byteString);
+		}
+		else
+		{
+			fullString += (byteString + " ");
+		}
 	}
 	return (fullString);
 }
