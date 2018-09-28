@@ -44,9 +44,9 @@ NetMessage::~NetMessage()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetMessage::WriteCommandIndex()
 {
-	size_t tempIndex = m_currentWritePosition;
-	m_currentWritePosition = 2;
+	//size_t tempIndex = m_currentWritePosition;
+	//m_currentWritePosition = 2;
 	WriteBytes(1, (char*)&m_definitionIndex);
-	m_currentWritePosition = tempIndex;
+	//m_currentWritePosition = tempIndex;
 }
 

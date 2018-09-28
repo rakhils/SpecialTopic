@@ -73,7 +73,7 @@ size_t UDPSocket::SendTo(NetAddress &addr, void *data, size_t const byte_count)
 	SOCKET sock = (SOCKET)m_handle;
 	//int error = WSAGetLastError();
 	int sent = ::sendto(sock, (char *)data, static_cast<int>(byte_count), 0, (sockaddr*)&sockaddrr, static_cast<int>(addr_len));
-	int error1 = WSAGetLastError();
+	//int error1 = WSAGetLastError();
 	if(sent > 0)
 	{
 		return (size_t)sent;
@@ -101,7 +101,6 @@ size_t UDPSocket::ReceiveFrom(void *buffer, size_t max_read_size,NetAddress *add
 	sockaddr_storage fromaddr;
 	int addr_len = sizeof(sockaddr_storage);
 	SOCKET sock = (SOCKET)m_handle;
-
 
 	int recvd = ::recvfrom(sock, (char*)buffer, (int)max_read_size, 0, (sockaddr*)&fromaddr, &addr_len);
 	addr->FromSockAddr((sockaddr*)&fromaddr);

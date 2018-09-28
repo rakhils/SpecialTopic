@@ -126,7 +126,7 @@ size_t TCPSocket::Recv(char *outData, unsigned int maxSize)
 	}
 	else
 	{
-		if (recvd == -1)
+		if (recvd <= -1)
 		{
 			if (HasFatalError())
 			{

@@ -65,13 +65,13 @@ std::string Command::GetNextString()
 	{
 		if(m_command[m_readIndex] == '\"' )
 		{
-			if(m_readIndex == 0)
+			if(m_readIndex == startPosition)
 			{
 				isInsideDoubleQuotes = true;
 				hasDoubleQuotes = true;
 				continue;
 			}
-			if(m_readIndex > 0 && m_command[m_readIndex - 1] != '\\')
+			if(m_readIndex > startPosition && m_command[m_readIndex - 1] != '\\')
 			{
 				if (isInsideDoubleQuotes)
 				{
@@ -86,12 +86,16 @@ std::string Command::GetNextString()
 		if(m_command[m_readIndex] == ' ' && !isInsideDoubleQuotes)
 		{
 			m_readIndex++;
+			if(hasDoubleQuotes)
+			{
+				return m_command.substr(startPosition + 1, m_readIndex - startPosition - 3);
+			}
 			return m_command.substr(startPosition,m_readIndex-startPosition-1);
 		}
 	}
 	if(hasDoubleQuotes)
 	{
-		return m_command.substr(startPosition+1,m_readIndex-startPosition - 1);
+		return m_command.substr(startPosition+1,m_readIndex-startPosition - 2);
 	}
 	return m_command.substr(startPosition,m_readIndex-startPosition);
 }
@@ -271,6 +275,8 @@ void CommandStartup()
 	CommandRegister("udp_send", UDPPacketSend, "SENDS PACKET FROM UDP");
 	CommandRegister("add_connection", AddUDPConnection, "ADDS A NEW UDP CONNECTION");
 	CommandRegister("send", SendCommandOverUDP, "SENDS COMMANDS OVER UDP");
+	CommandRegister("send_ping", SendPing, "SENDS PING COMMANDS OVER UDP");
+	CommandRegister("send_add", SendAdd, "SENDS ADD COMMANDS OVER UDP");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1192,6 +1198,73 @@ void AddUDPConnection(Command &cmd)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/27
+*@purpose : Sends ping to a UDP connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendPing(Command &cmd)
+{
+	int connectionIndex = -1;
+	if (cmd.GetNextInt(&connectionIndex))
+	{
+		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+		if (connection)
+		{
+			std::string pingString = cmd.GetNextString();
+			NetMessage msg("ping");
+			size_t msgSize = 0;
+			// write temporarily 
+			msg.WriteBytes(2, (char*)&msgSize);
+			///////////////
+			msg.WriteCommandIndex();
+			msg.WriteString(pingString.c_str());
+			msg.m_currentWritePosition = 0;
+			msgSize = msg.m_bufferSize - 2;
+			msg.WriteBytes(2, (char*)&(msgSize));
+			std::string str = msg.GetBitString();
+			connection->Send(msg);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/27
+*@purpose : Sends add msg via UDP connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendAdd(Command &cmd)
+{
+	int connectionIndex = -1;
+	if (cmd.GetNextInt(&connectionIndex))
+	{
+		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+		if (connection)
+		{
+			float value1 = 0;
+			float value2 = 0;
+			cmd.GetNextFloat(&value1);
+			cmd.GetNextFloat(&value2);
+
+			NetMessage msg("add");
+			size_t msgSize = 0;
+			// write temporarily 
+			msg.WriteBytes(2, (char*)&msgSize);
+			///////////////
+			msg.WriteCommandIndex();
+			msg.WriteBytes(4, (char*)&value1);
+			msg.WriteBytes(4, (char*)&value2);
+			msg.m_currentWritePosition = 0;
+			msgSize = msg.m_bufferSize - 2;
+			msg.WriteBytes(2, (char*)&(msgSize));
+			std::string str = msg.GetBitString();
+			connection->Send(msg);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/25
 *@purpose : Sends command over UDP
 *@param   : NIL
@@ -1207,11 +1280,22 @@ void SendCommandOverUDP(Command &cmd)
 		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
 		if(connection)
 		{
+			if(netcmd == "add")
+			{
+				return;
+			}
+			if(netcmd == "ping")
+			{
+
+			}
+
+
 			NetMessage msg(netcmd);
 			size_t size = 7;
+			// write temporarily 
 			msg.WriteBytes(2, (char*)&size);
+			///////////////
 			msg.WriteCommandIndex();
-			msg.m_currentWritePosition = 3;
 			msg.WriteString("hello");
 			std::string str = msg.GetBitString();
 			connection->Send(msg);

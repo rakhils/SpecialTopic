@@ -16,7 +16,7 @@ class UDPSocket;
 class NetSession;
 struct UDPHeader
 {
-	uint8_t m_connectionindex  = static_cast<uint8_t>(~(0U));
+	uint8_t m_connectionindex  = static_cast<uint8_t>(-1);
 	uint8_t m_unrealiableCount = static_cast<uint8_t>(0U);
 };
 class NetConnection

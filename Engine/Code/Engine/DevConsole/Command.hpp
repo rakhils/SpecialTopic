@@ -140,6 +140,8 @@ void RCEcho(Command &cmd);
 
 void UDPPacketSend(Command &cmd);
 void AddUDPConnection(Command &cmd);
+void SendPing(Command &cmd);
+void SendAdd(Command &cmd);
 void SendCommandOverUDP(Command &cmd);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
