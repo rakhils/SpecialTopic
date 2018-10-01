@@ -1458,8 +1458,8 @@ void Map::RenderUnitTask()
 		std::string taskStr = Task::GetTaskTypeAsString(task->m_taskType);
 		std::string taskPos = (" POS X , Y " + ToString(cords.x) + " " + ToString(cords.y));
 		Renderer::GetInstance()->BindMaterial(textMaterial);
-		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDTaskInfoPosition - Vector3(0, 0, 0), Vector3::RIGHT, Vector3::UP, taskStr, g_fontSize, Rgba::YELLOW);
-		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDTaskInfoPosition - Vector3(0, 100, 0), Vector3::RIGHT, Vector3::UP, taskPos, g_fontSize, Rgba::YELLOW);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDTaskInfoPosition - Vector3(g_unitStatHUD.GetDimensions().x, 0, 0), Vector3::RIGHT, Vector3::UP, taskStr, g_fontSize, Rgba::YELLOW);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDTaskInfoPosition - Vector3(g_unitStatHUD.GetDimensions().x, 100, 0), Vector3::RIGHT, Vector3::UP, taskPos, g_fontSize, Rgba::YELLOW);
 	}
 	else
 	{

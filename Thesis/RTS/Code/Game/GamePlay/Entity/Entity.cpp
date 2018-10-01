@@ -79,7 +79,7 @@ int Entity::GetTileIndex()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::InitNeuralNet()
 {
-	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, 600, static_cast<int>(m_taskTypeSupported.size() + 2));
+	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, 1000, static_cast<int>(m_taskTypeSupported.size() + 2));
 	m_neuralNet.SetRandomWeight();
 	// input + 6 -> for game stat && output + 2 for positions x,y
 	for(int inputIndex = 0;inputIndex < m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs;inputIndex++)
@@ -1037,8 +1037,8 @@ IntVector2 Entity::GetTaskPositonFromNNOutput()
 {
 	float xPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size()).m_value;
 	float yPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() + 1).m_value;
-	float xRangedValue = RangeMapFloat(xPosition, 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxWidth));
-	float yRangedValue = RangeMapFloat(yPosition, 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxHeight));
+	float xRangedValue = RangeMapFloat(xPosition, -1.f, 1.f, 0.f, static_cast<float>(m_map->m_maxWidth));
+	float yRangedValue = RangeMapFloat(yPosition, -1.f, 1.f, 0.f, static_cast<float>(m_map->m_maxHeight));
 	return IntVector2(static_cast<int>(xRangedValue), static_cast<int>(yRangedValue));
 }
 

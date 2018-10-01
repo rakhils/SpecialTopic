@@ -142,7 +142,7 @@ void Civilian::TrainNN()
 	std::vector<Entity*> entityList = GetAllEntitiesNearMe(1);
 	bool isResourceNearMe = false;
 	bool isTownCenterNearMe = false;
-	for (size_t entityIndex = 0; entityIndex < entityList.size(); entityIndex++)
+	/*for (size_t entityIndex = 0; entityIndex < entityList.size(); entityIndex++)
 	{
 		Entity *entity = entityList.at(entityIndex);
 		if(entity->m_type == RESOURCE_FOOD || entity->m_type == RESOURCE_STONE || entity->m_type == RESOURCE_WOOD)
@@ -157,8 +157,8 @@ void Civilian::TrainNN()
 			m_outputs.at(resourceGatherIndex) = 1.f;
 			isTownCenterNearMe = true;
 		}
-	}
-	if(!isResourceNearMe && !isTownCenterNearMe)
+	}*/
+	//if(!isResourceNearMe && !isTownCenterNearMe)
 	{
 		int resourceGatherIndex = GetIndexOfOutputTask(TASK_MOVE);
 		m_outputs.at(resourceGatherIndex) = 1.f;

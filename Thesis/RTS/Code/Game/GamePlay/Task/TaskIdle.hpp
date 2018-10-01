@@ -17,7 +17,7 @@ class TaskIdle : public Task
 public:
 	//Member_Variables
 	float   m_delay = 0;
-	float   m_maxDelay = 2;
+	float   m_maxDelay = 1;
 
 	//Static_Member_Variables
 

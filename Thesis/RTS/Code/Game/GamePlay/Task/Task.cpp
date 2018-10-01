@@ -109,8 +109,10 @@ std::string Task::GetTaskTypeAsString(TaskType type)
 	case TASK_SPAWN_CLASSB_WARRIOR:
 		return "TASK_SPAWN_CLASSB";
 		break;
+	case TASK_IDLE:
+		return "TASK_IDLE";
 	default:
 		break;
 	}
-	return "";
+	return "INVALID";
 }

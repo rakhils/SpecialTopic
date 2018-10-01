@@ -3,7 +3,7 @@
 // CONSTRUCTOR
 TaskIdle::TaskIdle()
 {
-
+	m_taskType = TASK_IDLE;
 }
 
 // DESTRUCTOR
