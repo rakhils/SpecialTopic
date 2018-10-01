@@ -18,7 +18,6 @@ class TaskBuildHouse : public Task
 
 public:
 	//Member_Variables
-	Vector2 m_buildPosition;
 	float   m_buildDelay = 0;
 	float   m_buildMaxDelay = 1;
 	float   m_speed = 100;

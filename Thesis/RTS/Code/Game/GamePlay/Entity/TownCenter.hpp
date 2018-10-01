@@ -19,6 +19,8 @@ class TownCenter : public Entity
 public:
 	//Member_Variables
 	Resources m_resourceStat;
+	
+
 	//Static_Member_Variables
 
 	//Methods
@@ -29,6 +31,7 @@ public:
 
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
+	void TrainNN();
 	void Render();
 	
 	//Static_Methods

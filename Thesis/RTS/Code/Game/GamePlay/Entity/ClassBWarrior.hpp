@@ -17,7 +17,10 @@ class ClassBWarrior : public Entity
 
 public:
 	//Member_Variables
-	
+	int m_enemiesAttacked			= 0;
+	int m_enemiesKilled				= 0;
+	int m_enemiesAttackedBeforeTask = 0;
+	int m_enemiesKilledBeforeTask	= 0;
 	//Static_Member_Variables
 
 	//Methods
@@ -28,6 +31,7 @@ public:
 	
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
+	void TrainNN();
 	void Render();
 
 	bool IsInRange(int tileIndex);

@@ -9,6 +9,7 @@ TaskDropResource::TaskDropResource(Entity *entity,Entity* townCenter)
 	m_entity	 = entity;
 	m_townCenter = (TownCenter*)townCenter;
 	m_map		 = m_entity->m_map;
+	m_targetPosition = m_townCenter->GetPosition();
 }
 
 // DESTRUCTOR
@@ -30,12 +31,15 @@ void TaskDropResource::UpdateResourceStorageStat(Entity *entityResourceType, int
 	{
 	case RESOURCE_FOOD:
 		m_townCenter->m_resourceStat.m_food += count;
+		m_entity->UpdateUnitStatForFoodDropped(count);
 		break;
 	case RESOURCE_STONE:
 		m_townCenter->m_resourceStat.m_stone += count;
+		m_entity->UpdateUnitStatForStoneDropped(count);
 		break;
 	case RESOURCE_WOOD:
 		m_townCenter->m_resourceStat.m_wood += count;
+		m_entity->UpdateUnitStatForWoodDropped(count);
 		break;
 	default:
 		break;
@@ -59,6 +63,8 @@ bool TaskDropResource::DoTask(float deltaTime)
 	if (m_map->IsNeighbours(m_map->GetCordinates(m_townCenter->GetPosition()), m_map->GetCordinates(m_entity->GetPosition())))
 	{
 		UpdateResourceStorageStat(((Civilian*)m_entity)->m_resourceType, 1);
+		CheckAndUpdateResourcesUsed();
+
 		((Civilian*)m_entity)->m_resourceType = nullptr;
 	}
 	return true;

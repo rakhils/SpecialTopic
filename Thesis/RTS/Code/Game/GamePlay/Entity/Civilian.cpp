@@ -8,6 +8,7 @@
 #include "Game/GamePlay/Task/TaskBuildArmySpawner.hpp"
 #include "Game/GamePlay/Task/TaskBuildHouse.hpp"
 #include "Game/GamePlay/Task/TaskDropResource.hpp"
+#include "Game/GamePlay/Task/TaskIdle.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 // CONSTRUCTOR
 Civilian::Civilian()
@@ -22,9 +23,13 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	SetPosition(position);
 	m_taskTypeSupported.push_back(TASK_GATHER_RESOURCE);
 	m_taskTypeSupported.push_back(TASK_DROP_RESOURCE);
+	m_taskTypeSupported.push_back(TASK_BUILD_ARMY_SPAWNER);
+	m_taskTypeSupported.push_back(TASK_BUILD_HOUSE);
 	m_taskTypeSupported.push_back(TASK_MOVE);
 	m_taskTypeSupported.push_back(TASK_IDLE);
+
 	InitNeuralNet();
+	m_taskQueue.push(new TaskIdle());
 }
 
 // DESTRUCTOR
@@ -113,9 +118,52 @@ void Civilian::ProcessInputs(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::Update(float deltaTime)
 {
-	
 	ProcessInputs(deltaTime);
 	Entity::Update(deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : trains NeuralNet
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::TrainNN()
+{
+	std::vector<float> m_outputs;
+	IntVector2 townCenterPosition = m_map->GetCordinates(FindMyTownCenter()->GetPosition());
+	for(int outputIndex = 0;outputIndex < m_taskTypeSupported.size();outputIndex++)
+	{
+		m_outputs.push_back(0.f);
+	}
+	m_outputs.push_back(m_neuralNet.GetSigmoidValue(townCenterPosition.x));
+	m_outputs.push_back(m_neuralNet.GetSigmoidValue(townCenterPosition.y));
+
+	std::vector<Entity*> entityList = GetAllEntitiesNearMe(1);
+	bool isResourceNearMe = false;
+	bool isTownCenterNearMe = false;
+	for (size_t entityIndex = 0; entityIndex < entityList.size(); entityIndex++)
+	{
+		Entity *entity = entityList.at(entityIndex);
+		if(entity->m_type == RESOURCE_FOOD || entity->m_type == RESOURCE_STONE || entity->m_type == RESOURCE_WOOD)
+		{
+			int resourceGatherIndex = GetIndexOfOutputTask(TASK_GATHER_RESOURCE);
+			m_outputs.at(resourceGatherIndex) = 1.f;
+			isResourceNearMe = true;
+		}
+		if (entity->m_type == TOWN_CENTER)
+		{
+			int resourceGatherIndex = GetIndexOfOutputTask(TASK_DROP_RESOURCE);
+			m_outputs.at(resourceGatherIndex) = 1.f;
+			isTownCenterNearMe = true;
+		}
+	}
+	if(!isResourceNearMe && !isTownCenterNearMe)
+	{
+		int resourceGatherIndex = GetIndexOfOutputTask(TASK_MOVE);
+		m_outputs.at(resourceGatherIndex) = 1.f;
+	}
+	m_neuralNet.DoBackPropogation(m_outputs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -16,6 +16,7 @@ class ArmySpawner :public Entity
 
 public:
 	//Member_Variables
+	
 	//Static_Member_Variables
 	//Methods
 
@@ -24,6 +25,7 @@ public:
 	~ArmySpawner();
 
 	void ProcessInput(float deltaTime);
+	void TrainNN();
 	void Update(float deltaTime);
 	void Render();
 	//Static_Methods

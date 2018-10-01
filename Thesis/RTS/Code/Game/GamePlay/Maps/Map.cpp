@@ -1,5 +1,6 @@
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GameCommon.hpp"
+#include "Game/Game.hpp"
 
 #include "Engine/Core/Windows.hpp"
 #include "Engine/Renderer/Camera/OrthographicCamera.hpp"
@@ -691,10 +692,15 @@ bool Map::IsValidCordinate(IntVector2 cords)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::AttackOnPosition(int tileIndex,float damagePoint)
+Entity* Map::AttackOnPosition(int tileIndex,float damagePoint)
 {
 	Entity *entity = GetEntityFromPosition(tileIndex);
+	if(entity == nullptr)
+	{
+		return nullptr;
+	}
 	entity->TakeDamage(damagePoint);
+	return entity;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -703,7 +709,7 @@ void Map::AttackOnPosition(int tileIndex,float damagePoint)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::AttackOnPosition(IntVector2 cords, float damagePoint)
+Entity* Map::AttackOnPosition(IntVector2 cords, float damagePoint)
 {
 	int tileIndex = GetTileIndex(cords);
 	return AttackOnPosition(tileIndex,damagePoint);
@@ -715,7 +721,7 @@ void Map::AttackOnPosition(IntVector2 cords, float damagePoint)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::AttackOnPosition(Vector2 position, float damagePoint)
+Entity* Map::AttackOnPosition(Vector2 position, float damagePoint)
 {
 	int tileIndex = GetTileIndex(position);
 	return AttackOnPosition(tileIndex, damagePoint);
@@ -1133,7 +1139,7 @@ void Map::Render()
 {
 	Camera::SetCurrentCamera(m_camera);
 	Renderer::GetInstance()->BeginFrame();
-
+	DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d", Game::s_gameCounter);
 	RenderCivilians();
 	RenderClassAWarriors();
 	RenderClassBWarriors();
@@ -1145,6 +1151,7 @@ void Map::Render()
 	RenderExplosions();
 	RenderHUDGameStat();
 	RenderHUDUnitStat();
+	RenderUnitTask();
 
 	RenderMousePosition();
 
@@ -1359,8 +1366,8 @@ void Map::RenderHUDUnitStat()
 	case TOWN_CENTER:
 		g_theRenderer->DrawAABB(g_unitStatHUDFirstButton, Rgba::WHITE);
 		Renderer::GetInstance()->BindMaterial(textMaterial);
-		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDFirstButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize/2.f,0), Vector3::RIGHT, Vector3::UP, "CREATE CIVILIAN ",g_fontSize, Rgba::YELLOW);
-		
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDFirstButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "CREATE CIVILIAN ", g_fontSize, Rgba::YELLOW);
+
 
 	case WARRIOR_SHORT_RANGE:
 	case WARRIOR_LONG_RANGE:
@@ -1368,6 +1375,7 @@ void Map::RenderHUDUnitStat()
 		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDHealthInfoPosition - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "HEALTH : " + ToString(g_currentSelectedEntity->m_health), g_fontSize, Rgba::YELLOW);
 		break;
 	case CIVILIAN:
+	{
 		Renderer::GetInstance()->BindMaterial(textMaterial);
 		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDHealthInfoPosition - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "HEALTH : " + ToString(g_currentSelectedEntity->m_health), g_fontSize, Rgba::YELLOW);
 
@@ -1381,10 +1389,24 @@ void Map::RenderHUDUnitStat()
 		Renderer::GetInstance()->BindMaterial(textMaterial);
 		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDSecondButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "BUILD HOUSE ", g_fontSize, Rgba::YELLOW);
 
+
+		Renderer::GetInstance()->BindMaterial(textMaterial);
+		Entity *resource = ((Civilian*)g_currentSelectedEntity)->m_resourceType;
+		if(resource == nullptr)
+		{
+			g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDResourceInfoPosition - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "NO RESOURCE", g_fontSize, Rgba::YELLOW);
+		}
+		else
+		{
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDResourceInfoPosition - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, Entity::GetEntityTypeAsString(resource->m_type), g_fontSize, Rgba::YELLOW);
+		}
+
+
 		if (((Civilian*)g_currentSelectedEntity)->m_resourceType != nullptr)
 		{
 			g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDResourceInfoPosition, Vector3::RIGHT, Vector3::UP, Entity::GetEntityTypeAsString(((Civilian*)g_currentSelectedEntity)->m_resourceType->m_type), g_fontSize, Rgba::YELLOW);
 		}
+	}
 		break;
 	case HOUSE:
 	case RESOURCE_FOOD:
@@ -1410,6 +1432,39 @@ void Map::RenderHUDUnitStat()
 		break;
 	}
 
+	
+	delete textMaterial;
+	delete defaultMaterial;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Renders task info of each unit
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderUnitTask()
+{
+	if (g_currentSelectedEntity == nullptr)
+	{
+		return;
+	}
+	Material *defaultMaterial = Material::AquireResource("default");
+	Material *textMaterial    = Material::AquireResource("Data\\Materials\\text.mat");
+	if (g_currentSelectedEntity->m_taskQueue.size() > 0)
+	{
+		Task *task          = g_currentSelectedEntity->m_taskQueue.front();
+		IntVector2 cords	= GetCordinates(task->m_targetPosition);
+		std::string taskStr = Task::GetTaskTypeAsString(task->m_taskType);
+		std::string taskPos = (" POS X , Y " + ToString(cords.x) + " " + ToString(cords.y));
+		Renderer::GetInstance()->BindMaterial(textMaterial);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDTaskInfoPosition - Vector3(0, 0, 0), Vector3::RIGHT, Vector3::UP, taskStr, g_fontSize, Rgba::YELLOW);
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDTaskInfoPosition - Vector3(0, 100, 0), Vector3::RIGHT, Vector3::UP, taskPos, g_fontSize, Rgba::YELLOW);
+	}
+	else
+	{
+		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDTaskInfoPosition - Vector3(g_unitStatHUD.GetDimensions().x, 0, 0), Vector3::RIGHT, Vector3::UP, "NO TASK", g_fontSize, Rgba::YELLOW);
+	}
 	delete textMaterial;
 	delete defaultMaterial;
 }

@@ -11,6 +11,7 @@ TaskSpawnClassAWarrior::TaskSpawnClassAWarrior(Map *map, Entity *entity)
 	m_entity = entity;
 	m_resourcesNeeded.m_food = 4;
 	m_resourcesNeeded.m_wood = 4;
+	m_targetPosition = entity->GetPosition();
 }
 
 // DESTRUCTOR
@@ -31,9 +32,11 @@ bool TaskSpawnClassAWarrior::DoTask(float deltaTime)
 	IntVector2 position = m_map->GetFreeNeighbourTile((m_entity->GetPosition()));
 	if(position == IntVector2(-1,-1))
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(1, "CANNOT SPAWN VILLAGER NO SPACE NEARBY ");
+		DebugDraw::GetInstance()->DebugRenderLogf(1, "CANNOT SPAWN WARRIOR NO SPACE NEARBY ");
 		return true;
 	}
+	m_entity->UpdateUnitStatForShortRangeArmySpawned(1);
 	m_map->CreateClassAWarrior(m_map->GetMapPosition(position),m_entity->m_teamID);
+	CheckAndUpdateResourcesUsed();
 	return true;
 }

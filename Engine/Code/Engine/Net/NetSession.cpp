@@ -4,6 +4,7 @@
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
+NetSession * NetSession::s_instance = nullptr;
 NetSession::NetSession()
 {
 
@@ -219,4 +220,19 @@ void NetSession::ProcessMsg(NetMessage *netmsg)
 float NetSession::GetTimeStamp()
 {
 	return 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetSession * NetSession::GetInstance()
+{
+	if(s_instance == nullptr)
+	{
+		s_instance = new NetSession();
+	}
+	return s_instance;
 }

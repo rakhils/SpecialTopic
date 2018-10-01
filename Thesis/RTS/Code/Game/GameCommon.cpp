@@ -16,7 +16,9 @@ float				g_unitDistance  = g_radius * 2;
 bool				g_isQuitting	= false;
 int					g_mapMaxWidth	= 40;
 int					g_mapMaxHeight	= 20;
-bool				g_disableNeuralNet = false;
+bool				g_enableNeuralNet = true;
+bool				g_enableDebugPrints = false;
+int					g_extraNNInputs = 6;
 //HUD
 float				g_fontSize							 = 10;
 Vector3				g_resourceFoodPositionPopulationA	 (100, 1050, 0);
@@ -39,6 +41,7 @@ AABB2				g_resourceStatHUD(Vector2::ONE,Vector2::ONE);
 AABB2				g_unitStatHUD(Vector2::ONE, Vector2::ONE);
 Vector3				g_unitStatHUDHealthInfoPosition(Vector3::ONE);
 Vector3				g_unitStatHUDResourceInfoPosition(Vector3::ONE);
+Vector3				g_unitStatHUDTaskInfoPosition(Vector3::ONE);
 AABB2				g_unitStatHUDFirstButton(Vector2::ONE ,Vector2::ONE);
 AABB2				g_unitStatHUDSecondButton(Vector2::ONE,Vector2::ONE);
 
@@ -58,7 +61,8 @@ void InitVariables()
 
 	g_unitStatHUD						= AABB2(Vector2(windowsSizeX - 160, windowsSizeY / 2.f), 160, windowsSizeY/2.f);
 	g_unitStatHUDHealthInfoPosition		= Vector3(windowsSizeX - 160, windowsSizeY - 100, 0);
-	g_unitStatHUDResourceInfoPosition   = Vector3(windowsSizeX - 300, windowsSizeY - 300, 0);
+	g_unitStatHUDResourceInfoPosition   = Vector3(windowsSizeX - 150, windowsSizeY - 200, 0);
+	g_unitStatHUDTaskInfoPosition		= Vector3(windowsSizeX - 150, windowsSizeY - 300,0);
 	g_unitStatHUDFirstButton			= AABB2(Vector2(windowsSizeX - 160, windowsSizeY - 500),g_unitDistance*4,g_unitDistance);
 	g_unitStatHUDSecondButton			= AABB2(Vector2(windowsSizeX - 160, windowsSizeY - 750),g_unitDistance*4,g_unitDistance);
 }

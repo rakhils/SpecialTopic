@@ -17,6 +17,7 @@
 #include "Game/GamePlay/Task/TaskSpawnVillager.hpp"
 #include "Game/GamePlay/Task/TaskSpawnClassAWarrior.hpp"
 #include "Game/GamePlay/Task/TaskSpawnClassBWarrior.hpp"
+#include "Game/GamePlay/Task/TaskIdle.hpp"
 #include "Game/GameCommon.hpp"
 
 Entity::Entity()
@@ -78,7 +79,14 @@ int Entity::GetTileIndex()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::InitNeuralNet()
 {
-	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + 6, 600, static_cast<int>(m_taskTypeSupported.size() + 2));// + 2 for positions
+	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, 600, static_cast<int>(m_taskTypeSupported.size() + 2));
+	m_neuralNet.SetRandomWeight();
+	// input + 6 -> for game stat && output + 2 for positions x,y
+	for(int inputIndex = 0;inputIndex < m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs;inputIndex++)
+	{
+		m_lastInputState.push_back(0.f);
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -141,31 +149,59 @@ void Entity::ProcessInputs(float deltaTime)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Trains NN with the snapshot input
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::TrainNN()
+{
+	/*m_neuralNet.FeedForward(m_lastInputState);
+	m_neuralNet.DoBackPropogation()*/
+}
+
 void Entity::Update(float deltaTime)
 {
 	if(m_health <= 0)
 	{
 		return;
 	}
-	
 	if(!m_taskQueue.empty())
 	{
 		bool isCompleted = (m_taskQueue.front())->DoTask(deltaTime);
 		if(isCompleted)
 		{
 			Task *task = m_taskQueue.front();
+			TaskType type = task->m_taskType;
+			if(g_enableNeuralNet)
+			{
+				if (type == TASK_MOVE)
+				{
+					Vector2 pos = ((TaskMove*)task)->m_targetPosition;
+					//DebugDraw::GetInstance()->DebugRenderLogf("TASK COMPLETED TYPE " + Task::GetTaskTypeAsString(type) + " POS X = " + ToString(pos.x) + " Y = " + ToString(pos.y), 1, Rgba::WHITE, Rgba::WHITE);
+				}
+				else
+				{
+					//DebugDraw::GetInstance()->DebugRenderLogf("TASK COMPLETED TYPE " + Task::GetTaskTypeAsString(type), 1, Rgba::WHITE, Rgba::WHITE);
+				}
+			}
 			delete task;
 			m_taskQueue.pop();
+			if(g_enableNeuralNet)
+			{
+				if(m_teamID == 1)
+				{
+					int a = 1;
+				}
+				TrainNN();
+				UpdateAllUnitStatWithCurrentValue();
+				if (m_taskQueue.size() == 0  && m_type == CIVILIAN)
+				{
+					UpdateNN(deltaTime);
+				}
+			}
 		}
-	}
-	if(m_type == TOWN_CENTER && m_taskQueue.size() == 0)
-	{
-		//UpdateNN(deltaTime);
-	}
-
-	if (m_taskQueue.size() == 0 && m_type != RESOURCE_FOOD && m_type != RESOURCE_STONE && m_type != RESOURCE_WOOD && m_type == CIVILIAN)
-	{
-		UpdateNN(deltaTime);
 	}
 }
 
@@ -177,9 +213,13 @@ void Entity::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateNN(float deltaTime)
 {
-	if(g_disableNeuralNet)
+	if(!g_enableNeuralNet)
 	{
 		return;
+	}
+	if(m_type == RESOURCE_FOOD || m_type == RESOURCE_STONE || m_type == RESOURCE_WOOD || m_type == HOUSE)
+	{
+		return;	
 	}
 
 	TownCenter *townCenter = m_map->m_townCenters.at(m_teamID - 1);
@@ -197,9 +237,10 @@ void Entity::UpdateNN(float deltaTime)
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<float>(townCenter->m_resourceStat.m_unitsKilled)));
 
 	m_neuralNet.FeedForward(m_map->m_minimapValue,m_gameStats);
+	UpdateLastNNInputState(m_map->m_minimapValue, m_gameStats);
 
 	// not needed after training
-	m_neuralNet.SetRandomWeight();
+	//m_neuralNet.SetRandomWeight();
 	////
 	TaskType task			= GetTaskFromNNOutput();
 	IntVector2 taskPosition = GetTaskPositonFromNNOutput();
@@ -220,81 +261,373 @@ void Entity::UpdateNN(float deltaTime)
 	deltaTime = logTime;
 	switch (task)
 	{
+	case TASK_IDLE:
+		{
+			if (g_enableDebugPrints)
+			{
+				DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK IDLE");
+
+			}
+			CreateAndPushIdleTask(taskPosition);
+			break;
+		}
 	case TASK_MOVE:
 		{
-			DebugDraw::GetInstance()->DebugRenderLogf(logTime,GetTeamColor(), "TASK MOVE POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+			if(g_enableDebugPrints)
+			{
+				DebugDraw::GetInstance()->DebugRenderLogf(logTime,GetTeamColor(), "TASK MOVE POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+			}
 			CreateAndPushMoveTask(taskPosition);
 		}
 		break;
 	case TASK_GATHER_RESOURCE:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,GetTeamColor(), "TASK GATHER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK GATHER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		logTime = deltaTime;
 		CreateAndPushGatherResourceTask(taskPosition);
 	}
 		break;
 	case TASK_DROP_RESOURCE:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK DROP POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK DROP POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		logTime = deltaTime;
 		CreateAndPushDropResourceTask(taskPosition);
 	}
 		break;
 	case TASK_BUILD_TOWNCENTER:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD TOWNCENTER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD TOWNCENTER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		logTime = deltaTime;
 		CreateAndPushBuildTownCenterTask(taskPosition);
 	}
 		break;
 	case TASK_BUILD_HOUSE:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD HOUSE POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD HOUSE POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		logTime = deltaTime;
 		CreateAndPushBuildHouseTask(taskPosition);
 	}
 		break;
 	case TASK_BUILD_ARMY_SPAWNER:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD ARMY CENTER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD ARMY CENTER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		logTime = deltaTime;
 		CreateAndPushBuildArmySpawnerTask(taskPosition);
 	}
 		break;
 	case TASK_LONG_ATTACK:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK LONG ATTACK POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK LONG ATTACK POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		CreateAndPushLongRangeAttackTask(taskPosition);
 	}
 		break;
 	case TASK_SHORT_ATTACK:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SHORT ATTACK POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SHORT ATTACK POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		CreateAndPushShortRangeAttackTask(taskPosition);
 	}
 		break;
 	case TASK_SPAWN_VILLAGER:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN VILLAGER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN VILLAGER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		CreateAndPushSpawnVillagerTask(taskPosition);
 	}
 		break;
 	case TASK_SPAWN_CLASSA_WARRIOR:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN CLASSA POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN CLASSA POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		CreateAndPushSpawnClassAArmyTask(taskPosition);
 	}
 		break;
 	case TASK_SPAWN_CLASSB_WARRIOR:
 	{
-		DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN CLASS B POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		if (g_enableDebugPrints)
+		{
+			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN CLASS B POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
+		}
 		CreateAndPushSpawnClassBArmyTask(taskPosition);
 	}
 		break;
 	default:
 		break;
 	}
-	DebugDraw::GetInstance()->DebugRenderLogf(debugNN,logTime, GetTeamColor(),GetTeamColor());
+	if (g_enableDebugPrints)
+	{
+		DebugDraw::GetInstance()->DebugRenderLogf(debugNN,logTime, GetTeamColor(),GetTeamColor());
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/29
+*@purpose : Stores the snapshot at the time of task decision
+*@param   : INputs of NN (minimap values and game stats)
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateLastNNInputState(std::vector<float> &minmapvalue, std::vector<float> &gameStat)
+{
+	for(int index = 0;index < m_lastInputState.size();index++)
+	{
+		if(index >= minmapvalue.size())
+		{
+			m_lastInputState.at(index) = gameStat.at(index - minmapvalue.size());
+		}
+		else
+		{
+			m_lastInputState.at(index) = minmapvalue.at(index);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateAllUnitStatWithCurrentValue()
+{
+	m_resourceFoodUsedBeforeTask			= m_resourceFoodUsed;
+	m_resourceStoneUsedBeforeTask			= m_resourceStoneUsed;
+	m_resourceWoodUsedBeforeTask			= m_resourceWoodUsed;
+
+	m_resourceFoodGatheredBeforeTask		= m_resourceFoodGathered;
+	m_resourceFoodDroppedBeforeTask			= m_resourceFoodDropped;
+	m_resourceStoneGatheredBeforeTask		= m_resourceStoneGathered;
+	m_resourceStoneDroppedBeforeTask		= m_resourceStoneDropped;
+	m_resourceWoodGatheredBeforeTask		= m_resourceWoodGathered;
+	m_resourceWoodDroppedBeforeTask			= m_resourceWoodDropped;
+	m_numberOfArmySpawnerBuiltBeforeTask	= m_numberOfArmySpawnerBuilt;
+	m_numberOfHouseBuiltBeforeTask			= m_numberOfHouseBuilt;
+
+	m_longRangeArmySpawnedBeforeTask		= m_longRangeArmySpawned;
+	m_shortRangeArmySpawnedBeforeTask		= m_shortRangeArmySpawned;
+
+	m_enemiesAttackedBeforeTask				= m_enemiesAttacked;
+	m_enemiesKilledBeforeTask				= m_enemiesKilled;
+
+	m_villagerSpawnedBeforeTask				= m_villagerSpawned;
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Updates unit stat for food gathered
+*@param   : Update by count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForFoodGathered(int count)
+{
+	m_resourceFoodGathered += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update with stone gathered
+*@param   : count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForStoneGathered(int count)
+{
+	m_resourceStoneGathered += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Updates with wood gathered
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForWoodGathered(int count)
+{
+	m_resourceWoodGathered += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Updates stat with food dropped
+*@param   : Update by count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForFoodDropped(int count)
+{
+	m_resourceFoodDropped += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update with stone dropped
+*@param   : Update by count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForStoneDropped(int count)
+{
+	m_resourceStoneDropped += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update with wood dropped
+*@param   : Update by count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForWoodDropped(int count)
+{
+	m_resourceWoodDropped += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update by army spawned built
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
+{
+	m_numberOfArmySpawnerBuilt += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update with house built
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForHouseBuilt(int count)
+{
+	m_numberOfHouseBuilt += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update stat with short army spawned
+*@param   : Update by count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
+{
+	m_shortRangeArmySpawned += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update stat with long army spawned
+*@param   : Update by count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
+{
+	m_longRangeArmySpawned += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update with unit stat for enemies attacked
+*@param   : Update by count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForEnemiesAttacked(int count)
+{
+	m_enemiesAttacked += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update stat with enemies killed
+*@param   : Update by count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForEnemiesKilled(int count)
+{
+	m_enemiesKilled += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update stat with villager spawned
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForVillagerSpawned(int count)
+{
+	m_villagerSpawned += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update stat with food used
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForFoodUsed(int count)
+{
+	m_resourceFoodUsed += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Update stat with stone used
+*@param   : Update by count
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForStoneUsed(int count)
+{
+	m_resourceStoneUsed += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Updates unit stat with wood used
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateUnitStatForWoodUsed(int count)
+{
+	m_resourceWoodUsed += count;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Gets the task index from type
+*@param   : Task type
+*@return  : index
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Entity::GetIndexOfOutputTask(TaskType type)
+{
+	for(int index = 0;index < m_taskTypeSupported.size();index++)
+	{
+		if(m_taskTypeSupported.at(index) == type)
+		{
+			return index;
+		}
+	}
+	return -1;
 }
 
 void Entity::Render()
@@ -560,6 +893,78 @@ bool Entity::IsDifferentFaction(Entity *entity)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Checks if any resource is near me
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::IsResourceNearMe(int cellDistance)
+{
+	std::vector<Entity*> entityList = GetAllEntitiesNearMe(cellDistance);
+	for(int index = 0;index < entityList.size();index++)
+	{
+		if(entityList.at(index)->m_type == RESOURCE_FOOD || entityList.at(index)->m_type == RESOURCE_STONE || entityList.at(index)->m_type == RESOURCE_WOOD)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Get all entities of cell distance 
+*@param   : Cell distance
+*@return  : Entity list
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<Entity*> Entity::GetAllEntitiesNearMe(int cellDistance)
+{
+	std::vector<Entity*> entityList;
+	IntVector2 cords = m_map->GetCordinates(GetPosition());
+	Entity *entity   = m_map->GetEntityFromPosition(cords + IntVector2(cellDistance,0));
+	if(entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = m_map->GetEntityFromPosition(cords + IntVector2(cellDistance,cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = m_map->GetEntityFromPosition(cords + IntVector2(0, cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = m_map->GetEntityFromPosition(cords + IntVector2(-cellDistance,cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = m_map->GetEntityFromPosition(cords + IntVector2(-cellDistance,0));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = m_map->GetEntityFromPosition(cords + IntVector2(-cellDistance, -cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = m_map->GetEntityFromPosition(cords + IntVector2(0, -cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = m_map->GetEntityFromPosition(cords + IntVector2(cellDistance, -cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	return entityList;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/22
 *@purpose : returns corresponding minimap value 
 *@param   : NIL
@@ -638,6 +1043,20 @@ IntVector2 Entity::GetTaskPositonFromNNOutput()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/30
+*@purpose : Creates idle task and push to queue
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushIdleTask(IntVector2 cordinate)
+{
+	EmptyTaskQueue();
+	Task *idleTask = new TaskIdle();
+	m_taskQueue.push(idleTask);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/25
 *@purpose : Creates task to move to position and push to queue
 *@param   : Move cordinate in map
@@ -668,6 +1087,7 @@ bool Entity::CreateAndPushBuildHouseTask(IntVector2 cordinate)
 		return true;
 	}
 	delete task;
+	CreateAndPushIdleTask(IntVector2::ONE);
 	return false;
 }
 
@@ -681,6 +1101,7 @@ bool Entity::CreateAndPushGatherResourceTask(IntVector2 cordinate)
 {
 	if(m_map->GetEntityFromPosition(cordinate) == nullptr)
 	{
+		CreateAndPushIdleTask(IntVector2::ONE);
 		return false;
 	}
 	EmptyTaskQueue();
@@ -732,6 +1153,7 @@ bool Entity::CreateAndPushBuildArmySpawnerTask(IntVector2 cordinate)
 		return true;
 	}
 	delete task;
+	CreateAndPushIdleTask(IntVector2::ONE);
 	return false;
 }
 
@@ -752,6 +1174,7 @@ bool Entity::CreateAndPushLongRangeAttackTask(IntVector2 cordinate)
 		return true;
 	}
 	delete task;
+	CreateAndPushIdleTask(IntVector2::ONE);
 	return false;
 }
 
@@ -772,6 +1195,7 @@ bool Entity::CreateAndPushShortRangeAttackTask(IntVector2 cordinate)
 		return true;
 	}
 	delete task;
+	CreateAndPushIdleTask(IntVector2::ONE);
 	return false;
 }
 
@@ -791,6 +1215,7 @@ bool Entity::CreateAndPushSpawnVillagerTask(IntVector2 cordinate)
 		return true;
 	}
 	delete task;
+	CreateAndPushIdleTask(IntVector2::ONE);
 	return false;
 }
 
@@ -810,6 +1235,7 @@ bool Entity::CreateAndPushSpawnClassAArmyTask(IntVector2 cordinate)
 		return true;
 	}
 	delete task;
+	CreateAndPushIdleTask(IntVector2::ONE);
 	return false;
 }
 
@@ -829,6 +1255,7 @@ bool Entity::CreateAndPushSpawnClassBArmyTask(IntVector2 cordinate)
 		return true;
 	}
 	delete task;
+	CreateAndPushIdleTask(IntVector2::ONE);
 	return false;
 }
 

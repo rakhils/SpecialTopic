@@ -35,7 +35,9 @@ extern float				g_unitDistance;
 extern int					g_mapMaxWidth;
 extern int					g_mapMaxHeight;
 extern bool					g_isQuitting;
-extern bool					g_disableNeuralNet;
+extern bool					g_enableNeuralNet;
+extern bool					g_enableDebugPrints;
+extern int					g_extraNNInputs;
 
 //HUD
 extern float				g_fontSize;
@@ -58,6 +60,7 @@ extern AABB2				g_resourceStatHUD;
 extern AABB2				g_unitStatHUD;
 extern Vector3				g_unitStatHUDHealthInfoPosition;
 extern Vector3				g_unitStatHUDResourceInfoPosition;
+extern Vector3				g_unitStatHUDTaskInfoPosition;
 extern AABB2				g_unitStatHUDFirstButton;
 extern AABB2				g_unitStatHUDSecondButton;
 

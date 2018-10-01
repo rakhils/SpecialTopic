@@ -34,6 +34,7 @@ public:
 
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
+	void TrainNN();
 	void Render();
 
 	void GatherResource(Vector2 resourcePosition);

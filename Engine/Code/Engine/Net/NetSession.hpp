@@ -29,7 +29,7 @@ public:
 	std::vector<NetMessage*> m_udpRecvData;
 	BytePacker bytePacker;
 	//Static_Member_Variables
-
+	static NetSession* s_instance;
 	//Methods
 	NetSession();
 	~NetSession();
@@ -51,7 +51,7 @@ public:
 	float			GetTimeStamp();
 	
 	//Static_Methods
-
+	static NetSession * GetInstance();
 protected:
 	//Member_Variables
 

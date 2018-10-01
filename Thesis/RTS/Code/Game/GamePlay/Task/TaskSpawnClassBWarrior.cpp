@@ -11,6 +11,7 @@ TaskSpawnClassBWarrior::TaskSpawnClassBWarrior(Map *map, Entity *entity)
 	m_entity = entity;
 	m_resourcesNeeded.m_food = 4;
 	m_resourcesNeeded.m_wood = 4;
+	m_targetPosition = entity->GetPosition();
 }
 
 // DESTRUCTOR
@@ -34,6 +35,8 @@ bool TaskSpawnClassBWarrior::DoTask(float deltaTime)
 		DebugDraw::GetInstance()->DebugRenderLogf(1, "CANNOT SPAWN VILLAGER NO SPACE NEARBY ");
 		return false;
 	}
+	m_entity->UpdateUnitStatForLongRangeArmySpawned(1);
 	m_map->CreateClassBWarrior(m_map->GetMapPosition(position), m_entity->m_teamID);
+	CheckAndUpdateResourcesUsed();
 	return true;
 }

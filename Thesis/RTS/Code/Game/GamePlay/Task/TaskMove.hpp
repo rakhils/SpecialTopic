@@ -18,7 +18,6 @@ class TaskMove : public Task
 
 public:
 	//Member_Variables
-	Vector2 m_targetPosition;
 	float   m_speed = 100;
 	//Static_Member_Variables
 

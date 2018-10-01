@@ -27,6 +27,7 @@ public:
 
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
+	void TrainNN();
 	void Render();
 
 	bool IsInRange(int tileIndex);

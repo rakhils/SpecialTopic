@@ -98,9 +98,9 @@ public:
 
 	bool							IsValidCordinate(IntVector2 cords);
 
-	void							AttackOnPosition(int tileIndex   ,float damagePoint);
-	void							AttackOnPosition(IntVector2 cords,float damagePoint);
-	void							AttackOnPosition(Vector2 cords   ,float damagePoint);
+	Entity *						AttackOnPosition(int tileIndex, float damagePoint);
+	Entity *						AttackOnPosition(IntVector2 cords, float damagePoint);
+	Entity *						AttackOnPosition(Vector2 cords, float damagePoint);
 
 	bool							IsEnemies(Entity *entityOne, Entity *entityTwo);
 	void							DestroyEntity(Entity *entity);
@@ -140,6 +140,7 @@ public:
 	void							RenderExplosions();
 	void							RenderHUDGameStat();
 	void							RenderHUDUnitStat();
+	void							RenderUnitTask();
 
 	void							RenderMousePosition();
 	void							RenderWinState();

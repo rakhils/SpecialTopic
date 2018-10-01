@@ -9,6 +9,7 @@ TaskSpawnVillager::TaskSpawnVillager(Map* map,TownCenter *townCenter)
 	m_map		 = map;
 	m_resourcesNeeded.m_food = 2;
 	m_resourcesNeeded.m_wood = 2;
+	m_targetPosition = townCenter->GetPosition();
 }
 
 // DESTRUCTOR
@@ -29,7 +30,7 @@ bool TaskSpawnVillager::DoTask(float deltaTime)
 	int tileIndex = m_map->GetTileIndex(m_entity->GetPosition());
 	IntVector2 tileCords = m_map->GetCordinates(tileIndex);
 
-	IntVector2 tileCordsE  = IntVector2(tileCords.x + 1, tileCords.y + 0);
+	/*IntVector2 tileCordsE  = IntVector2(tileCords.x + 1, tileCords.y + 0);
 	IntVector2 tileCordsN  = IntVector2(tileCords.x + 0, tileCords.y + 1);
 	IntVector2 tileCordsW  = IntVector2(tileCords.x - 1, tileCords.y + 0);
 	IntVector2 tileCordsS  = IntVector2(tileCords.x + 0, tileCords.y - 1);
@@ -40,7 +41,6 @@ bool TaskSpawnVillager::DoTask(float deltaTime)
 	IntVector2 tileCordsSE = IntVector2(tileCords.x + 1, tileCords.y - 1);
 
 
-	
 	if(m_map->IsValidCordinate(tileCordsE))
 	{
 		if (!m_map->HasAnyEntityInTile(tileCordsE))
@@ -104,7 +104,14 @@ bool TaskSpawnVillager::DoTask(float deltaTime)
 			m_map->CreateCivilian(m_map->GetMapPosition(tileCordsSE), m_entity->m_teamID);
 			return true;
 		}
+	}*/
+	IntVector2 position = m_map->GetFreeNeighbourTile(m_entity->GetPosition());
+	if (position == IntVector2(-1, -1))
+	{
+		DebugDraw::GetInstance()->DebugRenderLogf(1, "CANNOT SPAWN VILLAGER NO SPACE NEARBY ");
+		return true;
 	}
-	DebugDraw::GetInstance()->DebugRenderLogf(1, "CANNOT SPAWN VILLAGER NO SPACE NEARBY ");
+	m_entity->UpdateUnitStatForVillagerSpawned(1);
+	m_map->CreateCivilian(m_map->GetMapPosition(position), m_entity->m_teamID);
 	return true;
 }

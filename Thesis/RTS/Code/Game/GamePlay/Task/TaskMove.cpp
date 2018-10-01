@@ -44,6 +44,7 @@ bool TaskMove::DoTask(float deltaTime)
 	Vector2 distance = m_entity->GetPosition() - m_targetPosition;
 	if(distance.GetLength() < 1)
 	{
+		CheckAndUpdateResourcesUsed();
 		return true;
 	}
 	return false;

@@ -42,6 +42,7 @@ public:
 	bool     m_isValid = false;
 	TaskType m_taskType;
 	Resources m_resourcesNeeded;
+	Vector2   m_targetPosition;
 	//Static_Member_Variables
 
 	//Methods
@@ -50,6 +51,7 @@ public:
 	~Task();
 
 	bool CheckAndReduceResources();
+	void CheckAndUpdateResourcesUsed();
 
 	void Update(float deltaTime);
 	virtual bool DoTask(float delatTime) = 0;
