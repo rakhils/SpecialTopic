@@ -277,6 +277,7 @@ void CommandStartup()
 	CommandRegister("send", SendCommandOverUDP, "SENDS COMMANDS OVER UDP");
 	CommandRegister("send_ping", SendPing, "SENDS PING COMMANDS OVER UDP");
 	CommandRegister("send_add", SendAdd, "SENDS ADD COMMANDS OVER UDP");
+	CommandRegister("send_combo", SendCombo, "SENDS COMBINATION OF MSGS");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1212,6 +1213,7 @@ void SendPing(Command &cmd)
 		if (connection)
 		{
 			std::string pingString = cmd.GetNextString();
+			
 			NetMessage msg("ping");
 			size_t msgSize = 0;
 			// write temporarily 
@@ -1262,6 +1264,37 @@ void SendAdd(Command &cmd)
 			connection->Send(msg);
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/03
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendCombo(Command &cmd)
+{
+	int connectionIndex = 0;
+	int maxCommands = 0;
+	cmd.GetNextInt(&connectionIndex);
+	cmd.GetNextInt(&maxCommands);
+	NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+	std::vector<NetMessage*> msgs;
+	for(int index = 0;index < maxCommands;index++)
+	{
+		float value = GetRandomFloatZeroToOne();
+		NetMessage *netmsg = nullptr;
+		if(value > 0.5)
+		{
+			 netmsg = NetMessage::CreatePingMessage("helloping");
+		}
+		else
+		{
+			netmsg = NetMessage::CreateAddMessage(GetRandomFloatInRange(0, 100), GetRandomFloatInRange(0, 100));
+		}
+		msgs.push_back(netmsg);
+	}
+	connection->Send(connectionIndex,msgs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

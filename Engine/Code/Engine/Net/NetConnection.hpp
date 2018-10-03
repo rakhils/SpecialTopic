@@ -47,6 +47,7 @@ public:
 	void   WriteHeader();
 	void   WritePayload(NetMessage *msg);
 
+	size_t Send(int connectionIndex, std::vector<NetMessage*> &msgs);
 	size_t Send(NetMessage msg);
 	void   Append(NetMessage *msg);
 	size_t   Recv(char *data,size_t &maxlength,NetAddress *netAddress);

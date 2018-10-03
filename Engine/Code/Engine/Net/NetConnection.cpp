@@ -46,6 +46,31 @@ size_t NetConnection::Send(NetMessage msg)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/03
+*@purpose : Sends set of msgs
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+size_t NetConnection::Send(int connectionIndex, std::vector<NetMessage*> &msgs)
+{
+	int msgCount = msgs.size();
+	m_header.m_unrealiableCount = static_cast<uint8_t>(msgCount);
+	m_header.m_connectionindex = static_cast<uint8_t>(m_index);
+	WriteHeader();
+	for(int index = 0;index < msgCount;index++)
+	{
+		WritePayload(msgs.at(index));
+		delete msgs.at(index);
+	}
+	msgs.clear();
+	size_t length = m_packet.m_bufferSize;
+	size_t sendCount = m_session->m_channel->m_udpSocket->SendTo(m_address, (char *)m_packet.m_buffer, length);
+	m_packet.m_bufferSize = 0;
+	delete m_packet.m_buffer;
+	return sendCount;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/25
 *@purpose : NIL
 *@param   : NIL

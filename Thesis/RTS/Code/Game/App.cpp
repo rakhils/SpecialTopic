@@ -27,21 +27,6 @@ App::App()
 
 	Net::StartUp();
 	m_netSession = NetSession::GetInstance();
-	//m_netSession->Bind(10084);
-	/*m_udp.start(10088);*/
-
-
-	/*NetAddress *addr = new NetAddress();
-	sockaddr_storage out;
-	int out_addrlen;
-
-
-
-	NetAddress::GetRemoteAddress(addr, (sockaddr*)&out,&out_addrlen, "10.8.128.15", "10084");
-	std::string str = "hello";
-	char const *chararr = str.c_str();*/
-
-	//m_udp.send_to(*addr, chararr, str.length());
 }
 
 App::~App()

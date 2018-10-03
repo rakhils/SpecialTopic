@@ -327,8 +327,8 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(size_t size, void *dat
 		//NetMessageDefinition * msgdef = GetMsgDefinition(static_cast<int>(cmdIndex));
 		// (char*)m_buffer + m_currentReadPosition
 		NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
-		netmsg->m_connectionIndex = 
 		netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
+		recvdPacket.m_currentReadPosition += msgSize - 1;
 		//(*(iter->second.m_callback))(newcommand);
 		//(*msgdef->m_callback)();
 		//NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));

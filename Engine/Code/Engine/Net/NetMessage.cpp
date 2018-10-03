@@ -50,3 +50,46 @@ void NetMessage::WriteCommandIndex()
 	//m_currentWritePosition = tempIndex;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/03
+*@purpose : Creates add msg
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateAddMessage(float value1, float value2)
+{
+	NetMessage *msg = new NetMessage("add");
+	size_t msgSize = 0;
+	// write temporarily 
+	msg->WriteBytes(2, (char*)&msgSize);
+	///////////////
+	msg->WriteCommandIndex();
+	msg->WriteBytes(4, (char*)&value1);
+	msg->WriteBytes(4, (char*)&value2);
+	msg->m_currentWritePosition = 0;
+	msgSize = msg->m_bufferSize - 2;
+	msg->WriteBytes(2, (char*)&(msgSize));
+	return msg;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/03
+*@purpose : Creates ping msgs
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreatePingMessage(std::string msg)
+{
+	NetMessage *netMsg = new NetMessage("ping");
+	size_t msgSize = 0;
+	// write temporarily 
+	netMsg->WriteBytes(2, (char*)&msgSize);
+	///////////////
+	netMsg->WriteCommandIndex();
+	netMsg->WriteString(msg.c_str());
+	netMsg->m_currentWritePosition = 0;
+	msgSize = netMsg->m_bufferSize - 2;
+	netMsg->WriteBytes(2, (char*)&(msgSize));
+	return netMsg;
+}
+
