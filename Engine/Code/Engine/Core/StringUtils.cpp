@@ -507,6 +507,36 @@ std::string TrimString(std::string text)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/23
+*@purpose : Compares and returns 1 if one is alphabetically less than 2 else -1 if equal returns 0
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Compare(std::string one, std::string two)
+{
+	int maxLength = static_cast<int>(one.length());
+	if (maxLength < two.length())
+	{
+		maxLength = static_cast<int>(two.length());
+	}
+
+	for(int index = 0;index < maxLength;index++)
+	{
+		char ch1 = one[index];
+		char ch2 = two[index];
+		if(ch1 > ch2)
+		{
+			return 1;
+		}
+		else
+		{
+			return -1;
+		}
+	}
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/05/23
 *@purpose : Converts to Integer from string value
 *@param   : string value and int value to be returned

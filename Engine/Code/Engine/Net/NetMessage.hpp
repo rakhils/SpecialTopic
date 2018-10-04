@@ -11,6 +11,7 @@
 * \date   : 9/16/2018 7:32:44 PM
 * \contact: srsrakhil@gmail.com
 */
+/*
 struct UDPData
 {
 	BytePacker m_bytePacker;
@@ -21,30 +22,30 @@ struct UDPData
 	{
 		m_bytePacker.SetEndianess(LITTLE_ENDIAN);
 	}
-};
-class NetMessage
+};*/
+
+class NetMessage : public BytePacker
 {
 
 public:
 	//Member_Variables
-
-	char *     m_data;
-	BytePacker m_bytePacker;
-	uint16_t   m_index;
-	size_t	   m_bytesRead;
-	size_t	   m_totalBytes;
-	size_t	   m_totalChunks;
+	//char m_localBuffer[ETHERNET_MTU];
+	//NetMessageDefinition* m_definition;
+	uint8_t				  m_definitionIndex;
+	std::string			  m_definitionName;
+	int					  m_connectionIndex;
 	//Static_Member_Variables
 
 	//Methods
 
-	NetMessage();
+	NetMessage(std::string cmd);
 	~NetMessage();
-	
-	void WriteData(float value);
-	void WriteData(std::string value);
-	//Static_Methods
 
+	void WriteCommandIndex();
+	//Static_Methods
+	static NetMessage * CreateAddMessage(float value1, float value2);
+	static NetMessage * CreatePingMessage(std::string msg);
+	static NetMessage * CreateBadMessage();
 protected:
 	//Member_Variables
 

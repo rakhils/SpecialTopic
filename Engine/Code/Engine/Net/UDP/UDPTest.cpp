@@ -93,7 +93,7 @@ bool UDPTest::start(int port)
 	}
 	else 
 	{
-		m_socket.set_blocking(false);
+		m_socket.SetBlocking(false);
 		return true;
 	}
 	return false;
@@ -107,7 +107,7 @@ bool UDPTest::start(int port)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void UDPTest::stop()
 {
-	m_socket.close();
+	m_socket.Close();
 	//int error = WSAGetLastError();
 	//int a = 1;
 }

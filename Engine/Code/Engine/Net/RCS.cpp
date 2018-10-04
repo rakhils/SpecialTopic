@@ -473,7 +473,10 @@ bool RCS::ProcessMessage(TCPSocket *tcpSocket, BytePacker *data)
 	data->ReadString(str, size);
 	
 	std::string dataStr(str, size);
-
+	if(dataStr.at(0) == '\"')
+	{
+		dataStr = dataStr.substr(1, dataStr.length() - 2);
+	}
 	std::string strr = data->GetAsString();
 	
 	std::string netaddr = "[" + tcpSocket->GetRemoteIp() + ":" + ToString(tcpSocket->m_port) + "]";

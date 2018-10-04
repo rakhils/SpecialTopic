@@ -1,22 +1,25 @@
 #include "Engine/Net/UDP/UDPSocket.hpp"
 #include "Engine/Core/EngineCommon.hpp"
-UDPSocket::UDPSocket(char *address)
+UDPSocket::UDPSocket(NetAddress &address)
 {
+	m_address = address;
 	//NetAddress *addr = new NetAddress();
-	sockaddr_storage out;
+	/*sockaddr_storage out;
 	int out_addrlen;
 
 	std::string ipaddress(address);
 	std::string ip   = ipaddress.substr(0, ipaddress.find(':'));
-	std::string port = ipaddress.substr(ipaddress.find(':')+1,ipaddress.length());
+	std::string port = ipaddress.substr(ipaddress.find(':')+1,ipaddress.length());*/
 
-	NetAddress::GetRemoteAddress(&m_netaddr,(sockaddr*)&out, &out_addrlen, ip.c_str(), port.c_str());
-
+	//NetAddress::GetRemoteAddress(&m_netaddr,(sockaddr*)&out, &out_addrlen, ip.c_str(), port.c_str());
+	//Bind(address);
 }
 
 UDPSocket::UDPSocket(int port)
 {
-	NetAddress::GetBindableAddress(&m_netaddr, port);
+	NetAddress::GetBindableAddress(&m_address, port);
+	Bind(m_address,0);
+	SetBlocking(false);
 }
 
 UDPSocket::~UDPSocket()
@@ -55,9 +58,9 @@ bool UDPSocket::Bind(NetAddress &addr, uint16_t port_range /*= 0U*/)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-size_t UDPSocket::SendTo(NetAddress &addr, void const *data, size_t const byte_count)
+size_t UDPSocket::SendTo(NetAddress &addr, void *data, size_t const byte_count)
 {
-	if(is_closed())
+	if(IsClosed())
 	{
 		return false;
 	}
@@ -69,7 +72,7 @@ size_t UDPSocket::SendTo(NetAddress &addr, void const *data, size_t const byte_c
 	
 	SOCKET sock = (SOCKET)m_handle;
 	//int error = WSAGetLastError();
-	int sent = ::sendto(sock, (char const *)&data, static_cast<int>(byte_count), 0, (sockaddr*)&sockaddrr, static_cast<int>(addr_len));
+	int sent = ::sendto(sock, (char *)data, static_cast<int>(byte_count), 0, (sockaddr*)&sockaddrr, static_cast<int>(addr_len));
 	//int error1 = WSAGetLastError();
 	if(sent > 0)
 	{
@@ -88,10 +91,9 @@ size_t UDPSocket::SendTo(NetAddress &addr, void const *data, size_t const byte_c
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-size_t UDPSocket::ReceiveFrom(NetAddress *out_addr, void *buffer, size_t max_read_size)
+size_t UDPSocket::ReceiveFrom(void *buffer, size_t max_read_size,NetAddress *addr)
 {
-	UNUSED(out_addr);
-	if (is_closed())
+	if (IsClosed())
 	{
 		return 0U;
 	}
@@ -100,16 +102,12 @@ size_t UDPSocket::ReceiveFrom(NetAddress *out_addr, void *buffer, size_t max_rea
 	int addr_len = sizeof(sockaddr_storage);
 	SOCKET sock = (SOCKET)m_handle;
 
-
 	int recvd = ::recvfrom(sock, (char*)buffer, (int)max_read_size, 0, (sockaddr*)&fromaddr, &addr_len);
+	addr->FromSockAddr((sockaddr*)&fromaddr);
 	//int error = WSAGetLastError();
 	if (recvd > 0)
 	{
 		return recvd;
-	}
-	else
-	{
-		//close();
 	}
 	return 0;
 }

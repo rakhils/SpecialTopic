@@ -24,13 +24,13 @@ public:
 	Socket();
 	virtual ~Socket(); // closes
 
-	void start();
-	void stop();
+	void Start();
+	void Stop();
 
-	void set_blocking(bool blocking);
+	void SetBlocking(bool blocking);
 
-	bool close(); // closesocket and set m_handle = INVALID_SOCKET
-	bool is_closed() const; // m_handle == (socket_t)INVALID_SOCKET; 
+	bool Close(); // closesocket and set m_handle = INVALID_SOCKET
+	bool IsClosed() const; // m_handle == (socket_t)INVALID_SOCKET; 
 
 	NetAddress const& get_address() const;
 
@@ -39,7 +39,7 @@ protected:
 
 public:
 	NetAddress m_address; // address assocated with this socket; 
-	socket_t m_handle; // initialized to INVALID_SOCKET
+	socket_t   m_handle; // initialized to INVALID_SOCKET
 
 					   // used if you want to set options while closed, 
 					   // used to keep track so you can apply_options() after the socket

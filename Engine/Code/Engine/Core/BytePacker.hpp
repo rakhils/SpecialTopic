@@ -28,7 +28,7 @@ public:
 	size_t		m_currentReadPosition = 0;
 	size_t		m_currentWritePosition= 0;
 	size_t		m_bufferSize		  = 0;
-	void *		m_buffer;
+	void *		m_buffer = nullptr;
 	eBytePackerOptionBit m_bytepackerType;
 	//Static_Member_Variables
 
@@ -43,11 +43,14 @@ public:
 	void		 SetEndianess(eEndianness byteOrder) { m_byteOrder = byteOrder; }
 	void		 SetReadableByteCount(size_t byteCount) { m_bufferSize = byteCount; }
 
+	bool		 WriteData(size_t size, void const *data);
 	bool		 WriteBytes(size_t byteCount, void const *data);
 	size_t		 ReadBytes ( void *outData, size_t maxByteCount );
 
 	size_t		 WriteSize ( size_t size );
 	size_t		 ReadSize(size_t *outSize);
+
+	uint16_t	 ReadSize2();
 
 	bool		 WriteString( char const *str );
 	size_t		 ReadString( char *out_str, size_t max_byte_size );

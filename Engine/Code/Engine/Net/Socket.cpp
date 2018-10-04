@@ -18,7 +18,7 @@ Socket::~Socket()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Socket::start()
+void Socket::Start()
 {
 
 }
@@ -29,7 +29,7 @@ void Socket::start()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Socket::stop()
+void Socket::Stop()
 {
 
 }
@@ -40,7 +40,7 @@ void Socket::stop()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Socket::set_blocking(bool blocking)
+void Socket::SetBlocking(bool blocking)
 {
 	u_long non_blocking = blocking ? 0 : 1;
 	::ioctlsocket((SOCKET)m_handle, FIONBIO, &non_blocking);
@@ -52,7 +52,7 @@ void Socket::set_blocking(bool blocking)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Socket::close()
+bool Socket::Close()
 {
 	closesocket((SOCKET)m_handle);
 	return true;
@@ -64,7 +64,7 @@ bool Socket::close()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Socket::is_closed() const
+bool Socket::IsClosed() const
 {
 	if(m_handle == (socket_t)INVALID_SOCKET)
 	{
@@ -110,7 +110,7 @@ bool UDP1Socket::bind(NetAddress &addr, uint16_t port_range /*= 0U*/)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t UDP1Socket::send_to(NetAddress &addr, void const *data, size_t const byte_count)
 {
-	if(is_closed())
+	if(IsClosed())
 	{
 		return false;
 	}
@@ -146,7 +146,7 @@ size_t UDP1Socket::receive_from(NetAddress *out_addr, void *buffer, size_t  max_
 {
 	UNUSED(out_addr);
 
-	if(is_closed())
+	if(IsClosed())
 	{
 		return 0U;
 	}

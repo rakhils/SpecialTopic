@@ -478,6 +478,9 @@
     <ClCompile Include="Net\NetConnection.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Net\NetPacket.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -787,6 +790,7 @@
     <ClInclude Include="Net\NetSession.hpp" />
     <ClInclude Include="Net\NetMessage.hpp" />
     <ClInclude Include="Net\NetConnection.hpp" />
+    <ClInclude Include="Net\NetPacket.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

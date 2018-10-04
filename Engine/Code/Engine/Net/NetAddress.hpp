@@ -27,6 +27,9 @@ public:
 
 	NetAddress();
 	NetAddress(char *ip, char* port);
+	bool operator ==(NetAddress &netaddress);
+	void operator=(const NetAddress &address);
+
 	~NetAddress();
 	
 	bool FromSockAddr(sockaddr const *addr);

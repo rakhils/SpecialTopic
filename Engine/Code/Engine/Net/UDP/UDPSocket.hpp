@@ -17,19 +17,19 @@ class UDPSocket : public Socket
 
 public:
 	//Member_Variables
-	NetAddress m_netaddr;
+	
 	//Static_Member_Variables
 
 	//Methods
 
-	UDPSocket(char *address);
+	UDPSocket(NetAddress &address);
 	UDPSocket(int port);
 	~UDPSocket();
 
 
 	bool   Bind(NetAddress &addr,uint16_t port_range = 0U);		  
-	size_t SendTo(NetAddress &addr, void const *data, size_t const byte_count);
-	size_t ReceiveFrom(NetAddress *out_addr, void *buffer, size_t max_read_size);
+	size_t SendTo(NetAddress &addr, void *data, size_t const byte_count);
+	size_t ReceiveFrom(void *buffer, size_t max_read_size,NetAddress *addr);
 	
 	//Static_Methods
 

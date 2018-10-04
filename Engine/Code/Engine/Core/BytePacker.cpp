@@ -30,16 +30,24 @@ BytePacker::BytePacker(size_t bufferSize, void *buffer, eEndianness byteOrder/*=
 // DESTRUCTOR
 BytePacker::~BytePacker()
 {
-
+	/*if(m_bufferSize > 0 && m_buffer != nullptr)
+	{
+		delete m_buffer;
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/09/05
+/*DATE    : 2018/09/26
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+bool BytePacker::WriteData(size_t size, void const *data)
+{
+	UNUSED(size);
+	UNUSED(data);
+	return true;
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/30
@@ -69,6 +77,7 @@ bool BytePacker::WriteBytes(size_t byteCount, void const *data)
 				//Endianness::ToEndianness(byteCount, (void *)data, m_byteOrder);
 				ReallocateWithNewSize(byteCount - GetWritableBytesCount());
 				memcpy((char*)m_buffer + m_currentWritePosition, data, byteCount);
+
 				m_currentWritePosition += byteCount;
 				std::string str1 = GetBitString();
 			}
@@ -193,6 +202,20 @@ size_t BytePacker::ReadSize(size_t *outSize)
 		bitIndexForRead = 1;
 	} while (true);
 	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/26
+*@purpose : read size of 2 bytes
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+uint16_t BytePacker::ReadSize2()
+{
+	uint16_t size;
+	ReadBytes((void*)&size, 2);
+	//Endianness::ToEndianness(2, (void*)&size, BIG_ENDIAN);
+	return size;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -337,7 +360,7 @@ void BytePacker::ResetRead()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void BytePacker::GetLengthFromData(uint16_t *size)
 {
-	memcpy((void *)&size,(char *)m_buffer + 0, 2);
+	memcpy((void *)&size,(char *)m_buffer + m_currentReadPosition, 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -535,7 +558,14 @@ std::string BytePacker::GetBitString()
 	{
 		char bb = ((char *)m_buffer)[index];
 		std::string byteString = ToBitString(bb);
-		fullString += (byteString + " ");
+		if(index == size - 1)
+		{
+			fullString += (byteString);
+		}
+		else
+		{
+			fullString += (byteString + " ");
+		}
 	}
 	return (fullString);
 }

@@ -164,6 +164,7 @@ bool Net::GetBindableAddress(sockaddr *out,int *out_addrlen,int port)
 			m_ipaddr = outbuff;
 			memcpy(out, ipv4, sizeof(sockaddr_in));
 			*out_addrlen = sizeof(sockaddr_in);
+			//break;
 			//LogManager::LogTaggedPrintf("devconsole", " ADDRESS :: %s", out);
 		}
 		iter = iter->ai_next;

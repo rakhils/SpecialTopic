@@ -39,6 +39,7 @@ std::string				 ToBitString(char value);
 std::string				 Reverse(std::string str);
 std::string				 TrimString(std::string);
 
+int						 Compare(std::string one, std::string two);
 bool					 ToInt(std::string value,int *intvalue);
 bool					 ToFloat(std::string value, float *floatvalue);
 bool					 ToDouble(std::string value, double *doublevalue);

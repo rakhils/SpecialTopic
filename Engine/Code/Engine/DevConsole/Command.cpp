@@ -14,6 +14,7 @@
 #include "Engine/Net/TCP/TCPServer.hpp"
 #include "Engine/Net/RCS.hpp"
 #include "Engine/Net/UDP/UDPTest.hpp"
+#include "Engine/Net/NetSession.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Command::Command()
@@ -58,17 +59,19 @@ std::string Command::GetName()
 std::string Command::GetNextString()
 {
 	bool isInsideDoubleQuotes = false;
+	bool hasDoubleQuotes = false;
 	int startPosition = m_readIndex;
 	for(;m_readIndex< m_command.length();m_readIndex++)
 	{
 		if(m_command[m_readIndex] == '\"' )
 		{
-			if(m_readIndex == 0)
+			if(m_readIndex == startPosition)
 			{
 				isInsideDoubleQuotes = true;
+				hasDoubleQuotes = true;
 				continue;
 			}
-			if(m_readIndex > 0 && m_command[m_readIndex - 1] != '\\')
+			if(m_readIndex > startPosition && m_command[m_readIndex - 1] != '\\')
 			{
 				if (isInsideDoubleQuotes)
 				{
@@ -83,8 +86,16 @@ std::string Command::GetNextString()
 		if(m_command[m_readIndex] == ' ' && !isInsideDoubleQuotes)
 		{
 			m_readIndex++;
+			if(hasDoubleQuotes)
+			{
+				return m_command.substr(startPosition + 1, m_readIndex - startPosition - 3);
+			}
 			return m_command.substr(startPosition,m_readIndex-startPosition-1);
 		}
+	}
+	if(hasDoubleQuotes)
+	{
+		return m_command.substr(startPosition+1,m_readIndex-startPosition - 2);
 	}
 	return m_command.substr(startPosition,m_readIndex-startPosition);
 }
@@ -262,6 +273,12 @@ void CommandStartup()
 	CommandRegister("rc_echo", RCEcho, "TOGGLES THE ECHO TO DEVCONSOLE");
 
 	CommandRegister("udp_send", UDPPacketSend, "SENDS PACKET FROM UDP");
+	CommandRegister("add_connection", AddUDPConnection, "ADDS A NEW UDP CONNECTION");
+	CommandRegister("send", SendCommandOverUDP, "SENDS COMMANDS OVER UDP");
+	CommandRegister("send_ping", SendPing, "SENDS PING COMMANDS OVER UDP");
+	CommandRegister("send_add", SendAdd, "SENDS ADD COMMANDS OVER UDP");
+	CommandRegister("send_combo", SendCombo, "SENDS COMBINATION OF MSGS");
+	CommandRegister("send_bad", SendBad, "SENDS BAD MSG TO A CONNECTION");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1135,8 +1152,6 @@ void RCEcho(Command &cmd)
 	RCS::GetInstance()->m_isHookedToDevConsole = echoEnabled;
 }
 
-
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/12
 *@purpose : Sends a msg via UDP protocol
@@ -1158,6 +1173,206 @@ void UDPPacketSend(Command &cmd)
 	std::string msg = cmd.GetNextString();*/
 	size_t writeSize = UDPSend(ip.c_str(), port, msg.c_str());
 	DevConsole::GetInstance()->PushToOutputText("SEND " + ToString(writeSize) + " SUCCESSFULLY");
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/23
+*@purpose : Adds a new UDP Connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AddUDPConnection(Command &cmd)
+{
+	int index = -1;
+	cmd.GetNextInt(&index);
+	if(index == -1)
+	{
+		return;
+	}
+	std::string ipaddress   = cmd.GetNextString();
+	std::string ip			= ipaddress.substr(0, ipaddress.find(':'));
+	std::string port		= ipaddress.substr(ipaddress.find(':')+1,ipaddress.length());
+	int portNum = -1;
+	if(ToInt(port,&portNum))
+	{
+		if(NetSession::GetInstance()->AddConnection(index,ip,portNum) != nullptr)
+		{
+			DevConsole::GetInstance()->PushToOutputText("CONNECTION SUCCEED");
+		}
+		else
+		{
+			DevConsole::GetInstance()->PushToOutputText("CONNECTION FAILED");
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/27
+*@purpose : Sends ping to a UDP connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendPing(Command &cmd)
+{
+	int connectionIndex = -1;
+	if (cmd.GetNextInt(&connectionIndex))
+	{
+		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+		if (connection)
+		{
+			std::string pingString = cmd.GetNextString();
+			DevConsole::GetInstance()->PushToOutputText("SENDING PING MSG -> "+ pingString+ " TO " + connection->GetIPPortAsString(),Rgba::YELLOW);
+			NetMessage msg("ping");
+			size_t msgSize = 0;
+			// write temporarily 
+			msg.WriteBytes(2, (char*)&msgSize);
+			///////////////
+			msg.WriteCommandIndex();
+			msg.WriteString(pingString.c_str());
+			msg.m_currentWritePosition = 0;
+			msgSize = msg.m_bufferSize - 2;
+			msg.WriteBytes(2, (char*)&(msgSize));
+			std::string str = msg.GetBitString();
+			connection->Send(msg);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/27
+*@purpose : Sends add msg via UDP connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendAdd(Command &cmd)
+{
+	int connectionIndex = -1;
+	if (cmd.GetNextInt(&connectionIndex))
+	{
+		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+		if (connection)
+		{
+			float value1 = 0;
+			float value2 = 0;
+			cmd.GetNextFloat(&value1);
+			cmd.GetNextFloat(&value2);
+
+			NetMessage msg("add");
+			size_t msgSize = 0;
+			// write temporarily 
+			msg.WriteBytes(2, (char*)&msgSize);
+			///////////////
+			msg.WriteCommandIndex();
+			msg.WriteBytes(4, (char*)&value1);
+			msg.WriteBytes(4, (char*)&value2);
+			DevConsole::GetInstance()->PushToOutputText("SENDING ADD MSG ADDING " + ToString(value1) + " & " + ToString(value2) + " TO " + connection->GetIPPortAsString(),Rgba::YELLOW);
+			msg.m_currentWritePosition = 0;
+			msgSize = msg.m_bufferSize - 2;
+			msg.WriteBytes(2, (char*)&(msgSize));
+			std::string str = msg.GetBitString();
+			connection->Send(msg);
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/03
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendCombo(Command &cmd)
+{
+	int connectionIndex = 0;
+	int maxCommands = 0;
+	cmd.GetNextInt(&connectionIndex);
+	cmd.GetNextInt(&maxCommands);
+	NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+	std::vector<NetMessage*> msgs;
+	for(int index = 0;index < maxCommands;index++)
+	{
+		float value = GetRandomFloatZeroToOne();
+		NetMessage *netmsg = nullptr;
+		if(value > 0.5)
+		{
+			DevConsole::GetInstance()->PushToOutputText("SENDING PING MSG -> helloping to " + connection->GetIPPortAsString());
+			netmsg = NetMessage::CreatePingMessage("helloping");
+		}
+		else
+		{
+			float random1 = GetRandomFloatInRange(0, 100);
+			float random2 = GetRandomFloatInRange(0, 100);
+			DevConsole::GetInstance()->PushToOutputText("SENDING ADD MSG ADDING "+ToString(random1) +" & "+ToString(random2)+ " TO "+connection->GetIPPortAsString());
+			netmsg = NetMessage::CreateAddMessage(random1,random2);
+		}
+		msgs.push_back(netmsg);
+	}
+	connection->Send(connectionIndex,msgs);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/04
+*@purpose : Send bad command
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendBad(Command &cmd)
+{
+	int connectionIndex = -1;
+	int commandSize = 0;
+	if (cmd.GetNextInt(&connectionIndex))
+	{
+		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+		cmd.GetNextInt(&commandSize);
+		//if (connection)
+		{
+			char badMsg[70000];
+			NetMessage netmsg("");
+			int randomSize = GetRandomIntInRange(1, 1000);
+			netmsg.WriteBytes(commandSize, badMsg);
+			connection->Send(netmsg);
+			DevConsole::GetInstance()->PushToOutputText("SENDING BAD MSG TO " +connection->GetIPPortAsString());
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/09/25
+*@purpose : Sends command over UDP
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendCommandOverUDP(Command &cmd)
+{
+	//send add 0 24 32
+	std::string netcmd  = cmd.GetNextString();
+	int connectionIndex = -1;
+	if(cmd.GetNextInt(&connectionIndex))
+	{
+		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+		if(connection)
+		{
+			if(netcmd == "add")
+			{
+				return;
+			}
+			if(netcmd == "ping")
+			{
+
+			}
+
+
+			NetMessage msg(netcmd);
+			size_t size = 7;
+			// write temporarily 
+			msg.WriteBytes(2, (char*)&size);
+			///////////////
+			msg.WriteCommandIndex();
+			msg.WriteString("hello");
+			std::string str = msg.GetBitString();
+			connection->Send(msg);
+		}
+	}
 }
 
 /*
