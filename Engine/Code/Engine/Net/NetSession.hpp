@@ -66,7 +66,7 @@ public:
 							  
 	void					  CloseAllConnections();
 							  
-	std::vector<NetMessage*>  ConstructMsgFromData(size_t size,void *data);
+	std::vector<NetMessage*>  ConstructMsgFromData(NetAddress &netAddress,size_t size,void *data);
 	void					  ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *address);
 
 	//Static_Methods
@@ -96,3 +96,4 @@ bool OnPing(NetMessage &netMsg, NetAddress &netAddress);
 bool OnAdd(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnPong(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnAddResponse(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnBadMessage(NetMessage  &netMsg, NetAddress &netAddress);

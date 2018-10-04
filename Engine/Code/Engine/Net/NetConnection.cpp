@@ -1,6 +1,7 @@
 #include "Engine/Net/NetConnection.hpp"
 #include "Engine/Net/UDP/UDPSocket.hpp"
 #include "Engine/Net/NetSession.hpp"
+#include "Engine/Core/StringUtils.hpp"
 // CONSTRUCTOR
 
 NetConnection::NetConnection(int index, NetAddress netAddress)
@@ -146,6 +147,17 @@ size_t NetConnection::Send(NetMessage netmsg)
 size_t NetConnection::Recv(char *data,size_t &length,NetAddress *netAddress)
 {
 	return m_udpSocket->ReceiveFrom(data, length,netAddress);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/03
+*@purpose : returns ip and port as string
+*@param   : NIL
+*@return  : IP and Port 
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string NetConnection::GetIPPortAsString()
+{
+	return m_address.GetIP() + ":"+ToString(m_address.m_port);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

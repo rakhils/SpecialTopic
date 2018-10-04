@@ -278,6 +278,7 @@ void CommandStartup()
 	CommandRegister("send_ping", SendPing, "SENDS PING COMMANDS OVER UDP");
 	CommandRegister("send_add", SendAdd, "SENDS ADD COMMANDS OVER UDP");
 	CommandRegister("send_combo", SendCombo, "SENDS COMBINATION OF MSGS");
+	CommandRegister("send_bad", SendBad, "SENDS BAD MSG TO A CONNECTION");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1213,7 +1214,7 @@ void SendPing(Command &cmd)
 		if (connection)
 		{
 			std::string pingString = cmd.GetNextString();
-			
+			DevConsole::GetInstance()->PushToOutputText("SENDING PING MSG -> "+ pingString+ " TO " + connection->GetIPPortAsString(),Rgba::YELLOW);
 			NetMessage msg("ping");
 			size_t msgSize = 0;
 			// write temporarily 
@@ -1257,6 +1258,7 @@ void SendAdd(Command &cmd)
 			msg.WriteCommandIndex();
 			msg.WriteBytes(4, (char*)&value1);
 			msg.WriteBytes(4, (char*)&value2);
+			DevConsole::GetInstance()->PushToOutputText("SENDING ADD MSG ADDING " + ToString(value1) + " & " + ToString(value2) + " TO " + connection->GetIPPortAsString(),Rgba::YELLOW);
 			msg.m_currentWritePosition = 0;
 			msgSize = msg.m_bufferSize - 2;
 			msg.WriteBytes(2, (char*)&(msgSize));
@@ -1286,15 +1288,43 @@ void SendCombo(Command &cmd)
 		NetMessage *netmsg = nullptr;
 		if(value > 0.5)
 		{
-			 netmsg = NetMessage::CreatePingMessage("helloping");
+			DevConsole::GetInstance()->PushToOutputText("SENDING PING MSG -> helloping to " + connection->GetIPPortAsString());
+			netmsg = NetMessage::CreatePingMessage("helloping");
 		}
 		else
 		{
-			netmsg = NetMessage::CreateAddMessage(GetRandomFloatInRange(0, 100), GetRandomFloatInRange(0, 100));
+			float random1 = GetRandomFloatInRange(0, 100);
+			float random2 = GetRandomFloatInRange(0, 100);
+			DevConsole::GetInstance()->PushToOutputText("SENDING ADD MSG ADDING "+ToString(random1) +" & "+ToString(random2)+ " TO "+connection->GetIPPortAsString());
+			netmsg = NetMessage::CreateAddMessage(random1,random2);
 		}
 		msgs.push_back(netmsg);
 	}
 	connection->Send(connectionIndex,msgs);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/04
+*@purpose : Send bad command
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendBad(Command &cmd)
+{
+	int connectionIndex = -1;
+	if (cmd.GetNextInt(&connectionIndex))
+	{
+		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+		if (connection)
+		{
+			char badMsg[1000];
+			NetMessage netmsg("");
+			int randomSize = GetRandomIntInRange(1, 1000);
+			netmsg.WriteBytes(randomSize, badMsg);
+			connection->Send(netmsg);
+			DevConsole::GetInstance()->PushToOutputText("SENDING BAD MSG TO " +connection->GetIPPortAsString());
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

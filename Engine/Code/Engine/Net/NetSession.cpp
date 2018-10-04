@@ -173,7 +173,7 @@ void NetSession::ProcessIncomingMessage()
 	size_t recvd = m_channel->Recv(data, maxsize,&netAddr);
 	if(recvd > 0)
 	{
-		ProcessMsg(ConstructMsgFromData(recvd,data),&netAddr);
+		ProcessMsg(ConstructMsgFromData(netAddr,recvd,data),&netAddr);
 	}
 }
 
@@ -299,7 +299,7 @@ void NetSession::CloseAllConnections()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::vector<NetMessage*> NetSession::ConstructMsgFromData(size_t size, void *data)
+std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress, size_t size, void *data)
 {
 	std::vector<NetMessage*> retmsgs;
 	// - 01 01->packet header
@@ -314,6 +314,11 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(size_t size, void *dat
 	char unreliableCount;
 	recvdPacket.ReadBytes(&connectionIndex, 1);
 	recvdPacket.ReadBytes(&unreliableCount, 1);
+	if(connectionIndex <0 || connectionIndex > m_remoteConnections.size())
+	{
+		DevConsole::GetInstance()->PushToOutputText("BAD MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED);
+		return retmsgs;
+	}
 	for(int msgCount = 0;msgCount < static_cast<int>(unreliableCount);msgCount++)
 	{
 		uint16_t msgSize = recvdPacket.ReadSize2();
@@ -326,13 +331,22 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(size_t size, void *dat
 		//std::string msgstr (msg, cmdSize);
 		//NetMessageDefinition * msgdef = GetMsgDefinition(static_cast<int>(cmdIndex));
 		// (char*)m_buffer + m_currentReadPosition
-		NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
-		netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
-		recvdPacket.m_currentReadPosition += msgSize - 1;
-		//(*(iter->second.m_callback))(newcommand);
-		//(*msgdef->m_callback)();
-		//NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
-		retmsgs.push_back(netmsg);
+		// 
+
+		if(cmdIndex >=0 && cmdIndex < m_netMessageCmdDefinition.size())
+		{
+			NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
+			netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
+			recvdPacket.m_currentReadPosition += msgSize - 1;
+			//(*(iter->second.m_callback))(newcommand);
+			//(*msgdef->m_callback)();
+			//NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
+			retmsgs.push_back(netmsg);
+		}
+		else
+		{
+			DevConsole::GetInstance()->PushToOutputText("BAD MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED);
+		}
 	}
 	return retmsgs;
 }
@@ -370,7 +384,7 @@ bool OnPing(NetMessage &netMsg, NetAddress &netAddress)
 	char chararr[1000];
 	netMsg.ReadString(chararr, static_cast<size_t>(pingSize));
 	std::string strmsg(chararr, pingSize);
-	DevConsole::GetInstance()->PushToOutputText("RECEIVED PING MSG ->"+strmsg, Rgba::YELLOW, true);
+	DevConsole::GetInstance()->PushToOutputText("RECEIVED PING MSG  FROM "+netAddress.GetIP()+":"+ToString(netAddress.m_port)+" MSG-> "+strmsg, Rgba::YELLOW, true);
 	NetMessage pongMsg("pong");
 
 	//temp write
@@ -389,7 +403,7 @@ bool OnPing(NetMessage &netMsg, NetAddress &netAddress)
 
 	NetConnection *netConnection = NetSession::GetInstance()->GetConnection(&netAddress);
 	netConnection->Send(pongMsg);
-	DevConsole::GetInstance()->PushToOutputText("SENT PONG ", Rgba::YELLOW, true);
+	DevConsole::GetInstance()->PushToOutputText(" SENT PONG TO "+netAddress.GetIP()+":"+ToString(netAddress.m_port), Rgba::YELLOW, true);
 	return true;
 }
 
@@ -412,7 +426,7 @@ bool OnAdd(NetMessage &netMsg, NetAddress &netAddress)
 	netMsg.ReadBytes(&value1, 4);
 	netMsg.ReadBytes(&value2, 4);
 	float sum = value2 + value1;
-	DevConsole::GetInstance()->PushToOutputText("Adding "+ToString(value1)+ " and "+ToString(value2) + " = "+ToString(sum) ,Rgba::YELLOW, true);
+	DevConsole::GetInstance()->PushToOutputText("RECEIVED ADD MSG FROM "+netAddress.GetIP()+":"+ToString(netAddress.m_port)+" ADDING "+ToString(value1)+ " AND "+ToString(value2) + " = "+ToString(sum) ,Rgba::YELLOW, true);
 	NetMessage addResponse("add_response");
 
 	//temp write
@@ -432,7 +446,7 @@ bool OnAdd(NetMessage &netMsg, NetAddress &netAddress)
 	std::string pongMsgStr = addResponse.GetBitString();
 
 	NetConnection *netConnection = NetSession::GetInstance()->GetConnection(&netAddress);
-	DevConsole::GetInstance()->PushToOutputText("Sending Response", Rgba::YELLOW, true);
+	DevConsole::GetInstance()->PushToOutputText(" SENDING ADD RESPONSE TO "+netAddress.GetIP()+":"+ToString(netAddress.m_port) , Rgba::YELLOW, true);
 	netConnection->Send(addResponse);
 	return true;
 }
@@ -447,7 +461,7 @@ bool OnPong(NetMessage &netMsg, NetAddress &netAddress)
 {
 	UNUSED(netAddress);
 	UNUSED(netMsg);
-	DevConsole::GetInstance()->PushToOutputText("RECEIVED PONG",Rgba::YELLOW,true);
+	DevConsole::GetInstance()->PushToOutputText("RECEIVED PONG FROM "+netAddress.GetIP()+":"+ToString(netAddress.m_port) ,Rgba::YELLOW,true);
 	return true;
 }
 
@@ -466,6 +480,19 @@ bool OnAddResponse(NetMessage &netMsg, NetAddress &netAddress)
 	netMsg.ReadBytes(&value1, 4);
 	netMsg.ReadBytes(&value2, 4);
 	netMsg.ReadBytes(&value3, 4);
-	DevConsole::GetInstance()->PushToOutputText("RESPONSE ADD : "+ToString(value1)+" + "+ToString(value2)+" = "+ToString(value3),Rgba::YELLOW,true);
+	DevConsole::GetInstance()->PushToOutputText("RECEIVED ADD RESPONSE FROM "+netAddress.GetIP()+":"+ToString(netAddress.m_port) +" ADDED : "+ToString(value1)+" + "+ToString(value2)+" = "+ToString(value3),Rgba::YELLOW,true);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnBadMessage(NetMessage &netMsg, NetAddress &netAddress)
+{
+	UNUSED(netAddress);
+	DevConsole::GetInstance()->PushToOutputText("RECEIVED BAD MSG FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port), Rgba::YELLOW, true);
 	return true;
 }

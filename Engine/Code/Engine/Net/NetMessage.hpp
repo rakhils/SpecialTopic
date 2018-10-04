@@ -45,6 +45,7 @@ public:
 	//Static_Methods
 	static NetMessage * CreateAddMessage(float value1, float value2);
 	static NetMessage * CreatePingMessage(std::string msg);
+	static NetMessage * CreateBadMessage();
 protected:
 	//Member_Variables
 

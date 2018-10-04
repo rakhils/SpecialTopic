@@ -52,6 +52,7 @@ public:
 	void   Append(NetMessage *msg);
 	size_t   Recv(char *data,size_t &maxlength,NetAddress *netAddress);
 	
+	std::string GetIPPortAsString();
 	//Static_Methods
 
 protected:
