@@ -28,7 +28,7 @@ public:
 	size_t		m_currentReadPosition = 0;
 	size_t		m_currentWritePosition= 0;
 	size_t		m_bufferSize		  = 0;
-	void *		m_buffer;
+	void *		m_buffer = nullptr;
 	eBytePackerOptionBit m_bytepackerType;
 	//Static_Member_Variables
 

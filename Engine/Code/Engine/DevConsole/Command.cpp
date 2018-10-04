@@ -1195,7 +1195,14 @@ void AddUDPConnection(Command &cmd)
 	int portNum = -1;
 	if(ToInt(port,&portNum))
 	{
-		NetSession::GetInstance()->AddConnection(index,ip,portNum);
+		if(NetSession::GetInstance()->AddConnection(index,ip,portNum) != nullptr)
+		{
+			DevConsole::GetInstance()->PushToOutputText("CONNECTION SUCCEED");
+		}
+		else
+		{
+			DevConsole::GetInstance()->PushToOutputText("CONNECTION FAILED");
+		}
 	}
 }
 
@@ -1312,15 +1319,17 @@ void SendCombo(Command &cmd)
 void SendBad(Command &cmd)
 {
 	int connectionIndex = -1;
+	int commandSize = 0;
 	if (cmd.GetNextInt(&connectionIndex))
 	{
 		NetConnection* connection = NetSession::GetInstance()->GetConnection(connectionIndex);
-		if (connection)
+		cmd.GetNextInt(&commandSize);
+		//if (connection)
 		{
-			char badMsg[1000];
+			char badMsg[70000];
 			NetMessage netmsg("");
 			int randomSize = GetRandomIntInRange(1, 1000);
-			netmsg.WriteBytes(randomSize, badMsg);
+			netmsg.WriteBytes(commandSize, badMsg);
 			connection->Send(netmsg);
 			DevConsole::GetInstance()->PushToOutputText("SENDING BAD MSG TO " +connection->GetIPPortAsString());
 		}

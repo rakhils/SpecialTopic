@@ -171,7 +171,7 @@ void NetSession::ProcessIncomingMessage()
 	size_t maxsize = PACKET_MTU;
 	NetAddress netAddr;
 	size_t recvd = m_channel->Recv(data, maxsize,&netAddr);
-	if(recvd > 0)
+	if(recvd > m_minHeaderSize)
 	{
 		ProcessMsg(ConstructMsgFromData(netAddr,recvd,data),&netAddr);
 	}
@@ -306,6 +306,11 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 	// - 07 00 02 [ 05 'h' 'e' 'l' 'l' 'o' ]
 	// - 00000001 00000001 
 	// - 00000010 00000000 00000010 00000000
+	if(size > 1000)
+	{
+		DevConsole::GetInstance()->PushToOutputText("BAD MSG " + netAddress.GetIP() + ":" + ToString(netAddress.m_port) + " SIZE " + ToString(static_cast<int>(size)), Rgba::RED);
+		return retmsgs;
+	}
 	BytePacker recvdPacket;
 	recvdPacket.WriteBytes(size, data);
 	std::string str = recvdPacket.GetBitString();
@@ -314,9 +319,37 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 	char unreliableCount;
 	recvdPacket.ReadBytes(&connectionIndex, 1);
 	recvdPacket.ReadBytes(&unreliableCount, 1);
-	if(connectionIndex <0 || connectionIndex > m_remoteConnections.size())
+	//if(connectionIndex < 0 || connectionIndex == 255)
 	{
-		DevConsole::GetInstance()->PushToOutputText("BAD MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED);
+		NetConnection* connection = GetConnection(&netAddress);
+		int index = -1;
+		if(connection != nullptr)
+		{
+			std::map<int, NetConnection*>::iterator it;
+			for (it = m_remoteConnections.begin(); it != m_remoteConnections.end(); it++)
+			{
+				if (it->second->m_address == netAddress)
+				{
+					index = it->first;
+				}
+			}
+		}
+		else
+		{
+			DevConsole::GetInstance()->PushToOutputText("BAD CONNECTION INDEX FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port) + " SIZE " + ToString(static_cast<int>(size))+ "DATA "+str, Rgba::RED);
+			return retmsgs;
+
+		}
+		if(index == -1)
+		{
+			DevConsole::GetInstance()->PushToOutputText("NO INDEX PRESENT " + netAddress.GetIP() + ":" + ToString(netAddress.m_port) + " SIZE " + ToString(static_cast<int>(size)) + "DATA " + str, Rgba::RED);
+			return retmsgs;
+		}
+
+	}
+	if(unreliableCount <= 0)
+	{
+		DevConsole::GetInstance()->PushToOutputText("BAD MSG RECEVIED UC = 0 FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
 		return retmsgs;
 	}
 	for(int msgCount = 0;msgCount < static_cast<int>(unreliableCount);msgCount++)
@@ -335,6 +368,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 
 		if(cmdIndex >=0 && cmdIndex < m_netMessageCmdDefinition.size())
 		{
+			DevConsole::GetInstance()->PushToOutputText("MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
 			NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
 			netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
 			recvdPacket.m_currentReadPosition += msgSize - 1;
@@ -345,7 +379,8 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 		}
 		else
 		{
-			DevConsole::GetInstance()->PushToOutputText("BAD MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED);
+			DevConsole::GetInstance()->PushToOutputText("BAD MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
+			return retmsgs;
 		}
 	}
 	return retmsgs;

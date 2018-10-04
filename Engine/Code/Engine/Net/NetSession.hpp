@@ -35,6 +35,7 @@ public:
 	std::map<int, NetConnection*>					m_remoteConnections;
 	NetConnection *									m_channel;
 	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;
+	int												m_minHeaderSize = 2;
 
 	//Static_Member_Variables
 	static NetSession *s_netSession;

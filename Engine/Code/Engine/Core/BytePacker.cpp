@@ -30,7 +30,10 @@ BytePacker::BytePacker(size_t bufferSize, void *buffer, eEndianness byteOrder/*=
 // DESTRUCTOR
 BytePacker::~BytePacker()
 {
-
+	/*if(m_bufferSize > 0 && m_buffer != nullptr)
+	{
+		delete m_buffer;
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -74,6 +77,7 @@ bool BytePacker::WriteBytes(size_t byteCount, void const *data)
 				//Endianness::ToEndianness(byteCount, (void *)data, m_byteOrder);
 				ReallocateWithNewSize(byteCount - GetWritableBytesCount());
 				memcpy((char*)m_buffer + m_currentWritePosition, data, byteCount);
+
 				m_currentWritePosition += byteCount;
 				std::string str1 = GetBitString();
 			}
