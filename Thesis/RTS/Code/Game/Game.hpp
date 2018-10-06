@@ -27,6 +27,7 @@ public:
 	void Game::Update(float deltaTime);
 	void Game::Render();
 
+	void Game::InitSampleNN();
 	static Game* Game::GetInstance();
 
 	

@@ -6,6 +6,7 @@ Game *Game::s_game = nullptr;
 int Game::s_gameCounter = 0;
 Game::Game()
 {
+
 }
 
 void Game::Render()
@@ -15,6 +16,7 @@ void Game::Render()
 
 void Game::Update(float deltaTime)
 {		
+	InitSampleNN();
 	int updateCount = 1;
 	if(g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_ESCAPE))
 	{
@@ -63,4 +65,52 @@ Game* Game::GetInstance()
 		s_game = new Game();
 	}
 	return s_game;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::InitSampleNN()
+{
+	NeuralNetwork neuralNet(2, 2, 2);
+	neuralNet.m_inputs->m_neurons.at(0).m_value = 0.05;
+	neuralNet.m_inputs->m_neurons.at(1).m_value = 0.1;
+	neuralNet.m_inputs->m_bias.m_value = 1;
+
+	neuralNet.m_inputs->m_neurons.at(0).m_weights.at(0) = 0.15;
+	neuralNet.m_inputs->m_neurons.at(0).m_weights.at(1) = 0.25;
+
+	neuralNet.m_inputs->m_neurons.at(1).m_weights.at(0) = 0.20;
+	neuralNet.m_inputs->m_neurons.at(1).m_weights.at(1) = 0.30;
+
+	neuralNet.m_inputs->m_bias.m_weights.at(0) = 0.35;
+	neuralNet.m_inputs->m_bias.m_weights.at(1) = 0.35;
+
+	///////////////////////////////////////////////////////////////
+
+	/*neuralNet.m_hiddenLayers->m_neurons.at(0).m_value = 0.40;
+	neuralNet.m_hiddenLayers->m_neurons.at(1).m_value = 0.1;*/
+	neuralNet.m_hiddenLayers->m_bias.m_value = 1;
+
+	neuralNet.m_hiddenLayers->m_neurons.at(0).m_weights.at(0) = 0.40;
+	neuralNet.m_hiddenLayers->m_neurons.at(0).m_weights.at(1) = 0.50;
+
+	neuralNet.m_hiddenLayers->m_neurons.at(1).m_weights.at(0) = 0.45;
+	neuralNet.m_hiddenLayers->m_neurons.at(1).m_weights.at(1) = 0.55;
+
+	neuralNet.m_hiddenLayers->m_bias.m_weights.at(0) = 0.60;
+	neuralNet.m_hiddenLayers->m_bias.m_weights.at(1) = 0.60;
+
+	neuralNet.FeedForwardNN();
+	
+	std::vector<float> m_targetOuputs;
+	m_targetOuputs.push_back(.01);
+	m_targetOuputs.push_back(.99);
+	neuralNet.BackPropogateOuputToHiddenLayer(m_targetOuputs);
+	neuralNet.BackPropogateHiddenToInputLayer(m_targetOuputs);
+
+
 }

@@ -114,7 +114,7 @@ void NeuralNetwork::FeedForward(std::vector<float> &inputs)
 			m_inputs->m_neurons.at(inputIndex).m_value = inputs.at(inputIndex);
 		}
 	}
-	Update();
+	FeedForwardNN();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -140,7 +140,7 @@ void NeuralNetwork::FeedForward(std::vector<float> &inputs, std::vector<float> &
 			m_inputs->m_neurons.at(inputIndex).m_value = inputs1.at(inputIndex - inputs.size());
 		}
 	}
-	Update();
+	FeedForwardNN();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -156,9 +156,7 @@ void NeuralNetwork::DoBackPropogation(std::vector<float> &knownOutputs)
 	outputErrorDerivatives.reserve(knownOutputs.size());
 	hiddenLayerErrors.reserve(m_hiddenLayers->m_neurons.size());
 
-	// CALCULATES THE OUTPUT DERIVATIVE OF ERRORS 
-	// OUTPUT ERROR = 1/2 (y - y') ^2
-	// DERIVATIVE   = (y - y')
+	// OUTPUT ERROR
 	////////////////////////////////////////////////////////////////////////////
 	for(size_t index = 0;index < m_outputs->m_neurons.size();index++)
 	{
@@ -176,7 +174,7 @@ void NeuralNetwork::DoBackPropogation(std::vector<float> &knownOutputs)
 	////////////////////////////////////////////////////////////////////////////
 	std::vector<float> sumOfWeights;
 	sumOfWeights.reserve(m_outputs->m_neurons.size());
-	for(size_t outputIndex = 0;outputIndex < m_outputs->m_neurons.size();outputIndex++)
+	for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
 	{
 		float sum = GetSumOfWeightsInHiddenLayer(static_cast<int>(outputIndex));
 		sumOfWeights.push_back(sum);
@@ -193,8 +191,8 @@ void NeuralNetwork::DoBackPropogation(std::vector<float> &knownOutputs)
 		}
 		hiddenLayerErrors.push_back(hiddenLayerError);
 	}
-	TrainHiddenOutputLayer(outputErrorDerivatives);
-	TrainInputHiddenLayer(hiddenLayerErrors);
+	BackPropogateOuputToHiddenLayer(knownOutputs);
+	BackPropogateHiddenToInputLayer(hiddenLayerErrors);
 	/*////////////////////////////////////////////////////////////////////////////
 	//  DELTA CHANGE IN ERROR
 	//		: L.R				= Learning Rate
@@ -255,8 +253,42 @@ void NeuralNetwork::DoBackPropogation(std::vector<float> &knownOutputs)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NeuralNetwork::TrainHiddenOutputLayer(std::vector<float> &outputErrors)
+void NeuralNetwork::BackPropogateOuputToHiddenLayer(std::vector<float> &knownOutputs)
 {
+	// Net -> sum of weights * hidden inputs 
+	// Out -> Activation(net)
+	// 
+	// 
+	// PARTIAL DERIVATIVES
+	//	 d ErrorTotal		 d ErrorTotal		 d Out O1		d Net 01
+	//	--------------	=	--------------	*   ----------  *  ----------
+	//		d W n			  d Out O1		     d Net O1        d W n
+	//  
+	//  
+	//						 1									 1		
+	//	 ErrorTotal     =	--- *  (target O1 - Out1) ^ 2   + 	--- * (target O2 - Out2) ^ 2					
+	//						 2									 2
+	//
+	//   d ErrorTotal		 1		
+	//	 -----------    =   --- * 2 * (target O1 - Out1) * -1
+	// 	  d Out O1			 2
+	//
+	// 
+	//     d Out 01 
+	//   ------------   =   Out 01 * ( 1- Out 01)               // Derivative of Sigmoid
+	//	   d Net 01
+	//
+	//
+	//	   d Net 01
+	//	 ------------	=   Out H1								// (Net 01 = W1 * OutH1  +  W2 * OutH2 ) 
+	//		d W n
+	// 
+	// 
+	//  d ErrorTotal	
+	// --------------	= (Out1 - targetO1)  *  Out 01 * ( 1- Out 01)  *  Out H1
+	// 	    d W n		
+
+
 	////////////////////////////////////////////////////////////////////////////
 	//  DELTA CHANGE IN ERROR
 	//		: L.R				= Learning Rate
@@ -267,7 +299,34 @@ void NeuralNetwork::TrainHiddenOutputLayer(std::vector<float> &outputErrors)
 	//		: deltaW (for HiddenOutput) = L.R * OE * ( O * (1 - O)) * H
 	// 
 	////////////////////////////////////////////////////////////////////////////
-	//CALCULATE SIGMOID DERIVATIVE FOR OUTPUT :- value * (1 - value)
+
+	// CALCULATE ETotal
+	float Etotal = 0;
+	for (size_t index = 0; index < m_outputs->m_neurons.size(); index++)
+	{
+		float outputError = m_outputs->m_neurons.at(index).m_value - knownOutputs.at(index);
+		Etotal += outputError * outputError * 0.5;
+	}
+
+
+	//					d ErrorTotal    1		 
+	//	Calculating		 ----------  =  -- * 2 * (target O1 - Out1) * -1 
+	//					  d Net 01      2
+	////////////////////////////////////////////////////////////////////////////
+	std::vector<float> outputErrorDerivatives;
+	outputErrorDerivatives.reserve(knownOutputs.size());
+
+	for (size_t index = 0; index < m_outputs->m_neurons.size(); index++)
+	{
+		float outputError = m_outputs->m_neurons.at(index).m_value - knownOutputs.at(index);
+		outputErrorDerivatives.push_back(outputError);
+	}
+	////////////////////////////////////////////////////////////////////////////
+
+
+	//					  d Out 01       	 
+	//	Calculating		 ----------  =  Out 01 * ( 1- Out 01)
+	//					  d Out O1       
 	std::vector<float> outputSigmoidDerivative;  
 	outputSigmoidDerivative.reserve(m_outputs->m_neurons.size());
 	for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
@@ -276,38 +335,230 @@ void NeuralNetwork::TrainHiddenOutputLayer(std::vector<float> &outputErrors)
 		outputSigmoidDerivative.push_back(GetFastSigmoidDerivative(outputValue));
 	}
 
+
+	//					   d Net 01
+	//	Calculating		 ------------	=   Out H1
+	//					 	d W n
+
 	////////////////////////////////////////////////////////////////////////////
-	//CALCULATE L.R * OUPUT ERROR * SIGMOID DERIVATIVE OF OUTPUT :- L.R * OE * ( O * (1 - O))
+
+	// CALCULATING TOTAL DERIVATIVE
+	// OUPUT ERROR * SIGMOID DERIVATIVE OF OUTPUT * HIDDENLAYER OUTPUT  :-  OE * ( O * (1 - O)) * OutHn
 	std::vector<float> outputGradient;
+	outputGradient.reserve(m_hiddenLayers->m_neurons.size() * m_outputs->m_neurons.size());
 
 	for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
 	{
-		float value = outputSigmoidDerivative.at(outputIndex) * outputErrors.at(outputIndex) * NEURALNET_LEARNING_RATE;
-		outputGradient.push_back(value);
+		for (size_t hiddenLayerIndex = 0; hiddenLayerIndex < m_hiddenLayers->m_neurons.size(); hiddenLayerIndex++)
+		{
+			float value = outputErrorDerivatives.at(outputIndex) * outputSigmoidDerivative.at(outputIndex) 
+							* m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_value;
+			outputGradient.push_back(value);
+		}
 	}
 
-	////////////////////////////////////////////////////////////////////////////
-	//CALCULATE GRADIENT VALUE * HIDDEN INPUTS :- [[L.R * OE * ( O * (1 - O))]]  * H
-	std::vector<float> deltaWeights;
-	deltaWeights.reserve(static_cast<int>(outputGradient.size())*static_cast<int>(m_hiddenLayers->m_neurons.size()));
-	for (size_t weightIndexHO = 0; weightIndexHO < m_outputs->m_neurons.size(); weightIndexHO++)
+	// ======================== DELTA WEIGHTS CALCULATED ========================
+	// ADD ALL DELTA WEIGHTS TO CURRENT WEIGHTS
+	// 
+	size_t gradientIndex = 0;
+	for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
 	{
 		for (size_t hiddenLayerIndex = 0; hiddenLayerIndex < m_hiddenLayers->m_neurons.size(); hiddenLayerIndex++)
 		{
-			float deltaWeight = outputGradient.at(weightIndexHO) * m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_value;
-			deltaWeights.push_back(deltaWeight);
+			m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_oldWeights.at(outputIndex) = m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_weights.at(outputIndex);
+			m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_weights.at(outputIndex) -= NEURALNET_LEARNING_RATE * outputGradient.at(gradientIndex);
+			gradientIndex++;
 		}
 	}
-	// ======================== DELTA WEIGHTS CALCULATED ========================
-	// ADD ALL DELTA WEIGHTS TO CURRENT WEIGHTS
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NeuralNetwork::BackPropogateHiddenToInputLayer(std::vector<float> &knownOutputs)
+{
+	// Net -> sum of weights * hidden inputs 
+	// Out -> Activation(net)
+	// 
+	// 
+	// PARTIAL DERIVATIVES
+	//	 d ErrorTotal		 d ErrorTotal		 d Out Hn		d Net Hn
+	//	--------------	=	--------------	*   ----------  *  ----------
+	//		d W n			  d Out Hn		     d Net Hn        d W n
+	//  
+	//  
+	//						 1									 1		
+	//	 ErrorTotal     =	--- *  (target O1 - Out1) ^ 2   + 	--- * (target O2 - Out2) ^ 2					
+	//						 2									 2
+	//
+	//1  d ErrorTotal		 d Error On		 d Error O(n+1)
+	//	 -----------    =   ------------  * ----------  
+	// 	  d Out H			 d Out Hn		 d Out H(n+1)
+	//
+	// 
+	//1.a	 d Error On			 d Error On		 d Error Net Hn
+	//	 	------------ = 		------------  * ----------------
+	//	      d Out Hn			 d Net Hn		 d out Hn
+	// 
+	//2    d Out Hn 
+	//   ------------   =   Out Hn * ( 1 - Out Hn)               // Derivative of Sigmoid
+	//	   d Net Hn
+	//
+	//
+	//3   d Net 01
+	//	 ------------	=   Out H1								// (Net 01 = W1 * OutH1  +  W2 * OutH2 ) 
+	//		d W n
+	// 
+	// 
+	//  d ErrorTotal	
+	// --------------	= (Out1 - targetO1)  *  Out 01 * ( 1- Out 01)  *  Out H1
+	// 	    d W n		
+
+
+	////////////////////////////////////////////////////////////////////////////
+	//  DELTA CHANGE IN ERROR
+	//		: L.R				= Learning Rate
+	//		: OE				= OUTPUT-ERRORS
+	//		: O					= OUTPUT LAYER VALUES
+	//		: H					= HIDDEN LAYER VALUES
+	//		: ( O * (1 - O))	= SIGMOID DERIVATIVE OF OUTPUT
+	//		: deltaW (for HiddenOutput) = L.R * OE * ( O * (1 - O)) * H
+	// 
+	////////////////////////////////////////////////////////////////////////////
+
+	//					d ErrorTotal    d Error On		 d Error O(n+1)
+	//	Calculating		 ----------  =  -----------  +  ---------------         ...
+	//					  d Out Hn       d Out Hn		   d Out Hn
+	//					  
+	//					d Error On     d Error On		d Net On
+	//					----------  = ------------   * ----------
+	//					 d Out Hn		d Net On		d Out Hn
+	//					 
+	//					 d Error On
+	//					------------  =  (On - Tn) // Calculated on BackProp of Output to Hidden
+	//					  d Net On
+	//					  
+	//					  d Net On
+	//					 ----------	  =  Whn
+	//					  d Out Hn
+	////////////////////////////////////////////////////////////////////////////
+	
+
+	std::vector<float> outputHiddenErrorDerivatives;
+	outputHiddenErrorDerivatives.reserve(m_hiddenLayers->m_neurons.size() * m_outputs->m_neurons.size());
+
+	for (size_t hiddenLayerIndex = 0; hiddenLayerIndex < m_outputs->m_neurons.size(); hiddenLayerIndex++)
+	{
+		float outputErrorHiddenDerivative = 0;
+		for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
+		{
+			float outputErrorDerivative		    = m_outputs->m_neurons.at(outputIndex).m_value - knownOutputs.at(outputIndex);
+			float outputErrorSigmodidDerivative = GetFastSigmoidDerivative(m_outputs->m_neurons.at(outputIndex).m_value);
+			float netOnHn						= m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_oldWeights.at(outputIndex);
+			outputErrorHiddenDerivative			+= outputErrorDerivative * outputErrorSigmodidDerivative * netOnHn;
+		}
+		outputHiddenErrorDerivatives.push_back(outputErrorHiddenDerivative);
+	}	
+
+	std::vector<float> hiddenLayerSigmoidDerivative;
+	hiddenLayerSigmoidDerivative.reserve(m_hiddenLayers->m_neurons.size());
+	// HIDDEN SIGMOID
+	for (size_t hiddenLayerIndex = 0; hiddenLayerIndex < m_outputs->m_neurons.size(); hiddenLayerIndex++)
+	{
+		hiddenLayerSigmoidDerivative.push_back(GetFastSigmoidDerivative(m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_value));
+	}
+
+	std::vector<float> hiddentGradiant;
+	hiddentGradiant.reserve(m_hiddenLayers->m_neurons.size() * m_inputs->m_neurons.size());
+	for (size_t hiddenLayerIndex = 0; hiddenLayerIndex < m_outputs->m_neurons.size(); hiddenLayerIndex++)
+	{
+		for (size_t inputIndex = 0; inputIndex < m_inputs->m_neurons.size(); inputIndex++)
+		{
+			float gradientValue = outputHiddenErrorDerivatives.at(hiddenLayerIndex) * hiddenLayerSigmoidDerivative.at(hiddenLayerIndex);
+			gradientValue = gradientValue * m_inputs->m_neurons.at(inputIndex).m_value;
+			hiddentGradiant.push_back(gradientValue);
+		}
+	}
+
+
+	size_t gradientIndex = 0;
 	for (size_t hiddenLayerIndex = 0; hiddenLayerIndex < m_hiddenLayers->m_neurons.size(); hiddenLayerIndex++)
 	{
-		for (size_t weightIndex = 0; weightIndex < m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_weights.size(); weightIndex++)
+		for (size_t inputIndex = 0; inputIndex < m_inputs->m_neurons.size(); inputIndex++)
 		{
-			size_t sum = (weightIndex)+ (hiddenLayerIndex * m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_weights.size());
-			m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_weights.at(weightIndex) += deltaWeights.at(sum);
+			m_inputs->m_neurons.at(inputIndex).m_oldWeights.at(hiddenLayerIndex) = m_inputs->m_neurons.at(inputIndex).m_weights.at(hiddenLayerIndex);
+			m_inputs->m_neurons.at(inputIndex).m_weights.at(hiddenLayerIndex) -= NEURALNET_LEARNING_RATE * hiddentGradiant.at(gradientIndex);
+			gradientIndex++;
 		}
 	}
+	
+
+	/*std::vector<float> hiddenErrorDerivatives;
+	hiddenErrorDerivatives.reserve(m_hiddenLayers->m_neurons.size() * m_inputs->m_neurons.size());
+
+	for (size_t inputWeightIndex = 0; inputWeightIndex < m_hiddenLayers->m_neurons.size() * m_inputs->m_neurons.size(); inputWeightIndex++)
+	{
+		float outputError = 0;
+		for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
+		{
+			for (size_t hiddenIndex = 0; hiddenIndex < m_hiddenLayers->m_neurons.size(); hiddenIndex++)
+			{
+				outputError += m_outputs->m_neurons.at(outputIndex).m_value - knownOutputs.at(outputIndex);
+			}
+		}
+		hiddenErrorDerivatives.push_back(outputError);
+	}
+	////////////////////////////////////////////////////////////////////////////
+
+
+	//					  d Out 01       	 
+	//	Calculating		 ----------  =  Out 01 * ( 1- Out 01)
+	//					  d Out O1       
+	std::vector<float> outputSigmoidDerivative;
+	outputSigmoidDerivative.reserve(m_outputs->m_neurons.size());
+	for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
+	{
+		float outputValue = m_outputs->m_neurons.at(outputIndex).m_value;
+		outputSigmoidDerivative.push_back(GetFastSigmoidDerivative(outputValue));
+	}
+
+
+	//					   d Net 01
+	//	Calculating		 ------------	=   Out H1
+	//					 	d W n
+
+	////////////////////////////////////////////////////////////////////////////
+
+	// CALCULATING TOTAL DERIVATIVE
+	// OUPUT ERROR * SIGMOID DERIVATIVE OF OUTPUT * HIDDENLAYER OUTPUT  :-  OE * ( O * (1 - O)) * OutHn
+	std::vector<float> outputGradient;
+	outputGradient.reserve(m_hiddenLayers->m_neurons.size() * m_outputs->m_neurons.size());
+
+	/ *for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
+	{
+		for (size_t hiddenLayerIndex = 0; hiddenLayerIndex < m_hiddenLayers->m_neurons.size(); hiddenLayerIndex++)
+		{
+			float value = outputHiddenErrorDerivatives.at(outputIndex) * outputSigmoidDerivative.at(outputIndex)
+				* m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_value;
+			outputGradient.push_back(value);
+		}
+	}* /
+
+	// ======================== DELTA WEIGHTS CALCULATED ========================
+	// ADD ALL DELTA WEIGHTS TO CURRENT WEIGHTS
+	// 
+	size_t gradientIndex = 0;
+	for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
+	{
+		for (size_t hiddenLayerIndex = 0; hiddenLayerIndex < m_hiddenLayers->m_neurons.size(); hiddenLayerIndex++)
+		{
+			m_hiddenLayers->m_neurons.at(hiddenLayerIndex).m_weights.at(outputIndex) -= NEURALNET_LEARNING_RATE * outputGradient.at(gradientIndex);
+			gradientIndex++;
+		}
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,7 +567,7 @@ void NeuralNetwork::TrainHiddenOutputLayer(std::vector<float> &outputErrors)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NeuralNetwork::TrainInputHiddenLayer(std::vector<float> &outputErrors)
+void NeuralNetwork::BackPropogateHiddenToInputLayer1(std::vector<float> &outputErrors)
 {
 	////////////////////////////////////////////////////////////////////////////
 	//  DELTA CHANGE IN ERROR
@@ -423,7 +674,7 @@ void NeuralNetwork::GetOutputs()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NeuralNetwork::Update()
+void NeuralNetwork::FeedForwardNN()
 {
 	for (int hiddenIndex = 0; hiddenIndex < m_hiddenLayers->m_neurons.size(); hiddenIndex++)
 	{
@@ -432,6 +683,9 @@ void NeuralNetwork::Update()
 		{
 			sum += (m_inputs->m_neurons.at(index).m_value)*(m_inputs->m_neurons.at(index).m_weights.at(hiddenIndex));		
 		}
+		sum += m_inputs->m_bias.m_value * m_inputs->m_bias.m_weights.at(hiddenIndex);
+
+		m_hiddenLayers->m_neurons.at(hiddenIndex).m_sumOfPreviousLayer = sum;
 		m_hiddenLayers->m_neurons.at(hiddenIndex).m_value = GetActivationValue(sum);
 	}
 
@@ -442,10 +696,12 @@ void NeuralNetwork::Update()
 		{
 			sum += (m_hiddenLayers->m_neurons.at(hiddenIndex).m_value)*(m_hiddenLayers->m_neurons.at(hiddenIndex).m_weights.at(outputIndex));
 		}
+
+		sum += m_hiddenLayers->m_bias.m_value * m_hiddenLayers->m_bias.m_weights.at(outputIndex);
+
+		m_outputs->m_neurons.at(outputIndex).m_sumOfPreviousLayer = sum;
 		m_outputs->m_neurons.at(outputIndex).m_value = GetActivationValue(sum);
 	}
-
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

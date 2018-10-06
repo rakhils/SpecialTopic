@@ -15,22 +15,34 @@
 struct Neuron
 {
 	float				m_value = 0;
+	float				m_sumOfPreviousLayer = 0;
 	int					m_numberOfWeights;
 	std::vector<float>  m_weights;
+	std::vector<float>  m_oldWeights;
+	Neuron(){}
 	Neuron(int numberOfWeights)
 	{
-		m_numberOfWeights = numberOfWeights; 
-		m_weights.reserve(numberOfWeights);
-		for(int weightIndex = 0;weightIndex < m_numberOfWeights;weightIndex++)
+		m_numberOfWeights = numberOfWeights;
+		Init();
+	}
+
+	void Init()
+	{
+		m_weights.reserve(m_numberOfWeights);
+		m_oldWeights.reserve(m_numberOfWeights);
+		for (int weightIndex = 0; weightIndex < m_numberOfWeights; weightIndex++)
 		{
-			m_weights.push_back(GetRandomFloatInRange(-1,1));
+			m_weights.push_back(GetRandomFloatInRange(-1, 1));
+			m_oldWeights.push_back(GetRandomFloatInRange(-1, 1));
 		}
 	}
+
 	void SetRandomWeights()
 	{
 		for (int weightIndex = 0; weightIndex < m_numberOfWeights; weightIndex++)
 		{
 			m_weights.at(weightIndex) = GetRandomFloatInRange(-1, 1);
+			m_oldWeights.at(weightIndex) = GetRandomFloatInRange(-1, 1);
 		}
 	}
 	
@@ -39,6 +51,7 @@ struct NeuronLayer
 {
 	int m_numberOfNeurons;
 	std::vector<Neuron> m_neurons;
+	Neuron				m_bias;
 	NeuronLayer(int numberOfNeurons,int numberOfWeights)
 	{
 		m_numberOfNeurons = numberOfNeurons;
@@ -48,6 +61,8 @@ struct NeuronLayer
 			Neuron neuron(numberOfWeights);
 			m_neurons.push_back(neuron);
 		}
+		m_bias.m_numberOfWeights = numberOfWeights;
+		m_bias.Init();
 	}
 	~NeuronLayer()
 	{
@@ -59,6 +74,7 @@ struct NeuronLayer
 		{
 			m_neurons.at(neuronIndex).SetRandomWeights();
 		}
+		m_bias.SetRandomWeights();
 	}
 };
 class NeuralNetwork
@@ -85,15 +101,19 @@ public:
 	void				 CreateNeuralNetwork(int numberOfInputNeuron, int numberOfHiidenNeurons, int numberOfOutputNeuron);
 	void				 FeedForward(std::vector<float> &inputs);
 	void				 FeedForward(std::vector<float> &inputs,std::vector<float> &inputs1);
+
 	void				 DoBackPropogation(std::vector<float> &knownOutputs);
-	void				 TrainHiddenOutputLayer(std::vector<float> &outputErrors);
-	void				 TrainInputHiddenLayer(std::vector<float> &outputErrors);
+	void				 BackPropogateOuputToHiddenLayer(std::vector<float> &outputErrors);
+	void				 BackPropogateHiddenToInputLayer(std::vector<float> &outputErrors);
+	void				 BackPropogateHiddenToInputLayer1(std::vector<float> &outputErrors);
+
 	float				 GetSumOfWeightsInHiddenLayer(int outputIndex);
 	void				 GetOutputs();
-	void				 Update();
+	void				 FeedForwardNN();
 	float				 GetActivationValue(float value);
 	float				 GetFastSigmoidValue(float value);
 	float				 GetFastSigmoidDerivative(float value);
+	float				 GetSigmoidDerivative(float value);
 	float				 GetSigmoidValue(float value);
 	void				 Mutate();
 	bool				 CopyWeightsTo(NeuralNetwork &copy);

@@ -102,5 +102,5 @@ void NeuralNetworkGene::UpdateWithInputs(std::vector<float>& inputs)
 			m_neuralNet->m_inputs->m_neurons.at(inputIndex).m_value = inputs.at(inputIndex);
 		}
 	}
-	m_neuralNet->Update();
+	m_neuralNet->FeedForwardNN();
 }
