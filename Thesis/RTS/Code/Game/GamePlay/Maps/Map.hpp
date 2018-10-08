@@ -87,6 +87,7 @@ public:
 	IntVector2						GetTilePosition(Vector2 position);
 	int								GetTileIndex(Vector2 mapPosition);
 	int								GetTileIndex(IntVector2 position);
+	int								GetCellDistance(Vector2 position, Vector2 position2);
 
 	bool							HasAnyEntityInTile(int index);
 	bool							HasAnyEntityInTile(IntVector2 index);
@@ -95,6 +96,7 @@ public:
 	Entity *						GetEntityFromPosition(int index);
 	Entity *						GetEntityFromPosition(IntVector2 index);
 	Entity *						GetEntityFromPosition(Vector2 index);
+	std::vector<Entity*>			GetAllEntitiesFromPosition(Vector2 mapPosition,int distance);
 
 	bool							IsValidCordinate(IntVector2 cords);
 

@@ -22,7 +22,6 @@ class Civilian : public Entity
 
 public:
 	//Member_Variables
-	Entity * m_resourceType = nullptr;
 	PendingTask m_pendingTask;
 	//Static_Member_Variables
 
@@ -34,7 +33,13 @@ public:
 
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
-	void TrainNN();
+	
+	float EvaluateNN(Task * task,EntityState previousState);
+	float EvaluateMoveTask(EntityState prevState);
+	float EvaluateOnRandomMoveTask(EntityState prevState);
+	float EvaluateIdleTask(EntityState prevState);
+	void TrainNN(Task *task,float evaluationValue);
+	
 	void Render();
 
 	void GatherResource(Vector2 resourcePosition);

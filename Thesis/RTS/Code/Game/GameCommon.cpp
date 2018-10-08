@@ -18,7 +18,7 @@ int					g_mapMaxWidth	= 40;
 int					g_mapMaxHeight	= 20;
 bool				g_enableNeuralNet = true;
 bool				g_enableDebugPrints = false;
-int					g_extraNNInputs = 6;
+int					g_extraNNInputs = 8;
 //HUD
 float				g_fontSize							 = 10;
 Vector3				g_resourceFoodPositionPopulationA	 (100, 1050, 0);

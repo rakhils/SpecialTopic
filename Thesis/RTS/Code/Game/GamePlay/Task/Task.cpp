@@ -33,9 +33,9 @@ bool Task::CheckAndReduceResources()
 		int finalWoodValue  = townCenter->m_resourceStat.m_wood  - m_resourcesNeeded.m_wood;
 		if(finalFoodValue >= 0 && finalStoneValue >= 0 && finalWoodValue >= 0)
 		{
-			townCenter->m_resourceStat.m_food = finalFoodValue;
+			townCenter->m_resourceStat.m_food  = finalFoodValue;
 			townCenter->m_resourceStat.m_stone = finalStoneValue;
-			townCenter->m_resourceStat.m_wood = finalWoodValue;
+			townCenter->m_resourceStat.m_wood  = finalWoodValue;
 			return true;
 		}
 	}
@@ -50,9 +50,31 @@ bool Task::CheckAndReduceResources()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Task::CheckAndUpdateResourcesUsed()
 {
-	m_entity->m_resourceFoodUsed  += m_resourcesNeeded.m_food;
-	m_entity->m_resourceStoneUsed += m_resourcesNeeded.m_stone;
-	m_entity->m_resourceWoodUsed  += m_resourcesNeeded.m_wood;
+	m_entity->m_state.m_resourceFoodUsed  += m_resourcesNeeded.m_food;
+	m_entity->m_state.m_resourceStoneUsed += m_resourcesNeeded.m_stone;
+	m_entity->m_state.m_resourceWoodUsed  += m_resourcesNeeded.m_wood;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Task::SetTargetPosition(Vector2 position)
+{
+	m_targetPosition = position;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Task::SetStartPosition(Vector2 position)
+{
+	m_startPosition = position;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

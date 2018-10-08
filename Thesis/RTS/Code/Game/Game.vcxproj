@@ -389,6 +389,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="GamePlay\Entity\Entity.hpp" />
+    <ClInclude Include="GamePlay\Entity\EntityState.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="GamePlay\Entity\House.hpp">
       <SubType>
       </SubType>

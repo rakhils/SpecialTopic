@@ -43,6 +43,7 @@ public:
 	TaskType m_taskType;
 	Resources m_resourcesNeeded;
 	Vector2   m_targetPosition;
+	Vector2   m_startPosition;
 	//Static_Member_Variables
 
 	//Methods
@@ -52,6 +53,9 @@ public:
 
 	bool CheckAndReduceResources();
 	void CheckAndUpdateResourcesUsed();
+
+	void SetTargetPosition(Vector2 position);
+	void SetStartPosition(Vector2 position);
 
 	void Update(float deltaTime);
 	virtual bool DoTask(float delatTime) = 0;

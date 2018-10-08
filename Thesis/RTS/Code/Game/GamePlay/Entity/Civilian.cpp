@@ -1,6 +1,7 @@
 #include "Game/GamePlay/Entity/Civilian.hpp"
 
 #include "Engine/Renderer/Materials/Material.hpp"
+#include "Engine/Debug/DebugDraw.hpp"
 
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Task/TaskGatherResource.hpp"
@@ -29,7 +30,8 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_IDLE);
 
 	InitNeuralNet();
-	m_taskQueue.push(new TaskIdle());
+	InitStates();
+	m_taskQueue.push(new TaskGatherResource(this,m_map->m_resources.at(0),FindMyTownCenter()));
 }
 
 // DESTRUCTOR
@@ -123,47 +125,184 @@ void Civilian::Update(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Evaluate the previous NN task executed
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Civilian::EvaluateNN(Task * task,EntityState previousState)
+{
+	ClearDesiredOutputs();
+	int xPosition = static_cast<int>(m_desiredOuputs.size() - 2);
+	int yPosition = static_cast<int>(m_desiredOuputs.size() - 1);
+
+	std::vector<Entity*> entityList     = m_map->GetAllEntitiesFromPosition(previousState.m_position, 1);
+	std::vector<Entity*> townCenterList = GetMyTownCenterEntityFromList(entityList);
+	std::vector<Entity*> resourceList   = GetResourceEntityFromList(entityList);
+
+	if(previousState.m_hasResource)
+	{
+		if(townCenterList.size() > 0)
+		{
+			SetOuputsToTrainToDropResource();
+			return 1;
+		}
+		SetOuputsToTrainToMoveToPosition(m_map->GetFreeNeighbourTile(FindMyTownCenter()->GetPosition()));
+		return 1;
+	}
+
+	if(resourceList.size() > 0)
+	{
+		SetOuputsToTrainToGatherResource();
+		return 1;
+	}
+	if(townCenterList.size() > 0)
+	{
+		SetOuputsToTrainToMoveToPosition(m_map->GetFreeNeighbourTile(m_map->m_resources.at(0)->GetPosition()));
+		return 1;
+	}
+	SetOuputsToTrainToMoveToPosition(m_map->GetFreeNeighbourTile(FindMyTownCenter()->GetPosition()));
+	return 1;
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+	float evaluatedValue = 0.f;
+	switch (task->m_taskType)
+	{
+	case TASK_MOVE:
+		evaluatedValue = EvaluateMoveTask(previousState);
+		break;
+	case TASK_GATHER_RESOURCE:
+		evaluatedValue = EvaluateGatherResourceTask(previousState);
+		break;
+	case TASK_DROP_RESOURCE:
+		evaluatedValue = EvaluateDropResourceTask(previousState);
+		break;
+	case TASK_IDLE:
+		return 0.f;
+		break;
+	default:
+		break;
+	}
+	
+	return 0.f;*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Civilian::EvaluateMoveTask(EntityState previousState)
+{
+	float evaluatedValue = 0.f;
+	if (previousState.m_hasResource)
+	{
+		evaluatedValue = EvaluateDropResourceTask(previousState);
+		if(evaluatedValue == 0)
+		{
+			return EvaluateOnRandomMoveTask(previousState);
+		}
+		
+		return evaluatedValue;
+	}
+	evaluatedValue = EvaluateGatherResourceTask(previousState);
+	if(evaluatedValue == 0)
+	{
+		return EvaluateOnRandomMoveTask(previousState);
+	}
+	return evaluatedValue;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Civilian::EvaluateOnRandomMoveTask(EntityState prevState)
+{
+	int xPosition = static_cast<int>(m_desiredOuputs.size() - 2);
+	int yPosition = static_cast<int>(m_desiredOuputs.size() - 1);
+
+	std::vector<Entity*> entityList = GetAllEntitiesNearMe(1);
+	std::vector<Entity*> townCenterList = GetTownCenterEntityFromList(entityList);
+	for(int index = 0;index < townCenterList.size();index++)
+	{
+		if(townCenterList.at(index)->m_teamID == m_teamID)
+		{
+			Entity* resource = m_map->m_resources.at(0);
+			IntVector2 entityPosition = m_map->GetFreeNeighbourTile(resource->GetPosition());
+			m_desiredOuputs.at(xPosition) = RangeMapFloat(entityPosition.x, 0, m_map->m_maxWidth, 0, 1);
+			m_desiredOuputs.at(yPosition) = RangeMapFloat(entityPosition.y, 0, m_map->m_maxHeight, 0, 1);
+
+			int taskIndex = GetIndexOfOutputTask(TASK_MOVE);
+			m_desiredOuputs.at(taskIndex) = 1;
+			return 1;
+		}
+	}
+
+	IntVector2 townCenterPosition = m_map->GetFreeNeighbourTile(FindMyTownCenter()->GetPosition());
+
+	m_desiredOuputs.at(xPosition) = RangeMapFloat(townCenterPosition.x, 0, m_map->m_maxWidth, 0, 1);
+	m_desiredOuputs.at(yPosition) = RangeMapFloat(townCenterPosition.y, 0, m_map->m_maxHeight, 0, 1);
+	int taskIndex = GetIndexOfOutputTask(TASK_MOVE);
+	m_desiredOuputs.at(taskIndex) = 1;
+	return 1.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Civilian::EvaluateIdleTask(EntityState prevState)
+{
+	int xPosition = static_cast<int>(m_desiredOuputs.size() - 2);
+	int yPosition = static_cast<int>(m_desiredOuputs.size() - 1);
+	if(prevState.m_hasResource)
+	{
+		std::vector<Entity*> entityList = GetAllEntitiesNearMe(1);
+		std::vector<Entity*> townCenterList = GetTownCenterEntityFromList(entityList);
+		for (int index = 0; index < townCenterList.size(); index++)
+		{
+			if (townCenterList.at(index)->m_teamID == m_teamID)
+			{
+				Entity* resource = m_map->m_resources.at(0);
+				IntVector2 entityPosition = m_map->GetFreeNeighbourTile(resource->GetPosition());
+				m_desiredOuputs.at(xPosition) = RangeMapFloat(entityPosition.x, 0, m_map->m_maxWidth, 0, 1);
+				m_desiredOuputs.at(yPosition) = RangeMapFloat(entityPosition.y, 0, m_map->m_maxHeight, 0, 1);
+
+				int taskIndex = GetIndexOfOutputTask(TASK_MOVE);
+				m_desiredOuputs.at(taskIndex) = 1;
+				return 1;
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/30
 *@purpose : trains NeuralNet
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Civilian::TrainNN()
+void Civilian::TrainNN(Task *task,float evaluationValue)
 {
-	std::vector<float> m_outputs;
-	IntVector2 townCenterPosition = m_map->GetCordinates(FindMyTownCenter()->GetPosition());
-	for(int outputIndex = 0;outputIndex < m_taskTypeSupported.size();outputIndex++)
-	{
-		m_outputs.push_back(0.f);
-	}
-	m_outputs.push_back(m_neuralNet.GetSigmoidValue(townCenterPosition.x));
-	m_outputs.push_back(m_neuralNet.GetSigmoidValue(townCenterPosition.y));
-
-	std::vector<Entity*> entityList = GetAllEntitiesNearMe(1);
-	bool isResourceNearMe = false;
-	bool isTownCenterNearMe = false;
-	/*for (size_t entityIndex = 0; entityIndex < entityList.size(); entityIndex++)
-	{
-		Entity *entity = entityList.at(entityIndex);
-		if(entity->m_type == RESOURCE_FOOD || entity->m_type == RESOURCE_STONE || entity->m_type == RESOURCE_WOOD)
-		{
-			int resourceGatherIndex = GetIndexOfOutputTask(TASK_GATHER_RESOURCE);
-			m_outputs.at(resourceGatherIndex) = 1.f;
-			isResourceNearMe = true;
-		}
-		if (entity->m_type == TOWN_CENTER)
-		{
-			int resourceGatherIndex = GetIndexOfOutputTask(TASK_DROP_RESOURCE);
-			m_outputs.at(resourceGatherIndex) = 1.f;
-			isTownCenterNearMe = true;
-		}
-	}*/
-	//if(!isResourceNearMe && !isTownCenterNearMe)
-	{
-		int resourceGatherIndex = GetIndexOfOutputTask(TASK_MOVE);
-		m_outputs.at(resourceGatherIndex) = 1.f;
-	}
-	m_neuralNet.DoBackPropogation(m_outputs);
+	m_neuralNet.DoBackPropogation(m_desiredOuputs);
+	Entity::TrainNN(task,evaluationValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -183,7 +322,8 @@ void Civilian::Render()
 	Renderer::GetInstance()->BindMaterial(textMaterial);
 	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "C", g_fontSize, GetTeamColor());
 	
-	
+	//int cellDistance = m_map->GetCellDistance(FindMyTownCenter()->GetPosition(), GetPosition());
+	//DebugDraw::GetInstance()->DebugRenderLogf("CELL DISTANCE : %d", cellDistance);
 	delete textMaterial;
 }
 

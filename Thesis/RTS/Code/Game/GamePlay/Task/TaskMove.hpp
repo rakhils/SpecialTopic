@@ -26,7 +26,7 @@ public:
 	TaskMove(Map* map,Entity *entity,Vector2 position);
 	~TaskMove();
 
-	void SetTargetPosition(Vector2 position);
+
 	bool DoTask(float deltaTime);
 	
 	//Static_Methods

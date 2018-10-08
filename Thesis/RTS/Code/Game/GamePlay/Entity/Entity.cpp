@@ -5,6 +5,7 @@
 #include "Engine/Debug/DebugDraw.hpp"
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetwork.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Task/TaskMove.hpp"
@@ -79,7 +80,10 @@ int Entity::GetTileIndex()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::InitNeuralNet()
 {
-	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, 1000, static_cast<int>(m_taskTypeSupported.size() + 2));
+	m_statsSupported.push_back(HEALTH);
+	m_statsSupported.push_back(RESOURCE_COUNT);
+
+	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, 650, static_cast<int>(m_taskTypeSupported.size() + 2));
 	m_neuralNet.SetRandomWeight();
 	// input + 6 -> for game stat && output + 2 for positions x,y
 	for(int inputIndex = 0;inputIndex < m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs;inputIndex++)
@@ -87,6 +91,23 @@ void Entity::InitNeuralNet()
 		m_lastInputState.push_back(0.f);
 	}
 
+	for(int index = 0;index < m_neuralNet.m_outputs->m_neurons.size();index++)
+	{
+		m_desiredOuputs.push_back(0.f);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Init all state values
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::InitStates()
+{
+	m_state.m_health = m_health;
+	m_state.m_position = GetPosition();
+	m_previousState = m_state;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,10 +176,11 @@ void Entity::ProcessInputs(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::TrainNN()
+void Entity::TrainNN(Task *task,float evaluationValue)
 {
-	/*m_neuralNet.FeedForward(m_lastInputState);
-	m_neuralNet.DoBackPropogation()*/
+	UNUSED(task);
+	UNUSED(evaluationValue);
+	m_neuralNetTrainCount++;
 }
 
 void Entity::Update(float deltaTime)
@@ -173,36 +195,30 @@ void Entity::Update(float deltaTime)
 		if(isCompleted)
 		{
 			Task *task = m_taskQueue.front();
-			TaskType type = task->m_taskType;
-			if(g_enableNeuralNet)
+			m_taskQueue.pop();
+			if(g_enableNeuralNet && m_taskQueue.size() == 0)
 			{
-				if (type == TASK_MOVE)
-				{
-					Vector2 pos = ((TaskMove*)task)->m_targetPosition;
-					//DebugDraw::GetInstance()->DebugRenderLogf("TASK COMPLETED TYPE " + Task::GetTaskTypeAsString(type) + " POS X = " + ToString(pos.x) + " Y = " + ToString(pos.y), 1, Rgba::WHITE, Rgba::WHITE);
-				}
-				else
-				{
-					//DebugDraw::GetInstance()->DebugRenderLogf("TASK COMPLETED TYPE " + Task::GetTaskTypeAsString(type), 1, Rgba::WHITE, Rgba::WHITE);
-				}
+				float evaluationValue = EvaluateNN(task,m_previousState);
+				TrainNN(task,evaluationValue);
+				UpdateEntityState();
+				UpdateNN(deltaTime);
+				UpdateTaskFromNN(deltaTime);
 			}
 			delete task;
-			m_taskQueue.pop();
-			if(g_enableNeuralNet)
-			{
-				if(m_teamID == 1)
-				{
-					int a = 1;
-				}
-				TrainNN();
-				UpdateAllUnitStatWithCurrentValue();
-				if (m_taskQueue.size() == 0  && m_type == CIVILIAN)
-				{
-					UpdateNN(deltaTime);
-				}
-			}
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Entity::EvaluateNN(Task * type,EntityState previousState)
+{
+	UNUSED(type);
+	return 0.f;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -213,17 +229,22 @@ void Entity::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateNN(float deltaTime)
 {
-	if(!g_enableNeuralNet)
+	if (!g_enableNeuralNet)
 	{
 		return;
 	}
-	if(m_type == RESOURCE_FOOD || m_type == RESOURCE_STONE || m_type == RESOURCE_WOOD || m_type == HOUSE)
+	if (m_type == RESOURCE_FOOD || m_type == RESOURCE_STONE || m_type == RESOURCE_WOOD || m_type == HOUSE)
 	{
-		return;	
+		return;
+	}
+
+	if (m_type != CIVILIAN)
+	{
+		return;
 	}
 
 	TownCenter *townCenter = m_map->m_townCenters.at(m_teamID - 1);
-	if(townCenter == nullptr)
+	if (townCenter == nullptr)
 	{
 		return;
 	}
@@ -235,18 +256,24 @@ void Entity::UpdateNN(float deltaTime)
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<float>(townCenter->m_resourceStat.m_buildings)));
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<float>(townCenter->m_resourceStat.m_units)));
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<float>(townCenter->m_resourceStat.m_unitsKilled)));
+	m_gameStats.push_back(m_health);
+	if (m_resourceTypeCarrying != nullptr)
+	{
+		m_gameStats.push_back(1);
+	}
+	else
+	{
+		m_gameStats.push_back(0);
+	}
 
+	m_neuralNet.FeedForward(m_map->m_minimapValue, m_gameStats);
+}
 
-	m_neuralNet.FeedForward(m_map->m_minimapValue,m_gameStats);
-	UpdateLastNNInputState(m_map->m_minimapValue, m_gameStats);
-	//m_neuralNet.FeedForward(m_map->m_minimapValue,m_gameStats);
-
-	// not needed after training
-	//m_neuralNet.SetRandomWeight();
-	////
+void Entity::UpdateTaskFromNN(float deltaTime)
+{
 	TaskType task			= GetTaskFromNNOutput();
 	IntVector2 taskPosition = GetTaskPositonFromNNOutput();
-
+	m_previousState			= m_state;
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	float logTime = 3;
 	std::string debugNN;
@@ -268,7 +295,6 @@ void Entity::UpdateNN(float deltaTime)
 			if (g_enableDebugPrints)
 			{
 				DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK IDLE");
-
 			}
 			CreateAndPushIdleTask(taskPosition);
 			break;
@@ -387,55 +413,17 @@ void Entity::UpdateNN(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/09/29
-*@purpose : Stores the snapshot at the time of task decision
-*@param   : INputs of NN (minimap values and game stats)
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::UpdateLastNNInputState(std::vector<float> &minmapvalue, std::vector<float> &gameStat)
-{
-	for(int index = 0;index < m_lastInputState.size();index++)
-	{
-		if(index >= minmapvalue.size())
-		{
-			m_lastInputState.at(index) = gameStat.at(index - minmapvalue.size());
-		}
-		else
-		{
-			m_lastInputState.at(index) = minmapvalue.at(index);
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/30
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::UpdateAllUnitStatWithCurrentValue()
+void Entity::UpdateEntityState()
 {
-	m_resourceFoodUsedBeforeTask			= m_resourceFoodUsed;
-	m_resourceStoneUsedBeforeTask			= m_resourceStoneUsed;
-	m_resourceWoodUsedBeforeTask			= m_resourceWoodUsed;
-
-	m_resourceFoodGatheredBeforeTask		= m_resourceFoodGathered;
-	m_resourceFoodDroppedBeforeTask			= m_resourceFoodDropped;
-	m_resourceStoneGatheredBeforeTask		= m_resourceStoneGathered;
-	m_resourceStoneDroppedBeforeTask		= m_resourceStoneDropped;
-	m_resourceWoodGatheredBeforeTask		= m_resourceWoodGathered;
-	m_resourceWoodDroppedBeforeTask			= m_resourceWoodDropped;
-	m_numberOfArmySpawnerBuiltBeforeTask	= m_numberOfArmySpawnerBuilt;
-	m_numberOfHouseBuiltBeforeTask			= m_numberOfHouseBuilt;
-
-	m_longRangeArmySpawnedBeforeTask		= m_longRangeArmySpawned;
-	m_shortRangeArmySpawnedBeforeTask		= m_shortRangeArmySpawned;
-
-	m_enemiesAttackedBeforeTask				= m_enemiesAttacked;
-	m_enemiesKilledBeforeTask				= m_enemiesKilled;
-
-	m_villagerSpawnedBeforeTask				= m_villagerSpawned;
-
+	m_previousState = m_state;
+	/*m_previousState.m_health = m_health;
+	m_previousState.m_position = GetPosition();
+	m_previousState.m_hasResource = m_state.m_hasResource;*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -446,7 +434,7 @@ void Entity::UpdateAllUnitStatWithCurrentValue()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForFoodGathered(int count)
 {
-	m_resourceFoodGathered += count;
+	m_state.m_resourceFoodGathered += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -457,7 +445,7 @@ void Entity::UpdateUnitStatForFoodGathered(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForStoneGathered(int count)
 {
-	m_resourceStoneGathered += count;
+	m_state.m_resourceStoneGathered += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -468,7 +456,7 @@ void Entity::UpdateUnitStatForStoneGathered(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForWoodGathered(int count)
 {
-	m_resourceWoodGathered += count;
+	m_state.m_resourceWoodGathered += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -479,7 +467,7 @@ void Entity::UpdateUnitStatForWoodGathered(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForFoodDropped(int count)
 {
-	m_resourceFoodDropped += count;
+	m_state.m_resourceFoodDropped += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -490,7 +478,7 @@ void Entity::UpdateUnitStatForFoodDropped(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForStoneDropped(int count)
 {
-	m_resourceStoneDropped += count;
+	m_state.m_resourceStoneDropped += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -501,7 +489,7 @@ void Entity::UpdateUnitStatForStoneDropped(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForWoodDropped(int count)
 {
-	m_resourceWoodDropped += count;
+	m_state.m_resourceWoodDropped += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -512,7 +500,7 @@ void Entity::UpdateUnitStatForWoodDropped(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 {
-	m_numberOfArmySpawnerBuilt += count;
+	m_state.m_numberOfArmySpawnerBuilt += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -523,7 +511,7 @@ void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForHouseBuilt(int count)
 {
-	m_numberOfHouseBuilt += count;
+	m_state.m_numberOfHouseBuilt += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -534,7 +522,7 @@ void Entity::UpdateUnitStatForHouseBuilt(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 {
-	m_shortRangeArmySpawned += count;
+	m_state.m_shortRangeArmySpawned += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -545,7 +533,7 @@ void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
 {
-	m_longRangeArmySpawned += count;
+	m_state.m_longRangeArmySpawned += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -556,7 +544,7 @@ void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForEnemiesAttacked(int count)
 {
-	m_enemiesAttacked += count;
+	m_state.m_enemiesAttacked += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -567,7 +555,7 @@ void Entity::UpdateUnitStatForEnemiesAttacked(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForEnemiesKilled(int count)
 {
-	m_enemiesKilled += count;
+	m_state.m_enemiesKilled += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -578,7 +566,7 @@ void Entity::UpdateUnitStatForEnemiesKilled(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForVillagerSpawned(int count)
 {
-	m_villagerSpawned += count;
+	m_state.m_villagerSpawned += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -589,7 +577,7 @@ void Entity::UpdateUnitStatForVillagerSpawned(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForFoodUsed(int count)
 {
-	m_resourceFoodUsed += count;
+	m_state.m_resourceFoodUsed += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -600,7 +588,7 @@ void Entity::UpdateUnitStatForFoodUsed(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForStoneUsed(int count)
 {
-	m_resourceStoneUsed += count;
+	m_state.m_resourceStoneUsed += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -611,7 +599,7 @@ void Entity::UpdateUnitStatForStoneUsed(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForWoodUsed(int count)
 {
-	m_resourceWoodUsed += count;
+	m_state.m_resourceWoodUsed += count;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -630,6 +618,28 @@ int Entity::GetIndexOfOutputTask(TaskType type)
 		}
 	}
 	return -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Entity::GetIndexOfMoveXPosition()
+{
+	return static_cast<int>(m_taskTypeSupported.size() + 1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Entity::GetIndexOfMoveYPosition()
+{
+	return static_cast<int>(m_taskTypeSupported.size() + 2);
 }
 
 void Entity::Render()
@@ -807,6 +817,198 @@ Entity* Entity::FindMyTownCenter()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Gets nearest resource
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Entity* Entity::GetNearestResource()
+{
+	/*for(int index = 0;index < m_map->m_resources.size();index++)
+	{
+		
+	}*/
+	return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Entity::EvaluateMoveTask(EntityState previousState)
+{
+	return 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Check the random move is beneficiary
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Entity::EvaluateOnRandomMoveTask(EntityState prevState)
+{
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Evaluates the move task on how close resources are
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Entity::EvaluateMoveTaskToResource(EntityState prevState)
+{
+	float evaluatedValue = 0.f;
+	float totalCount = 0;
+	float maxRange = 10 * g_unitDistance;
+	for (int index = 0; index < m_map->m_resources.size(); index++)
+	{
+		Vector3 distance = m_map->m_resources.at(index)->GetPosition() - prevState.m_position;
+		float distanceLength = distance.GetLength();
+		if (distanceLength > maxRange)
+		{
+			continue;
+		}
+		if (distanceLength <= g_unitDistance)
+		{
+			return 1.f;
+		}
+		evaluatedValue += distanceLength;
+		totalCount++;
+	}
+	evaluatedValue /= totalCount;
+	return RangeMapFloat(evaluatedValue, 0, maxRange, 1, 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Entity::EvaluateMoveTaskToTownCenter(EntityState prevState)
+{
+	Entity * townCenter = FindMyTownCenter();
+	int cellDistance    = m_map->GetCellDistance(prevState.m_position, townCenter->GetPosition());
+	int maxDistance     = 5;
+	if(cellDistance == 1)
+	{
+		return 1.f;
+	}
+	if(cellDistance < maxDistance)
+	{
+		return RangeMapFloat(static_cast<float>(cellDistance), 0.f, static_cast<float>(maxDistance), 1.f, 0.f);
+	}
+	return 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Evaluates gather resource prev task
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Entity::EvaluateGatherResourceTask(EntityState prevState)
+{
+	std::vector<Entity*> entityList = m_map->GetAllEntitiesFromPosition(m_previousState.m_position, 1);
+	std::vector<Entity*> resourceEntityList = GetResourceEntityFromList(entityList);
+	for (int index = 0; index < resourceEntityList.size(); index++)
+	{
+		// In Future check for which resource is less
+		int taskIndex = GetIndexOfOutputTask(TASK_GATHER_RESOURCE);
+		m_desiredOuputs.at(taskIndex) = 1;
+		return 1.f;	
+	}
+	int taskIndex = GetIndexOfOutputTask(TASK_GATHER_RESOURCE);
+	m_desiredOuputs.at(taskIndex) = 0;
+	return 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Evaluate the drop resource task prev done
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Entity::EvaluateDropResourceTask(EntityState prevState)
+{
+	if(prevState.m_hasResource)
+	{
+		std::vector<Entity*> entityList     = m_map->GetAllEntitiesFromPosition(m_previousState.m_position, 1);
+		std::vector<Entity*> townCenterList = GetTownCenterEntityFromList(entityList);
+		for(int index = 0;index < townCenterList.size();index++)
+		{
+			if(townCenterList.at(index)->m_teamID == m_teamID)
+			{
+				int taskIndex = GetIndexOfOutputTask(TASK_DROP_RESOURCE);
+				m_desiredOuputs.at(taskIndex) = 1;
+				return 1.f;
+			}
+		}
+	}
+	int taskIndex = GetIndexOfOutputTask(TASK_DROP_RESOURCE);
+	m_desiredOuputs.at(taskIndex) = 0;
+	return 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::ClearDesiredOutputs()
+{
+	for(int index = 0;index < m_desiredOuputs.size();index++)
+	{
+		m_desiredOuputs.at(index) = 0.f;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetOuputsToTrainToMoveToPosition(IntVector2 cords)
+{
+	int xPosition = static_cast<int>(m_desiredOuputs.size() - 2);
+	int yPosition = static_cast<int>(m_desiredOuputs.size() - 1);
+	m_desiredOuputs.at(xPosition) = RangeMapFloat(static_cast<float>(cords.x), 0, m_map->m_maxWidth, 0, 1);
+	m_desiredOuputs.at(yPosition) = RangeMapFloat(static_cast<float>(cords.y), 0, m_map->m_maxHeight, 0, 1);
+	int taskIndex = GetIndexOfOutputTask(TASK_MOVE);
+	m_desiredOuputs.at(taskIndex) = 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Sets desired output to train to drop resource
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetOuputsToTrainToDropResource()
+{
+	int taskIndex = GetIndexOfOutputTask(TASK_DROP_RESOURCE);
+	m_desiredOuputs.at(taskIndex) = 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Sets desired output to train gather resource
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetOuputsToTrainToGatherResource()
+{
+	int taskIndex = GetIndexOfOutputTask(TASK_GATHER_RESOURCE);
+	m_desiredOuputs.at(taskIndex) = 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
 *@purpose : Takes damage
 *@param   : NIL
@@ -967,6 +1169,63 @@ std::vector<Entity*> Entity::GetAllEntitiesNearMe(int cellDistance)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Checks if
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<Entity*> Entity::GetResourceEntityFromList(std::vector<Entity*> &list)
+{
+	std::vector<Entity*> entityList;
+	for (size_t listIndex = 0; listIndex < list.size(); listIndex++)
+	{
+		if(list.at(listIndex)->m_type == RESOURCE_FOOD || list.at(listIndex)->m_type == RESOURCE_STONE || list.at(listIndex)->m_type == RESOURCE_WOOD)
+		{
+			entityList.push_back(list.at(listIndex));
+		}
+	}
+	return entityList;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Get all town center entity from list given
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<Entity*> Entity::GetTownCenterEntityFromList(std::vector<Entity*> &list)
+{
+	std::vector<Entity*> entityList;
+	for (size_t listIndex = 0; listIndex < list.size(); listIndex++)
+	{
+		if (list.at(listIndex)->m_type == TOWN_CENTER)
+		{
+			entityList.push_back(list.at(listIndex));
+		}
+	}
+	return entityList;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<Entity*> Entity::GetMyTownCenterEntityFromList(std::vector<Entity*> &list)
+{
+	std::vector<Entity*> entityList;
+	for (size_t listIndex = 0; listIndex < list.size(); listIndex++)
+	{
+		if (list.at(listIndex)->m_type == TOWN_CENTER && m_teamID == list.at(listIndex)->m_teamID)
+		{
+			entityList.push_back(list.at(listIndex));
+		}
+	}
+	return entityList;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/22
 *@purpose : returns corresponding minimap value 
 *@param   : NIL
@@ -1039,8 +1298,10 @@ IntVector2 Entity::GetTaskPositonFromNNOutput()
 {
 	float xPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size()).m_value;
 	float yPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() + 1).m_value;
-	float xRangedValue = RangeMapFloat(xPosition, -1.f, 1.f, 0.f, static_cast<float>(m_map->m_maxWidth));
-	float yRangedValue = RangeMapFloat(yPosition, -1.f, 1.f, 0.f, static_cast<float>(m_map->m_maxHeight));
+	float xRangedValue = RangeMapFloat(xPosition, 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxWidth));
+	float yRangedValue = RangeMapFloat(yPosition, 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxHeight));
+	xRangedValue	   = ClampFloat(xRangedValue, 0.f, static_cast<int>(m_map->m_maxWidth));
+	yRangedValue	   = ClampFloat(yRangedValue, 0.f, static_cast<int>(m_map->m_maxHeight));
 	return IntVector2(static_cast<int>(xRangedValue), static_cast<int>(yRangedValue));
 }
 

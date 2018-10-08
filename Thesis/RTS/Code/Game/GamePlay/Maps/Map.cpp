@@ -30,10 +30,8 @@ void Map::Initialize()
 	m_maxWidth  = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
 
-	CreateTownCenter(Vector2(20, 340),1);
-	CreateTownCenter(Vector2(800, 600), 2);
-	CreateCivilian(Vector2(850, 600), 2);
-	CreateCivilian(Vector2::ONE * 500, 1);
+	
+	//CreateCivilian(Vector2::ONE * 500, 1);
 /*
 	CreateCivilian(Vector2::ONE * 500, 1);
 	CreateCivilian(Vector2::ONE * 500, 1);
@@ -52,14 +50,21 @@ void Map::Initialize()
 	CreateCivilian(Vector2::ONE * 500, 1);
 	CreateCivilian(Vector2::ONE * 500, 1);*/
 
+	CreateResources(Vector2(840, 720),  RESOURCE_FOOD);
+
 	CreateResources(Vector2(200,300),  RESOURCE_FOOD);
 	CreateResources(Vector2(200, 500), RESOURCE_WOOD);
 	CreateResources(Vector2(300, 500), RESOURCE_STONE);
 
 
-	CreateResources(Vector2(900, 800),  RESOURCE_FOOD);
 	CreateResources(Vector2(900, 500),  RESOURCE_WOOD);
 	CreateResources(Vector2(1100, 500), RESOURCE_STONE);
+
+
+	CreateTownCenter(Vector2(20, 340), 1);
+	CreateTownCenter(Vector2(800, 600), 2);
+	CreateCivilian(Vector2(840, 680), 2);
+
 	//CreateClassAWarrior(Vector2(500, 300), 1);
 	CreateArmySpawner(Vector2(500, 300), 1);
 	InitMiniMap();
@@ -94,6 +99,10 @@ void Map::InitCamera()
 void Map::CreateCivilian(Vector2 position, int teamID)
 {
 	Civilian *civilian = new Civilian(this,position,teamID);
+
+	/*civilian->m_resourceTypeCarrying = m_resources.at(0);
+	civilian->m_state.m_hasResource = true;*/
+
 	m_civilians.push_back(civilian);
 	m_movableEntities.push_back(civilian);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
@@ -463,6 +472,24 @@ int Map::GetTileIndex(IntVector2 position)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : Returns the cell distance
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Map::GetCellDistance(Vector2 position, Vector2 position2)
+{
+	IntVector2 cords1 = GetCordinates(position);
+	IntVector2 cords2 = GetCordinates(position2);
+	IntVector2 distance = cords1 - cords2;
+	if(GetAbsolute(distance.x) > GetAbsolute(distance.y))
+	{
+		return GetAbsolute(distance.x);
+	}
+	return GetAbsolute(distance.y);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
 *@purpose : Check for all entities in a grid
 *@param   : NIL
@@ -669,6 +696,59 @@ Entity * Map::GetEntityFromPosition(Vector2 position)
 {
 	int tileIndex = GetTileIndex(position);
 	return GetEntityFromPosition(tileIndex);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<Entity*> Map::GetAllEntitiesFromPosition(Vector2 mapPosition, int cellDistance)
+{
+	std::vector<Entity*> entityList;
+	IntVector2 cords = GetCordinates(mapPosition);
+	Entity *entity   = GetEntityFromPosition(cords + IntVector2(cellDistance, 0));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = GetEntityFromPosition(cords + IntVector2(cellDistance, cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = GetEntityFromPosition(cords + IntVector2(0, cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = GetEntityFromPosition(cords + IntVector2(-cellDistance, cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = GetEntityFromPosition(cords + IntVector2(-cellDistance, 0));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = GetEntityFromPosition(cords + IntVector2(-cellDistance, -cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = GetEntityFromPosition(cords + IntVector2(0, -cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	entity = GetEntityFromPosition(cords + IntVector2(cellDistance, -cellDistance));
+	if (entity != nullptr)
+	{
+		entityList.push_back(entity);
+	}
+	return entityList;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1391,7 +1471,7 @@ void Map::RenderHUDUnitStat()
 
 
 		Renderer::GetInstance()->BindMaterial(textMaterial);
-		Entity *resource = ((Civilian*)g_currentSelectedEntity)->m_resourceType;
+		Entity *resource = ((Civilian*)g_currentSelectedEntity)->m_resourceTypeCarrying;
 		if(resource == nullptr)
 		{
 			g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDResourceInfoPosition - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "NO RESOURCE", g_fontSize, Rgba::YELLOW);
@@ -1402,9 +1482,9 @@ void Map::RenderHUDUnitStat()
 		}
 
 
-		if (((Civilian*)g_currentSelectedEntity)->m_resourceType != nullptr)
+		if (((Civilian*)g_currentSelectedEntity)->m_resourceTypeCarrying != nullptr)
 		{
-			g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDResourceInfoPosition, Vector3::RIGHT, Vector3::UP, Entity::GetEntityTypeAsString(((Civilian*)g_currentSelectedEntity)->m_resourceType->m_type), g_fontSize, Rgba::YELLOW);
+			g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDResourceInfoPosition, Vector3::RIGHT, Vector3::UP, Entity::GetEntityTypeAsString(((Civilian*)g_currentSelectedEntity)->m_resourceTypeCarrying->m_type), g_fontSize, Rgba::YELLOW);
 		}
 	}
 		break;
@@ -1463,6 +1543,7 @@ void Map::RenderUnitTask()
 	}
 	else
 	{
+		Renderer::GetInstance()->BindMaterial(textMaterial);
 		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDTaskInfoPosition - Vector3(g_unitStatHUD.GetDimensions().x, 0, 0), Vector3::RIGHT, Vector3::UP, "NO TASK", g_fontSize, Rgba::YELLOW);
 	}
 	delete textMaterial;

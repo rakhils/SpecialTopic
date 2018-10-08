@@ -10,6 +10,7 @@ TaskDropResource::TaskDropResource(Entity *entity,Entity* townCenter)
 	m_townCenter = (TownCenter*)townCenter;
 	m_map		 = m_entity->m_map;
 	m_targetPosition = m_townCenter->GetPosition();
+	m_taskType = TASK_DROP_RESOURCE;
 }
 
 // DESTRUCTOR
@@ -55,17 +56,17 @@ void TaskDropResource::UpdateResourceStorageStat(Entity *entityResourceType, int
 bool TaskDropResource::DoTask(float deltaTime)
 {
 	UNUSED(deltaTime);
-	if(((Civilian*)m_entity)->m_resourceType == nullptr)
+	if(((Civilian*)m_entity)->m_resourceTypeCarrying == nullptr)
 	{
 		return true;
 	}
 	
 	if (m_map->IsNeighbours(m_map->GetCordinates(m_townCenter->GetPosition()), m_map->GetCordinates(m_entity->GetPosition())))
 	{
-		UpdateResourceStorageStat(((Civilian*)m_entity)->m_resourceType, 1);
+		UpdateResourceStorageStat(((Civilian*)m_entity)->m_resourceTypeCarrying, 1);
 		CheckAndUpdateResourcesUsed();
-
-		((Civilian*)m_entity)->m_resourceType = nullptr;
+		m_entity->m_state.m_hasResource = false;
+		((Civilian*)m_entity)->m_resourceTypeCarrying = nullptr;
 	}
 	return true;
 }

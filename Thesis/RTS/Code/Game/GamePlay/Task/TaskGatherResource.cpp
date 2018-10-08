@@ -14,6 +14,7 @@ TaskGatherResource::TaskGatherResource(Entity *entity,Entity *resource,Entity* t
 	m_targetPosition = m_resource->GetPosition();
 	SetStoragePosition(m_townCenter->GetPosition());
 	SetResourcePosition(resource->GetPosition());
+	m_taskType = TASK_GATHER_RESOURCE;
 }
 
 // DESTRUCTOR
@@ -96,9 +97,10 @@ bool TaskGatherResource::DoTask(float deltaTime)
 	UNUSED(deltaTime);
 	if (m_map->IsNeighbours(m_map->GetCordinates(m_resource->GetPosition()), m_map->GetCordinates(m_entity->GetPosition())))
 	{
-		((Civilian*)m_entity)->m_resourceType = m_resource;
+		((Civilian*)m_entity)->m_resourceTypeCarrying = m_resource;
+		m_entity->m_state.m_hasResource = true;
 		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, m_entity->GetTeamColor(), "TASK GATHERED RESOURCE");
-		UpdateResourceStorageStat(((Civilian*)m_entity)->m_resourceType,1);
+		UpdateResourceStorageStat(((Civilian*)m_entity)->m_resourceTypeCarrying,1);
 	}
 	return true;
 

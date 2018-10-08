@@ -192,6 +192,10 @@ float Vector2::NormalizeAndGetLength()
 Vector2 Vector2::GetNormalized() const
 {
 	float length = GetLength();
+	if(length == 0)
+	{
+		return Vector2::ZERO;
+	}
 	Vector2 normalizedVector(this->x/length,this->y/length);
 	return normalizedVector;
 }
