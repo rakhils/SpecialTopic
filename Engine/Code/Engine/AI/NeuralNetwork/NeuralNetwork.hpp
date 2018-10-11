@@ -62,6 +62,7 @@ struct NeuronLayer
 			m_neurons.push_back(neuron);
 		}
 		m_bias.m_numberOfWeights = numberOfWeights;
+		m_bias.m_value = GetRandomFloatInRange(0, 1);
 		m_bias.Init();
 	}
 	~NeuronLayer()

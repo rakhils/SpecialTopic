@@ -9,6 +9,7 @@ public:
 	//UDPTest m_udp;
 	NetSession *m_netSession;
 	bool isQuitTriggered = false;
+	static int  s_gameCounter;
 	Game *g_theGame;
 	float MAX_DELTA_VALUE = 0.01616f;
 	App::App();

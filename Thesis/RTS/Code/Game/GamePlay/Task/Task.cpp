@@ -50,9 +50,9 @@ bool Task::CheckAndReduceResources()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Task::CheckAndUpdateResourcesUsed()
 {
-	m_entity->m_state.m_resourceFoodUsed  += m_resourcesNeeded.m_food;
-	m_entity->m_state.m_resourceStoneUsed += m_resourcesNeeded.m_stone;
-	m_entity->m_state.m_resourceWoodUsed  += m_resourcesNeeded.m_wood;
+	//m_entity->m_state.m_resourceFoodUsed  += m_resourcesNeeded.m_food;
+	//m_entity->m_state.m_resourceStoneUsed += m_resourcesNeeded.m_stone;
+	//m_entity->m_state.m_resourceWoodUsed  += m_resourcesNeeded.m_wood;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -99,40 +99,95 @@ std::string Task::GetTaskTypeAsString(TaskType type)
 	switch (type)
 	{
 	case TASK_MOVE:
-		return "TASK_MOVE";
+		return "TASK_MOVE             ";
 		break;
 	case TASK_GATHER_RESOURCE:
-		return "TASK_GATHER";
+		return "TASK_GATHER           ";
 		break;
 	case TASK_DROP_RESOURCE:
-		return "TASK_DROP";
+		return "TASK_DROP             ";
 		break;
 	case TASK_BUILD_TOWNCENTER:
-		return "TASK_BUILD_TOWNCENTER";
+		return "TASK_BUILD_TOWNCENTER ";
 		break;
 	case TASK_BUILD_HOUSE:
-		return "TASK_BUILD_HOUSE";
+		return "TASK_BUILD_HOUSE      ";
 		break;
 	case TASK_BUILD_ARMY_SPAWNER:
 		return "TASK_BUILD_ARMY_CENTER";
 		break;
 	case TASK_LONG_ATTACK:
-		return "TASK_LONG_ATTACK";
+		return "TASK_LONG_ATTACK      ";
 		break;
 	case TASK_SHORT_ATTACK:
-		return "TASK_SHORT_ATTACK";
+		return "TASK_SHORT_ATTACK     ";
 		break;
 	case TASK_SPAWN_VILLAGER:
-		return "TASK_SPAWN_VILLAGER";
+		return "TASK_SPAWN_VILLAGER   ";
 		break;
 	case TASK_SPAWN_CLASSA_WARRIOR:
-		return "TASK_SPAWN_CLASSA";
+		return "TASK_SPAWN_CLASSA     ";
 		break;
 	case TASK_SPAWN_CLASSB_WARRIOR:
-		return "TASK_SPAWN_CLASSB";
+		return "TASK_SPAWN_CLASSB     ";
 		break;
 	case TASK_IDLE:
-		return "TASK_IDLE";
+		return "TASK_IDLE             ";
+	case TASK_MOVEX:
+		return "TASK_MOVE X           ";
+	case TASK_MOVEY:
+		return "TASK_MOVE Y           ";
+	default:
+		break;
+	}
+	return     "INVALID               ";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Task::GetTaskTypeAsShortString(TaskType type)
+{
+	switch (type)
+	{
+	case TASK_MOVE:
+		return "MV";
+		break;
+	case TASK_GATHER_RESOURCE:
+		return "GATHER";
+		break;
+	case TASK_DROP_RESOURCE:
+		return "DROP";
+		break;
+	case TASK_BUILD_TOWNCENTER:
+		return "B_TC";
+		break;
+	case TASK_BUILD_HOUSE:
+		return "B_H";
+		break;
+	case TASK_BUILD_ARMY_SPAWNER:
+		return "B_A_C";
+		break;
+	case TASK_LONG_ATTACK:
+		return "L_A";
+		break;
+	case TASK_SHORT_ATTACK:
+		return "S_A";
+		break;
+	case TASK_SPAWN_VILLAGER:
+		return "S_V";
+		break;
+	case TASK_SPAWN_CLASSA_WARRIOR:
+		return "S_SA";
+		break;
+	case TASK_SPAWN_CLASSB_WARRIOR:
+		return "S_LA";
+		break;
+	case TASK_IDLE:
+		return "IDLE";
 	default:
 		break;
 	}

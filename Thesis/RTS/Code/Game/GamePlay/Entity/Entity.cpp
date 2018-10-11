@@ -29,7 +29,6 @@ Entity::Entity()
 Entity::Entity(float x, float y)
 {
 	SetPosition(Vector2(x, y));
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -62,6 +61,17 @@ Vector2 Entity::GetPosition()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : Gets the cordinate and returs
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Entity::GetCordinates()
+{
+	return m_map->GetCordinates(GetPosition());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/14
 *@purpose : Gets tile index of position
 *@param   : NIL
@@ -83,7 +93,11 @@ void Entity::InitNeuralNet()
 	m_statsSupported.push_back(HEALTH);
 	m_statsSupported.push_back(RESOURCE_COUNT);
 
-	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, 650, static_cast<int>(m_taskTypeSupported.size() + 2));
+	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, 100, static_cast<int>(m_taskTypeSupported.size()));
+	if(m_type == CIVILIAN)
+	{
+		//m_neuralNet.LoadFromFile(("Data\\NN\\" + GetEntityTypeAsString(m_type) + ".txt").c_str());
+	}
 	m_neuralNet.SetRandomWeight();
 	// input + 6 -> for game stat && output + 2 for positions x,y
 	for(int inputIndex = 0;inputIndex < m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs;inputIndex++)
@@ -108,6 +122,18 @@ void Entity::InitStates()
 	m_state.m_health = m_health;
 	m_state.m_position = GetPosition();
 	m_previousState = m_state;
+	m_minSafeArea = FindMyTownCenter()->GetCordinates() - IntVector2(3, 3);
+	m_maxSafeArea = FindMyTownCenter()->GetCordinates() + IntVector2(3, 3);
+	m_minSafeArea = m_map->ClampCordinates(m_minSafeArea);
+	m_maxSafeArea = m_map->ClampCordinates(m_maxSafeArea);
+
+	if(m_teamID > 0)
+	{
+		m_minTeritaryArea = IntVector2(m_map->m_maxWidth ,m_map->m_maxHeight) * (m_teamID - 1)/2.f;
+		m_maxTeritaryArea = m_minTeritaryArea + IntVector2(m_map->m_maxWidth, m_map->m_maxHeight) * 2;
+		m_minTeritaryArea = m_map->ClampCordinates(m_minTeritaryArea);
+		m_maxTeritaryArea = m_map->ClampCordinates(m_maxTeritaryArea);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -121,6 +147,15 @@ void Entity::ProcessInputs(float deltaTime)
 	UNUSED(deltaTime);
 	Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
 	mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
+
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_1))
+	{
+		if(g_currentSelectedEntity == this)
+		{
+			m_neuralNet.StoreToFile(("Data\\NN\\"+GetEntityTypeAsString(m_type) + ".txt").c_str());
+		}
+	}
+
 
 	if (InputSystem::GetInstance()->WasLButtonJustPressed())
 	{
@@ -176,10 +211,9 @@ void Entity::ProcessInputs(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::TrainNN(Task *task,float evaluationValue)
+void Entity::TrainNN(Task *task)
 {
 	UNUSED(task);
-	UNUSED(evaluationValue);
 	m_neuralNetTrainCount++;
 }
 
@@ -198,8 +232,8 @@ void Entity::Update(float deltaTime)
 			m_taskQueue.pop();
 			if(g_enableNeuralNet && m_taskQueue.size() == 0)
 			{
-				float evaluationValue = EvaluateNN(task,m_previousState);
-				TrainNN(task,evaluationValue);
+				EvaluateNN(task,m_previousState,GetTaskPositonFromNNOutput());
+				TrainNN(task);
 				UpdateEntityState();
 				UpdateNN(deltaTime);
 				UpdateTaskFromNN(deltaTime);
@@ -215,10 +249,9 @@ void Entity::Update(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Entity::EvaluateNN(Task * type,EntityState previousState)
+void Entity::EvaluateNN(Task * type,EntityState previousState,IntVector2 cords)
 {
 	UNUSED(type);
-	return 0.f;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -229,6 +262,7 @@ float Entity::EvaluateNN(Task * type,EntityState previousState)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateNN(float deltaTime)
 {
+	UNUSED(deltaTime);
 	if (!g_enableNeuralNet)
 	{
 		return;
@@ -243,6 +277,7 @@ void Entity::UpdateNN(float deltaTime)
 		return;
 	}
 
+	PrintDebugNN();
 	TownCenter *townCenter = m_map->m_townCenters.at(m_teamID - 1);
 	if (townCenter == nullptr)
 	{
@@ -256,7 +291,8 @@ void Entity::UpdateNN(float deltaTime)
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<float>(townCenter->m_resourceStat.m_buildings)));
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<float>(townCenter->m_resourceStat.m_units)));
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<float>(townCenter->m_resourceStat.m_unitsKilled)));
-	m_gameStats.push_back(m_health);
+	m_gameStats.push_back(RangeMapFloat(m_health,0,10,0,1));
+	//m_gameStats.push_back(m_health);
 	if (m_resourceTypeCarrying != nullptr)
 	{
 		m_gameStats.push_back(1);
@@ -266,7 +302,11 @@ void Entity::UpdateNN(float deltaTime)
 		m_gameStats.push_back(0);
 	}
 
+	IntVector2 myPosition = m_map->GetCordinates(GetPosition());
+	float minimapValue    = m_map->GetMiniMapValueAtPosition(myPosition.x, myPosition.y);
+	m_map->SetMiniMapValues(myPosition.x, myPosition.y, 1);
 	m_neuralNet.FeedForward(m_map->m_minimapValue, m_gameStats);
+	m_map->SetMiniMapValues(myPosition.x, myPosition.y, minimapValue);
 }
 
 void Entity::UpdateTaskFromNN(float deltaTime)
@@ -276,15 +316,7 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 	m_previousState			= m_state;
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	float logTime = 3;
-	std::string debugNN;
-	debugNN.append("     ");
-	for(int index = 0;index < m_taskTypeSupported.size();index++)
-	{
-		debugNN.append(Task::GetTaskTypeAsString(m_taskTypeSupported.at(index)));
-		debugNN.append(" = ");
-		debugNN.append(ToString(m_neuralNet.m_outputs->m_neurons.at(index).m_value));
-		debugNN.append(" :: ");
-	}
+
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	deltaTime = logTime;
@@ -301,115 +333,88 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 		}
 	case TASK_MOVE:
 		{
-			if(g_enableDebugPrints)
-			{
-				DebugDraw::GetInstance()->DebugRenderLogf(logTime,GetTeamColor(), "TASK MOVE POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-			}
+		
+		std::vector<Entity*> entityList     = m_map->GetAllEntitiesNearLocation(m_map->GetMapPosition(taskPosition), 1);
+		std::vector<Entity*> townCenterList = GetMyTownCenterEntityFromList(entityList);
+		std::vector<Entity*> resourceList   = GetResourceEntityFromList(entityList);
+		//if(townCenterList.size() > 0 || resourceList.size() > 0)
+		{
 			CreateAndPushMoveTask(taskPosition);
+		}
+		/*else
+		{
+			CreateAndPushIdleTask(taskPosition);
+		}*/
+		/*if (true)
+		{
+			CreateAndPushIdleTask(taskPosition);
+			break;
+		}*/
+			
 		}
 		break;
 	case TASK_GATHER_RESOURCE:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK GATHER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		logTime = deltaTime;
+		/*float relativeX = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size()).m_value;
+		float relativeY = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() + 1).m_value;
+		IntVector2 pos = GetRelativeCellLocation(relativeX, relativeY);*/
 		CreateAndPushGatherResourceTask(taskPosition);
 	}
 		break;
 	case TASK_DROP_RESOURCE:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK DROP POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		logTime = deltaTime;
 		CreateAndPushDropResourceTask(taskPosition);
 	}
 		break;
 	case TASK_BUILD_TOWNCENTER:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD TOWNCENTER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		logTime = deltaTime;
 		CreateAndPushBuildTownCenterTask(taskPosition);
 	}
 		break;
 	case TASK_BUILD_HOUSE:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD HOUSE POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		logTime = deltaTime;
 		CreateAndPushBuildHouseTask(taskPosition);
 	}
 		break;
 	case TASK_BUILD_ARMY_SPAWNER:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, GetTeamColor(), "TASK BUILD ARMY CENTER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		logTime = deltaTime;
 		CreateAndPushBuildArmySpawnerTask(taskPosition);
 	}
 		break;
 	case TASK_LONG_ATTACK:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK LONG ATTACK POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		CreateAndPushLongRangeAttackTask(taskPosition);
 	}
 		break;
 	case TASK_SHORT_ATTACK:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SHORT ATTACK POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		CreateAndPushShortRangeAttackTask(taskPosition);
 	}
 		break;
 	case TASK_SPAWN_VILLAGER:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN VILLAGER POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		CreateAndPushSpawnVillagerTask(taskPosition);
 	}
 		break;
 	case TASK_SPAWN_CLASSA_WARRIOR:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN CLASSA POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		CreateAndPushSpawnClassAArmyTask(taskPosition);
 	}
 		break;
 	case TASK_SPAWN_CLASSB_WARRIOR:
 	{
-		if (g_enableDebugPrints)
-		{
-			DebugDraw::GetInstance()->DebugRenderLogf(logTime, GetTeamColor(), "TASK SPAWN CLASS B POSX = %d POSY = %d", taskPosition.x, taskPosition.y);
-		}
 		CreateAndPushSpawnClassBArmyTask(taskPosition);
 	}
 		break;
 	default:
 		break;
 	}
-	if (g_enableDebugPrints)
-	{
-		DebugDraw::GetInstance()->DebugRenderLogf(debugNN,logTime, GetTeamColor(),GetTeamColor());
-	}
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -421,9 +426,36 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 void Entity::UpdateEntityState()
 {
 	m_previousState = m_state;
-	/*m_previousState.m_health = m_health;
-	m_previousState.m_position = GetPosition();
-	m_previousState.m_hasResource = m_state.m_hasResource;*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::PrintDebugNN()
+{
+	if (g_isCurrentlyTraining == false && g_currentSelectedEntity == this && g_enableDebugPrints && m_lastDebug + m_debugPrintDelay < GetCurrentTimeSeconds())
+	{
+		m_lastDebug = GetCurrentTimeSeconds();
+		TaskType task = GetTaskFromNNOutput();
+		IntVector2	taskPosition = GetTaskPositonFromNNOutput();
+		DebugDraw::GetInstance()->DebugRenderLogf(m_debugPrintDelay, GetTeamColor(), (Task::GetTaskTypeAsString(task) + " POSX = %d POSY = %d").c_str(), taskPosition.x, taskPosition.y);
+
+		for (int index = 0; index < m_taskTypeSupported.size(); index++)
+		{
+			std::string debugNN;
+			task = m_taskTypeSupported.at(index);
+			debugNN.append("  ");
+			debugNN.append(Task::GetTaskTypeAsString(task));
+			debugNN.append(" :: ");
+			debugNN.append(ToString(GetTaskValueFromNNOutput(task)));
+			debugNN.append(" :: ");
+			debugNN.append(ToString(GetTaskValueFromDesiredOutput(task)));
+			DebugDraw::GetInstance()->DebugRenderLogf(debugNN, m_debugPrintDelay, GetTeamColor(), GetTeamColor());
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -608,7 +640,7 @@ void Entity::UpdateUnitStatForWoodUsed(int count)
 *@param   : Task type
 *@return  : index
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int Entity::GetIndexOfOutputTask(TaskType type)
+int Entity::GetIndexOfTaskInNN(TaskType type)
 {
 	for(int index = 0;index < m_taskTypeSupported.size();index++)
 	{
@@ -628,7 +660,7 @@ int Entity::GetIndexOfOutputTask(TaskType type)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int Entity::GetIndexOfMoveXPosition()
 {
-	return static_cast<int>(m_taskTypeSupported.size() + 1);
+	return static_cast<int>(m_taskTypeSupported.size() - 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -639,7 +671,7 @@ int Entity::GetIndexOfMoveXPosition()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int Entity::GetIndexOfMoveYPosition()
 {
-	return static_cast<int>(m_taskTypeSupported.size() + 2);
+	return static_cast<int>(m_taskTypeSupported.size() - 1);
 }
 
 void Entity::Render()
@@ -818,144 +850,6 @@ Entity* Entity::FindMyTownCenter()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/07
-*@purpose : Gets nearest resource
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Entity* Entity::GetNearestResource()
-{
-	/*for(int index = 0;index < m_map->m_resources.size();index++)
-	{
-		
-	}*/
-	return nullptr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Entity::EvaluateMoveTask(EntityState previousState)
-{
-	return 0.f;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : Check the random move is beneficiary
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Entity::EvaluateOnRandomMoveTask(EntityState prevState)
-{
-	return 0;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : Evaluates the move task on how close resources are
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Entity::EvaluateMoveTaskToResource(EntityState prevState)
-{
-	float evaluatedValue = 0.f;
-	float totalCount = 0;
-	float maxRange = 10 * g_unitDistance;
-	for (int index = 0; index < m_map->m_resources.size(); index++)
-	{
-		Vector3 distance = m_map->m_resources.at(index)->GetPosition() - prevState.m_position;
-		float distanceLength = distance.GetLength();
-		if (distanceLength > maxRange)
-		{
-			continue;
-		}
-		if (distanceLength <= g_unitDistance)
-		{
-			return 1.f;
-		}
-		evaluatedValue += distanceLength;
-		totalCount++;
-	}
-	evaluatedValue /= totalCount;
-	return RangeMapFloat(evaluatedValue, 0, maxRange, 1, 0);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Entity::EvaluateMoveTaskToTownCenter(EntityState prevState)
-{
-	Entity * townCenter = FindMyTownCenter();
-	int cellDistance    = m_map->GetCellDistance(prevState.m_position, townCenter->GetPosition());
-	int maxDistance     = 5;
-	if(cellDistance == 1)
-	{
-		return 1.f;
-	}
-	if(cellDistance < maxDistance)
-	{
-		return RangeMapFloat(static_cast<float>(cellDistance), 0.f, static_cast<float>(maxDistance), 1.f, 0.f);
-	}
-	return 0.f;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : Evaluates gather resource prev task
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Entity::EvaluateGatherResourceTask(EntityState prevState)
-{
-	std::vector<Entity*> entityList = m_map->GetAllEntitiesFromPosition(m_previousState.m_position, 1);
-	std::vector<Entity*> resourceEntityList = GetResourceEntityFromList(entityList);
-	for (int index = 0; index < resourceEntityList.size(); index++)
-	{
-		// In Future check for which resource is less
-		int taskIndex = GetIndexOfOutputTask(TASK_GATHER_RESOURCE);
-		m_desiredOuputs.at(taskIndex) = 1;
-		return 1.f;	
-	}
-	int taskIndex = GetIndexOfOutputTask(TASK_GATHER_RESOURCE);
-	m_desiredOuputs.at(taskIndex) = 0;
-	return 0.f;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : Evaluate the drop resource task prev done
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Entity::EvaluateDropResourceTask(EntityState prevState)
-{
-	if(prevState.m_hasResource)
-	{
-		std::vector<Entity*> entityList     = m_map->GetAllEntitiesFromPosition(m_previousState.m_position, 1);
-		std::vector<Entity*> townCenterList = GetTownCenterEntityFromList(entityList);
-		for(int index = 0;index < townCenterList.size();index++)
-		{
-			if(townCenterList.at(index)->m_teamID == m_teamID)
-			{
-				int taskIndex = GetIndexOfOutputTask(TASK_DROP_RESOURCE);
-				m_desiredOuputs.at(taskIndex) = 1;
-				return 1.f;
-			}
-		}
-	}
-	int taskIndex = GetIndexOfOutputTask(TASK_DROP_RESOURCE);
-	m_desiredOuputs.at(taskIndex) = 0;
-	return 0.f;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
@@ -969,44 +863,33 @@ void Entity::ClearDesiredOutputs()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : NIL
+/*DATE    : 2018/10/10
+*@purpose : Set
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetOuputsToTrainToMoveToPosition(IntVector2 cords)
+void Entity::SetDesiredOutputForTask(TaskType type,float value)
+{
+	int taskIndex = GetIndexOfTaskInNN(type);
+	if(taskIndex >=0 && taskIndex < m_taskTypeSupported.size())
+	{
+		m_desiredOuputs.at(taskIndex) = value;
+		return;
+	}
+	int a = 1;
+}
+
+/*void Entity::SetOuputsToTrainToMoveToPosition(IntVector2 cords)
 {
 	int xPosition = static_cast<int>(m_desiredOuputs.size() - 2);
 	int yPosition = static_cast<int>(m_desiredOuputs.size() - 1);
-	m_desiredOuputs.at(xPosition) = RangeMapFloat(static_cast<float>(cords.x), 0, m_map->m_maxWidth, 0, 1);
-	m_desiredOuputs.at(yPosition) = RangeMapFloat(static_cast<float>(cords.y), 0, m_map->m_maxHeight, 0, 1);
+	m_desiredOuputs.at(xPosition) = RangeMapFloat(static_cast<float>(cords.x), 0.f, static_cast<float>(m_map->m_maxWidth),  0.f, 1.f);
+	m_desiredOuputs.at(yPosition) = RangeMapFloat(static_cast<float>(cords.y), 0.f, static_cast<float>(m_map->m_maxHeight), 0.f, 1.f);
 	int taskIndex = GetIndexOfOutputTask(TASK_MOVE);
 	m_desiredOuputs.at(taskIndex) = 1;
-}
+	//m_map->CreateExplosions(m_map->GetMapPosition(cords));
+}*/
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : Sets desired output to train to drop resource
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetOuputsToTrainToDropResource()
-{
-	int taskIndex = GetIndexOfOutputTask(TASK_DROP_RESOURCE);
-	m_desiredOuputs.at(taskIndex) = 1;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : Sets desired output to train gather resource
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetOuputsToTrainToGatherResource()
-{
-	int taskIndex = GetIndexOfOutputTask(TASK_GATHER_RESOURCE);
-	m_desiredOuputs.at(taskIndex) = 1;
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
@@ -1236,36 +1119,72 @@ float Entity::GetMiniMapValue()
 	switch (m_type)
 	{
 	case CIVILIAN:
-		return (static_cast<float>(m_teamID) * 0.5f) + 0.05f;
+		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.30f;
 		break;
 	case WARRIOR_SHORT_RANGE:
-		return (static_cast<float>(m_teamID) * 0.5f) + 0.1f;
+		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.25f;
 		break;
 	case WARRIOR_LONG_RANGE:
-		return (static_cast<float>(m_teamID) * 0.5f) + 0.15f;
+		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.20f;
 		break;
 	case HOUSE:
-		return (static_cast<float>(m_teamID) * 0.5f) + 0.20f;
+		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.05f;
 		break;
 	case TOWN_CENTER:
-		return (static_cast<float>(m_teamID) * 0.5f) + 0.25f;
+		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.10f;
 		break;
 	case RESOURCE_FOOD:
-		return (static_cast<float>(m_teamID) * 0.5f) + 0.30f;
+		return 0.80f;
 		break;
 	case RESOURCE_STONE:
-		return (static_cast<float>(m_teamID) * 0.5f) + 0.35f;
+		return 0.85f;
 		break;
 	case RESOURCE_WOOD:
-		return (static_cast<float>(m_teamID) * 0.5f) + 0.40f;
+		return 0.90f;
 		break;
 	case ARMY_SPAWNER:
-		return (static_cast<float>(m_teamID) * 0.5f) + 0.45f;
+		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.15f;
 		break;
 	default:
 		break;
 	}
 	return 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : retrives task output value
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Entity::GetTaskValueFromNNOutput(TaskType type)
+{
+	for(int index = 0;index < m_taskTypeSupported.size();index++)
+	{
+		if(type == m_taskTypeSupported.at(index))
+		{
+			return m_neuralNet.m_outputs->m_neurons.at(index).m_value;
+		}
+	}
+	return -1.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Entity::GetTaskValueFromDesiredOutput(TaskType type)
+{
+	for (int index = 0; index < m_taskTypeSupported.size(); index++)
+	{
+		if (type == m_taskTypeSupported.at(index))
+		{
+			return m_desiredOuputs.at(index);
+		}
+	}
+	return -1.f;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1278,7 +1197,7 @@ TaskType Entity::GetTaskFromNNOutput()
 {
 	float max = 0.f;
 	TaskType type = m_taskTypeSupported.at(0);
-	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size(); outputIndex++)
+	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size() - 2; outputIndex++)
 	{
 		if(m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value > max)
 		{
@@ -1296,13 +1215,66 @@ TaskType Entity::GetTaskFromNNOutput()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IntVector2 Entity::GetTaskPositonFromNNOutput()
 {
-	float xPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size()).m_value;
-	float yPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() + 1).m_value;
+	float xPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
+	float yPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
 	float xRangedValue = RangeMapFloat(xPosition, 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxWidth));
 	float yRangedValue = RangeMapFloat(yPosition, 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxHeight));
-	xRangedValue	   = ClampFloat(xRangedValue, 0.f, static_cast<int>(m_map->m_maxWidth));
-	yRangedValue	   = ClampFloat(yRangedValue, 0.f, static_cast<int>(m_map->m_maxHeight));
-	return IntVector2(static_cast<int>(xRangedValue), static_cast<int>(yRangedValue));
+	int xPos		   = ClampInt(static_cast<int>(xRangedValue), 0, m_map->m_maxWidth - 1);
+	int yPos		   = ClampInt(static_cast<int>(yRangedValue), 0, m_map->m_maxHeight - 1);
+	return IntVector2(xPos,yPos);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Entity::GetRelativeCellLocation(float x, float y)
+{
+	int retX = -1;
+	int retY = -1;
+	if (x > 0.66)
+	{
+		retX = 1;
+	}
+	else if(x > 0.33)
+	{
+		retX = 0;
+	}
+	
+	if (y > 0.66)
+	{
+		retY = 1;
+	}
+	else if (y > 0.33)
+	{
+		retY = 0;
+	}
+	return IntVector2(retX, retY);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : Retrieves a random safe area from the map
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Entity::GetRandomSafeArea()
+{
+	//return IntVector2(39, 19);
+	return IntVector2(GetRandomIntInRange(m_minSafeArea.x, m_maxSafeArea.x), GetRandomIntInRange(m_minSafeArea.y, m_maxSafeArea.y));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : Retrives a random area in the teritary
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Entity::GetRandomTeritaryArea()
+{
+	return IntVector2(GetRandomIntInRange(m_minTeritaryArea.x, m_maxTeritaryArea.x), GetRandomIntInRange(m_minTeritaryArea.y, m_maxTeritaryArea.y));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1313,6 +1285,7 @@ IntVector2 Entity::GetTaskPositonFromNNOutput()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushIdleTask(IntVector2 cordinate)
 {
+	UNUSED(cordinate);
 	EmptyTaskQueue();
 	Task *idleTask = new TaskIdle();
 	m_taskQueue.push(idleTask);

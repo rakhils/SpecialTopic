@@ -1,6 +1,7 @@
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GameCommon.hpp"
 #include "Game/Game.hpp"
+#include "Game/App.hpp"
 
 #include "Engine/Core/Windows.hpp"
 #include "Engine/Renderer/Camera/OrthographicCamera.hpp"
@@ -30,43 +31,37 @@ void Map::Initialize()
 	m_maxWidth  = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
 
-	
-	//CreateCivilian(Vector2::ONE * 500, 1);
-/*
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);
-	CreateCivilian(Vector2::ONE * 500, 1);*/
 
-	CreateResources(Vector2(840, 720),  RESOURCE_FOOD);
-
-	CreateResources(Vector2(200,300),  RESOURCE_FOOD);
-	CreateResources(Vector2(200, 500), RESOURCE_WOOD);
-	CreateResources(Vector2(300, 500), RESOURCE_STONE);
-
-
+	/*CreateResources(Vector2(840, 720),  RESOURCE_FOOD);
 	CreateResources(Vector2(900, 500),  RESOURCE_WOOD);
 	CreateResources(Vector2(1100, 500), RESOURCE_STONE);
-
-
-	CreateTownCenter(Vector2(20, 340), 1);
 	CreateTownCenter(Vector2(800, 600), 2);
-	CreateCivilian(Vector2(840, 680), 2);
+	CreateCivilian(Vector2(920, 680), 2);*/
 
-	//CreateClassAWarrior(Vector2(500, 300), 1);
-	CreateArmySpawner(Vector2(500, 300), 1);
+
+	CreateTownCenter(GetMapPosition(10), 1);
+	CreateResources(GetMapPosition(19), RESOURCE_FOOD);
+	//CreateResources(GetMapPosition(20), RESOURCE_WOOD);
+	//CreateResources(GetMapPosition(20), RESOURCE_STONE);
+	CreateTownCenter(GetMapPosition(62), 2);
+	CreateCivilian(GetMapPosition(56), 2);
+
+	/*CreateResources     (GetMapPosition(0), RESOURCE_FOOD);
+	CreateResources     (GetMapPosition(1), RESOURCE_WOOD);
+	CreateResources     (GetMapPosition(2), RESOURCE_STONE);
+	CreateTownCenter    (GetMapPosition(3), 1);
+	CreateTownCenter    (GetMapPosition(4), 2);
+	CreateCivilian      (GetMapPosition(5), 1);
+	CreateCivilian      (GetMapPosition(6), 2);
+	CreateClassAWarrior (GetMapPosition(7), 1);
+	CreateClassAWarrior (GetMapPosition(8), 2);
+	CreateClassBWarrior (GetMapPosition(9), 1);
+	CreateClassBWarrior (GetMapPosition(10), 2);
+	CreateHouse			(GetMapPosition(11), 1);
+	CreateHouse			(GetMapPosition(12), 2);
+	CreateArmySpawner   (GetMapPosition(13), 1);
+	CreateArmySpawner   (GetMapPosition(14), 2);*/
+	
 	InitMiniMap();
 }
 
@@ -251,6 +246,25 @@ bool Map::IsNeighbours(IntVector2 position1, IntVector2 position2, int distance)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/11
+*@purpose : Check if the entity is resource
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::IsResource(Entity * entity)
+{
+	if(entity == nullptr)
+	{
+		return false;
+	}
+	if(entity->m_type == RESOURCE_FOOD || entity->m_type == RESOURCE_STONE || entity->m_type == RESOURCE_WOOD)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/22
 *@purpose : Init all mini map values
 *@param   : NIL
@@ -303,11 +317,11 @@ void Map::UpdateMiniMap()
 float Map::GetMiniMapValueAtPosition(int x, int y)
 {
 	int tileIndex = y * m_maxWidth + x;
-	if (tileIndex < m_maxHeight * m_maxWidth)
+	if (tileIndex >= 0 && tileIndex < m_maxHeight * m_maxWidth)
 	{
 		return m_minimapValue.at(tileIndex);
 	}
-	return -1;
+	return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -319,7 +333,7 @@ float Map::GetMiniMapValueAtPosition(int x, int y)
 void Map::SetMiniMapValues(int x, int y, float minimapValue)
 {
 	int tileIndex = y * m_maxWidth + x;
-	if(tileIndex < m_maxHeight * m_maxWidth)
+	if(tileIndex >= 0 && tileIndex < m_maxHeight * m_maxWidth)
 	{
 		m_minimapValue.at(tileIndex) = minimapValue;
 	}
@@ -442,6 +456,97 @@ IntVector2 Map::GetTilePosition(int tilePosition)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Map::GetRandomNeighbour(IntVector2 tileCords, int distance)
+{
+
+	IntVector2 tileCordsE = IntVector2(tileCords.x + distance, tileCords.y + 0);
+	IntVector2 tileCordsN = IntVector2(tileCords.x + 0, tileCords.y + distance);
+	IntVector2 tileCordsW = IntVector2(tileCords.x - distance, tileCords.y + 0);
+	IntVector2 tileCordsS = IntVector2(tileCords.x + 0, tileCords.y - distance);
+
+	IntVector2 tileCordsNE = IntVector2(tileCords.x + distance, tileCords.y + distance);
+	IntVector2 tileCordsNW = IntVector2(tileCords.x - distance, tileCords.y + distance);
+	IntVector2 tileCordsSW = IntVector2(tileCords.x - distance, tileCords.y - distance);
+	IntVector2 tileCordsSE = IntVector2(tileCords.x + distance, tileCords.y - distance);
+
+
+	if (IsValidCordinate(tileCordsE))
+	{
+		if (!HasAnyEntityInTile(tileCordsE))
+		{
+			return tileCordsE;
+		}
+	}
+	if (IsValidCordinate(tileCordsN))
+	{
+		if (!HasAnyEntityInTile(tileCordsN))
+		{
+			return tileCordsN;
+		}
+	}
+	if (IsValidCordinate(tileCordsW))
+	{
+		if (!HasAnyEntityInTile(tileCordsW))
+		{
+			return tileCordsW;
+		}
+	}
+	if (IsValidCordinate(tileCordsS))
+	{
+		if (!HasAnyEntityInTile(tileCordsS))
+		{
+			return tileCordsS;
+		}
+	}
+	if (IsValidCordinate(tileCordsNE))
+	{
+		if (!HasAnyEntityInTile(tileCordsNE))
+		{
+			return tileCordsNE;
+		}
+	}
+	if (IsValidCordinate(tileCordsNW))
+	{
+		if (!HasAnyEntityInTile(tileCordsNW))
+		{
+			return tileCordsNW;
+		}
+	}
+	if (IsValidCordinate(tileCordsSW))
+	{
+		if (!HasAnyEntityInTile(tileCordsSW))
+		{
+			return tileCordsSW;
+		}
+	}
+	if (IsValidCordinate(tileCordsSE))
+	{
+		if (!HasAnyEntityInTile(tileCordsSE))
+		{
+			return tileCordsSE;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : Clamp cords to the map cords
+*@param   : Cords
+*@return  : Clamped cords
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Map::ClampCordinates(IntVector2 cords)
+{
+	cords.x = ClampInt(cords.x, 0, m_maxWidth - 1);
+	cords.y = ClampInt(cords.y, 0, m_maxHeight - 1);
+	return cords;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31
 *@purpose : NIL
 *@param   : NIL
@@ -481,8 +586,19 @@ int Map::GetCellDistance(Vector2 position, Vector2 position2)
 {
 	IntVector2 cords1 = GetCordinates(position);
 	IntVector2 cords2 = GetCordinates(position2);
+	return GetCellDistance(cords1, cords2);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Map::GetCellDistance(IntVector2 cords1, IntVector2 cords2)
+{
 	IntVector2 distance = cords1 - cords2;
-	if(GetAbsolute(distance.x) > GetAbsolute(distance.y))
+	if (GetAbsolute(distance.x) > GetAbsolute(distance.y))
 	{
 		return GetAbsolute(distance.x);
 	}
@@ -704,7 +820,7 @@ Entity * Map::GetEntityFromPosition(Vector2 position)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::vector<Entity*> Map::GetAllEntitiesFromPosition(Vector2 mapPosition, int cellDistance)
+std::vector<Entity*> Map::GetAllEntitiesNearLocation(Vector2 mapPosition, int cellDistance)
 {
 	std::vector<Entity*> entityList;
 	IntVector2 cords = GetCordinates(mapPosition);
@@ -749,6 +865,46 @@ std::vector<Entity*> Map::GetAllEntitiesFromPosition(Vector2 mapPosition, int ce
 		entityList.push_back(entity);
 	}
 	return entityList;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<Entity*> Map::GetAllResourcesNearLocation(Vector2 mapPosition, int distance)
+{
+	std::vector<Entity*> entityList = GetAllEntitiesNearLocation(mapPosition, distance);
+	std::vector<Entity*> resourceList;
+	for (int entityIndex = 0; entityIndex < entityList.size(); entityIndex++)
+	{	
+		if(entityList.at(entityIndex)->m_type == RESOURCE_FOOD || entityList.at(entityIndex)->m_type == RESOURCE_STONE ||entityList.at(entityIndex)->m_type == RESOURCE_WOOD)
+		{
+			resourceList.push_back(entityList.at(entityIndex));
+		}
+	}
+	return resourceList;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<Entity*> Map::GetAllTownCentersNearLocation(Vector2 mapPosition, int distance)
+{
+	std::vector<Entity*> entityList = GetAllEntitiesNearLocation(mapPosition, distance);
+	std::vector<Entity*> resourceList;
+	for (int entityIndex = 0; entityIndex < entityList.size(); entityIndex++)
+	{
+		if (entityList.at(entityIndex)->m_type == TOWN_CENTER)
+		{
+			resourceList.push_back(entityList.at(entityIndex));
+		}
+	}
+	return resourceList;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -986,6 +1142,10 @@ void Map::ProcessInputs(float deltaTime)
 	{
 		g_currentSelectedEntity = nullptr;
 	}
+	if(InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_P))
+	{
+		g_enableDebugPrints = g_enableDebugPrints == true ? false : true;
+	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_1))
 	{
 		m_townCenters.at(0)->m_resourceStat.m_food++;
@@ -1070,6 +1230,7 @@ void Map::Update(float deltaTime)
 		return;
 	}
 	ProcessInputs(deltaTime);
+	UpdateMiniMap();
 
 	UpdateCamera(deltaTime);
 	UpdateResources(deltaTime);
@@ -1081,7 +1242,6 @@ void Map::Update(float deltaTime)
 	UpdateTownCenters(deltaTime);
 	UpdateExplosions(deltaTime);
 
-	UpdateMiniMap();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1219,7 +1379,7 @@ void Map::Render()
 {
 	Camera::SetCurrentCamera(m_camera);
 	Renderer::GetInstance()->BeginFrame();
-	DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d", Game::s_gameCounter);
+	DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d", App::s_gameCounter);
 	RenderCivilians();
 	RenderClassAWarriors();
 	RenderClassBWarriors();

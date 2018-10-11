@@ -130,14 +130,16 @@ void NeuralNetwork::FeedForward(std::vector<float> &inputs, std::vector<float> &
 	{
 		if(inputIndex < m_inputs->m_neurons.size())
 		{
-			m_inputs->m_neurons.at(inputIndex).m_value = inputs.at(inputIndex);
+			//m_inputs->m_neurons.at(inputIndex).m_value = (inputs.at(inputIndex));
+			m_inputs->m_neurons.at(inputIndex).m_value = GetSigmoidValue(inputs.at(inputIndex));
 		}
 	}
 	for(;inputIndex < inputs.size() + inputs1.size(); inputIndex++)
 	{
 		if(inputIndex < m_inputs->m_neurons.size())
 		{
-			m_inputs->m_neurons.at(inputIndex).m_value = inputs1.at(inputIndex - inputs.size());
+			//m_inputs->m_neurons.at(inputIndex).m_value = GetSigmoidValue(inputs1.at(inputIndex - inputs.size()));
+			m_inputs->m_neurons.at(inputIndex).m_value = (inputs1.at(inputIndex - inputs.size()));
 		}
 	}
 	FeedForwardNN();
@@ -880,6 +882,13 @@ void NeuralNetwork::StoreToFile(const char* filePathname)
 			FileAppendString(fp, ":");
 		}
 	}
+	for (int inputNeuronWeightIndex = 0; inputNeuronWeightIndex < m_inputs->m_bias.m_weights.size(); inputNeuronWeightIndex++)
+	{
+		float myweight = m_inputs->m_bias.m_weights.at(inputNeuronWeightIndex);
+		FileAppendString(fp, ToString(myweight));
+		FileAppendString(fp, ":");
+	}
+
 	for (int hiddenNeuronIndex = 0; hiddenNeuronIndex < m_hiddenLayers->m_neurons.size(); hiddenNeuronIndex++)
 	{
 		for (int hiddenNeuronWeightIndex = 0; hiddenNeuronWeightIndex < m_hiddenLayers->m_neurons.at(hiddenNeuronIndex).m_weights.size(); hiddenNeuronWeightIndex++)
@@ -888,6 +897,12 @@ void NeuralNetwork::StoreToFile(const char* filePathname)
 			FileAppendString(fp, ToString(myweight));
 			FileAppendString(fp, ":");
 		}
+	}
+	for (int hiddenNeuronWeightIndex = 0; hiddenNeuronWeightIndex < m_hiddenLayers->m_bias.m_weights.size(); hiddenNeuronWeightIndex++)
+	{
+		float myweight = m_hiddenLayers->m_bias.m_weights.at(hiddenNeuronWeightIndex);
+		FileAppendString(fp, ToString(myweight));
+		FileAppendString(fp, ":");
 	}
 	FileClose(fp);
 }
@@ -913,6 +928,12 @@ void NeuralNetwork::LoadFromFile(const char* filePathname)
 			m_inputs->m_neurons.at(inputNeuronIndex).m_weights.at(inputNeuronWeightIndex) = weight;
 		}
 	}
+	for (int inputNeuronWeightIndex = 0; inputNeuronWeightIndex < m_inputs->m_bias.m_weights.size(); inputNeuronWeightIndex++)
+	{
+		float weight;
+		ToFloat(values.at(index++), &weight);
+		m_inputs->m_bias.m_weights.at(inputNeuronWeightIndex) = weight;
+	}
 	for (int hiddenNeuronIndex = 0; hiddenNeuronIndex < m_hiddenLayers->m_neurons.size(); hiddenNeuronIndex++)
 	{
 		for (int hiddenNeuronWeightIndex = 0; hiddenNeuronWeightIndex < m_hiddenLayers->m_neurons.at(hiddenNeuronIndex).m_weights.size(); hiddenNeuronWeightIndex++)
@@ -921,5 +942,11 @@ void NeuralNetwork::LoadFromFile(const char* filePathname)
 			ToFloat(values.at(index++), &weight);
 			m_hiddenLayers->m_neurons.at(hiddenNeuronIndex).m_weights.at(hiddenNeuronWeightIndex) = weight;
 		}
+	}
+	for (int hiddenNeuronWeightIndex = 0; hiddenNeuronWeightIndex < m_hiddenLayers->m_bias.m_weights.size(); hiddenNeuronWeightIndex++)
+	{
+		float weight;
+		ToFloat(values.at(index++), &weight);
+		m_hiddenLayers->m_bias.m_weights.at(hiddenNeuronWeightIndex) = weight;
 	}
 }

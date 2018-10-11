@@ -71,7 +71,7 @@ public:
 	bool							IsPositionInsideMap(Vector2 position);
 	bool							IsNeighbours(IntVector2 position1, IntVector2 position2);
 	bool							IsNeighbours(IntVector2 position1, IntVector2 position2,int distance);
-
+	bool							IsResource(Entity * entity);
 	//MINIMAP
 	void							InitMiniMap();
 	void							UpdateMiniMap();
@@ -85,9 +85,12 @@ public:
 	IntVector2						GetFreeNeighbourTile(Vector2 position,int distance);
 	IntVector2						GetTilePosition(int tilePosition);
 	IntVector2						GetTilePosition(Vector2 position);
+	IntVector2						GetRandomNeighbour(IntVector2 cords,int cellDistance);
+	IntVector2						ClampCordinates(IntVector2 cords);
 	int								GetTileIndex(Vector2 mapPosition);
 	int								GetTileIndex(IntVector2 position);
 	int								GetCellDistance(Vector2 position, Vector2 position2);
+	int								GetCellDistance(IntVector2 position, IntVector2 position2);
 
 	bool							HasAnyEntityInTile(int index);
 	bool							HasAnyEntityInTile(IntVector2 index);
@@ -96,7 +99,10 @@ public:
 	Entity *						GetEntityFromPosition(int index);
 	Entity *						GetEntityFromPosition(IntVector2 index);
 	Entity *						GetEntityFromPosition(Vector2 index);
-	std::vector<Entity*>			GetAllEntitiesFromPosition(Vector2 mapPosition,int distance);
+	std::vector<Entity*>			GetAllEntitiesNearLocation(Vector2 mapPosition,int distance);
+	std::vector<Entity*>			GetAllResourcesNearLocation(Vector2 mapPosition, int distance);
+	std::vector<Entity*>			GetAllTownCentersNearLocation(Vector2 mapPosition, int distance);
+	std::vector<Entity*>			GetAllEnemiesNearLocation(int teamID, Vector2 mapPosition, int distance);
 
 	bool							IsValidCordinate(IntVector2 cords);
 

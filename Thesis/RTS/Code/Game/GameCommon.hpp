@@ -36,6 +36,7 @@ extern int					g_mapMaxWidth;
 extern int					g_mapMaxHeight;
 extern bool					g_isQuitting;
 extern bool					g_enableNeuralNet;
+extern bool					g_isCurrentlyTraining;
 extern bool					g_enableDebugPrints;
 extern int					g_extraNNInputs;
 

@@ -34,11 +34,23 @@ public:
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
 	
-	float EvaluateNN(Task * task,EntityState previousState);
-	float EvaluateMoveTask(EntityState prevState);
-	float EvaluateOnRandomMoveTask(EntityState prevState);
-	float EvaluateIdleTask(EntityState prevState);
-	void TrainNN(Task *task,float evaluationValue);
+	void EvaluateNN(Task * task,EntityState previousState,IntVector2 cords);
+	void EvaluateMoveTask(EntityState prevState,IntVector2 location);
+	void EvaluateIdleTask(EntityState prevState);
+	void EvaluateGatherResourceTask(EntityState prevState,IntVector2 location);
+	void EvaluateDropResourceTask(EntityState prevState,IntVector2 location);
+	void EvaluateBuildHouseTask(EntityState prevState,IntVector2 location);
+	void EvaluateBuildArmySpawnerTask(EntityState prevState,IntVector2 location);
+
+	void SetDesiredOutputToMoveToNeighbour();
+	void SetDesiredOutputToMoveToSafeArea();
+	void SetDesiredOutputToMoveToRandomArea();
+	void SetDesiredOutputToRandomTask();
+
+	float EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cords);
+	float EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords);
+
+	void TrainNN(Task *task);
 	
 	void Render();
 

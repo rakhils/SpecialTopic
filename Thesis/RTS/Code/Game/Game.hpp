@@ -19,7 +19,6 @@ public:
 	bool isQuitTriggered = false;
 	
 	static Game *s_game;
-	static int   s_gameCounter;
 
 	Map *m_map			 = nullptr;
 

@@ -103,6 +103,8 @@ public:
 	float				  m_health				= 10;
 	float				  m_neuralNetTrainCount = 0;
 	NeuralNetwork		  m_neuralNet;
+	float				  m_lastDebug			= 0;
+	float				  m_debugPrintDelay		= 1;
 
 	Rgba				  m_color;
 	std::queue<Task*>	  m_taskQueue;
@@ -112,20 +114,31 @@ public:
 	std::vector<float>    m_lastInputState;
 	std::vector<float>    m_desiredOuputs;
 
+	IntVector2			  m_minSafeArea;
+	IntVector2			  m_maxSafeArea;
+	IntVector2			  m_minTeritaryArea;
+	IntVector2			  m_maxTeritaryArea;
+
 	Entity();
 	Entity(float x,float y);
 
 	Vector2					GetPosition();
+	IntVector2				GetCordinates();
 	int						GetTileIndex();
 	Rgba					GetTeamColor();
 	int						GetIndexOfMoveXPosition();
 	int						GetIndexOfMoveYPosition();
 	float					GetMiniMapValue();
+	float					GetTaskValueFromNNOutput(TaskType type);
+	float					GetTaskValueFromDesiredOutput(TaskType type);
 	TaskType				GetTaskFromNNOutput();
 	IntVector2				GetTaskPositonFromNNOutput();
-	int						GetIndexOfOutputTask(TaskType type);
+	IntVector2				GetRelativeCellLocation(float x, float y);
+	IntVector2				GetRandomSafeArea();
+	IntVector2				GetRandomTeritaryArea();
+
+	int						GetIndexOfTaskInNN(TaskType type);
 	Entity*					FindMyTownCenter();
-	Entity*					GetNearestResource();
 	std::vector<Entity*>	GetAllEntitiesNearMe(int cellDistance);
 
 	std::vector<Entity*>	GetResourceEntityFromList(std::vector<Entity*> &list);
@@ -138,11 +151,12 @@ public:
 
 	void					Update(float deltaTime);
 	void					UpdateTask();
-	virtual float			EvaluateNN(Task *task,EntityState previousState);
-	virtual void			TrainNN(Task *task,float evaluationValue);
+	virtual void			EvaluateNN(Task *task,EntityState previousState,IntVector2 cords);
+	virtual void			TrainNN(Task *task);
 	void					UpdateNN(float deltaTime);
 	void					UpdateTaskFromNN(float deltaTime);
 	void					UpdateEntityState();
+	void					PrintDebugNN();
 	void					Render();
 
 	void					UpdateUnitStatForFoodGathered(int count);
@@ -169,18 +183,8 @@ public:
 	void					SetPositionInFloat(Vector2 position);
 
 	void					EmptyTaskQueue();
-
-	float					EvaluateMoveTask(EntityState prevState);
-	float					EvaluateOnRandomMoveTask(EntityState prevState);
-	float					EvaluateMoveTaskToResource(EntityState prevState);
-	float					EvaluateMoveTaskToTownCenter(EntityState prevState);
-	float					EvaluateGatherResourceTask(EntityState prevState);
-	float					EvaluateDropResourceTask(EntityState prevState);
-
 	void					ClearDesiredOutputs();
-	void					SetOuputsToTrainToMoveToPosition(IntVector2 cords);
-	void					SetOuputsToTrainToDropResource();
-	void					SetOuputsToTrainToGatherResource();
+	void					SetDesiredOutputForTask(TaskType type,float value);
 
 	void					TakeDamage(float hitPoint);
 

@@ -18,6 +18,9 @@ public:
 	bool	   operator == (const Vector2& compare)    const;
 	IntVector2 operator -  (const IntVector2& compare);
 	IntVector2 operator +  (const IntVector2& intVectorA);
+	IntVector2 operator *  (const int &value);
+	IntVector2 operator /  (const int &value);
+
 	void IntVector2::SetFromText(const char* text);
 	Vector2 GetAsVector2();
 

@@ -3,7 +3,6 @@
 
 
 Game *Game::s_game = nullptr;
-int Game::s_gameCounter = 0;
 Game::Game()
 {
 
@@ -17,7 +16,6 @@ void Game::Render()
 void Game::Update(float deltaTime)
 {		
 	//InitSampleNN();
-	int updateCount = 1;
 	if(g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_ESCAPE))
 	{
 		isQuitTriggered = true;
@@ -26,68 +24,11 @@ void Game::Update(float deltaTime)
 	{
 		g_enableNeuralNet = g_enableNeuralNet ? false : true;
 	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_Q))
-	{
-		updateCount = 2500;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_W))
-	{
-		updateCount = 5000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_E))
-	{
-		updateCount = 7500;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_R))
-	{
-		updateCount = 10000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_A))
-	{
-		updateCount = 20000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_A))
-	{
-		updateCount = 20000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_S))
-	{
-		updateCount = 40000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_D))
-	{
-		updateCount = 60000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_F))
-	{
-		updateCount = 80000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_G))
-	{
-		updateCount = 100000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_H))
-	{
-		updateCount = 1000000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_J))
-	{
-		updateCount = 10000000;
-	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_K))
-	{
-		updateCount = 100000000;
-	}
 	if(m_map == nullptr)
 	{
 		m_map = new Map();
 	}
-	for(int index = 0;index < updateCount;index++)
-	{
-		s_gameCounter++;
-		m_map->Update(deltaTime);
-	}
-	updateCount = 1;
+	m_map->Update(deltaTime);
 }
 
 Game* Game::GetInstance()

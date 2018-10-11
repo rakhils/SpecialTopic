@@ -28,6 +28,8 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_BUILD_HOUSE);
 	m_taskTypeSupported.push_back(TASK_MOVE);
 	m_taskTypeSupported.push_back(TASK_IDLE);
+	m_taskTypeSupported.push_back(TASK_MOVEX);
+	m_taskTypeSupported.push_back(TASK_MOVEY);
 
 	InitNeuralNet();
 	InitStates();
@@ -130,72 +132,35 @@ void Civilian::Update(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Civilian::EvaluateNN(Task * task,EntityState previousState)
+void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords)
 {
+	UNUSED(task);
 	ClearDesiredOutputs();
-	int xPosition = static_cast<int>(m_desiredOuputs.size() - 2);
-	int yPosition = static_cast<int>(m_desiredOuputs.size() - 1);
-
-	std::vector<Entity*> entityList     = m_map->GetAllEntitiesFromPosition(previousState.m_position, 1);
-	std::vector<Entity*> townCenterList = GetMyTownCenterEntityFromList(entityList);
-	std::vector<Entity*> resourceList   = GetResourceEntityFromList(entityList);
-
-	if(previousState.m_hasResource)
-	{
-		if(townCenterList.size() > 0)
-		{
-			SetOuputsToTrainToDropResource();
-			return 1;
-		}
-		SetOuputsToTrainToMoveToPosition(m_map->GetFreeNeighbourTile(FindMyTownCenter()->GetPosition()));
-		return 1;
-	}
-
-	if(resourceList.size() > 0)
-	{
-		SetOuputsToTrainToGatherResource();
-		return 1;
-	}
-	if(townCenterList.size() > 0)
-	{
-		SetOuputsToTrainToMoveToPosition(m_map->GetFreeNeighbourTile(m_map->m_resources.at(0)->GetPosition()));
-		return 1;
-	}
-	SetOuputsToTrainToMoveToPosition(m_map->GetFreeNeighbourTile(FindMyTownCenter()->GetPosition()));
-	return 1;
-
-
-
-
-
-
-
-
-
-
-
-
-/*
+	
 	float evaluatedValue = 0.f;
 	switch (task->m_taskType)
 	{
 	case TASK_MOVE:
-		evaluatedValue = EvaluateMoveTask(previousState);
+		EvaluateMoveTask(previousState,cords);
 		break;
 	case TASK_GATHER_RESOURCE:
-		evaluatedValue = EvaluateGatherResourceTask(previousState);
+		EvaluateGatherResourceTask(previousState,cords);
 		break;
 	case TASK_DROP_RESOURCE:
-		evaluatedValue = EvaluateDropResourceTask(previousState);
+		EvaluateDropResourceTask(previousState,cords);
+		break;
+	case TASK_BUILD_HOUSE:
+		EvaluateBuildHouseTask(previousState, cords);
+		break;
+	case TASK_BUILD_ARMY_SPAWNER:
+		EvaluateBuildArmySpawnerTask(previousState, cords);
 		break;
 	case TASK_IDLE:
-		return 0.f;
+		EvaluateIdleTask(previousState);
 		break;
 	default:
 		break;
 	}
-	
-	return 0.f;*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,93 +169,268 @@ float Civilian::EvaluateNN(Task * task,EntityState previousState)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Civilian::EvaluateMoveTask(EntityState previousState)
+void Civilian::EvaluateMoveTask(EntityState previousState,IntVector2 cords)
+{
+	if(m_map->GetCordinates(previousState.m_position) == cords)
+	{
+		SetDesiredOutputToMoveToNeighbour();
+		return;
+	}
+
+	float evaluatedValue     = 0.f;
+	//float overallPoint       = 100.f;
+	float townCenterNearness = 0.f;
+	float resourceNearness   = 0.f;
+	float xPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
+	float yPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
+	if(m_resourceTypeCarrying != nullptr)
+	{
+		townCenterNearness = EvaluateMoveTaskToTownCenter(previousState,cords);
+		SetDesiredOutputForTask(TASK_MOVE, townCenterNearness);
+		if(townCenterNearness == 0.f)
+		{
+			SetDesiredOutputToMoveToSafeArea();
+			return;
+		}
+		if(townCenterNearness > 0 && townCenterNearness < 1.f)
+		{
+			IntVector2 neighbour = m_map->GetRandomNeighbour(m_map->GetCordinates(previousState.m_position),1);
+			xPosition = RangeMapFloat(neighbour.x, 0, m_map->m_maxWidth, 0, 1);
+			yPosition = RangeMapFloat(neighbour.x, 0, m_map->m_maxHeight, 0, 1);
+			SetDesiredOutputForTask(TASK_MOVEX, xPosition);
+			SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+			m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
+			return;
+		}
+		m_map->CreateExplosions(m_map->GetMapPosition(GetTaskPositonFromNNOutput()));
+		SetDesiredOutputForTask(TASK_MOVEX, xPosition);
+		SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+		return;
+	}
+	resourceNearness = EvaluateMoveTaskToResource(previousState,cords);
+	SetDesiredOutputForTask(TASK_MOVE, resourceNearness);
+	if (resourceNearness == 0.f)
+	{
+		SetDesiredOutputToMoveToRandomArea();
+		return;
+	}
+	if (resourceNearness > 0 && resourceNearness < 1.f)
+	{
+		IntVector2 neighbour = m_map->GetRandomNeighbour(m_map->GetCordinates(previousState.m_position),1);
+		xPosition = RangeMapFloat(neighbour.x, 0, m_map->m_maxWidth, 0, 1);
+		yPosition = RangeMapFloat(neighbour.x, 0, m_map->m_maxHeight, 0, 1);
+		SetDesiredOutputForTask(TASK_MOVEX, xPosition);
+		SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+		m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
+		return;
+	}
+	m_map->CreateExplosions(m_map->GetMapPosition(GetTaskPositonFromNNOutput()));
+
+	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
+	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::EvaluateIdleTask(EntityState prevState)
+{
+	SetDesiredOutputToMoveToNeighbour();
+	SetDesiredOutputToRandomTask();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::EvaluateGatherResourceTask(EntityState prevState,IntVector2 cords)
+{
+	std::vector<Entity*> resourceList = m_map->GetAllResourcesNearLocation(prevState.m_position, 1);
+	Entity * resourceEntity = m_map->GetEntityFromPosition(cords);
+	if(m_map->IsResource(resourceEntity))
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE, 1.f);
+		return;
+	}
+	if(resourceList.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE, 0.5f);
+		return;
+	}
+	SetDesiredOutputForTask(TASK_GATHER_RESOURCE, 0.f);
+	SetDesiredOutputToRandomTask();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::EvaluateDropResourceTask(EntityState prevState, IntVector2 cords)
+{
+	std::vector<Entity*> entityList = m_map->GetAllEntitiesNearLocation(prevState.m_position, 1);
+	std::vector<Entity*> mytownCenters = GetMyTownCenterEntityFromList(entityList);
+	Entity *townCenter = m_map->GetEntityFromPosition(cords);
+	if (townCenter != nullptr)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE, 1.f);
+		return;
+	}
+	if (mytownCenters.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE, 0.5f);
+		return;
+	}
+	SetDesiredOutputForTask(TASK_GATHER_RESOURCE, 0.f);
+	SetDesiredOutputToRandomTask();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::EvaluateBuildHouseTask(EntityState prevState, IntVector2 location)
+{
+	SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0);
+	SetDesiredOutputToMoveToNeighbour();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::EvaluateBuildArmySpawnerTask(EntityState prevState, IntVector2 location)
+{
+	SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0);
+	SetDesiredOutputToMoveToNeighbour();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::SetDesiredOutputToMoveToNeighbour()
+{
+	IntVector2 neighbour = m_map->GetRandomNeighbour(GetCordinates(),GetRandomIntLessThan(3));
+	float xPosition = RangeMapFloat(neighbour.x, 0, m_map->m_maxWidth, 0, 1);
+	float yPosition = RangeMapFloat(neighbour.y, 0, m_map->m_maxHeight, 0, 1);
+	SetDesiredOutputForTask(TASK_MOVE, 1);
+	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
+	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : Sets the desired output to move to safe area
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::SetDesiredOutputToMoveToSafeArea()
+{
+	IntVector2 neighbour = GetRandomSafeArea();
+	float xPosition = RangeMapFloat(neighbour.x, 0, m_map->m_maxWidth, 0, 1);
+	float yPosition = RangeMapFloat(neighbour.y, 0, m_map->m_maxHeight, 0, 1);
+	SetDesiredOutputForTask(TASK_MOVE, 1);
+	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
+	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+	m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::SetDesiredOutputToMoveToRandomArea()
+{
+	IntVector2 neighbour = GetRandomTeritaryArea();
+	float xPosition = RangeMapFloat(neighbour.x, 0, m_map->m_maxWidth, 0, 1);
+	float yPosition = RangeMapFloat(neighbour.y, 0, m_map->m_maxHeight, 0, 1);
+	SetDesiredOutputForTask(TASK_MOVE, 1);
+	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
+	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+	m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/11
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::SetDesiredOutputToRandomTask()
+{
+	int index = GetRandomIntLessThan(m_desiredOuputs.size());
+	SetDesiredOutputForTask(m_taskTypeSupported.at(index), GetRandomFloatZeroToOne());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Civilian::EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cords)
+{
+	Entity * townCenter = FindMyTownCenter();
+	int cellDistance = m_map->GetCellDistance(cords, townCenter->GetCordinates());
+	int maxDistance = 5;
+	if (cellDistance == 1)
+	{
+		return 1.f;
+	}
+	if (cellDistance < maxDistance)
+	{
+		return RangeMapFloat(static_cast<float>(cellDistance), 0.f, static_cast<float>(maxDistance), 1.f, 0.f);
+	}
+	return 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords)
 {
 	float evaluatedValue = 0.f;
-	if (previousState.m_hasResource)
+	float totalCount = 0;
+	float maxRange = 7;
+	for (int index = 0; index < m_map->m_resources.size(); index++)
 	{
-		evaluatedValue = EvaluateDropResourceTask(previousState);
-		if(evaluatedValue == 0)
+		int cellDistance = m_map->GetCellDistance(cords, m_map->GetCordinates(m_map->m_resources.at(index)->GetPosition()));
+		if (cellDistance > maxRange)
 		{
-			return EvaluateOnRandomMoveTask(previousState);
+			continue;
 		}
-		
-		return evaluatedValue;
-	}
-	evaluatedValue = EvaluateGatherResourceTask(previousState);
-	if(evaluatedValue == 0)
-	{
-		return EvaluateOnRandomMoveTask(previousState);
-	}
-	return evaluatedValue;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Civilian::EvaluateOnRandomMoveTask(EntityState prevState)
-{
-	int xPosition = static_cast<int>(m_desiredOuputs.size() - 2);
-	int yPosition = static_cast<int>(m_desiredOuputs.size() - 1);
-
-	std::vector<Entity*> entityList = GetAllEntitiesNearMe(1);
-	std::vector<Entity*> townCenterList = GetTownCenterEntityFromList(entityList);
-	for(int index = 0;index < townCenterList.size();index++)
-	{
-		if(townCenterList.at(index)->m_teamID == m_teamID)
+		if (cellDistance == 1)
 		{
-			Entity* resource = m_map->m_resources.at(0);
-			IntVector2 entityPosition = m_map->GetFreeNeighbourTile(resource->GetPosition());
-			m_desiredOuputs.at(xPosition) = RangeMapFloat(entityPosition.x, 0, m_map->m_maxWidth, 0, 1);
-			m_desiredOuputs.at(yPosition) = RangeMapFloat(entityPosition.y, 0, m_map->m_maxHeight, 0, 1);
-
-			int taskIndex = GetIndexOfOutputTask(TASK_MOVE);
-			m_desiredOuputs.at(taskIndex) = 1;
-			return 1;
+			return 1.f;
 		}
+		evaluatedValue += cellDistance;
+		totalCount++;
 	}
-
-	IntVector2 townCenterPosition = m_map->GetFreeNeighbourTile(FindMyTownCenter()->GetPosition());
-
-	m_desiredOuputs.at(xPosition) = RangeMapFloat(townCenterPosition.x, 0, m_map->m_maxWidth, 0, 1);
-	m_desiredOuputs.at(yPosition) = RangeMapFloat(townCenterPosition.y, 0, m_map->m_maxHeight, 0, 1);
-	int taskIndex = GetIndexOfOutputTask(TASK_MOVE);
-	m_desiredOuputs.at(taskIndex) = 1;
-	return 1.f;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/07
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Civilian::EvaluateIdleTask(EntityState prevState)
-{
-	int xPosition = static_cast<int>(m_desiredOuputs.size() - 2);
-	int yPosition = static_cast<int>(m_desiredOuputs.size() - 1);
-	if(prevState.m_hasResource)
+	if(totalCount == 0)
 	{
-		std::vector<Entity*> entityList = GetAllEntitiesNearMe(1);
-		std::vector<Entity*> townCenterList = GetTownCenterEntityFromList(entityList);
-		for (int index = 0; index < townCenterList.size(); index++)
-		{
-			if (townCenterList.at(index)->m_teamID == m_teamID)
-			{
-				Entity* resource = m_map->m_resources.at(0);
-				IntVector2 entityPosition = m_map->GetFreeNeighbourTile(resource->GetPosition());
-				m_desiredOuputs.at(xPosition) = RangeMapFloat(entityPosition.x, 0, m_map->m_maxWidth, 0, 1);
-				m_desiredOuputs.at(yPosition) = RangeMapFloat(entityPosition.y, 0, m_map->m_maxHeight, 0, 1);
-
-				int taskIndex = GetIndexOfOutputTask(TASK_MOVE);
-				m_desiredOuputs.at(taskIndex) = 1;
-				return 1;
-			}
-		}
+		return 0.f;
 	}
+	evaluatedValue /= totalCount;
+	return RangeMapFloat(evaluatedValue, 0, maxRange, 1, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -299,10 +439,10 @@ float Civilian::EvaluateIdleTask(EntityState prevState)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Civilian::TrainNN(Task *task,float evaluationValue)
+void Civilian::TrainNN(Task *task)
 {
 	m_neuralNet.DoBackPropogation(m_desiredOuputs);
-	Entity::TrainNN(task,evaluationValue);
+	Entity::TrainNN(task);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -322,6 +462,13 @@ void Civilian::Render()
 	Renderer::GetInstance()->BindMaterial(textMaterial);
 	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "C", g_fontSize, GetTeamColor());
 	
+
+	//std::vector<Entity*> entityList = m_map->GetAllEntitiesFromPosition(GetPosition(), 1);
+	//std::vector<Entity*> townCenterList = GetMyTownCenterEntityFromList(entityList);
+	//std::vector<Entity*> resourceList = GetResourceEntityFromList(entityList);
+	//
+	//DebugDraw::GetInstance()->DebugRenderLogf("NEIGHBOURS %d %d %d", entityList.size(), townCenterList.size(), resourceList.size());
+
 	//int cellDistance = m_map->GetCellDistance(FindMyTownCenter()->GetPosition(), GetPosition());
 	//DebugDraw::GetInstance()->DebugRenderLogf("CELL DISTANCE : %d", cellDistance);
 	delete textMaterial;

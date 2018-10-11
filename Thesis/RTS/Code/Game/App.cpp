@@ -14,6 +14,8 @@
 #include "Engine\Core\BytePacker.hpp"
 #include "Engine\Net\NetSession.hpp"
 
+int App::s_gameCounter = 0;
+
 App::App()
 {
 	g_theRenderer   = Renderer::GetInstance();
@@ -55,14 +57,14 @@ void App::RunFrame()
 	Clock::g_theMasterClock->BeginFrame();
 	Renderer::GetInstance()->BeginFrame();
 
-	g_theInput->BeginFrame();
+	
 	//g_audio->BeginFrame();
 
 	Update(MAX_DELTA_VALUE);
 	Render();
 
 	//g_audio->EndFrame();
-	g_theInput->EndFrame();
+	
 
 	Renderer::GetInstance()->EndFrame();
 	ProfilerManager::PoPProfiler();
@@ -71,12 +73,24 @@ void App::RunFrame()
 void App::Update(float deltaTime)
 {
 	ProfilerManager::PushProfiler("App::Update");
-	g_theGame->Update(deltaTime);
+	int temp = s_gameCounter;
+
+	do
+	{
+		g_theInput->BeginFrame();
+		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_E))
+		{
+			g_isCurrentlyTraining = g_isCurrentlyTraining ? false : true;
+		}
+		s_gameCounter++;
+		g_theGame->Update(deltaTime);
+		g_theInput->EndFrame();
+	} while (g_isCurrentlyTraining);
+
 	m_netSession->Update(deltaTime);
 	ProfilerManager::PoPProfiler();
 	EngineSystem::Update(MAX_DELTA_VALUE);
 	EngineSystem::UpdateProfiler(deltaTime);
-	//m_udp.Update();
 }
 
 void App::Render()

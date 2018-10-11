@@ -42,8 +42,9 @@ void Explosion::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Explosion::Render()
 {
-	Material *textMaterial = Material::AquireResource("default");
-	Renderer::GetInstance()->BindMaterial(textMaterial);
+	Material *defaultMaterial = Material::AquireResource("default");
+	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Disc2 disc(m_position, m_currentRadius);
 	g_theRenderer->DrawCircle(disc,Rgba::RED);
+	delete defaultMaterial;
 }

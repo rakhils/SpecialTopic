@@ -26,6 +26,8 @@ enum TaskType
 	TASK_SPAWN_CLASSA_WARRIOR,
 	TASK_SPAWN_CLASSB_WARRIOR,
 	TASK_IDLE,
+	TASK_MOVEX,
+	TASK_MOVEY
 };
 enum AttackSubTask
 {
@@ -62,6 +64,7 @@ public:
 
 	//Static_Methods
 	static std::string GetTaskTypeAsString(TaskType type);
+	static std::string GetTaskTypeAsShortString(TaskType type);
 
 protected:
 	//Member_Variables

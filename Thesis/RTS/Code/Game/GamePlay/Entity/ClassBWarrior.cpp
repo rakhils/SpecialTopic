@@ -21,7 +21,7 @@ ClassBWarrior::ClassBWarrior()
 ClassBWarrior::ClassBWarrior(Map *map, Vector2 position, int teamID)
 {
 	m_map = map;
-	m_type = WARRIOR_SHORT_RANGE;
+	m_type = WARRIOR_LONG_RANGE;
 	SetPosition(position);
 	SetTeam(teamID);
 	m_taskTypeSupported.push_back(TASK_LONG_ATTACK);
