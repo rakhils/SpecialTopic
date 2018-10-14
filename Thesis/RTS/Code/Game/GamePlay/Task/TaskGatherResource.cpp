@@ -5,15 +5,13 @@
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Entity/TownCenter.hpp"
 // CONSTRUCTOR
-TaskGatherResource::TaskGatherResource(Entity *entity,Entity *resource,Entity* townCenter)
+TaskGatherResource::TaskGatherResource(Entity *entity)
 {
 	m_entity     = entity;
-	m_resource   = resource;
-	m_townCenter = (TownCenter*)townCenter;
+	//m_resource   = resource;
+	m_townCenter = (TownCenter*)entity->FindMyTownCenter();
 	m_map        = entity->m_map;
-	m_targetPosition = m_resource->GetPosition();
 	SetStoragePosition(m_townCenter->GetPosition());
-	SetResourcePosition(resource->GetPosition());
 	m_taskType = TASK_GATHER_RESOURCE;
 }
 
@@ -95,12 +93,16 @@ void TaskGatherResource::UpdateResourceStorageStat(Entity *entityResourceType,in
 bool TaskGatherResource::DoTask(float deltaTime)
 {
 	UNUSED(deltaTime);
-	if (m_map->IsNeighbours(m_map->GetCordinates(m_resource->GetPosition()), m_map->GetCordinates(m_entity->GetPosition())))
+	if(((Civilian*)m_entity)->m_resourceTypeCarrying != nullptr)
 	{
-		((Civilian*)m_entity)->m_resourceTypeCarrying = m_resource;
-		m_entity->m_state.m_hasResource = true;
-		DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, m_entity->GetTeamColor(), "TASK GATHERED RESOURCE");
-		UpdateResourceStorageStat(((Civilian*)m_entity)->m_resourceTypeCarrying,1);
+		return true;
+	}
+	std::vector<Entity*> resourceList = m_map->GetAllResourcesNearLocation(m_entity->GetPosition(), 1);
+	if(resourceList.size() > 0)
+	{
+		UpdateResourceStorageStat(resourceList.at(0), 1);
+		((Civilian*)m_entity)->m_resourceTypeCarrying = resourceList.at(0);
+		CheckAndUpdateResourcesUsed();
 	}
 	return true;
 

@@ -9,6 +9,7 @@ TaskBuildArmySpawner::TaskBuildArmySpawner(Map *map, Entity *entity,Vector2 posi
 	m_targetPosition = position;
 	m_resourcesNeeded.m_stone = 5;
 	m_resourcesNeeded.m_wood  = 5;
+	m_taskType = TASK_BUILD_ARMY_SPAWNER;
 }
 
 // DESTRUCTOR
@@ -25,6 +26,10 @@ TaskBuildArmySpawner::~TaskBuildArmySpawner()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool TaskBuildArmySpawner::DoTask(float deltaTime)
 {
+	if (true)
+	{
+		return true;
+	}
 	IntVector2 entityPosition = m_map->GetTilePosition(m_entity->GetPosition());
 	IntVector2 buildPosition = m_map->GetTilePosition(m_targetPosition);
 	if (m_map->IsNeighbours(buildPosition, entityPosition))

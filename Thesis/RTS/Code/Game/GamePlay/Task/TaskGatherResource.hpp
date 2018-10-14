@@ -38,7 +38,7 @@ public:
 
 	//Methods
 
-	TaskGatherResource(Entity *entity,Entity *resource,Entity* townCenter);
+	TaskGatherResource(Entity *entity);
 	~TaskGatherResource();
 
 	void SetResourcePosition(Vector2 position);

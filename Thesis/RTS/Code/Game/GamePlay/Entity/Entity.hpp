@@ -56,7 +56,11 @@ public:
 		m_health						= state.m_health;
 		m_hasResource					= state.m_hasResource;
 		m_position						= state.m_position;
+
+		m_neuralNetPoints				= state.m_neuralNetPoints;
+
 	}
+
 	int		m_resourceFoodUsed			= 0;
 	int		m_resourceStoneUsed			= 0;
 	int		m_resourceWoodUsed			= 0;
@@ -81,43 +85,42 @@ public:
 
 	float	m_health					= 0.f;
 	bool	m_hasResource				= false;
+
+	int		m_neuralNetPoints			= 0;
 	Vector2	m_position;
 
 };
-
-
 class Map;
 class Entity
 {
 public:
-	Disc2				  m_disc;
-	AABB2				  m_aabb2;
-	Entity *			  m_resourceTypeCarrying = nullptr;
+	Disc2						m_disc;
+	AABB2						m_aabb2;
+	Entity *					m_resourceTypeCarrying = nullptr;
 
-	bool				  m_isSelected			= false;
-	EntityType			  m_type				= CIVILIAN;
-	EntityState			  m_state;
-	EntityState			  m_previousState;
-	int					  m_teamID				= 0;
-	Map *				  m_map					= nullptr;
-	float				  m_health				= 10;
-	float				  m_neuralNetTrainCount = 0;
-	NeuralNetwork		  m_neuralNet;
-	float				  m_lastDebug			= 0;
-	float				  m_debugPrintDelay		= 1;
+	bool						m_isSelected			= false;
+	EntityType					m_type					= CIVILIAN;
+	EntityState					m_state;
+	EntityState					m_previousState;
+	int							m_teamID				= 0;
+	Map *						m_map					= nullptr;
+	float						m_health				= 10;
+	float						m_neuralNetTrainCount	= 0;
+	NeuralNetwork				m_neuralNet;
+	float						m_lastDebug				= 0;
+	float						m_debugPrintDelay		= 1;
 
-	Rgba				  m_color;
-	std::queue<Task*>	  m_taskQueue;
-	std::vector<TaskType> m_taskTypeSupported;
-	std::vector<Stats>    m_statsSupported;
+	Rgba						m_color;
+	std::queue<Task*>			m_taskQueue;
+	std::vector<TaskType>		m_taskTypeSupported;
+	std::vector<Stats>			m_statsSupported;
 
-	std::vector<float>    m_lastInputState;
-	std::vector<float>    m_desiredOuputs;
+	std::vector<double>			 m_desiredOuputs;
 
-	IntVector2			  m_minSafeArea;
-	IntVector2			  m_maxSafeArea;
-	IntVector2			  m_minTeritaryArea;
-	IntVector2			  m_maxTeritaryArea;
+	IntVector2					m_minSafeArea;
+	IntVector2					m_maxSafeArea;
+	IntVector2					m_minTeritaryArea;
+	IntVector2					m_maxTeritaryArea;
 
 	Entity();
 	Entity(float x,float y);
@@ -129,13 +132,14 @@ public:
 	int						GetIndexOfMoveXPosition();
 	int						GetIndexOfMoveYPosition();
 	float					GetMiniMapValue();
-	float					GetTaskValueFromNNOutput(TaskType type);
-	float					GetTaskValueFromDesiredOutput(TaskType type);
-	TaskType				GetTaskFromNNOutput();
+	double					GetTaskValueFromNNOutput(TaskType type);
+	double					GetTaskValueFromDesiredOutput(TaskType type);
+	TaskType				GetTaskFromNNOutput(double &max);
 	IntVector2				GetTaskPositonFromNNOutput();
 	IntVector2				GetRelativeCellLocation(float x, float y);
 	IntVector2				GetRandomSafeArea();
 	IntVector2				GetRandomTeritaryArea();
+	bool					HasResource();
 
 	int						GetIndexOfTaskInNN(TaskType type);
 	Entity*					FindMyTownCenter();
@@ -145,6 +149,8 @@ public:
 	std::vector<Entity*>	GetTownCenterEntityFromList(std::vector<Entity*> &list);
 	std::vector<Entity*>	GetMyTownCenterEntityFromList(std::vector<Entity*> &list);
 	
+	IntVector2				GetBestNeighbour();
+
 	void					InitNeuralNet();
 	void					InitStates();
 	void					ProcessInputs(float deltaTime);
@@ -183,6 +189,7 @@ public:
 	void					SetPositionInFloat(Vector2 position);
 
 	void					EmptyTaskQueue();
+	void					CopyDesiredOutputs();
 	void					ClearDesiredOutputs();
 	void					SetDesiredOutputForTask(TaskType type,float value);
 
@@ -192,7 +199,7 @@ public:
 	bool					IsMovalbleObject();
 	bool					IsDifferentFaction(Entity *entity);
 	bool					IsResourceNearMe(int cellDistance);
-	
+
 	bool					CreateAndPushIdleTask(IntVector2 cordinate);
 	bool					CreateAndPushMoveTask(IntVector2 cordinate);
 	bool					CreateAndPushBuildHouseTask(IntVector2 cordinate);

@@ -26,6 +26,27 @@ struct Tile
 		position = m_position;
 	}
 };
+struct CellSensoryValues
+{
+	CellSensoryValues()
+	{
+		m_coords = IntVector2::MINUS_ONE;
+		m_townCenter1Nearness		= 0.f;
+		m_townCenter2Nearness		= 0.f;
+		m_resourceNearnessForFood	= 0.f;
+		m_resourceNearnessForStone	= 0.f;
+		m_resourceNearnessForWood   = 0.f;
+
+	}
+	IntVector2 m_coords;
+	float	   m_townCenter1Nearness;
+	float	   m_townCenter2Nearness;
+	float      m_resourceNearnessForWood;
+	float	   m_resourceNearnessForFood;
+	float	   m_resourceNearnessForStone;
+
+};
+
 class Map
 {
 public:
@@ -45,7 +66,8 @@ public:
 	std::vector<Entity*>			m_movableEntities;
 	std::vector<Entity*>			m_standAloneEntities;
 
-	std::vector<float>				m_minimapValue;
+	std::vector<double>				m_minimapValue;
+	std::vector<CellSensoryValues>  m_cellSensoryValues;
 
 	int								m_currentTileIndex = 0;
 	int								m_maxWidth;
@@ -57,6 +79,7 @@ public:
 	~Map();
 
 	void							Initialize();
+	void							InitCellSensoryValues();
 	void							InitCamera();
 
 	void							CreateCivilian(Vector2 position, int teamID);
@@ -75,18 +98,24 @@ public:
 	//MINIMAP
 	void							InitMiniMap();
 	void							UpdateMiniMap();
-	float							GetMiniMapValueAtPosition(int row, int column);
+	double							GetMiniMapValueAtPosition(int row, int column);
 	void							SetMiniMapValues(int row, int column, float minimapValue);
 
-
 	///////////////////////////////////////////////////////////////////////
+
+	// CELL VALUE
+	float							NearnessValueToTownCenter(IntVector2 coords,int teamID);
+	float							NearnessValueToResources (IntVector2 coords, EntityType type);
+	///////////////////////////////////////////////////////////////////////
+
 
 	IntVector2						GetFreeNeighbourTile(Vector2 position);
 	IntVector2						GetFreeNeighbourTile(Vector2 position,int distance);
 	IntVector2						GetTilePosition(int tilePosition);
 	IntVector2						GetTilePosition(Vector2 position);
 	IntVector2						GetRandomNeighbour(IntVector2 cords,int cellDistance);
-	IntVector2						ClampCordinates(IntVector2 cords);
+	std::vector<IntVector2>			GetAllNeighbourCoordinates(IntVector2 cords,int distance);
+	IntVector2						ClampCoordinates(IntVector2 cords);
 	int								GetTileIndex(Vector2 mapPosition);
 	int								GetTileIndex(IntVector2 position);
 	int								GetCellDistance(Vector2 position, Vector2 position2);

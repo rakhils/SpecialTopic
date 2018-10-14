@@ -24,6 +24,9 @@ int			     GetRandomIntLessThan(int maxExclusive);
 char			 GetRandomCharacter();
 Vector3			 GetRandomDirection();
 Vector3			 GetRandomPoint(Vector3 minBounds, Vector3 maxBounds);
+
+double			 GetRandomDoubleInRange(float minInclusive, float maxExclusive);
+
 // ANGLE , RADIANT RELATED FUNCTIONS
 float		     GetRadiantFromDegree(float angle);
 float		     ConvertRadiansToDegrees( float radians );

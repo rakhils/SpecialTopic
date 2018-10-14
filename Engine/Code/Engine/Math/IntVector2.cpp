@@ -51,12 +51,13 @@ Vector2 IntVector2::GetAsVector2()
 	return Vector2(static_cast<float>(x), static_cast<float>(y));
 }
 
-IntVector2 IntVector2::ZERO =  IntVector2(+0, +0);
-IntVector2 IntVector2::ONE =   IntVector2(+1, +1);
-IntVector2 IntVector2::EAST =  IntVector2(+1, +0);
-IntVector2 IntVector2::WEST =  IntVector2(-1, +0);
-IntVector2 IntVector2::NORTH = IntVector2(+0, +1);
-IntVector2 IntVector2::SOUTH = IntVector2(+0, -1);
+IntVector2 IntVector2::ZERO =		 IntVector2(+0, +0);
+IntVector2 IntVector2::ONE =		 IntVector2(+1, +1);
+IntVector2 IntVector2::MINUS_ONE =   IntVector2(-1, -1);
+IntVector2 IntVector2::EAST =		 IntVector2(+1, +0);
+IntVector2 IntVector2::WEST =		 IntVector2(-1, +0);
+IntVector2 IntVector2::NORTH =		 IntVector2(+0, +1);
+IntVector2 IntVector2::SOUTH =		 IntVector2(+0, -1);
 
 IntVector2::IntVector2()
 {
@@ -67,6 +68,15 @@ IntVector2::IntVector2(int x, int y)
 {
 	this->x = x;
 	this->y = y;
+}
+
+bool IntVector2::operator!=(const IntVector2& compare) const
+{
+	if(compare.x != x || compare.y != y)
+	{
+		return true;
+	}
+	return false;
 }
 
 bool IntVector2::operator==(const Vector2& compare) const

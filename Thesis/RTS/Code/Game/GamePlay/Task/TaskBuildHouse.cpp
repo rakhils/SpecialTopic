@@ -9,6 +9,7 @@ TaskBuildHouse::TaskBuildHouse(Map *map, Entity *entity, Vector2 position)
 	m_targetPosition = position;
 	m_resourcesNeeded.m_stone = 2;
 	m_resourcesNeeded.m_wood  = 2;
+	m_taskType = TASK_BUILD_HOUSE;
 }
 
 // DESTRUCTOR
@@ -25,6 +26,11 @@ TaskBuildHouse::~TaskBuildHouse()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool TaskBuildHouse::DoTask(float deltaTime)
 {
+	if(true)
+	{
+		return true;
+	}
+
 	IntVector2 entityPosition = m_map->GetTilePosition(m_entity->GetPosition());
 	IntVector2 buildPosition = m_map->GetTilePosition(m_targetPosition);
 	if (m_map->IsNeighbours(buildPosition, entityPosition))

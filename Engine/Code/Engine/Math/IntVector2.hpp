@@ -15,6 +15,7 @@ public:
 
 	void	   operator =  (Vector2 positionVector);
 	bool	   operator == (const IntVector2& compare) const;
+	bool	   operator != (const IntVector2& compare) const;
 	bool	   operator == (const Vector2& compare)    const;
 	IntVector2 operator -  (const IntVector2& compare);
 	IntVector2 operator +  (const IntVector2& intVectorA);
@@ -30,4 +31,5 @@ public:
 	static IntVector2 WEST;
 	static IntVector2 NORTH;
 	static IntVector2 SOUTH;
+	static IntVector2 MINUS_ONE;
 };

@@ -39,12 +39,12 @@ void Map::Initialize()
 	CreateCivilian(Vector2(920, 680), 2);*/
 
 
-	CreateTownCenter(GetMapPosition(10), 1);
-	CreateResources(GetMapPosition(19), RESOURCE_FOOD);
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
 	//CreateResources(GetMapPosition(20), RESOURCE_WOOD);
 	//CreateResources(GetMapPosition(20), RESOURCE_STONE);
-	CreateTownCenter(GetMapPosition(62), 2);
-	CreateCivilian(GetMapPosition(56), 2);
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
 
 	/*CreateResources     (GetMapPosition(0), RESOURCE_FOOD);
 	CreateResources     (GetMapPosition(1), RESOURCE_WOOD);
@@ -63,6 +63,57 @@ void Map::Initialize()
 	CreateArmySpawner   (GetMapPosition(14), 2);*/
 	
 	InitMiniMap();
+	InitCellSensoryValues();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Initialize sensory values
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitCellSensoryValues()
+{
+	for(int index = 0;index < m_maxWidth*m_maxHeight;index++)
+	{
+		CellSensoryValues cellValue;
+		int cellDistanceTC1 = GetCellDistance(m_townCenters.at(0)->GetCordinates(), GetCordinates(index));
+		int cellDistanceTC2 = GetCellDistance(m_townCenters.at(1)->GetCordinates(), GetCordinates(index));
+		int resourceFoodCount  = 0;
+		int resourceStoneCount = 0;
+		int resourceWoodCount  = 0;
+		int cellDistanceResourceFood  = 0;
+		int cellDistanceResourceStone = 0;
+		int cellDistanceResourceWood  = 0;
+
+		for(int resourceIndex = 0;resourceIndex < m_resources.size();resourceIndex++)
+		{
+			if(m_resources.at(resourceIndex)->m_type == RESOURCE_FOOD)
+			{
+				resourceFoodCount++;
+				cellDistanceResourceFood += GetCellDistance(m_resources.at(resourceIndex)->GetCordinates(), GetCordinates(index));
+			}
+			if (m_resources.at(resourceIndex)->m_type == RESOURCE_STONE)
+			{
+				resourceStoneCount++;
+				cellDistanceResourceStone += GetCellDistance(m_resources.at(resourceIndex)->GetCordinates(), GetCordinates(index));
+			}
+			if (m_resources.at(resourceIndex)->m_type == RESOURCE_WOOD)
+			{
+				resourceWoodCount++;
+				cellDistanceResourceWood += GetCellDistance(m_resources.at(resourceIndex)->GetCordinates(), GetCordinates(index));
+			}
+		}
+
+		int maxDistance = GetMax(m_maxHeight, m_maxWidth);
+		cellValue.m_coords = GetCordinates(index);
+		cellValue.m_townCenter1Nearness = RangeMapFloat(static_cast<float>(cellDistanceTC1), 1.f, static_cast<float>(maxDistance), 0,1);
+		cellValue.m_townCenter2Nearness = RangeMapFloat(static_cast<float>(cellDistanceTC2), 1.f, static_cast<float>(maxDistance), 0,1);
+		cellValue.m_resourceNearnessForFood  = RangeMapFloat(static_cast<float>(cellDistanceResourceFood/resourceFoodCount), 1.f, static_cast<float>(maxDistance), 0.f,1.f);
+		//cellValue.m_resourceNearnessForStone = RangeMapFloat(static_cast<float>(cellDistanceResourceStone/resourceStoneCount), 0.f, static_cast<float>(maxDistance), 1, 0);
+		//cellValue.m_resourceNearnessForWood  = RangeMapFloat(static_cast<float>(cellDistanceResourceWood/resourceWoodCount), 0.f, static_cast<float>(maxDistance), 1, 0);
+		m_cellSensoryValues.push_back(cellValue);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,7 +327,7 @@ void Map::InitMiniMap()
 	{
 		for(int indexX = 0;indexX < m_maxWidth;indexX++)
 		{
-			m_minimapValue.push_back(0.f);
+			m_minimapValue.push_back(0);
 			//SetMiniMapValues(rowIndex, columnIndex, 0);
 		}
 	}
@@ -314,7 +365,7 @@ void Map::UpdateMiniMap()
 *@param   : Row and column index
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Map::GetMiniMapValueAtPosition(int x, int y)
+double Map::GetMiniMapValueAtPosition(int x, int y)
 {
 	int tileIndex = y * m_maxWidth + x;
 	if (tileIndex >= 0 && tileIndex < m_maxHeight * m_maxWidth)
@@ -335,8 +386,52 @@ void Map::SetMiniMapValues(int x, int y, float minimapValue)
 	int tileIndex = y * m_maxWidth + x;
 	if(tileIndex >= 0 && tileIndex < m_maxHeight * m_maxWidth)
 	{
-		m_minimapValue.at(tileIndex) = minimapValue;
+		m_minimapValue.at(tileIndex) = static_cast<double>(minimapValue);
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Checks the clossness to townCenter
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Map::NearnessValueToTownCenter(IntVector2 coords, int teamID)
+{
+	CellSensoryValues cellValue = m_cellSensoryValues.at(GetTileIndex(coords));
+	if(teamID == 1)
+	{
+		return cellValue.m_townCenter1Nearness;
+	}
+	if(teamID == 2)
+	{
+		return cellValue.m_townCenter2Nearness;
+	}
+	return -1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Nearness value to type of resource
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Map::NearnessValueToResources(IntVector2 coords, EntityType type)
+{
+	CellSensoryValues cellValue = m_cellSensoryValues.at(GetTileIndex(coords));
+	switch (type)
+	{
+	case RESOURCE_FOOD:
+		cellValue.m_resourceNearnessForFood;
+		break;
+	case RESOURCE_STONE:
+		cellValue.m_resourceNearnessForStone;
+		break;
+	case RESOURCE_WOOD:
+		cellValue.m_resourceNearnessForWood;
+		break;
+	}
+	return -1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -463,19 +558,51 @@ IntVector2 Map::GetTilePosition(int tilePosition)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IntVector2 Map::GetRandomNeighbour(IntVector2 tileCords, int distance)
 {
+	tileCords			   = ClampCoordinates(tileCords);
+	IntVector2 tileCordsE  = ClampCoordinates(IntVector2(tileCords.x + distance, tileCords.y + 0));
+	IntVector2 tileCordsN  = ClampCoordinates(IntVector2(tileCords.x + 0, tileCords.y + distance));
+	IntVector2 tileCordsW  = ClampCoordinates(IntVector2(tileCords.x - distance, tileCords.y + 0));
+	IntVector2 tileCordsS  = ClampCoordinates(IntVector2(tileCords.x + 0, tileCords.y - distance));
+	
+	IntVector2 tileCordsNE = ClampCoordinates(IntVector2(tileCords.x + distance, tileCords.y + distance));
+	IntVector2 tileCordsNW = ClampCoordinates(IntVector2(tileCords.x - distance, tileCords.y + distance));
+	IntVector2 tileCordsSW = ClampCoordinates(IntVector2(tileCords.x - distance, tileCords.y - distance));
+	IntVector2 tileCordsSE = ClampCoordinates(IntVector2(tileCords.x + distance, tileCords.y - distance));
 
-	IntVector2 tileCordsE = IntVector2(tileCords.x + distance, tileCords.y + 0);
-	IntVector2 tileCordsN = IntVector2(tileCords.x + 0, tileCords.y + distance);
-	IntVector2 tileCordsW = IntVector2(tileCords.x - distance, tileCords.y + 0);
-	IntVector2 tileCordsS = IntVector2(tileCords.x + 0, tileCords.y - distance);
-
-	IntVector2 tileCordsNE = IntVector2(tileCords.x + distance, tileCords.y + distance);
-	IntVector2 tileCordsNW = IntVector2(tileCords.x - distance, tileCords.y + distance);
-	IntVector2 tileCordsSW = IntVector2(tileCords.x - distance, tileCords.y - distance);
-	IntVector2 tileCordsSE = IntVector2(tileCords.x + distance, tileCords.y - distance);
-
-
-	if (IsValidCordinate(tileCordsE))
+	std::vector<IntVector2> cords;
+	for(int index = tileCordsW.x;index <= tileCordsE.x;index++)
+	{
+		IntVector2 ncords(index, tileCordsW.y);
+		if(ncords == tileCords)
+		{
+			continue;
+		}
+		cords.push_back(ncords);
+	}
+	for (int index = tileCordsNW.x; index <= tileCordsNE.x; index++)
+	{
+		IntVector2 ncords(index, tileCordsNW.y);
+		if (ncords == tileCords)
+		{
+			continue;
+		}
+		cords.push_back(ncords);
+	}
+	for (int index = tileCordsSW.x; index <= tileCordsSE.x; index++)
+	{
+		IntVector2 ncords(index, tileCordsSE.y);
+		if (ncords == tileCords)
+		{
+			continue;
+		}
+		cords.push_back(ncords);
+	}
+	if(cords.size() == 0)
+	{
+		return IntVector2::ONE*-1;
+	}
+	return cords.at(GetRandomIntLessThan(cords.size()));
+	/*if (IsValidCordinate(tileCordsE))
 	{
 		if (!HasAnyEntityInTile(tileCordsE))
 		{
@@ -530,7 +657,84 @@ IntVector2 Map::GetRandomNeighbour(IntVector2 tileCords, int distance)
 		{
 			return tileCordsSE;
 		}
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/13
+*@purpose : Retrieves all neighbor coordinates
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<IntVector2> Map::GetAllNeighbourCoordinates(IntVector2 tileCords,int distance)
+{
+	tileCords = ClampCoordinates(tileCords);
+	IntVector2 tileCordsE = ClampCoordinates(IntVector2(tileCords.x + distance, tileCords.y + 0));
+	IntVector2 tileCordsN = ClampCoordinates(IntVector2(tileCords.x + 0, tileCords.y + distance));
+	IntVector2 tileCordsW = ClampCoordinates(IntVector2(tileCords.x - distance, tileCords.y + 0));
+	IntVector2 tileCordsS = ClampCoordinates(IntVector2(tileCords.x + 0, tileCords.y - distance));
+
+	IntVector2 tileCordsNE = ClampCoordinates(IntVector2(tileCords.x + distance, tileCords.y + distance));
+	IntVector2 tileCordsNW = ClampCoordinates(IntVector2(tileCords.x - distance, tileCords.y + distance));
+	IntVector2 tileCordsSW = ClampCoordinates(IntVector2(tileCords.x - distance, tileCords.y - distance));
+	IntVector2 tileCordsSE = ClampCoordinates(IntVector2(tileCords.x + distance, tileCords.y - distance));
+
+	std::vector<IntVector2> neighbourCords;
+	neighbourCords.reserve(8);
+	
+	for(int index = 0;index < 8;index++)
+	{
+		bool hasCordinate = false;
+		IntVector2 currentTileCords;
+		if(index == 0)
+		{
+			currentTileCords = tileCordsE;
+		}
+		if (index == 1)
+		{
+			currentTileCords = tileCordsN;
+		}
+		if (index == 2)
+		{
+			currentTileCords = tileCordsW;
+		}
+		if (index == 3)
+		{
+			currentTileCords = tileCordsS;
+		}
+		if (index == 4)
+		{
+			currentTileCords = tileCordsNE;
+		}
+		if (index == 5)
+		{
+			currentTileCords = tileCordsNW;
+		}
+		if (index == 6)
+		{
+			currentTileCords = tileCordsSW;
+		}
+		if (index == 7)
+		{
+			currentTileCords = tileCordsSE;
+		}
+		if(currentTileCords == tileCords)
+		{
+			continue;
+		}
+		for(int coordsIndex = 0;coordsIndex < neighbourCords.size();coordsIndex++)
+		{
+			if(neighbourCords.at(coordsIndex) == currentTileCords)
+			{
+				hasCordinate = true;
+			}
+		}
+		if(hasCordinate == false)
+		{
+			neighbourCords.push_back(currentTileCords);
+		}
 	}
+	return neighbourCords;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -539,7 +743,7 @@ IntVector2 Map::GetRandomNeighbour(IntVector2 tileCords, int distance)
 *@param   : Cords
 *@return  : Clamped cords
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Map::ClampCordinates(IntVector2 cords)
+IntVector2 Map::ClampCoordinates(IntVector2 cords)
 {
 	cords.x = ClampInt(cords.x, 0, m_maxWidth - 1);
 	cords.y = ClampInt(cords.y, 0, m_maxHeight - 1);

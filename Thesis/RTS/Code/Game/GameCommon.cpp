@@ -16,10 +16,25 @@ float				g_unitDistance  = g_radius * 2;
 bool				g_isQuitting	= false;
 int					g_mapMaxWidth	= 8;
 int					g_mapMaxHeight	= 8;
+int					g_hiddenLayerCount = 50;
 bool				g_isCurrentlyTraining = false;
 bool				g_enableNeuralNet = true;
 bool				g_enableDebugPrints = false;
 int					g_extraNNInputs = 8;
+
+
+// NN 
+float				g_desiredOutputForSameRandomPosition        = 0.5f;
+float				g_desiredOutputForRandomPosition            = 0.5f;
+
+float				g_desiredOutputForSameCriticalPosition      = 0.5f;
+float				g_desiredOutputForCriticalPosition	        = 0.75f;
+
+float				g_desiredOutputForSameVeryCriticalPosition  = 0.f;
+float				g_desiredOutputForVeryCriticalPosition      = 1.f;
+
+int					g_minCellDistanceToStartCounting			= 5;
+
 //HUD
 float				g_fontSize							 = 10;
 Vector3				g_resourceFoodPositionPopulationA	 (100, 1050, 0);

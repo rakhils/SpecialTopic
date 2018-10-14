@@ -79,13 +79,13 @@ void Game::InitSampleNN()
 
 	neuralNet.FeedForwardNN();
 	
-	std::vector<float> inputs;
-	inputs.push_back(.05f);
-	inputs.push_back(.1f);
+	std::vector<double> inputs;
+	inputs.push_back(.05);
+	inputs.push_back(.1);
 
-	std::vector<float> m_targetOuputs;
-	m_targetOuputs.push_back(.5f);
-	m_targetOuputs.push_back(.5f);
+	std::vector<double> m_targetOuputs;
+	m_targetOuputs.push_back(.5);
+	m_targetOuputs.push_back(.5);
 	for(int index = 0;index < 2000;index ++)
 	{
 		inputs.at(0) = GetRandomFloatZeroToOne();

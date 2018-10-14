@@ -42,13 +42,20 @@ public:
 	void EvaluateBuildHouseTask(EntityState prevState,IntVector2 location);
 	void EvaluateBuildArmySpawnerTask(EntityState prevState,IntVector2 location);
 
+	IntVector2 GetBestNeighbour();
+
 	void SetDesiredOutputToMoveToNeighbour();
+	void SetDesiredOutputToMoveToNeighbour(int distance);
 	void SetDesiredOutputToMoveToSafeArea();
 	void SetDesiredOutputToMoveToRandomArea();
 	void SetDesiredOutputToRandomTask();
 
-	float EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cords);
-	float EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords);
+	void SetDesiredOuputForMoveToTownCenterTask(float value,EntityState previousState,IntVector2 cords);
+	void SetDesiredOuputForMoveToResourceTask  (float value, EntityState previousState, IntVector2 cords);
+
+
+	void EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cords);
+	void EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords);
 
 	void TrainNN(Task *task);
 	

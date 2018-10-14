@@ -50,9 +50,9 @@ bool Task::CheckAndReduceResources()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Task::CheckAndUpdateResourcesUsed()
 {
-	//m_entity->m_state.m_resourceFoodUsed  += m_resourcesNeeded.m_food;
-	//m_entity->m_state.m_resourceStoneUsed += m_resourcesNeeded.m_stone;
-	//m_entity->m_state.m_resourceWoodUsed  += m_resourcesNeeded.m_wood;
+	m_entity->m_state.m_resourceFoodUsed  += m_resourcesNeeded.m_food;
+	m_entity->m_state.m_resourceStoneUsed += m_resourcesNeeded.m_stone;
+	m_entity->m_state.m_resourceWoodUsed  += m_resourcesNeeded.m_wood;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

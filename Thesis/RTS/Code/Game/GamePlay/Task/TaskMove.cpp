@@ -24,6 +24,11 @@ TaskMove::~TaskMove()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool TaskMove::DoTask(float deltaTime)
 {
+	Entity *targetPlaceEntity = m_map->GetEntityFromPosition(m_targetPosition);
+	if(targetPlaceEntity != nullptr && targetPlaceEntity != m_entity)
+	{
+		return true;
+	}
 	Vector2 currentPosition = m_entity->GetPosition();
 	Vector2 direction		= m_targetPosition - currentPosition;
 	direction				= direction.GetNormalized();

@@ -39,6 +39,22 @@ extern bool					g_enableNeuralNet;
 extern bool					g_isCurrentlyTraining;
 extern bool					g_enableDebugPrints;
 extern int					g_extraNNInputs;
+extern int					g_hiddenLayerCount;
+
+// NN OUTPUT
+extern float				g_desiredOutputForSameRandomPosition;
+extern float				g_desiredOutputForRandomPosition;
+
+extern float				g_desiredOutputForSameCriticalPosition;
+extern float				g_desiredOutputForCriticalPosition;
+
+extern float				g_desiredOutputForSameVeryCriticalPosition;
+extern float				g_desiredOutputForVeryCriticalPosition;
+
+extern int					g_minCellDistanceToStartCounting;
+
+
+
 
 //HUD
 extern float				g_fontSize;
