@@ -47,7 +47,7 @@ void Map::Initialize()
 		InitTrainingForShortRangeArmy();
 		break;
 	case MAP_MODE_TRAINING_LONGRANGE_ARMY:
-		InitTrainingForShortRangeArmy();
+		InitTrainingForLongRangeArmy();
 		break;
 	case MAP_MODE_TRAINING_ARMYSPAWNER:
 		InitTrainingForArmySpawner();
@@ -168,7 +168,17 @@ void Map::InitTrainingForCivilianGatherFood()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForCivilianGatherAllResources()
 {
+	m_maxWidth = g_mapMaxWidth;
+	m_maxHeight = g_mapMaxHeight;
 
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(20), RESOURCE_STONE);
+	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+
+
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -179,6 +189,17 @@ void Map::InitTrainingForCivilianGatherAllResources()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForCivilianBuildAll()
 {
+	m_maxWidth = g_mapMaxWidth;
+	m_maxHeight = g_mapMaxHeight;
+
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(20), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+
+
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
 
 }
 
@@ -190,7 +211,17 @@ void Map::InitTrainingForCivilianBuildAll()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForCivilian()
 {
+	m_maxWidth = g_mapMaxWidth;
+	m_maxHeight = g_mapMaxHeight;
 
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(20), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+
+
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -201,7 +232,14 @@ void Map::InitTrainingForCivilian()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForTownCenter()
 {
+	m_maxWidth = g_mapMaxWidth;
+	m_maxHeight = g_mapMaxHeight;
 
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,6 +250,15 @@ void Map::InitTrainingForTownCenter()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForShortRangeArmy()
 {
+	m_maxWidth = g_mapMaxWidth;
+	m_maxHeight = g_mapMaxHeight;
+
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
+	CreateClassAWarrior(GetMapPosition(20),2);
 
 }
 
@@ -223,7 +270,15 @@ void Map::InitTrainingForShortRangeArmy()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForLongRangeArmy()
 {
+	m_maxWidth = g_mapMaxWidth;
+	m_maxHeight = g_mapMaxHeight;
 
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
+	CreateClassBWarrior(GetMapPosition(32), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -234,7 +289,15 @@ void Map::InitTrainingForLongRangeArmy()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForArmySpawner()
 {
+	m_maxWidth = g_mapMaxWidth;
+	m_maxHeight = g_mapMaxHeight;
 
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
+	CreateArmySpawner(GetMapPosition(33), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,6 +324,15 @@ void Map::InitNonTrainingMode()
 	CreateHouse			(GetMapPosition(12), 2);
 	CreateArmySpawner   (GetMapPosition(13), 1);
 	CreateArmySpawner   (GetMapPosition(14), 2);*/
+
+	m_maxWidth  = 40;
+	m_maxHeight = 20;
+
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
