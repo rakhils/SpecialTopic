@@ -214,7 +214,7 @@ void Entity::ProcessInputs(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::TrainNN(Task *task)
 {
-
+	UNUSED(task);
 	for(int index = 0;index < m_taskTypeSupported.size()-2;index++)
 	{
 		if(m_neuralNet.m_outputs->m_neurons.at(index).m_sumOfPreviousLayer < -5.f)
@@ -327,7 +327,7 @@ void Entity::UpdateNN(float deltaTime)
 	double minimapValue    = m_map->GetMiniMapValueAtPosition(myPosition.x, myPosition.y);
 	m_map->SetMiniMapValues(myPosition.x, myPosition.y, 1);
 	m_neuralNet.FeedForward(m_map->m_minimapValue, m_gameStats);
-	m_map->SetMiniMapValues(myPosition.x, myPosition.y, minimapValue);
+	m_map->SetMiniMapValues(myPosition.x, myPosition.y, static_cast<float>(minimapValue));
 }
 
 void Entity::UpdateTaskFromNN(float deltaTime)
@@ -337,22 +337,8 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 	IntVector2 taskPosition = GetTaskPositonFromNNOutput();
 	m_previousState			= m_state;
 
-	/*if(max  < 0.01)
-	{
-		std::vector<double>  outputs;
-		for(int outputIndex = 0; outputIndex < m_taskTypeSupported.size() - 2;outputIndex++)
-		{
-			m_desiredOuputs.at(outputIndex) = 1;
-		}
-		for(int i = 0; i<100 ; i++)
-		{
-			m_neuralNet.DoBackPropogation(m_desiredOuputs);
-		}
-	}*/
-
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	float logTime = 3;
-
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	deltaTime = logTime;
@@ -461,7 +447,7 @@ void Entity::PrintDebugNN()
 {
 	if (g_isCurrentlyTraining == false && g_currentSelectedEntity == this && g_enableDebugPrints && static_cast<double>(m_lastDebug + m_debugPrintDelay) < GetCurrentTimeSeconds())
 	{
-		m_lastDebug = GetCurrentTimeSeconds();
+		m_lastDebug = static_cast<float>(GetCurrentTimeSeconds());
 		double max = 0;
 		TaskType task = GetTaskFromNNOutput(max);
 		IntVector2	taskPosition = GetTaskPositonFromNNOutput();

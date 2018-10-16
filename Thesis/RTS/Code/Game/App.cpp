@@ -1,8 +1,8 @@
 #include <iostream>
 #include <conio.h>
 #include "App.hpp"
-#include "Game.hpp"
-#include "GameCommon.hpp"
+#include "Game\Game.hpp"
+#include "Game\GameCommon.hpp"
 #include "Engine\Core\Time.hpp"
 #include "Engine\Math\MathUtil.hpp"
 #include "Engine\Time\Clock.hpp"
@@ -78,10 +78,6 @@ void App::Update(float deltaTime)
 	do
 	{
 		g_theInput->BeginFrame();
-		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_E))
-		{
-			g_isCurrentlyTraining = g_isCurrentlyTraining ? false : true;
-		}
 		s_gameCounter++;
 		g_theGame->Update(deltaTime);
 		g_theInput->EndFrame();

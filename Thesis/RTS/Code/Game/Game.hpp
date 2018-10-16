@@ -8,31 +8,51 @@
 #include "Engine/Core/Rgba.hpp"
 
 #include "Engine/Math/MathUtil.hpp"
-#include "GameCommon.hpp"
-#include "Engine\Core\Rgba.hpp"
-#include "Engine\Core\Image.hpp"
+#include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
+#include "Engine/Core/Rgba.hpp"
+#include "Engine/Core/Image.hpp"
 
+enum GameMode
+{
+	MAIN_MENU,
+	GAME_PLAY
+};
+struct MainMenuItems
+{
+	int m_index;
+	std::string m_menuItemString;
+};
 class Game
 {
 public:
-	bool isQuitTriggered = false;
-	
+	bool		 isQuitTriggered = false;
+	GameMode     m_gameMode;
+	Map *		 m_map			 = nullptr;
+	Camera *     m_camera		 = nullptr;
+	int			 m_currentIndex = 0;
+	bool		 m_init			= false;
+	std::vector<MainMenuItems> m_mainMenuItems;
+	// STATIC
 	static Game *s_game;
 
-	Map *m_map			 = nullptr;
-
-	Game::Game();
-	void Game::Update(float deltaTime);
-	void Game::Render();
-
-	void Game::InitSampleNN();
-	static Game* Game::GetInstance();
-
+	// FUNCIONS
+	Game();
+	~Game();
 	
+	void Initialize();
+	void InitMainMenuItems();
+	void InitCamera();
+	void Update(float deltaTime);
+	void Render();
+
+	void UpdateMap(float deltaTime);
+	void UpdateMainMenu(float deltaTime);
+
+	void RenderMap();
+	void RenderMainMenu();
+
+	void InitSampleNN();
+	static Game* GetInstance();
 
 };
-/*
-void UDPTestStart(Command &cmd);
-void UDPTestSend(Command &cmd);
-void UDPTestStop(Command &cmd);*/

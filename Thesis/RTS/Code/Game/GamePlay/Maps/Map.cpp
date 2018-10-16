@@ -14,7 +14,7 @@
 
 Map::Map()
 {
-	Initialize();
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -26,42 +26,37 @@ Map::Map()
 void Map::Initialize()
 {
 	InitCamera();
-	m_xOffset   = 0.f;
-	m_yOffset   = 2 * g_radius;
-	m_maxWidth  = g_mapMaxWidth;
-	m_maxHeight = g_mapMaxHeight;
-
-
-	/*CreateResources(Vector2(840, 720),  RESOURCE_FOOD);
-	CreateResources(Vector2(900, 500),  RESOURCE_WOOD);
-	CreateResources(Vector2(1100, 500), RESOURCE_STONE);
-	CreateTownCenter(Vector2(800, 600), 2);
-	CreateCivilian(Vector2(920, 680), 2);*/
-
-
-	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
-	//CreateResources(GetMapPosition(20), RESOURCE_WOOD);
-	//CreateResources(GetMapPosition(20), RESOURCE_STONE);
-	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
-
-	/*CreateResources     (GetMapPosition(0), RESOURCE_FOOD);
-	CreateResources     (GetMapPosition(1), RESOURCE_WOOD);
-	CreateResources     (GetMapPosition(2), RESOURCE_STONE);
-	CreateTownCenter    (GetMapPosition(3), 1);
-	CreateTownCenter    (GetMapPosition(4), 2);
-	CreateCivilian      (GetMapPosition(5), 1);
-	CreateCivilian      (GetMapPosition(6), 2);
-	CreateClassAWarrior (GetMapPosition(7), 1);
-	CreateClassAWarrior (GetMapPosition(8), 2);
-	CreateClassBWarrior (GetMapPosition(9), 1);
-	CreateClassBWarrior (GetMapPosition(10), 2);
-	CreateHouse			(GetMapPosition(11), 1);
-	CreateHouse			(GetMapPosition(12), 2);
-	CreateArmySpawner   (GetMapPosition(13), 1);
-	CreateArmySpawner   (GetMapPosition(14), 2);*/
-	
+	switch (m_mapMode)
+	{
+	case MAP_MODE_TRAINING_CIVILIAN_GATHER_FOOD:
+		InitTrainingForCivilianGatherFood();
+		break;
+	case MAP_MODE_TRAINING_CIVILIAN_GATHER_ALL_RESOURCES:
+		InitTrainingForCivilianGatherAllResources();
+		break;
+	case MAP_MODE_TRAINING_CIVILIAN_BUILD:
+		InitTrainingForCivilianBuildAll();
+		break;
+	case MAP_MODE_TRAINING_CIVILIAN:
+		InitTrainingForCivilian();
+		break;
+	case MAP_MODE_TRAINING_TOWNCENTER:
+		InitTrainingForTownCenter();
+		break;
+	case MAP_MODE_TRAINING_SHORTRANGE_ARMY:
+		InitTrainingForShortRangeArmy();
+		break;
+	case MAP_MODE_TRAINING_LONGRANGE_ARMY:
+		InitTrainingForShortRangeArmy();
+		break;
+	case MAP_MODE_TRAINING_ARMYSPAWNER:
+		InitTrainingForArmySpawner();
+		break;
+	case MAP_MODE_TRAINING_NONE:
+	default:
+		InitNonTrainingMode();
+		break;
+	}
 	InitMiniMap();
 	InitCellSensoryValues();
 }
@@ -134,6 +129,153 @@ void Map::InitCamera()
 	m_camera->m_transform.SetLocalPosition(Vector3(static_cast<float>(width / 2), static_cast<float>(height / 2), 0));
 	Camera::SetGameplayCamera(m_camera);
 	Camera::SetCurrentCamera(m_camera);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Sets the map type
+*@param   : Map type
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::SetMapType(MapMode type)
+{
+	m_mapMode = type;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitTrainingForCivilianGatherFood()
+{
+	m_maxWidth  = g_mapMaxWidth;
+	m_maxHeight = g_mapMaxHeight;
+
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(8),  RESOURCE_FOOD);
+
+	CreateTownCenter(GetMapPosition(61), 2);
+	CreateCivilian(GetMapPosition(42), 2);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Inits training of civilian with all resources
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitTrainingForCivilianGatherAllResources()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Trains civilian in building House,ArmySpawner,
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitTrainingForCivilianBuildAll()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Trains civilan for all tasks
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitTrainingForCivilian()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Trains town center to spawn villagers
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitTrainingForTownCenter()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Trains short range army to attack and move
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitTrainingForShortRangeArmy()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Trains long range army to attack and move
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitTrainingForLongRangeArmy()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Trains army spawner to spawn long range and short range armies
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitTrainingForArmySpawner()
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Initialize non training mode
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitNonTrainingMode()
+{
+	/*
+	CreateResources     (GetMapPosition(0), RESOURCE_FOOD);
+	CreateResources     (GetMapPosition(1), RESOURCE_WOOD);
+	CreateResources     (GetMapPosition(2), RESOURCE_STONE);
+	CreateTownCenter    (GetMapPosition(3), 1);
+	CreateTownCenter    (GetMapPosition(4), 2);
+	CreateCivilian      (GetMapPosition(5), 1);
+	CreateCivilian      (GetMapPosition(6), 2);
+	CreateClassAWarrior (GetMapPosition(7), 1);
+	CreateClassAWarrior (GetMapPosition(8), 2);
+	CreateClassBWarrior (GetMapPosition(9), 1);
+	CreateClassBWarrior (GetMapPosition(10), 2);
+	CreateHouse			(GetMapPosition(11), 1);
+	CreateHouse			(GetMapPosition(12), 2);
+	CreateArmySpawner   (GetMapPosition(13), 1);
+	CreateArmySpawner   (GetMapPosition(14), 2);*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Check if the map mode is non training
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::IsNonTrainingMode()
+{
+	if(m_mapMode == MAP_MODE_TRAINING_NONE)
+	{
+		return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -328,7 +470,6 @@ void Map::InitMiniMap()
 		for(int indexX = 0;indexX < m_maxWidth;indexX++)
 		{
 			m_minimapValue.push_back(0);
-			//SetMiniMapValues(rowIndex, columnIndex, 0);
 		}
 	}
 }
@@ -601,7 +742,7 @@ IntVector2 Map::GetRandomNeighbour(IntVector2 tileCords, int distance)
 	{
 		return IntVector2::ONE*-1;
 	}
-	return cords.at(GetRandomIntLessThan(cords.size()));
+	return cords.at(GetRandomIntLessThan(static_cast<int>(cords.size())));
 	/*if (IsValidCordinate(tileCordsE))
 	{
 		if (!HasAnyEntityInTile(tileCordsE))
@@ -1445,7 +1586,6 @@ void Map::Update(float deltaTime)
 	UpdateHouses(deltaTime);
 	UpdateTownCenters(deltaTime);
 	UpdateExplosions(deltaTime);
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1946,5 +2086,52 @@ void Map::RenderWinState()
 		return;
 	}
 	g_theRenderer->DrawTextOn3DPoint(Windows::GetInstance()->GetDimensions().GetAsVector2()/2.f, Vector3::RIGHT, Vector3::UP, "TEAM 1 WINS ", g_fontSize, Rgba::YELLOW);
+	delete textMaterial;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Returns map mode as string
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Map::GetMapModeAsString(MapMode mode)
+{
+	switch (mode)
+	{
+	case MAP_MODE_TRAINING_CIVILIAN_GATHER_FOOD:
+		return "TRAINING_CIVILIAN_GATHER_FOOD";
+		break;
+	case MAP_MODE_TRAINING_CIVILIAN_GATHER_ALL_RESOURCES:
+		return "TRAINING_CIVILIAN_GATHER_ALL_RESOURCES";
+		break;
+	case MAP_MODE_TRAINING_CIVILIAN_BUILD:
+		return "TRAINING_CIVILIAN_BUILD";
+		break;
+	case MAP_MODE_TRAINING_CIVILIAN:
+		return "TRAINING_CIVILIAN";
+		break;
+	case MAP_MODE_TRAINING_TOWNCENTER:
+		return "TRAINING_TOWNCENTER";
+		break;
+	case MAP_MODE_TRAINING_SHORTRANGE_ARMY:
+		return "TRAINING_SHORTRANGE_ARMY";
+		break;
+	case MAP_MODE_TRAINING_LONGRANGE_ARMY:
+		return "TRAINING_LONGRANGE_ARMY";
+		break;
+	case MAP_MODE_TRAINING_ARMYSPAWNER:
+		return "TRAINING_ARMYSPAWNER";
+		break;
+	case MAP_MODE_TRAINING_NONE:
+		return "TRAINING_NONE";
+		break;
+	case MAP_MODE_NUM_ITEMS:
+		return "NUM_ITEMS";
+		break;
+	default:
+		break;
+	}
+	return "INVALID";
 }
 

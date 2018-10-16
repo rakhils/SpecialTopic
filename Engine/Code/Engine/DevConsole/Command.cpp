@@ -1328,7 +1328,7 @@ void SendBad(Command &cmd)
 		{
 			char badMsg[70000];
 			NetMessage netmsg("");
-			int randomSize = GetRandomIntInRange(1, 1000);
+			//int randomSize = GetRandomIntInRange(1, 1000);
 			netmsg.WriteBytes(commandSize, badMsg);
 			connection->Send(netmsg);
 			DevConsole::GetInstance()->PushToOutputText("SENDING BAD MSG TO " +connection->GetIPPortAsString());

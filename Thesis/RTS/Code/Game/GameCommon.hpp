@@ -41,6 +41,8 @@ extern bool					g_enableDebugPrints;
 extern int					g_extraNNInputs;
 extern int					g_hiddenLayerCount;
 
+extern float				g_mapXOffset;
+extern float				g_mapYOffset;
 // NN OUTPUT
 extern float				g_desiredOutputForSameRandomPosition;
 extern float				g_desiredOutputForRandomPosition;
@@ -53,6 +55,9 @@ extern float				g_desiredOutputForVeryCriticalPosition;
 
 extern int					g_minCellDistanceToStartCounting;
 
+// MAIN MENU
+extern float				g_mainMenuStartY;
+extern float				g_mainMenuStartX;
 
 
 

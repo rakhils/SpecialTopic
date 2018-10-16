@@ -22,6 +22,13 @@ bool				g_enableNeuralNet = true;
 bool				g_enableDebugPrints = false;
 int					g_extraNNInputs = 8;
 
+float				g_mapXOffset;
+float				g_mapYOffset;
+
+// MAIN MENU
+
+float				g_mainMenuStartX = 300.f;
+float				g_mainMenuStartY = 800.f;
 
 // NN 
 float				g_desiredOutputForSameRandomPosition        = 0.5f;
@@ -70,6 +77,10 @@ AABB2				g_unitStatHUDSecondButton(Vector2::ONE,Vector2::ONE);
 *//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void InitVariables()
 {
+	g_mapXOffset					    = 0.f;
+	g_mapYOffset						= 2 * g_radius;
+
+
 	float windowsSizeX					= Windows::GetInstance()->GetDimensions().GetAsVector2().x;
 	float windowsSizeY					= Windows::GetInstance()->GetDimensions().GetAsVector2().y;
 

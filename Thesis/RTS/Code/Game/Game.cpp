@@ -1,34 +1,203 @@
 #include "Game.hpp"
 #include "Engine/Net/Socket.hpp"
-
+#include "Engine/Renderer/Materials/Material.hpp"
+#include "Engine/Core/StringUtils.hpp"
+#include "Engine/Renderer/Camera/OrthographicCamera.hpp"
 
 Game *Game::s_game = nullptr;
+
 Game::Game()
+{
+	
+}
+
+Game::~Game()
 {
 
 }
 
-void Game::Render()
+// INIT GAME
+void Game::Initialize()
 {
-	m_map->Render();
+	InitCamera();
+	InitMainMenuItems();
+	m_gameMode = MAIN_MENU;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Inits main menu items
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::InitMainMenuItems()
+{
+	for(int index = 0;index < MAP_MODE_NUM_ITEMS;index++)
+	{
+		MainMenuItems mmitem;
+		mmitem.m_index = index + 1;
+		mmitem.m_menuItemString = Map::GetMapModeAsString((MapMode)index);
+		m_mainMenuItems.push_back(mmitem);
+	}
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Inits main camera
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::InitCamera()
+{
+	int width  = Windows::GetInstance()->GetDimensions().x;
+	int height = Windows::GetInstance()->GetDimensions().y;
+	m_camera = new OrthographicCamera();
+	FrameBuffer *frameBuffer = new FrameBuffer();
+	m_camera->m_defaultFrameBuffer = frameBuffer;
+	m_camera->SetColorTarget(Texture::GetDefaultColorTargetTexture());
+	m_camera->SetDepthStencilTarget(Texture::GetDefaultDepthTargetTexture());
+	m_camera->m_transform.SetLocalPosition(Vector3(static_cast<float>(width / 2), static_cast<float>(height / 2), 0));
+	Camera::SetGameplayCamera(m_camera);
+	Camera::SetCurrentCamera(m_camera);
 }
 
 void Game::Update(float deltaTime)
-{		
-	//InitSampleNN();
-	if(g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_ESCAPE))
+{
+	if(!m_init)
 	{
-		isQuitTriggered = true;
+		Initialize();
+		m_init = true;
 	}
-	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_T))
+	switch (m_gameMode)
 	{
-		g_enableNeuralNet = g_enableNeuralNet ? false : true;
+	case MAIN_MENU:
+		UpdateMainMenu(deltaTime);
+		break;
+	case GAME_PLAY:
+		UpdateMap(deltaTime);
+		break;
+	default:
+		break;
 	}
-	if(m_map == nullptr)
+}
+
+
+void Game::Render()
+{
+	switch (m_gameMode)
 	{
-		m_map = new Map();
+	case MAIN_MENU:
+		RenderMainMenu();
+		break;
+	case GAME_PLAY:
+		RenderMap();
+		break;
+	default:
+		break;
 	}
-	m_map->Update(deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Updates map if exist
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::UpdateMap(float deltaTime)
+{
+	if(m_map != nullptr)
+	{
+		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_E))
+		{
+			g_isCurrentlyTraining = g_isCurrentlyTraining ? false : true;
+		}
+		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_T))
+		{
+			g_enableNeuralNet = g_enableNeuralNet ? false : true;
+		}
+		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_ESCAPE))
+		{
+			isQuitTriggered = true;
+		}
+		
+		m_map->Update(deltaTime);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Updates mainmenu items
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::UpdateMainMenu(float deltaTime)
+{
+	m_camera->SetOrthoProjection();
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_UP_ARROW))
+	{
+		m_currentIndex--;
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_DOWN_ARROW))
+	{
+		m_currentIndex++;
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_ENTER))
+	{
+		if (m_map == nullptr)
+		{
+			m_map = new Map();
+			m_map->SetMapType(MapMode(m_currentIndex));
+			m_map->Initialize();
+			m_gameMode = GAME_PLAY;
+		}
+	}
+	m_currentIndex = ClampInt(m_currentIndex, 0, static_cast<int>(m_mainMenuItems.size() - 1));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Renders map
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::RenderMap()
+{
+	if(m_map != nullptr)
+	{
+		m_map->Render();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/14
+*@purpose : Render main menu
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::RenderMainMenu()
+{
+	Camera::SetCurrentCamera(m_camera);
+	Renderer::GetInstance()->BeginFrame();
+	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	Renderer::GetInstance()->BindMaterial(textMaterial);
+	Vector2 menuItemStartPosition(g_mainMenuStartX, g_mainMenuStartY);
+	//Material *defaultMaterial = Material::AquireResource("default");
+	//Renderer::GetInstance()->BindMaterial(defaultMaterial);
+	//Renderer::GetInstance()->DrawAABB(AABB2(menuItemStartPosition + Vector2(-100, m_currentIndex*g_fontSize * 4),500,50),Rgba::WHITE);
+	for(int menuItemIndex = 0;menuItemIndex < m_mainMenuItems.size();menuItemIndex++)
+	{
+		std::string menuItemString = ToString(menuItemIndex);
+		menuItemString.append(" :: "+m_mainMenuItems.at(menuItemIndex).m_menuItemString);
+		Rgba color = Rgba::WHITE;
+		if(m_currentIndex == menuItemIndex)
+		{
+			color = Rgba::YELLOW;
+		}
+		//color = Rgba(GetRandomFloatInRange(0,255), GetRandomFloatInRange(0,255),GetRandomFloatInRange(0,255));
+
+		g_theRenderer->DrawTextOn3DPoint(menuItemStartPosition, Vector3::RIGHT, Vector3::UP, menuItemString, g_fontSize, color);
+		menuItemStartPosition.y -= g_fontSize*4;
+	}
+	delete textMaterial;
 }
 
 Game* Game::GetInstance()
@@ -40,12 +209,6 @@ Game* Game::GetInstance()
 	return s_game;
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/06
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Game::InitSampleNN()
 {
 	NeuralNetwork neuralNet(2, 2, 2);

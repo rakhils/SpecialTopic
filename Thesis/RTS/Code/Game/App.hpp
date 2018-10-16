@@ -1,6 +1,6 @@
 #pragma once
 #include "Game.hpp"
-#include "Engine/Net/UDP/UDPTest.hpp"
+//#include "Engine/Net/UDP/UDPTest.hpp"
 
 class NetSession;
 class App
@@ -18,5 +18,4 @@ public:
 	void App::Update(float deltaTime);
 	void App::Render();
 	bool IsReadyToQuit();
-	
 };
