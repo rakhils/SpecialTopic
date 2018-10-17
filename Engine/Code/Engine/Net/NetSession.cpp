@@ -4,6 +4,8 @@
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/DevConsole/DevConsole.hpp"
+#include "Engine/Math/MathUtil.hpp"
+
 NetSession *NetSession::s_netSession = nullptr;
 int			NetSession::s_defaultPort = 10085;
 // CONSTRUCTOR
@@ -44,6 +46,29 @@ void NetSession::Update(float deltaTime)
 	UNUSED(deltaTime);
 	ProcessIncomingMessage();
 	ProcessOutgoingMessage();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/15
+*@purpose : Simulates loss amount(Simulation real world traffic)
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::SetSimulateLoss(float lossAmount)
+{
+	m_lossAmount = lossAmount;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/15
+*@purpose : Sets min and max latency
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::SetSimulateLatency(float minLatency, float maxLatency)
+{
+	m_minLatency = minLatency;
+	m_maxLatency = maxLatency;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,6 +183,13 @@ void NetSession::ProcessIncomingMessage()
 	size_t recvd = m_channel->Recv(data, maxsize,&netAddr);
 	if(recvd > m_minHeaderSize)
 	{
+
+		float simLossForThisPacket = GetRandomFloatZeroToOne();
+		if(simLossForThisPacket > m_lossAmount)
+		{
+			return;
+		}
+
 		ProcessMsg(ConstructMsgFromData(netAddr,recvd,data),&netAddr);
 	}
 }
@@ -377,8 +409,32 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetSession::ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *fromAddress)
+void NetSession::ProcessMsg(std::vector<NetMessage *> &netmsg,NetAddress *fromAddress)
 {
+	for(int msgIndex = 0;msgIndex < netmsg.size();msgIndex++)
+	{
+		netmsg.at(msgIndex)->m_Lag = GetCurrentTimeSeconds() + GetRandomFloatInRange(m_minLatency, m_maxLatency);
+	}
+
+	for(int msgIndex = 0;msgIndex < netmsg.size();msgIndex++)
+	{
+		for(int msgIndexJ = msgIndex+1;msgIndexJ < netmsg.size();msgIndexJ++)
+		{
+			//if(netmsg.at(msgIndex))
+		}
+	}
+
+
+	for(int laggedMsgindex = 0;laggedMsgindex < m_laggedMsgs.size();laggedMsgindex++)
+	{
+		for(int msgIndex = 0; msgIndex < netmsg.size();msgIndex++)
+		{
+			//if()
+		}
+	}
+
+
+
 	UNUSED(netmsg);
 	for(int msgIndex = 0; msgIndex < netmsg.size(); msgIndex++)
 	{

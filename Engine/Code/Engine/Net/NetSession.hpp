@@ -36,6 +36,9 @@ public:
 	NetConnection *									m_channel;
 	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;
 	int												m_minHeaderSize = 2;
+	float											m_lossAmount;
+	float											m_minLatency;
+	float											m_maxLatency;
 
 	//Static_Member_Variables
 	static NetSession *s_netSession;
@@ -47,7 +50,9 @@ public:
 
 	void					  Init();
 	void					  Update(float deltaTime);
-							  
+							 
+	void					  SetSimulateLoss(float lossAmount);
+	void					  SetSimulateLatency(float m_minLatency, float m_maxLatency);
 	void					  RegisterMessage(std::string id, NetMessageCB netMsgCB,std::string description);
 	NetMessageDefinition *    GetMsgDefinition(std::string cmdid);
 	NetMessageDefinition *    GetMsgDefinition(int index);
