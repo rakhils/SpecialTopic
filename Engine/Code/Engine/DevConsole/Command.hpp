@@ -146,6 +146,14 @@ void SendCombo(Command &cmd);
 void SendBad(Command &cmd);
 void SendCommandOverUDP(Command &cmd);
 
+// NET SIMULATIONS
+//
+//-`net_sim_lag min_ms max_ms`
+//- `net_sim_loss amount`
+
+void SetSimulationLag(Command &cmd);
+void SetSimulationLoss(Command &cmd);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static std::vector<std::string> GetCommandHistory();

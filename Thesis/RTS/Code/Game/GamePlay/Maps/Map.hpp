@@ -62,6 +62,7 @@ class Map
 public:
 	bool							m_init = false;
 	bool							m_gameFinished = false;
+	bool							m_debugSensoryValue = false;
 	Camera *						m_camera = nullptr;
 	std::vector<ArmySpawner*>	    m_armySpawners;
 	std::vector<Civilian*>			m_civilians;
@@ -86,6 +87,7 @@ public:
 	int								m_maxHeight;
 	float							m_xOffset			= g_mapXOffset;
 	float							m_yOffset			= g_mapYOffset;
+	Vector2							m_mousePosition;
 
 	Map();
 	~Map();
@@ -206,6 +208,8 @@ public:
 
 	void							RenderMousePosition();
 	void							RenderWinState();
+
+	void							RenderCensoryValues();
 
 	static std::string				GetMapModeAsString(MapMode mode);
 };

@@ -152,11 +152,6 @@ void Entity::ProcessInputs(float deltaTime)
 		}
 	}
 
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_F))
-	{
-		GetBestNeighbour();
-	}
-
 
 	if (InputSystem::GetInstance()->WasLButtonJustPressed())
 	{
@@ -795,6 +790,23 @@ void Entity::SetPositionInFloat(Vector2 position)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetDesiredOutputToMoveToNeighbour(int distance)
+{
+	UNUSED(distance);
+	IntVector2 neighbour = m_map->GetRandomNeighbour(GetCordinates(), distance);
+	float xPosition = RangeMapFloat(static_cast<float>(neighbour.x), 0.f, static_cast<float>(m_map->m_maxWidth - 1), 0.f, 1.f);
+	float yPosition = RangeMapFloat(static_cast<float>(neighbour.y), 0.f, static_cast<float>(m_map->m_maxHeight - 1), 0.f, 1.f);
+	SetDesiredOutputForTask(TASK_MOVE, 1);
+	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
+	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31
 *@purpose : Gets color for current team
 *@param   : NIL
@@ -1347,6 +1359,7 @@ bool Entity::CreateAndPushIdleTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushMoveTask(IntVector2 cordinate)
 {
+
 	EmptyTaskQueue();
 	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
 	Task *moveTask = new TaskMove(m_map, this, mapPosition);

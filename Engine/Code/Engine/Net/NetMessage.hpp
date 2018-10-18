@@ -34,6 +34,7 @@ public:
 	uint8_t				  m_definitionIndex;
 	std::string			  m_definitionName;
 	int					  m_connectionIndex;
+	float				  m_Lag;
 	//Static_Member_Variables
 
 	//Methods

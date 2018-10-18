@@ -178,6 +178,13 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::EvaluateMoveTask(EntityState previousState,IntVector2 cords)
 {
+	Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
+	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputToMoveToNeighbour(2);
+		return;
+	}
 	if (m_resourceTypeCarrying != nullptr)
 	{
 		EvaluateMoveTaskToTownCenter(previousState, cords);
@@ -321,34 +328,6 @@ IntVector2 Civilian::GetBestNeighbour()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/10
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Civilian::SetDesiredOutputToMoveToNeighbour(int distance)
-{
-	UNUSED(distance);
-	IntVector2 neighbour = GetBestNeighbour();
-	float xPosition = RangeMapFloat(static_cast<float>(neighbour.x), 0.f, static_cast<float>(m_map->m_maxWidth-1),  0.f, 1.f);
-	float yPosition = RangeMapFloat(static_cast<float>(neighbour.y), 0.f, static_cast<float>(m_map->m_maxHeight-1), 0.f, 1.f);
-	SetDesiredOutputForTask(TASK_MOVE, 1);
-	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
-	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/12
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Civilian::SetDesiredOutputToMoveToNeighbour()
-{
-	SetDesiredOutputToMoveToNeighbour(4);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/10
 *@purpose : Sets the desired output to move to safe area
 *@param   : NIL
 *@return  : NIL
@@ -457,7 +436,7 @@ void Civilian::EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cor
 		}
 		else
 		{
-			SetDesiredOutputToMoveToNeighbour(1);
+			SetDesiredOutputToMoveToNeighbour(2);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
@@ -478,17 +457,57 @@ void Civilian::EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cor
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords)
 {
-	float resourceNearnessCurrent = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_resourceNearnessForFood;
-	float resourceNearnessOld = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_resourceNearnessForFood;
-	if (resourceNearnessCurrent - resourceNearnessOld > 0)
+	float currentResourceNearnessForFood  = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_resourceNearnessForFood;
+	float oldResourceNearnessForFood      = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(prevState.m_position)).m_resourceNearnessForFood;
+
+	float currentResourceNearnessForStone = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_resourceNearnessForStone;
+	float resourceNearnessOldForStone     = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(prevState.m_position)).m_resourceNearnessForStone;
+
+	float currentResourceNearnessForWood  = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_resourceNearnessForWood;
+	float oldResourceNearnessForWood      = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(prevState.m_position)).m_resourceNearnessForWood;
+
+
+	float currentResourceNearness = 0;
+	float oldResourceNearness	  = 0;
+
+	//if(currentResourceNearnessForFood   != -1)
+	{
+		currentResourceNearness += currentResourceNearnessForFood;
+	}
+	//if (currentResourceNearnessForStone != -1)
+	//{
+	//	currentResourceNearness += currentResourceNearnessForStone;
+	//}
+	//if (currentResourceNearnessForWood  != -1)
+	//{
+	//	currentResourceNearness += currentResourceNearnessForWood;
+	//}
+
+	//if (oldResourceNearnessForFood  != -1)
+	{
+		oldResourceNearness += oldResourceNearnessForFood;
+	}
+	//if (resourceNearnessOldForStone != -1)
+	//{
+	//	oldResourceNearness += resourceNearnessOldForStone;
+	//}
+	//if (oldResourceNearnessForWood  != -1)
+	//{
+	//	oldResourceNearness += oldResourceNearnessForWood;
+	//}
+
+	//currentResourceNearness = currentResourceNearness   /3.f;
+	//oldResourceNearness	    = oldResourceNearness	    /3.f;
+
+	if (currentResourceNearness - oldResourceNearness > 0)
 	{
 		SetDesiredOutputForTask(TASK_MOVE, 1.f);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
-	else if (resourceNearnessCurrent - resourceNearnessCurrent == 0)
+	else if (currentResourceNearness - oldResourceNearness == 0)
 	{
-		if (resourceNearnessCurrent == 0.f)
+		if (currentResourceNearnessForFood == 0.f)// || currentResourceNearnessForStone == 0 || currentResourceNearnessForWood == 0)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 0.f);
 			m_state.m_neuralNetPoints++;
@@ -496,14 +515,14 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 		}
 		else
 		{
-			SetDesiredOutputToMoveToNeighbour(1);
+			SetDesiredOutputToMoveToNeighbour(2);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
 	}
-	else if (resourceNearnessCurrent - resourceNearnessCurrent < 0.f)
+	else if (currentResourceNearness - oldResourceNearness < 0.f)
 	{
-		SetDesiredOutputForTask(TASK_MOVE, 0.f);
+		SetDesiredOutputToMoveToNeighbour(2);
 		m_state.m_neuralNetPoints++;
 		return;
 	}

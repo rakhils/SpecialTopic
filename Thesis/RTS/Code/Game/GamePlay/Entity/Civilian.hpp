@@ -44,8 +44,7 @@ public:
 
 	IntVector2 GetBestNeighbour();
 
-	void SetDesiredOutputToMoveToNeighbour();
-	void SetDesiredOutputToMoveToNeighbour(int distance);
+	//void SetDesiredOutputToMoveToNeighbour();
 	void SetDesiredOutputToMoveToSafeArea();
 	void SetDesiredOutputToMoveToRandomArea();
 	void SetDesiredOutputToRandomTask();

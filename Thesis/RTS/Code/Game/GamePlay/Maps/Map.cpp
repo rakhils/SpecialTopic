@@ -104,9 +104,32 @@ void Map::InitCellSensoryValues()
 		cellValue.m_coords = GetCordinates(index);
 		cellValue.m_townCenter1Nearness = RangeMapFloat(static_cast<float>(cellDistanceTC1), 1.f, static_cast<float>(maxDistance), 0,1);
 		cellValue.m_townCenter2Nearness = RangeMapFloat(static_cast<float>(cellDistanceTC2), 1.f, static_cast<float>(maxDistance), 0,1);
-		cellValue.m_resourceNearnessForFood  = RangeMapFloat(static_cast<float>(cellDistanceResourceFood/resourceFoodCount), 1.f, static_cast<float>(maxDistance), 0.f,1.f);
-		//cellValue.m_resourceNearnessForStone = RangeMapFloat(static_cast<float>(cellDistanceResourceStone/resourceStoneCount), 0.f, static_cast<float>(maxDistance), 1, 0);
-		//cellValue.m_resourceNearnessForWood  = RangeMapFloat(static_cast<float>(cellDistanceResourceWood/resourceWoodCount), 0.f, static_cast<float>(maxDistance), 1, 0);
+		if(resourceFoodCount > 0)
+		{
+			cellValue.m_resourceNearnessForFood  = RangeMapFloat(static_cast<float>(cellDistanceResourceFood/resourceFoodCount), 1.f, static_cast<float>(maxDistance), 0.f,1.f);
+		}
+		else
+		{
+			cellValue.m_resourceNearnessForFood = 0;
+		}
+
+		if(resourceStoneCount > 0)
+		{
+			cellValue.m_resourceNearnessForStone = RangeMapFloat(static_cast<float>(cellDistanceResourceStone/resourceStoneCount), 0.f, static_cast<float>(maxDistance), 0, 1);
+		}
+		else
+		{
+			cellValue.m_resourceNearnessForStone = 0.f;
+		}
+
+		if(resourceWoodCount > 0)
+		{
+			cellValue.m_resourceNearnessForWood  = RangeMapFloat(static_cast<float>(cellDistanceResourceWood/resourceWoodCount), 0.f, static_cast<float>(maxDistance), 0, 1);
+		}
+		else
+		{
+			cellValue.m_resourceNearnessForWood = 0.f;
+		}
 		m_cellSensoryValues.push_back(cellValue);
 	}
 }
@@ -168,17 +191,17 @@ void Map::InitTrainingForCivilianGatherFood()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForCivilianGatherAllResources()
 {
-	m_maxWidth = g_mapMaxWidth;
-	m_maxHeight = g_mapMaxHeight;
+	m_maxWidth  = 40; //g_mapMaxWidth;
+	m_maxHeight = 20;// g_mapMaxHeight;
 
-	CreateTownCenter(GetMapPosition(7), 1);
+	CreateTownCenter(GetMapPosition(140), 1);
 	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(20), RESOURCE_STONE);
-	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(57), RESOURCE_STONE);
+	CreateResources(GetMapPosition(205), RESOURCE_WOOD);
 
 
-	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
+	CreateTownCenter(GetMapPosition(40), 2);
+	CreateCivilian(GetMapPosition(700), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1551,9 +1574,9 @@ IntVector2 Map::GetCordinates(Vector2 mapPosition)
 void Map::ProcessInputs(float deltaTime)
 {
 	UNUSED(deltaTime);
-	Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
-	mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
-	m_currentTileIndex = GetTileIndex(mousePosition);
+	m_mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
+	m_mousePosition.y = Windows::GetInstance()->GetDimensions().y - m_mousePosition.y;
+	m_currentTileIndex = GetTileIndex(m_mousePosition);
 
 	if(InputSystem::GetInstance()->WasRButtonJustPressed())
 	{
@@ -1562,6 +1585,10 @@ void Map::ProcessInputs(float deltaTime)
 	if(InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_P))
 	{
 		g_enableDebugPrints = g_enableDebugPrints == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_D))
+	{
+		m_debugSensoryValue = m_debugSensoryValue == true ? false : true;
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_1))
 	{
@@ -1808,6 +1835,11 @@ void Map::Render()
 	RenderHUDGameStat();
 	RenderHUDUnitStat();
 	RenderUnitTask();
+
+	if(m_debugSensoryValue)
+	{
+		RenderCensoryValues();
+	}
 
 	RenderMousePosition();
 
@@ -2158,6 +2190,37 @@ void Map::RenderWinState()
 		return;
 	}
 	g_theRenderer->DrawTextOn3DPoint(Windows::GetInstance()->GetDimensions().GetAsVector2()/2.f, Vector3::RIGHT, Vector3::UP, "TEAM 1 WINS ", g_fontSize, Rgba::YELLOW);
+	delete textMaterial;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/17
+*@purpose : Render Censory values
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderCensoryValues()
+{
+	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	Renderer::GetInstance()->BindMaterial(textMaterial);
+	//for(int index = 0;index < m_maxHeight;index++)
+	{
+		//for(int indexH = 0;indexH < m_maxWidth;indexH++)
+		{
+			int tileIndex = GetTileIndex(m_mousePosition);
+			if(tileIndex < 0 || tileIndex >= m_maxHeight*m_maxWidth)
+			{
+				return;
+			}
+			float resourceNearnessCurrentForFood =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForFood;
+			float resourceNearnessCurrentForStone = m_cellSensoryValues.at(tileIndex).m_resourceNearnessForStone;
+			float resourceNearnessCurrentForWood =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForWood;
+
+			float resourceValue = (resourceNearnessCurrentForFood + resourceNearnessCurrentForStone + resourceNearnessCurrentForWood) / 3.f;
+
+			g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(resourceValue), 5.f, Rgba::YELLOW);
+		}
+	}
 	delete textMaterial;
 }
 

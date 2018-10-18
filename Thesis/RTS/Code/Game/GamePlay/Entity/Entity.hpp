@@ -188,6 +188,8 @@ public:
 	void					SetPosition(int index);
 	void					SetPositionInFloat(Vector2 position);
 
+	void					SetDesiredOutputToMoveToNeighbour(int cellDistance);
+
 	void					EmptyTaskQueue();
 	void					CopyDesiredOutputs();
 	void					ClearDesiredOutputs();
