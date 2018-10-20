@@ -93,3 +93,23 @@ NetMessage * NetMessage::CreatePingMessage(std::string msg)
 	return netMsg;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Creates a hear beat msg
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateHeartBeatMessage()
+{
+	NetMessage *netMsg = new NetMessage("heartbeat");
+	size_t msgSize = 0;
+	// write temporarily 
+	netMsg->WriteBytes(2, (char*)&msgSize);
+	///////////////
+	netMsg->WriteCommandIndex();
+	netMsg->m_currentWritePosition = 0;
+	msgSize = netMsg->m_bufferSize - 2;
+	netMsg->WriteBytes(2, (char*)&(msgSize));
+	return netMsg;
+}
+

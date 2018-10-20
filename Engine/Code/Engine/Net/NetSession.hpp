@@ -27,19 +27,30 @@ struct NetMessageDefinition
 	std::string  m_description;
 };
 
+struct OutBoundMSG
+{
+	NetAddress m_address;
+	NetMessage *m_msg = nullptr;
+};
+
 class NetSession
 {
 
 public:
 	//Member_Variables
 	std::map<int, NetConnection*>					m_remoteConnections;
-	NetConnection *									m_channel;
+	NetConnection *									m_channel      = nullptr;
+	NetConnection *									m_myConnection = nullptr;
+												
 	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;
-	int												m_minHeaderSize = 2;
-	float											m_lossAmount;
-	float											m_minLatency;
-	float											m_maxLatency;
 
+	std::vector<OutBoundMSG>						m_outboudMsgs;
+	int												m_minHeaderSize = 2;
+	float											m_lossAmount = 0.f;
+	float											m_minLatency = 0.f;
+	float											m_maxLatency = 0.f;
+	float											m_sendRate   = 0.f;
+	bool											m_sessionInfoVisible = false;
 	//Static_Member_Variables
 	static NetSession *s_netSession;
 	static int		   s_defaultPort;
@@ -50,7 +61,11 @@ public:
 
 	void					  Init();
 	void					  Update(float deltaTime);
-							 
+	void					  UpdateConnections(float deltaTime);
+
+	void					  RestartInPort(int port);
+
+	void					  SetHeartBeatFrequency(float time);
 	void					  SetSimulateLoss(float lossAmount);
 	void					  SetSimulateLatency(float m_minLatency, float m_maxLatency);
 	void					  RegisterMessage(std::string id, NetMessageCB netMsgCB,std::string description);
@@ -70,11 +85,16 @@ public:
 	NetConnection*			  GetConnection(int index);
 	NetConnection*			  GetConnection(NetAddress *netAddress);
 							  
+	NetConnection*			  GetMyConnection();
+	int						  GetMySessionIndex();
 	void					  CloseAllConnections();
 							  
 	std::vector<NetMessage*>  ConstructMsgFromData(NetAddress &netAddress,size_t size,void *data);
 	void					  ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *address);
 
+	void					  PushOutboundMsgs(NetAddress address,NetMessage *msg);
+
+	void					  Render();
 	//Static_Methods
 
 	static NetSession*		  GetInstance();
@@ -103,4 +123,6 @@ bool OnPing(NetMessage &netMsg, NetAddress &netAddress);
 bool OnAdd(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnPong(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnAddResponse(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnHeartBeatMessage(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnBadMessage(NetMessage  &netMsg, NetAddress &netAddress);
+

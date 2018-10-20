@@ -146,6 +146,13 @@ void SendCombo(Command &cmd);
 void SendBad(Command &cmd);
 void SendCommandOverUDP(Command &cmd);
 
+void SetUDPSessionSendRate(Command &cmd);
+void SetUDPConnectionSendRate(Command &cmd);
+
+void ListenUDPPort(Command &cmd);
+
+void SetupUDPConnections(Command &cmd);
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 static std::vector<std::string> GetCommandHistory();

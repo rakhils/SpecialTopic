@@ -31,6 +31,11 @@ public:
 	BytePacker					m_packet;
 	UDPHeader					m_header;
 	NetSession *				m_session;
+	float						m_lastHeartbeatReceivedTime;
+	float						m_lastHeartbeatHPC;
+	float						m_heartBeatFrequency = .001;
+	float						m_sendRate			 = 0;
+	float						m_lastSendTime		 = 0;
 	//Static_Member_Variables
 
 	//Methods
@@ -39,17 +44,27 @@ public:
 	NetConnection(int listenPort);					// As Server
 	~NetConnection();
 
+	void   SetLastHeartBeatReceivedTime(float time);
+	void   SetHeartBeatFrequency(float freq);
 	void   SetConnectionIndex(int index);
 	void   SetUnrealiableMsgCount(int count);
-		   
+	void   SetSendRate(float sendRate);
+
+	int    GetHeaderSize();
+
 	void   WriteConnectionIndex();
 	void   WriteUnrealiableMsgCount();
 	void   WriteHeader();
-	void   WritePayload(NetMessage *msg);
+	bool   WritePayload(NetMessage *msg);
 
-	size_t Send(int connectionIndex, std::vector<NetMessage*> &msgs);
-	size_t Send(NetMessage msg);
+	void   SendHeartBeat();
+
+	void Update(float deltaTime);
+
+	size_t SendImmediately(int connectionIndex, std::vector<NetMessage*> &msgs);
+	size_t SendImmediately(NetMessage msg);
 	void   Append(NetMessage *msg);
+	size_t FlushMsgs();
 	size_t   Recv(char *data,size_t &maxlength,NetAddress *netAddress);
 	
 	std::string GetIPPortAsString();

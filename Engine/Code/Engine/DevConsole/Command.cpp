@@ -279,6 +279,12 @@ void CommandStartup()
 	CommandRegister("send_add", SendAdd, "SENDS ADD COMMANDS OVER UDP");
 	CommandRegister("send_combo", SendCombo, "SENDS COMBINATION OF MSGS");
 	CommandRegister("send_bad", SendBad, "SENDS BAD MSG TO A CONNECTION");
+
+	CommandRegister("net_set_session_send_rate", SetUDPSessionSendRate, "SETS UDP SESSION'S SEND RATE");
+	CommandRegister("net_set_connection_send_rate", SetUDPConnectionSendRate, "SETS UDP CONNECTION'S SEND RATE");
+
+	CommandRegister("setup_udp", SetupUDPConnections, "SETS UP CONNECTION FOR UDP");
+	CommandRegister("listen_udp", ListenUDPPort, "LISTEN NET SESSION IN GIVEN PORT");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1233,7 +1239,7 @@ void SendPing(Command &cmd)
 			msgSize = msg.m_bufferSize - 2;
 			msg.WriteBytes(2, (char*)&(msgSize));
 			std::string str = msg.GetBitString();
-			connection->Send(msg);
+			connection->SendImmediately(msg);
 		}
 	}
 }
@@ -1270,7 +1276,7 @@ void SendAdd(Command &cmd)
 			msgSize = msg.m_bufferSize - 2;
 			msg.WriteBytes(2, (char*)&(msgSize));
 			std::string str = msg.GetBitString();
-			connection->Send(msg);
+			connection->SendImmediately(msg);
 		}
 	}
 }
@@ -1307,7 +1313,7 @@ void SendCombo(Command &cmd)
 		}
 		msgs.push_back(netmsg);
 	}
-	connection->Send(connectionIndex,msgs);
+	connection->SendImmediately(connectionIndex,msgs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1330,7 +1336,7 @@ void SendBad(Command &cmd)
 			NetMessage netmsg("");
 			//int randomSize = GetRandomIntInRange(1, 1000);
 			netmsg.WriteBytes(commandSize, badMsg);
-			connection->Send(netmsg);
+			connection->SendImmediately(netmsg);
 			DevConsole::GetInstance()->PushToOutputText("SENDING BAD MSG TO " +connection->GetIPPortAsString());
 		}
 	}
@@ -1361,7 +1367,6 @@ void SendCommandOverUDP(Command &cmd)
 
 			}
 
-
 			NetMessage msg(netcmd);
 			size_t size = 7;
 			// write temporarily 
@@ -1370,9 +1375,75 @@ void SendCommandOverUDP(Command &cmd)
 			msg.WriteCommandIndex();
 			msg.WriteString("hello");
 			std::string str = msg.GetBitString();
-			connection->Send(msg);
+			connection->SendImmediately(msg);
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/19
+*@purpose : Sets udp session send rate
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetUDPSessionSendRate(Command &cmd)
+{
+	//net_set_session_send_rate 20
+	//net_set_connection_send_rate 0 10
+	int sentRate = 0;
+	cmd.GetNextInt(&sentRate);
+	NetSession::GetInstance()->m_sendRate = static_cast<float>(sentRate);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/19
+*@purpose : Sets UDP Connections send rate
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetUDPConnectionSendRate(Command &cmd)
+{
+	//net_set_connection_send_rate 0 10
+	int connectionIndex = -1;
+	int sendRate		= 0;
+	cmd.GetNextInt(&connectionIndex);
+	cmd.GetNextInt(&sendRate);
+	NetSession::GetInstance()->GetConnection(connectionIndex)->m_sendRate = static_cast<float>(sendRate);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Netsession recv port
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ListenUDPPort(Command &cmd)
+{
+	int port = -1;
+	cmd.GetNextInt(&port);
+	NetSession::GetInstance()->RestartInPort(port);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetupUDPConnections(Command &cmd)
+{
+	int index = 0;
+	cmd.GetNextInt(&index);
+
+	std::string rcmd = "listen_udp 10085";
+	RCS::GetInstance()->SendMsg(index, false, rcmd.c_str());
+	std::string addConnection0 = "add_connection 0 192.168.0.123:10084";
+	std::string addConnection1 = "add_connection 1 192.168.0.123:10085";
+	RCS::GetInstance()->SendMsg(index, false, addConnection0.c_str());
+	RCS::GetInstance()->SendMsg(index, false, addConnection1.c_str());
+
+	NetSession::GetInstance()->AddConnection(0, "192.168.0.123", 10084);
+	NetSession::GetInstance()->AddConnection(1, "192.168.0.123", 10085);
 }
 
 /*

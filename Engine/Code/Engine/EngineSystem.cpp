@@ -8,6 +8,7 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Logger/LogManager.hpp"
 #include "Engine/Net/RCS.hpp"
+#include "Engine/Net/NetSession.hpp"
 // CONSTRUCTOR
 EngineSystem::EngineSystem()
 {
@@ -62,6 +63,7 @@ void EngineSystem::Update(float deltaTime)
 void EngineSystem::Render()
 {
 	ProfilerManager::PushProfiler("EngineSystem::Render");
+	NetSession::GetInstance()->Render();
 	RenderDevConsoleSystem();
 	RenderDebugRenderSystem();
 	ProfilerManager::PoPProfiler();

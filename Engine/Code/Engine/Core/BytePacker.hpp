@@ -60,6 +60,7 @@ public:
 				 
 	void		 ResetWrite();
 	void		 ResetRead();
+	void		 Reset();
 
 	void	     GetLengthFromData(uint16_t *size);
 
@@ -71,6 +72,8 @@ public:
 
 	size_t		 GetWriteHead();
 	size_t		 GetReadHead();
+	void		 SetWriteHead(size_t position);
+	void		 SetReadHead(size_t position);
 	void		 AdvanceWriteHead(size_t positon);
 	void		 AdvanceReadHead(size_t positon);
 

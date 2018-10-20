@@ -1149,6 +1149,17 @@ void Renderer::DrawTextOnPoint(std::string str, int start, int length, Vector2 p
 	DrawTextOnPoint(charArray,start,length,pos,height,rgba);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/19
+*@purpose : Draws text at a point
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Renderer::DrawTextOnPoint(std::string str, Vector2 pos, float height, Rgba rgba)
+{
+	DrawTextOnPoint(str, 0, str.length(), pos, height, rgba);
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/03/08
 *@purpose : Draws text on 3d point along the direction

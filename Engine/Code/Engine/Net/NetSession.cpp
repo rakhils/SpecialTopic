@@ -5,9 +5,10 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/DevConsole/DevConsole.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/Renderer/Materials/Material.hpp"
 
 NetSession *NetSession::s_netSession = nullptr;
-int			NetSession::s_defaultPort = 10085;
+int			NetSession::s_defaultPort = 10084;
 // CONSTRUCTOR
 NetSession::NetSession(int port)
 {
@@ -33,19 +34,71 @@ void NetSession::Init()
 	RegisterMessage("add",			OnAdd,			"Adds 2 numbers");
 	RegisterMessage("add_response", OnAddResponse,  "Adds a response");
 	RegisterMessage("pong",			OnPong,			"Send pong on a connection");
+	RegisterMessage("heartbeat",	OnHeartBeatMessage, "Update last heartbeat received");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/16
-*@purpose : NIL
+*@purpose : Updates netsession
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::Update(float deltaTime)
 {
 	UNUSED(deltaTime);
+	if(InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_F2))
+	{
+		m_sessionInfoVisible = m_sessionInfoVisible ? false : true;
+	}
+
+
+	UpdateConnections(deltaTime);
 	ProcessIncomingMessage();
+
+
 	ProcessOutgoingMessage();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Updates all connections
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::UpdateConnections(float deltaTime)
+{
+	std::map<int, NetConnection*>::iterator it = m_remoteConnections.begin();
+	for(;it!= m_remoteConnections.end();it++)
+	{
+		it->second->Update(deltaTime);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Restart netsession in given port
+*@param   : Port
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::RestartInPort(int port)
+{
+	delete m_channel;
+	m_channel = new NetConnection(port);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Sets heartbeat for all connections
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::SetHeartBeatFrequency(float freq)
+{
+	std::map<int, NetConnection*>::iterator it;
+	for(it = m_remoteConnections.begin();it != m_remoteConnections.end();it++)
+	{
+		it->second->SetHeartBeatFrequency(freq);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -184,12 +237,11 @@ void NetSession::ProcessIncomingMessage()
 	if(recvd > m_minHeaderSize)
 	{
 
-		float simLossForThisPacket = GetRandomFloatZeroToOne();
-		if(simLossForThisPacket > m_lossAmount)
-		{
-			return;
-		}
-
+		//float simLossForThisPacket = GetRandomFloatZeroToOne();
+		//if(simLossForThisPacket > m_lossAmount)
+		//{
+		//	return;
+		//}
 		ProcessMsg(ConstructMsgFromData(netAddr,recvd,data),&netAddr);
 	}
 }
@@ -205,17 +257,8 @@ void NetSession::ProcessOutgoingMessage()
 	std::map<int, NetConnection*>::iterator it;
 	for (it = m_remoteConnections.begin(); it != m_remoteConnections.end(); it++)
 	{
-		NetConnection * netConnection = it->second;
-		char data[PACKET_MTU];
-		size_t size = 0;
-		//netConnection->Recv(data, size);
-		if (size > 0)
-		{
-			int a = 1;
-		}
-		//ProcessMsg(ConstructNetMsgFromData(data));
+		it->second->FlushMsgs();
 	}
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -261,7 +304,12 @@ NetConnection* NetSession::AddConnection(int index,std::string ip, int port)
 	sockaddr_storage out;
 	int out_addrlen;
 	NetAddress::GetRemoteAddress(address, (sockaddr*)&out, &out_addrlen, ip.c_str(), ToString(port).c_str());
-	return AddConnection(index, address);
+	NetConnection *connection = AddConnection(index, address);
+	if(ip == Net::GetIP() && port == s_defaultPort)
+	{
+		m_myConnection = connection;
+
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -409,9 +457,9 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetSession::ProcessMsg(std::vector<NetMessage *> &netmsg,NetAddress *fromAddress)
+void NetSession::ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *fromAddress)
 {
-	for(int msgIndex = 0;msgIndex < netmsg.size();msgIndex++)
+	/*for(int msgIndex = 0;msgIndex < netmsg.size();msgIndex++)
 	{
 		netmsg.at(msgIndex)->m_Lag = GetCurrentTimeSeconds() + GetRandomFloatInRange(m_minLatency, m_maxLatency);
 	}
@@ -431,7 +479,7 @@ void NetSession::ProcessMsg(std::vector<NetMessage *> &netmsg,NetAddress *fromAd
 		{
 			//if()
 		}
-	}
+	}*/
 
 
 
@@ -442,6 +490,74 @@ void NetSession::ProcessMsg(std::vector<NetMessage *> &netmsg,NetAddress *fromAd
 		(*msgdef->m_callback)(*netmsg.at(msgIndex), *fromAddress);
 	}
 	// check for the all function pointers stored in session and call back
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/19
+*@purpose : Pushes outbound msgs to vector
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::PushOutboundMsgs(NetAddress address,NetMessage *msg)
+{
+	OutBoundMSG outboudMsg;
+	outboudMsg.m_address = address;
+	outboudMsg.m_msg     = msg;
+	m_outboudMsgs.push_back(outboudMsg);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/19
+*@purpose : Render netsession info
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::Render()
+{
+	if(!m_sessionInfoVisible)
+	{
+		return;
+	}
+	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	Material *defaultMaterial = Material::AquireResource("default");
+	Vector2 startPosition(100, 1000);
+	float fontSizeBig = 15;
+	float fontSize = 10;
+
+	Renderer::GetInstance()->BindMaterial(textMaterial);
+	Renderer::GetInstance()->DrawTextOnPoint("SESSION INFO", startPosition, fontSizeBig, Rgba::WHITE);
+	startPosition -= Vector2(0, 2*fontSizeBig);
+	Renderer::GetInstance()->DrawTextOnPoint("sim lag:", startPosition + Vector2(50,0), fontSize, Rgba::WHITE);
+
+	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_minLatency) + " ms  " + ToString(m_maxLatency) + " ms", startPosition + Vector2(250, 0), fontSize, Rgba::WHITE);
+
+	Renderer::GetInstance()->DrawTextOnPoint("sim loss:", startPosition + Vector2(900,0), fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_lossAmount)+"%", startPosition + Vector2(1100, 0), fontSize, Rgba::WHITE);
+
+	startPosition -= Vector2(0, 2*fontSizeBig);
+	Renderer::GetInstance()->DrawTextOnPoint("Socket Address(es)...", startPosition + Vector2(100, 0), fontSize, Rgba::WHITE);
+	startPosition -= Vector2(0, 2*fontSizeBig);
+	Renderer::GetInstance()->DrawTextOnPoint(m_channel->GetIPPortAsString(), startPosition + Vector2(200, 0), fontSize, Rgba::WHITE);
+	startPosition -= Vector2(0, 2*fontSizeBig);
+	Renderer::GetInstance()->DrawTextOnPoint("Connections...", startPosition + Vector2(150, 0), fontSize, Rgba::WHITE);
+	startPosition -= Vector2(0, 2*fontSizeBig);
+
+	startPosition -= Vector2(0, 2*fontSizeBig);
+	//Renderer::GetInstance()->DrawTextOnPoint("-- idx ", startPosition + Vector2(150, 0), fontSize, Rgba::WHITE);
+	int indent = 1;
+	std::string entryString = Stringf("%*s%-*s %-15s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
+		(3 * indent),
+		"idx", "address", "rtt", "loss", "lrcv(s)", "lsnt(s)", "sntack", "rcvack", "rcvbits");
+
+	Renderer::GetInstance()->DrawTextOnPoint(entryString, startPosition, fontSize, Rgba::WHITE);
+
+	std::map<int, NetConnection*>::iterator it;
+	for(it = m_remoteConnections.begin();it != m_remoteConnections.end();it++)
+	{
+
+	}
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -478,7 +594,7 @@ bool OnPing(NetMessage &netMsg, NetAddress &netAddress)
 	std::string pongMsgStr = pongMsg.GetBitString();
 
 	NetConnection *netConnection = NetSession::GetInstance()->GetConnection(&netAddress);
-	netConnection->Send(pongMsg);
+	netConnection->SendImmediately(pongMsg);
 	DevConsole::GetInstance()->PushToOutputText(" SENT PONG TO "+netAddress.GetIP()+":"+ToString(netAddress.m_port), Rgba::YELLOW, true);
 	return true;
 }
@@ -523,7 +639,7 @@ bool OnAdd(NetMessage &netMsg, NetAddress &netAddress)
 
 	NetConnection *netConnection = NetSession::GetInstance()->GetConnection(&netAddress);
 	DevConsole::GetInstance()->PushToOutputText(" SENDING ADD RESPONSE TO "+netAddress.GetIP()+":"+ToString(netAddress.m_port) , Rgba::YELLOW, true);
-	netConnection->Send(addResponse);
+	netConnection->SendImmediately(addResponse);
 	return true;
 }
 
@@ -557,6 +673,23 @@ bool OnAddResponse(NetMessage &netMsg, NetAddress &netAddress)
 	netMsg.ReadBytes(&value2, 4);
 	netMsg.ReadBytes(&value3, 4);
 	DevConsole::GetInstance()->PushToOutputText("RECEIVED ADD RESPONSE FROM "+netAddress.GetIP()+":"+ToString(netAddress.m_port) +" ADDED : "+ToString(value1)+" + "+ToString(value2)+" = "+ToString(value3),Rgba::YELLOW,true);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : On heart beat msg received
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnHeartBeatMessage(NetMessage &netMsg, NetAddress &netAddress)
+{
+	NetConnection *netConnection = NetSession::GetInstance()->GetConnection(&netAddress);
+	if(netConnection != nullptr)
+	{
+		netConnection->SetLastHeartBeatReceivedTime(static_cast<float>(GetCurrentTimeSeconds()));
+		DevConsole::GetInstance()->PushToOutputText("RECEVIED HEART BEAT " + netAddress.GetIP() + ":" + ToString(netAddress.m_port));
+	}
 	return true;
 }
 

@@ -2,6 +2,8 @@
 #include "Engine/Net/UDP/UDPSocket.hpp"
 #include "Engine/Net/NetSession.hpp"
 #include "Engine/Core/StringUtils.hpp"
+#include "Engine/Time/Clock.hpp"
+#include "Engine/Math/MathUtil.hpp"
 // CONSTRUCTOR
 
 NetConnection::NetConnection(int index, NetAddress netAddress)
@@ -15,12 +17,36 @@ NetConnection::NetConnection(int index, NetAddress netAddress)
 NetConnection::NetConnection(int listenPort)
 {
 	m_udpSocket = new UDPSocket(listenPort);
+	m_address.m_port = listenPort;
 }
 
 // DESTRUCTOR
 NetConnection::~NetConnection()
 {
+	delete m_udpSocket;
+	m_udpSocket = nullptr;
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Updates last heart beat recv time
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::SetLastHeartBeatReceivedTime(float time)
+{
+	m_lastHeartbeatReceivedTime = time;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Sets heartbeat freq
+*@param   : Freq
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::SetHeartBeatFrequency(float freq)
+{
+	m_heartBeatFrequency = freq;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -29,7 +55,7 @@ NetConnection::~NetConnection()
 *@param   : NetMsg (Data)
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-size_t NetConnection::Send(NetMessage msg)
+size_t NetConnection::SendImmediately(NetMessage msg)
 {
 	m_header.m_unrealiableCount = static_cast<uint8_t>(1);
 	m_header.m_connectionindex  = static_cast<uint8_t>(m_index);
@@ -52,22 +78,43 @@ size_t NetConnection::Send(NetMessage msg)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-size_t NetConnection::Send(int connectionIndex, std::vector<NetMessage*> &msgs)
+size_t NetConnection::SendImmediately(int connectionIndex, std::vector<NetMessage*> &msgs)
 {
-	int msgCount = msgs.size();
-	m_header.m_unrealiableCount = static_cast<uint8_t>(msgCount);
-	m_header.m_connectionindex = static_cast<uint8_t>(m_index);
-	WriteHeader();
-	for(int index = 0;index < msgCount;index++)
+	if(msgs.size() <= 0)
 	{
-		WritePayload(msgs.at(index));
-		delete msgs.at(index);
+		return 0;
+	}
+	int msgCount = msgs.size();
+	int actualSendCount = 0;
+
+	m_header.m_unrealiableCount = actualSendCount;
+	m_header.m_connectionindex = static_cast<uint8_t>(m_index);
+	m_packet.SetWriteHead(0);
+	WriteHeader();
+
+	
+	for(int index = 0;index < msgs.size();index++)
+	{
+		if(WritePayload(msgs.at(index)))
+		{
+			delete msgs.at(index);
+			actualSendCount++;
+			msgs.erase(msgs.begin() + index, msgs.begin() + index + 1);
+			index--;
+			continue;
+		}
+		m_outboundMsgs.push_back(msgs.at(index));
 	}
 	msgs.clear();
+
+	m_header.m_unrealiableCount = actualSendCount;
+	m_header.m_connectionindex = static_cast<uint8_t>(m_index);
+	m_packet.SetWriteHead(0);
+	WriteHeader();
+
 	size_t length = m_packet.m_bufferSize;
 	size_t sendCount = m_session->m_channel->m_udpSocket->SendTo(m_address, (char *)m_packet.m_buffer, length);
-	m_packet.m_bufferSize = 0;
-	delete m_packet.m_buffer;
+	m_packet.Reset();
 	return sendCount;
 }
 
@@ -80,6 +127,52 @@ size_t NetConnection::Send(int connectionIndex, std::vector<NetMessage*> &msgs)
 void NetConnection::Append(NetMessage *msg)
 {
 	m_outboundMsgs.push_back(msg);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/19
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+size_t NetConnection::FlushMsgs()
+{
+	float min = GetMinOf2(m_sendRate, m_session->m_sendRate);
+	if (m_lastSendTime + 1 / min > Clock::GetMasterClock()->total.m_milliSeconds)
+	{
+		m_lastSendTime = Clock::GetMasterClock()->total.m_milliSeconds;
+		if (m_outboundMsgs.size() <= 0)
+		{
+			return 0;
+		}
+		int actualSendCount = 0;
+		m_header.m_unrealiableCount = actualSendCount;
+		m_header.m_connectionindex = static_cast<uint8_t>(m_index);
+		m_packet.SetWriteHead(0);
+		WriteHeader();
+
+		for (int index = 0; index < m_outboundMsgs.size(); index++)
+		{
+			if (WritePayload(m_outboundMsgs.at(index)))
+			{
+				delete m_outboundMsgs.at(index);
+				actualSendCount++;
+				m_outboundMsgs.erase(m_outboundMsgs.begin() + index, m_outboundMsgs.begin() + index + 1);
+				continue;
+			}
+		}
+
+		m_header.m_unrealiableCount = actualSendCount;
+		m_header.m_connectionindex = static_cast<uint8_t>(m_index);
+		m_packet.SetWriteHead(0);
+		WriteHeader();
+
+		size_t length = m_packet.m_bufferSize;
+		size_t sendCount = m_session->m_channel->m_udpSocket->SendTo(m_address, (char *)m_packet.m_buffer, length);
+		m_packet.Reset();
+		return sendCount;
+	}
+	return 0;
 }
 
 /*
@@ -183,6 +276,28 @@ void NetConnection::SetUnrealiableMsgCount(int count)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/19
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::SetSendRate(float sendRate)
+{
+	m_sendRate = sendRate;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/19
+*@purpose : retrives the udp packet header size
+*@param   : NIL
+*@return  : header size
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int NetConnection::GetHeaderSize()
+{
+	return sizeof(UDPHeader);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/25
 *@purpose : Writes connection index info into packet header
 *@param   : NIL
@@ -231,7 +346,39 @@ void NetConnection::WriteHeader()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetConnection::WritePayload(NetMessage *msg)
+bool NetConnection::WritePayload(NetMessage *msg)
 {
+	if(m_packet.m_bufferSize + msg->m_bufferSize + GetHeaderSize() > ETHERNET_MTU)
+	{
+		return false;
+	}
 	m_packet.WriteBytes(msg->m_bufferSize, msg->m_buffer);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Sends and flushes  a heartbeat
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::SendHeartBeat()
+{
+	NetMessage *msg = NetMessage::CreateHeartBeatMessage();
+	SendImmediately(*msg);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Updates 
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::Update(float deltaTime)
+{
+	if(m_lastHeartbeatHPC + 1/m_heartBeatFrequency < Clock::GetMasterClock()->total.m_seconds)
+	{
+		SendHeartBeat();
+		m_lastHeartbeatHPC = Clock::GetMasterClock()->total.m_seconds;
+	}
 }
