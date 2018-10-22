@@ -10,8 +10,8 @@
 enum EntityType
 {
 	CIVILIAN,
-	WARRIOR_SHORT_RANGE,
-	WARRIOR_LONG_RANGE,
+	SHORT_RANGE_WARRIOR,
+	LONG_RANGE_WARRIOR,
 	HOUSE,
 	TOWN_CENTER,
 	RESOURCE_FOOD,
@@ -189,6 +189,7 @@ public:
 	void					SetPositionInFloat(Vector2 position);
 
 	void					SetDesiredOutputToMoveToNeighbour(int cellDistance);
+	void					SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance);
 
 	void					EmptyTaskQueue();
 	void					CopyDesiredOutputs();

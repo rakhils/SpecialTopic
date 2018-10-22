@@ -11,19 +11,8 @@ TaskShortRangeAttack::TaskShortRangeAttack(Map* map,Entity *entity, int tileInde
 	m_entity     = entity;
 	m_attackTile = tileIndex;
 	m_targetPosition = m_map->GetMapPosition(m_attackTile);
-
-	if (m_map->IsNeighbours(m_map->GetCordinates(m_entity->GetPosition()), m_map->GetCordinates(tileIndex)))
-	{
-		m_nearestAttackTile = m_map->GetTileIndex(m_entity->GetPosition());
-		m_isValid = true;
-		return;
-	}
-	IntVector2 tileCords = m_map->GetFreeNeighbourTile(m_map->GetMapPosition(m_attackTile));
-	m_nearestAttackTile  = m_map->GetTileIndex(tileCords);
-	if(m_nearestAttackTile != -1)
-	{
-		m_isValid = true;
-	}
+	m_taskType = TASK_SHORT_ATTACK;
+	m_isValid = true;
 }
 
 // DESTRUCTOR
@@ -49,12 +38,10 @@ bool TaskShortRangeAttack::DoTask(float deltaTime)
 	currentPosition			+= direction * m_speed * deltaTime;
 	m_entity->SetPositionInFloat(currentPosition);*/
 
-	Vector2 targetPosition  = m_map->GetMapPosition(m_nearestAttackTile);
-	Vector2 distance = m_entity->GetPosition() - targetPosition;
-	if (distance.GetLength() < 1)
+	Entity *attackedEntity = m_entity->m_map->AttackOnPosition(m_targetPosition, 1);
+	if (attackedEntity != nullptr)
 	{
-		Entity *attackedEntity = m_entity->m_map->AttackOnPosition(m_attackTile, 1);
-		if (attackedEntity != nullptr)
+		if(attackedEntity->m_teamID != 0 && attackedEntity->m_teamID != m_entity->m_teamID)
 		{
 			m_entity->m_map->CreateExplosions(m_entity->m_map->GetMapPosition(m_attackTile));
 			m_entity->UpdateUnitStatForEnemiesAttacked(1);

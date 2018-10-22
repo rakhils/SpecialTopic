@@ -78,6 +78,27 @@ void Task::SetStartPosition(Vector2 position)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : Check if enough resources is availble to perform task
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Task::HasEnoughResources()
+{
+	if(((TownCenter*)m_entity->FindMyTownCenter())->m_resourceStat.m_food > m_resourcesNeeded.m_food)
+	{
+		if (((TownCenter*)m_entity->FindMyTownCenter())->m_resourceStat.m_stone > m_resourcesNeeded.m_stone)
+		{
+			if (((TownCenter*)m_entity->FindMyTownCenter())->m_resourceStat.m_wood > m_resourcesNeeded.m_wood)
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/21
 *@purpose : NIL
 *@param   : NIL

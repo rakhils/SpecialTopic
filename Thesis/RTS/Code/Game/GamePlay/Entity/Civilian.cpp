@@ -142,7 +142,12 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 	//EvaluateBuildHouseTask(previousState, cords);
 	//EvaluateBuildArmySpawnerTask(previousState, cords);
 	//EvaluateIdleTask(previousState);
-
+	if(m_state.m_health < previousState.m_health)
+	{
+		SetDesiredOutputToMoveToNeighbour(2);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
 	CopyDesiredOutputs();
 
 	switch (task->m_taskType)
@@ -266,6 +271,17 @@ void Civilian::EvaluateBuildHouseTask(EntityState prevState, IntVector2 location
 		SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.0f);
 		return;
 	}
+
+	if(((TownCenter*)FindMyTownCenter())->m_resourceStat.m_food > 100 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_stone > 100 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_wood > 100)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_BUILD_HOUSE, 1.0f);
+	}
+	else
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.0f);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -281,6 +297,16 @@ void Civilian::EvaluateBuildArmySpawnerTask(EntityState prevState, IntVector2 lo
 	{
 		SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.0f);
 		m_state.m_neuralNetPoints++;
+	}
+	if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_food > 100 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_stone > 100 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_wood > 100)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 1.0f);
+	}
+	else
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.0f);
 	}
 }
 
@@ -461,7 +487,7 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	float oldResourceNearnessForFood      = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(prevState.m_position)).m_resourceNearnessForFood;
 
 	float currentResourceNearnessForStone = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_resourceNearnessForStone;
-	float resourceNearnessOldForStone     = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(prevState.m_position)).m_resourceNearnessForStone;
+	float oldResourceNearnessForStone     = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(prevState.m_position)).m_resourceNearnessForStone;
 
 	float currentResourceNearnessForWood  = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_resourceNearnessForWood;
 	float oldResourceNearnessForWood      = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(prevState.m_position)).m_resourceNearnessForWood;
@@ -470,45 +496,69 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	float currentResourceNearness = 0;
 	float oldResourceNearness	  = 0;
 
-	//if(currentResourceNearnessForFood   != -1)
-	{
-		currentResourceNearness += currentResourceNearnessForFood;
-	}
-	//if (currentResourceNearnessForStone != -1)
-	//{
-	//	currentResourceNearness += currentResourceNearnessForStone;
-	//}
-	//if (currentResourceNearnessForWood  != -1)
-	//{
-	//	currentResourceNearness += currentResourceNearnessForWood;
-	//}
+	currentResourceNearness += GetMaxOf2(currentResourceNearnessForFood,0);
+	currentResourceNearness += GetMaxOf2(currentResourceNearnessForStone,0);
+	currentResourceNearness += GetMaxOf2(currentResourceNearnessForWood,0);
 
-	//if (oldResourceNearnessForFood  != -1)
-	{
-		oldResourceNearness += oldResourceNearnessForFood;
-	}
-	//if (resourceNearnessOldForStone != -1)
-	//{
-	//	oldResourceNearness += resourceNearnessOldForStone;
-	//}
-	//if (oldResourceNearnessForWood  != -1)
-	//{
-	//	oldResourceNearness += oldResourceNearnessForWood;
-	//}
+	oldResourceNearness     += GetMaxOf2(oldResourceNearnessForFood,0);
+	oldResourceNearness		+= GetMaxOf2(oldResourceNearnessForStone,0);
+	oldResourceNearness		+= GetMaxOf2(oldResourceNearnessForWood,0);
 
-	//currentResourceNearness = currentResourceNearness   /3.f;
-	//oldResourceNearness	    = oldResourceNearness	    /3.f;
+	float max = 10000;
 
 	if (currentResourceNearness - oldResourceNearness > 0)
 	{
+		if (currentResourceNearnessForFood == 0 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_food > max)
+		{
+			SetDesiredOutputToMoveToNeighbour(2);
+			m_state.m_neuralNetPoints++;
+			return;
+		}
+		if (currentResourceNearnessForStone == 0 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_stone > max)
+		{
+			SetDesiredOutputToMoveToNeighbour(2);
+			m_state.m_neuralNetPoints++;
+			return;
+		}
+		if (currentResourceNearnessForWood == 0 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_wood > max)
+		{
+			SetDesiredOutputToMoveToNeighbour(2);
+			m_state.m_neuralNetPoints++;
+			return;
+		}
 		SetDesiredOutputForTask(TASK_MOVE, 1.f);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
 	else if (currentResourceNearness - oldResourceNearness == 0)
 	{
-		if (currentResourceNearnessForFood == 0.f)// || currentResourceNearnessForStone == 0 || currentResourceNearnessForWood == 0)
+		if (currentResourceNearnessForFood == 0.f || currentResourceNearnessForStone == 0 || currentResourceNearnessForWood == 0)
 		{
+			if(currentResourceNearnessForFood == 0 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_food > max)
+			{
+				SetDesiredOutputToMoveToNeighbour(2);
+				m_state.m_neuralNetPoints++;
+				return;
+			}
+			if (currentResourceNearnessForStone == 0 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_stone > max)
+			{
+				SetDesiredOutputToMoveToNeighbour(2);
+				m_state.m_neuralNetPoints++;
+				return;
+			}
+			if (currentResourceNearnessForWood == 0 && ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_wood > max)
+			{
+				SetDesiredOutputToMoveToNeighbour(2);
+				m_state.m_neuralNetPoints++;
+				return;
+			}
+			/*if(m_previousState.m_position == m_map->GetMapPosition(cords))
+			{
+				SetDesiredOutputToMoveToNeighbour(2);
+				m_state.m_neuralNetPoints++;
+				return;
+			}*/
+
 			SetDesiredOutputForTask(TASK_MOVE, 0.f);
 			m_state.m_neuralNetPoints++;
 			return;

@@ -59,6 +59,8 @@ public:
 	void SetTargetPosition(Vector2 position);
 	void SetStartPosition(Vector2 position);
 
+	bool HasEnoughResources();
+
 	void Update(float deltaTime);
 	virtual bool DoTask(float delatTime) = 0;
 

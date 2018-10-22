@@ -21,7 +21,7 @@ ClassBWarrior::ClassBWarrior()
 ClassBWarrior::ClassBWarrior(Map *map, Vector2 position, int teamID)
 {
 	m_map = map;
-	m_type = WARRIOR_LONG_RANGE;
+	m_type = LONG_RANGE_WARRIOR;
 	SetPosition(position);
 	SetTeam(teamID);
 	m_taskTypeSupported.push_back(TASK_LONG_ATTACK);
@@ -94,11 +94,90 @@ void ClassBWarrior::Update(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClassBWarrior::TrainNN()
+void ClassBWarrior::TrainNN(Task *task)
 {
-
+	Entity::TrainNN(task);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : Evaluates the previous action
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
+{
+	CopyDesiredOutputs();
+
+	switch (task->m_taskType)
+	{
+	case TASK_MOVE:
+		EvaluateMoveTask(previousState, cords);
+		break;
+	case TASK_LONG_ATTACK:
+		EvaluateLongAttackTask(previousState, cords);
+		break;
+	case TASK_IDLE:
+		EvaluateIdleTask(previousState, cords);
+		break;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords)
+{
+	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 2);
+	if (m_entityList.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_MOVE, 0);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+	SetDesiredOutputForTask(TASK_MOVE, 1);
+	m_state.m_neuralNetPoints++;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : Evaluates the short attack task
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassBWarrior::EvaluateLongAttackTask(EntityState previousState, IntVector2 cords)
+{
+	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 2);
+	if (m_entityList.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_LONG_ATTACK, 1);
+		m_state.m_neuralNetPoints++;
+		Entity* enemy = m_map->GetEntityFromPosition(cords);
+		if (enemy->m_teamID != m_teamID)
+		{
+			return;
+		}
+		SetDesiredOutputToChooseRandomNeighbourLocation(2);
+		return;
+	}
+	m_state.m_neuralNetPoints++;
+	SetDesiredOutputForTask(TASK_LONG_ATTACK, 0);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : Evaluates the idle task
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassBWarrior::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
+{
+	SetDesiredOutputForTask(TASK_IDLE, 0);
+	m_state.m_neuralNetPoints++;
+}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
 *@purpose : NIL

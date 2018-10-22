@@ -27,7 +27,12 @@ public:
 
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
-	void TrainNN();
+	void TrainNN(Task *task);
+	void EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
+	void EvaluateMoveTask(EntityState previousState, IntVector2 cords);
+	void EvaluateShortAttackTask(EntityState previousState, IntVector2 cords);
+	void EvaluateIdleTask(EntityState previousState, IntVector2 cords);
+
 	void Render();
 
 	bool IsInRange(int tileIndex);

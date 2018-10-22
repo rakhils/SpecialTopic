@@ -42,8 +42,8 @@ Vector2 Entity::GetPosition()
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case WARRIOR_SHORT_RANGE:
-	case WARRIOR_LONG_RANGE:
+	case SHORT_RANGE_WARRIOR:
+	case LONG_RANGE_WARRIOR:
 		return m_disc.center;
 		break;
 	case HOUSE:
@@ -161,7 +161,7 @@ void Entity::ProcessInputs(float deltaTime)
 			{
 				g_currentSelectedEntity = this;
 			}
-			if (g_currentSelectedEntity->m_type == WARRIOR_SHORT_RANGE || g_currentSelectedEntity->m_type == WARRIOR_LONG_RANGE)
+			if (g_currentSelectedEntity->m_type == SHORT_RANGE_WARRIOR || g_currentSelectedEntity->m_type == LONG_RANGE_WARRIOR)
 			{
 				switch (this->m_type)
 				{
@@ -189,8 +189,8 @@ void Entity::ProcessInputs(float deltaTime)
 				case TOWN_CENTER:
 				case HOUSE:
 				case CIVILIAN:
-				case WARRIOR_LONG_RANGE:
-				case WARRIOR_SHORT_RANGE:
+				case LONG_RANGE_WARRIOR:
+				case SHORT_RANGE_WARRIOR:
 					g_currentSelectedEntity = this;
 					break;
 				default:
@@ -284,12 +284,8 @@ void Entity::UpdateNN(float deltaTime)
 	{
 		return;
 	}
-	if (m_type == RESOURCE_FOOD || m_type == RESOURCE_STONE || m_type == RESOURCE_WOOD || m_type == HOUSE)
-	{
-		return;
-	}
-
-	if (m_type != CIVILIAN)
+	
+	if(!m_map->HasTrainingEnabled(this))
 	{
 		return;
 	}
@@ -327,6 +323,10 @@ void Entity::UpdateNN(float deltaTime)
 
 void Entity::UpdateTaskFromNN(float deltaTime)
 {
+	if (!m_map->HasTrainingEnabled(this))
+	{
+		return;
+	}
 	double max = 0;
 	TaskType task			= GetTaskFromNNOutput(max);
 	IntVector2 taskPosition = GetTaskPositonFromNNOutput();
@@ -691,8 +691,8 @@ void Entity::Render()
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case WARRIOR_SHORT_RANGE:
-	case WARRIOR_LONG_RANGE:
+	case SHORT_RANGE_WARRIOR:
+	case LONG_RANGE_WARRIOR:
 		g_theRenderer->DrawCircle(m_disc,GetTeamColor());
 		break;
 	case HOUSE:
@@ -731,8 +731,8 @@ void Entity::SetPosition(Vector2 position)
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case WARRIOR_SHORT_RANGE:
-	case WARRIOR_LONG_RANGE:
+	case SHORT_RANGE_WARRIOR:
+	case LONG_RANGE_WARRIOR:
 		m_disc.center = m_map->GetMapPosition(m_map->GetTileIndex(position));
 		m_disc.radius = g_radius;
 		break;
@@ -771,8 +771,8 @@ void Entity::SetPositionInFloat(Vector2 position)
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case WARRIOR_SHORT_RANGE:
-	case WARRIOR_LONG_RANGE:
+	case SHORT_RANGE_WARRIOR:
+	case LONG_RANGE_WARRIOR:
 		m_disc.center = position;
 		m_disc.radius = g_radius;
 		break;
@@ -804,6 +804,25 @@ void Entity::SetDesiredOutputToMoveToNeighbour(int distance)
 	SetDesiredOutputForTask(TASK_MOVE, 1);
 	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
 	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+
+	m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance)
+{
+	IntVector2 neighbour = m_map->GetRandomNeighbour(GetCordinates(), cellDistance);
+	float xPosition = RangeMapFloat(static_cast<float>(neighbour.x), 0.f, static_cast<float>(m_map->m_maxWidth - 1), 0.f, 1.f);
+	float yPosition = RangeMapFloat(static_cast<float>(neighbour.y), 0.f, static_cast<float>(m_map->m_maxHeight - 1), 0.f, 1.f);
+	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
+	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+
+	m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -951,8 +970,8 @@ bool Entity::IsPositionInside(Vector2 position)
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case WARRIOR_SHORT_RANGE:
-	case WARRIOR_LONG_RANGE:
+	case SHORT_RANGE_WARRIOR:
+	case LONG_RANGE_WARRIOR:
 		return m_disc.IsPointInside(position);
 		break;
 	case HOUSE:
@@ -980,8 +999,8 @@ bool Entity::IsMovalbleObject()
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case WARRIOR_SHORT_RANGE:
-	case WARRIOR_LONG_RANGE:
+	case SHORT_RANGE_WARRIOR:
+	case LONG_RANGE_WARRIOR:
 		return true;
 		break;
 	case HOUSE:
@@ -1166,10 +1185,10 @@ float Entity::GetMiniMapValue()
 	case CIVILIAN:
 		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.30f;
 		break;
-	case WARRIOR_SHORT_RANGE:
+	case SHORT_RANGE_WARRIOR:
 		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.25f;
 		break;
-	case WARRIOR_LONG_RANGE:
+	case LONG_RANGE_WARRIOR:
 		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.20f;
 		break;
 	case HOUSE:
@@ -1461,13 +1480,7 @@ bool Entity::CreateAndPushLongRangeAttackTask(IntVector2 cordinate)
 	EmptyTaskQueue();
 	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
 	Task *task = new TaskLongRangeAttack(m_map, this, m_map->GetTileIndex(mapPosition));
-	if (task->m_isValid)
-	{
-		m_taskQueue.push(task);
-		return true;
-	}
-	delete task;
-	CreateAndPushIdleTask(IntVector2::ONE);
+	m_taskQueue.push(task);
 	return false;
 }
 
@@ -1482,13 +1495,7 @@ bool Entity::CreateAndPushShortRangeAttackTask(IntVector2 cordinate)
 	EmptyTaskQueue();
 	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
 	Task *task = new TaskShortRangeAttack(m_map, this, m_map->GetTileIndex(mapPosition));
-	if (task->m_isValid)
-	{
-		m_taskQueue.push(task);
-		return true;
-	}
-	delete task;
-	CreateAndPushIdleTask(IntVector2::ONE);
+	m_taskQueue.push(task);
 	return false;
 }
 
@@ -1565,10 +1572,10 @@ std::string Entity::GetEntityTypeAsString(EntityType entityType)
 	case CIVILIAN:
 		return "CIVILIAN";
 		break;
-	case WARRIOR_SHORT_RANGE:
+	case SHORT_RANGE_WARRIOR:
 		return "ARMY SHORT RANGE";
 		break;
-	case WARRIOR_LONG_RANGE:
+	case LONG_RANGE_WARRIOR:
 		return "ARMY LONG RANGE";
 		break;
 	case HOUSE:

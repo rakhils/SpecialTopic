@@ -25,6 +25,8 @@ Map::Map()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::Initialize()
 {
+	m_entitiesHavingTraning.push_back(CIVILIAN);
+	m_entitiesHavingTraning.push_back(SHORT_RANGE_WARRIOR);
 	InitCamera();
 	switch (m_mapMode)
 	{
@@ -104,31 +106,60 @@ void Map::InitCellSensoryValues()
 		cellValue.m_coords = GetCordinates(index);
 		cellValue.m_townCenter1Nearness = RangeMapFloat(static_cast<float>(cellDistanceTC1), 1.f, static_cast<float>(maxDistance), 0,1);
 		cellValue.m_townCenter2Nearness = RangeMapFloat(static_cast<float>(cellDistanceTC2), 1.f, static_cast<float>(maxDistance), 0,1);
+		if(cellDistanceTC1 == 0 || cellDistanceTC1 == 1)
+		{
+			cellValue.m_townCenter1Nearness = 0;
+		}
+		if (cellDistanceTC2 == 0 || cellDistanceTC2 == 1)
+		{
+			cellValue.m_townCenter2Nearness = 0;
+		}
 		if(resourceFoodCount > 0)
 		{
-			cellValue.m_resourceNearnessForFood  = RangeMapFloat(static_cast<float>(cellDistanceResourceFood/resourceFoodCount), 1.f, static_cast<float>(maxDistance), 0.f,1.f);
+			if(cellDistanceResourceFood == 0 || cellDistanceResourceFood == 1)
+			{
+				cellValue.m_resourceNearnessForFood = 0;
+			}
+			else
+			{
+				cellValue.m_resourceNearnessForFood  = RangeMapFloat(static_cast<float>(cellDistanceResourceFood/resourceFoodCount), 1.f, static_cast<float>(maxDistance), 0.f,1.f);
+			}
 		}
 		else
 		{
-			cellValue.m_resourceNearnessForFood = 0;
+			cellValue.m_resourceNearnessForFood = -1;
 		}
 
 		if(resourceStoneCount > 0)
 		{
-			cellValue.m_resourceNearnessForStone = RangeMapFloat(static_cast<float>(cellDistanceResourceStone/resourceStoneCount), 0.f, static_cast<float>(maxDistance), 0, 1);
+			if(cellDistanceResourceStone == 0 || cellDistanceResourceStone == 1)
+			{
+				cellValue.m_resourceNearnessForStone = 0;
+			}
+			else
+			{
+				cellValue.m_resourceNearnessForStone = RangeMapFloat(static_cast<float>(cellDistanceResourceStone/resourceStoneCount), 0.f, static_cast<float>(maxDistance), 0, 1);
+			}
 		}
 		else
 		{
-			cellValue.m_resourceNearnessForStone = 0.f;
+			cellValue.m_resourceNearnessForStone = -1.f;
 		}
 
 		if(resourceWoodCount > 0)
 		{
-			cellValue.m_resourceNearnessForWood  = RangeMapFloat(static_cast<float>(cellDistanceResourceWood/resourceWoodCount), 0.f, static_cast<float>(maxDistance), 0, 1);
+			if(cellDistanceResourceWood == 0 || cellDistanceResourceWood == 1)
+			{
+				cellValue.m_resourceNearnessForWood = 0;
+			}
+			else
+			{
+				cellValue.m_resourceNearnessForWood  = RangeMapFloat(static_cast<float>(cellDistanceResourceWood/resourceWoodCount), 0.f, static_cast<float>(maxDistance), 0, 1);
+			}
 		}
 		else
 		{
-			cellValue.m_resourceNearnessForWood = 0.f;
+			cellValue.m_resourceNearnessForWood = -1.f;
 		}
 		m_cellSensoryValues.push_back(cellValue);
 	}
@@ -191,17 +222,30 @@ void Map::InitTrainingForCivilianGatherFood()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForCivilianGatherAllResources()
 {
-	m_maxWidth  = 40; //g_mapMaxWidth;
-	m_maxHeight = 20;// g_mapMaxHeight;
+	m_maxWidth  = 8; //g_mapMaxWidth;
+	m_maxHeight = 8;// g_mapMaxHeight;
 
-	CreateTownCenter(GetMapPosition(140), 1);
-	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(57), RESOURCE_STONE);
-	CreateResources(GetMapPosition(205), RESOURCE_WOOD);
+	CreateTownCenter(GetMapPosition(7), 1);
+	CreateResources(GetMapPosition(32), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(56), RESOURCE_STONE);
+	CreateResources(GetMapPosition(63), RESOURCE_WOOD);
 
 
-	CreateTownCenter(GetMapPosition(40), 2);
-	CreateCivilian(GetMapPosition(700), 2);
+	CreateTownCenter(GetMapPosition(35), 2);
+	CreateCivilian(GetMapPosition(33), 2);
+
+
+	/*m_maxWidth  = 8; //g_mapMaxWidth;
+	m_maxHeight = 8;// g_mapMaxHeight;
+
+	CreateTownCenter(GetMapPosition(8), 1);
+	CreateResources(GetMapPosition(1), RESOURCE_STONE);
+	CreateResources(GetMapPosition(57), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(35), RESOURCE_WOOD);
+
+
+	CreateTownCenter(GetMapPosition(62), 2);
+	CreateCivilian(GetMapPosition(34), 2);*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -212,8 +256,8 @@ void Map::InitTrainingForCivilianGatherAllResources()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForCivilianBuildAll()
 {
-	m_maxWidth = g_mapMaxWidth;
-	m_maxHeight = g_mapMaxHeight;
+	m_maxWidth = 8;
+	m_maxHeight = 8;
 
 	CreateTownCenter(GetMapPosition(7), 1);
 	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
@@ -234,17 +278,17 @@ void Map::InitTrainingForCivilianBuildAll()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForCivilian()
 {
-	m_maxWidth = g_mapMaxWidth;
-	m_maxHeight = g_mapMaxHeight;
+	m_maxWidth = 8;
+	m_maxHeight = 8;
 
 	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(20), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(0), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(56), RESOURCE_WOOD);
+	CreateResources(GetMapPosition(63), RESOURCE_STONE);
 
 
-	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
+	CreateTownCenter(GetMapPosition(34), 2);
+	CreateCivilian(GetMapPosition(33), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -276,11 +320,11 @@ void Map::InitTrainingForShortRangeArmy()
 	m_maxWidth = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
 
-	CreateTownCenter(GetMapPosition(7), 1);
+	CreateTownCenter(GetMapPosition(15), 1);
 	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
 
 	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
+	//CreateCivilian(GetMapPosition(42), 2);
 	CreateClassAWarrior(GetMapPosition(20),2);
 
 }
@@ -369,6 +413,24 @@ bool Map::IsNonTrainingMode()
 	if(m_mapMode == MAP_MODE_TRAINING_NONE)
 	{
 		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : Checks if training is enabled for this entity
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::HasTrainingEnabled(Entity *entity)
+{
+	for(int index = 0;index < m_entitiesHavingTraning.size();index++)
+	{
+		if(entity->m_type == m_entitiesHavingTraning.at(index))
+		{
+			return true;
+		}
 	}
 	return false;
 }
@@ -1348,6 +1410,26 @@ std::vector<Entity*> Map::GetAllTownCentersNearLocation(Vector2 mapPosition, int
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : Get all enemies near location
+*@param   : current team id , maps position ,cell distance
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<Entity*> Map::GetAllEnemiesNearLocation(int teamID, Vector2 mapPosition, int distance)
+{
+	std::vector<Entity*> entityList = GetAllEntitiesNearLocation(mapPosition, distance);
+	std::vector<Entity*> returnList;
+	for(int index = 0;index < entityList.size();index++)
+	{
+		if(entityList.at(index)->m_teamID != teamID && entityList.at(index)->m_teamID != 0)
+		{
+			returnList.push_back(entityList.at(index));
+		}
+	}
+	return returnList;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
 *@purpose : Is a valid map cordinate
 *@param   : NIL
@@ -1439,7 +1521,7 @@ void Map::DestroyEntity(Entity *entity)
 			}
 		}
 		break;
-	case WARRIOR_SHORT_RANGE:
+	case SHORT_RANGE_WARRIOR:
 		for (int warriorShortRangeIndex = 0; warriorShortRangeIndex < m_classAWarriors.size(); warriorShortRangeIndex++)
 		{
 			if (m_classAWarriors.at(warriorShortRangeIndex) == entity)
@@ -1450,7 +1532,7 @@ void Map::DestroyEntity(Entity *entity)
 			}
 		}
 		break;
-	case WARRIOR_LONG_RANGE:
+	case LONG_RANGE_WARRIOR:
 		for (int warriorLongRangeIndex = 0; warriorLongRangeIndex < m_classBWarriors.size(); warriorLongRangeIndex++)
 		{
 			if (m_classBWarriors.at(warriorLongRangeIndex) == entity)
@@ -1586,9 +1668,21 @@ void Map::ProcessInputs(float deltaTime)
 	{
 		g_enableDebugPrints = g_enableDebugPrints == true ? false : true;
 	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_D))
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_F))
 	{
-		m_debugSensoryValue = m_debugSensoryValue == true ? false : true;
+		m_displaySensoryFoodValue = m_displaySensoryFoodValue == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_S))
+	{
+		m_displaySensoryStoneValue = m_displaySensoryStoneValue == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_W))
+	{
+		m_displaySensoryWoodValue = m_displaySensoryWoodValue == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_T))
+	{
+		m_displaySensoryTC1Value = m_displaySensoryTC1Value == true ? false : true;
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_1))
 	{
@@ -1613,6 +1707,22 @@ void Map::ProcessInputs(float deltaTime)
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_6))
 	{
 		m_townCenters.at(1)->m_resourceStat.m_wood++;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_7))
+	{
+		CreateClassAWarrior(m_mousePosition, 1);
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_8))
+	{
+		CreateClassBWarrior(m_mousePosition, 1);
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_9))
+	{
+		CreateClassAWarrior(m_mousePosition, 2);
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_0))
+	{
+		CreateClassBWarrior(m_mousePosition, 2);
 	}
 
 }
@@ -1836,10 +1946,7 @@ void Map::Render()
 	RenderHUDUnitStat();
 	RenderUnitTask();
 
-	if(m_debugSensoryValue)
-	{
-		RenderCensoryValues();
-	}
+	RenderCensoryValues();
 
 	RenderMousePosition();
 
@@ -2057,8 +2164,8 @@ void Map::RenderHUDUnitStat()
 		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDFirstButton.GetCenter() - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "CREATE CIVILIAN ", g_fontSize, Rgba::YELLOW);
 
 
-	case WARRIOR_SHORT_RANGE:
-	case WARRIOR_LONG_RANGE:
+	case SHORT_RANGE_WARRIOR:
+	case LONG_RANGE_WARRIOR:
 		Renderer::GetInstance()->BindMaterial(textMaterial);
 		g_theRenderer->DrawTextOn3DPoint(g_unitStatHUDHealthInfoPosition - Vector2(g_unitStatHUD.GetDimensions().x / 2.f - g_fontSize / 2.f, 0), Vector3::RIGHT, Vector3::UP, "HEALTH : " + ToString(g_currentSelectedEntity->m_health), g_fontSize, Rgba::YELLOW);
 		break;
@@ -2203,23 +2310,41 @@ void Map::RenderCensoryValues()
 {
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
-	//for(int index = 0;index < m_maxHeight;index++)
+	
+	if (m_displaySensoryFoodValue)
 	{
-		//for(int indexH = 0;indexH < m_maxWidth;indexH++)
-		{
-			int tileIndex = GetTileIndex(m_mousePosition);
-			if(tileIndex < 0 || tileIndex >= m_maxHeight*m_maxWidth)
-			{
-				return;
-			}
-			float resourceNearnessCurrentForFood =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForFood;
-			float resourceNearnessCurrentForStone = m_cellSensoryValues.at(tileIndex).m_resourceNearnessForStone;
-			float resourceNearnessCurrentForWood =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForWood;
+	}
 
-			float resourceValue = (resourceNearnessCurrentForFood + resourceNearnessCurrentForStone + resourceNearnessCurrentForWood) / 3.f;
+	int tileIndex = GetTileIndex(m_mousePosition);
+	if(tileIndex < 0 || tileIndex >= m_maxHeight*m_maxWidth)
+	{
+		return;
+	}
+	float resourceNearnessCurrentForFood  =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForFood;
+	float resourceNearnessCurrentForStone =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForStone;
+	float resourceNearnessCurrentForWood  =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForWood;
+	float townCenter1NearnessValue		  =  m_cellSensoryValues.at(tileIndex).m_townCenter1Nearness;
+	float townCenter2NearnessValue		  =  m_cellSensoryValues.at(tileIndex).m_townCenter1Nearness;
 
-			g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(resourceValue), 5.f, Rgba::YELLOW);
-		}
+	if(m_displaySensoryFoodValue)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(resourceNearnessCurrentForFood), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryStoneValue)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(resourceNearnessCurrentForStone), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryWoodValue)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(resourceNearnessCurrentForWood), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryTC1Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(townCenter1NearnessValue), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryTC2Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(townCenter2NearnessValue), 5.f, Rgba::YELLOW);
 	}
 	delete textMaterial;
 }

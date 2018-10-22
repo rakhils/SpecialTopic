@@ -62,7 +62,13 @@ class Map
 public:
 	bool							m_init = false;
 	bool							m_gameFinished = false;
-	bool							m_debugSensoryValue = false;
+
+	bool							m_displaySensoryFoodValue = false;
+	bool							m_displaySensoryStoneValue = false;
+	bool							m_displaySensoryWoodValue = false;
+	bool							m_displaySensoryTC1Value = false;
+	bool							m_displaySensoryTC2Value = false;
+
 	Camera *						m_camera = nullptr;
 	std::vector<ArmySpawner*>	    m_armySpawners;
 	std::vector<Civilian*>			m_civilians;
@@ -76,6 +82,7 @@ public:
 
 	std::vector<Entity*>			m_movableEntities;
 	std::vector<Entity*>			m_standAloneEntities;
+	std::vector<EntityType>			m_entitiesHavingTraning;
 
 	std::vector<double>				m_minimapValue;
 	std::vector<CellSensoryValues>  m_cellSensoryValues;
@@ -108,6 +115,7 @@ public:
 	void							InitNonTrainingMode();
 
 	bool							IsNonTrainingMode();
+	bool							HasTrainingEnabled(Entity *entity);
 
 	void							CreateCivilian(Vector2 position, int teamID);
 	void							CreateArmySpawner(Vector2 position, int teamID);

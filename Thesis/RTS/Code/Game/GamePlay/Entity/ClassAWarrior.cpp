@@ -5,6 +5,7 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Task/TaskMove.hpp"
+#include "Game/GamePlay/Task/TaskIdle.hpp"
 #include "Game/GamePlay/Task/TaskShortRangeAttack.hpp"
 // CONSTRUCTOR
 ClassAWarrior::ClassAWarrior()
@@ -21,13 +22,17 @@ ClassAWarrior::ClassAWarrior()
 ClassAWarrior::ClassAWarrior(Map *map,Vector2 position, int teamID)
 {
 	m_map		  = map;
-	m_type		  = WARRIOR_SHORT_RANGE;
+	m_type		  = SHORT_RANGE_WARRIOR;
 	SetPosition(position);
 	SetTeam(teamID);
 	m_taskTypeSupported.push_back(TASK_SHORT_ATTACK);
 	m_taskTypeSupported.push_back(TASK_MOVE);
 	m_taskTypeSupported.push_back(TASK_IDLE);
+	m_taskTypeSupported.push_back(TASK_MOVEX);
+	m_taskTypeSupported.push_back(TASK_MOVEY);
 	InitNeuralNet();
+	InitStates();
+	m_taskQueue.push(new TaskIdle());
 }
 
 // DESTRUCTOR
@@ -102,9 +107,109 @@ void ClassAWarrior::Update(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClassAWarrior::TrainNN()
+void ClassAWarrior::TrainNN(Task *task)
 {
+	Entity::TrainNN(task);
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : Evaluates the previous action
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
+{
+	CopyDesiredOutputs();
+	Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
+	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputToMoveToNeighbour(2);
+		return;
+	}
+	switch (task->m_taskType)
+	{
+		case TASK_MOVE:
+			EvaluateMoveTask(previousState, cords);
+			break;
+		case TASK_SHORT_ATTACK:
+			EvaluateShortAttackTask(previousState, cords);
+			break;
+		case TASK_IDLE:
+			EvaluateIdleTask(previousState, cords);
+			break;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords)
+{
+	if(true)
+	{
+		SetDesiredOutputForTask(TASK_MOVE, 0);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+
+	if(m_map->GetCordinates(m_previousState.m_position) == cords)
+	{
+		SetDesiredOutputToMoveToNeighbour(2);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+
+	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 1);
+	if (m_entityList.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_MOVE, 0);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+	SetDesiredOutputForTask(TASK_MOVE, 1);
+	m_state.m_neuralNetPoints++;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : Evaluates the short attack task
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::EvaluateShortAttackTask(EntityState previousState, IntVector2 cords)
+{
+	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 1);
+	if(m_entityList.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_SHORT_ATTACK, 1);
+		m_state.m_neuralNetPoints++;
+		Entity* enemy = m_map->GetEntityFromPosition(cords);
+		if(enemy != nullptr && enemy->m_teamID != m_teamID)
+		{
+			return;
+		}
+		SetDesiredOutputToChooseRandomNeighbourLocation(1);
+		return;
+	}
+	m_state.m_neuralNetPoints++;
+	SetDesiredOutputForTask(TASK_SHORT_ATTACK, 1);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/21
+*@purpose : Evalutas the idle task
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
+{
+	SetDesiredOutputForTask(TASK_IDLE, 0);
+	m_state.m_neuralNetPoints++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
