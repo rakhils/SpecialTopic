@@ -28,7 +28,7 @@ float				g_mapYOffset;
 // MAIN MENU
 
 float				g_mainMenuStartX = 300.f;
-float				g_mainMenuStartY = 800.f;
+float				g_mainMenuStartY = 500.f;
 
 // NN 
 float				g_desiredOutputForSameRandomPosition        = 0.5f;

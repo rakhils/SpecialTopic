@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <map>
 #include "Engine/Net/NetAddress.hpp"
 #include "Engine/Net/NetMessage.hpp"
 /*\class  : NetConnection		   
@@ -12,12 +13,18 @@
 * \date   : 9/16/2018 7:37:15 PM
 * \contact: srsrakhil@gmail.com
 */
+#define INVALID_PACKET_ACK (0xffff)
 class UDPSocket;
 class NetSession;
+class PacketTracker;
 struct UDPHeader
 {
 	uint8_t m_connectionindex  = static_cast<uint8_t>(-1);
+	uint16_t m_ack			   = static_cast<uint16_t>(0U);
+	uint16_t m_lastReceivedAck = INVALID_PACKET_ACK;
+	uint16_t m_previousReceivedAckBitfield = static_cast<uint8_t>(0U);
 	uint8_t m_unrealiableCount = static_cast<uint8_t>(0U);
+
 };
 class NetConnection
 {
@@ -33,9 +40,26 @@ public:
 	NetSession *				m_session;
 	float						m_lastHeartbeatReceivedTime;
 	float						m_lastHeartbeatHPC;
-	float						m_heartBeatFrequency = .001;
-	float						m_sendRate			 = 0;
-	float						m_lastSendTime		 = 0;
+	float						m_heartBeatFrequency = 0.25;
+	float						m_sendRate			 = 20;
+
+	uint16_t					m_nextSentAck = 0U;
+
+	uint16_t					m_lastReceivedAck = INVALID_PACKET_ACK;
+	uint16_t					m_previousReceivedAckBitField = 0;
+
+	float						m_loss				= 0.0f;
+	float						m_rtt				= 0.0f;
+
+	float						m_lastSendTime		= 0.f;
+
+	float						m_lastReceivedTime  = 0.f;
+
+	std::map<uint16_t, PacketTracker*> m_trackerMap;
+	uint16_t					m_trackerMaxCount = 64;
+	int							m_trackerMinPosition = 0;
+	int							m_trackerMaxPosition = 0;
+
 	//Static_Member_Variables
 
 	//Methods
@@ -44,28 +68,46 @@ public:
 	NetConnection(int listenPort);					// As Server
 	~NetConnection();
 
-	void   SetLastHeartBeatReceivedTime(float time);
-	void   SetHeartBeatFrequency(float freq);
-	void   SetConnectionIndex(int index);
-	void   SetUnrealiableMsgCount(int count);
-	void   SetSendRate(float sendRate);
+	void InitTrakcer();
 
+
+	void  SetLastHeartBeatReceivedTime(float time);
+	void  SetHeartBeatFrequency(float freq);
+	void  SetConnectionIndex(int index);
+	void  SetUnrealiableMsgCount(int count);
+	void  SetSendRate(float sendRate);
+
+	void IncrementSendAck();
+
+	// ACK
+	void  ConfirmPacketReceived(uint16_t ack);
+	///////////////////////////////////////////////////////////////////
+	void CalculateLossPercent();
+	//HEADER
+	UDPHeader GetHeaderFromPacket(void *data);
 	int    GetHeaderSize();
-
 	void   WriteConnectionIndex();
 	void   WriteUnrealiableMsgCount();
+	void   WriteNextSentAck();
+	void   WriteLastReceivedAck();
+	void   WritePreviousReceviedAckBitField();
 	void   WriteHeader();
-	bool   WritePayload(NetMessage *msg);
+	///////////////////////////////////////////////////////////////////
 
+	//PAYLOAD
+	bool   WritePayload(NetMessage *msg);
+	///////////////////////////////////////////////////////////////////
 	void   SendHeartBeat();
 
-	void Update(float deltaTime);
+	void   Update(float deltaTime);
 
 	size_t SendImmediately(int connectionIndex, std::vector<NetMessage*> &msgs);
 	size_t SendImmediately(NetMessage msg);
 	void   Append(NetMessage *msg);
+	void   AddTracker(uint16_t ack);
+	PacketTracker * GetTracker(uint16_t ack);
 	size_t FlushMsgs();
-	size_t   Recv(char *data,size_t &maxlength,NetAddress *netAddress);
+	size_t Recv(char *data,size_t &maxlength,NetAddress *netAddress);
 	
 	std::string GetIPPortAsString();
 	//Static_Methods

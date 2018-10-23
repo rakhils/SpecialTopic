@@ -472,6 +472,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Net\UDP\PacketTracker.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Net\UDP\UDPSocket.cpp">
       <SubType>
       </SubType>
@@ -904,6 +908,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Net\TCP\TCPSocket.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\UDP\PacketTracker.hpp">
       <SubType>
       </SubType>
     </ClInclude>

@@ -11,19 +11,7 @@
 * \date   : 9/16/2018 7:32:44 PM
 * \contact: srsrakhil@gmail.com
 */
-/*
-struct UDPData
-{
-	BytePacker m_bytePacker;
-	uint16_t   m_index;
-	size_t	   m_bytesRead;
-	size_t	   m_totalBytes;
-	UDPData()
-	{
-		m_bytePacker.SetEndianess(LITTLE_ENDIAN);
-	}
-};*/
-
+class NetConnection;
 class NetMessage : public BytePacker
 {
 
@@ -46,6 +34,7 @@ public:
 	static NetMessage * CreateAddMessage(float value1, float value2);
 	static NetMessage * CreatePingMessage(std::string msg);
 	static NetMessage * CreateHeartBeatMessage();
+	static NetMessage * CreateHeartBeatMessage(NetConnection *connection);
 	static NetMessage * CreateBadMessage();
 protected:
 	//Member_Variables

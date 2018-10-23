@@ -284,6 +284,9 @@ void CommandStartup()
 	CommandRegister("net_set_connection_send_rate", SetUDPConnectionSendRate, "SETS UDP CONNECTION'S SEND RATE");
 
 	CommandRegister("setup_udp", SetupUDPConnections, "SETS UP CONNECTION FOR UDP");
+	CommandRegister("add_local",  AddLocal, "ADDS LOCAL CONNECTION TO LCOAL AND REMOTE");
+	CommandRegister("add_remote", AddRemote, "ADDS REMOTE CONNECTION TO LOCAL AND REMOTE");
+
 	CommandRegister("listen_udp", ListenUDPPort, "LISTEN NET SESSION IN GIVEN PORT");
 }
 
@@ -1444,6 +1447,32 @@ void SetupUDPConnections(Command &cmd)
 
 	NetSession::GetInstance()->AddConnection(0, "192.168.0.123", 10084);
 	NetSession::GetInstance()->AddConnection(1, "192.168.0.123", 10085);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/22
+*@purpose : Adds local connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AddLocal(Command &cmd)
+{
+	std::string addConnection0 = "add_connection 0 192.168.0.123:10084";
+	NetSession::GetInstance()->AddConnection(0, "192.168.0.123",10084);
+	RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AddRemote(Command &cmd)
+{
+	std::string addConnection0 = "add_connection 1 192.168.0.123:10085";
+	NetSession::GetInstance()->AddConnection(1,"192.168.0.123",10085);
+	RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
 }
 
 /*

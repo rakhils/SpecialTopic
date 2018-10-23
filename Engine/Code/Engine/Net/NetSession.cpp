@@ -236,7 +236,6 @@ void NetSession::ProcessIncomingMessage()
 	size_t recvd = m_channel->Recv(data, maxsize,&netAddr);
 	if(recvd > m_minHeaderSize)
 	{
-
 		//float simLossForThisPacket = GetRandomFloatZeroToOne();
 		//if(simLossForThisPacket > m_lossAmount)
 		//{
@@ -300,16 +299,25 @@ NetConnection* NetSession::AddConnection(int index, NetAddress *netaddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 NetConnection* NetSession::AddConnection(int index,std::string ip, int port)
 {
+	if (ip == Net::GetIP() && port == s_defaultPort)
+	{
+		if(m_myConnection != nullptr)
+		{
+			return m_myConnection;
+		}
+	}
+
 	NetAddress *address = new NetAddress();
 	sockaddr_storage out;
 	int out_addrlen;
 	NetAddress::GetRemoteAddress(address, (sockaddr*)&out, &out_addrlen, ip.c_str(), ToString(port).c_str());
 	NetConnection *connection = AddConnection(index, address);
+	connection->m_index = index;
 	if(ip == Net::GetIP() && port == s_defaultPort)
 	{
 		m_myConnection = connection;
-
 	}
+	return connection;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -345,6 +353,28 @@ NetConnection* NetSession::GetConnection(NetAddress *netAddress)
 		}
 	}
 	return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/22
+*@purpose : Returns my udp connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetConnection* NetSession::GetMyConnection()
+{
+	return m_myConnection;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/22
+*@purpose : Returns session index
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int NetSession::GetMySessionIndex()
+{
+	return m_myConnection->m_index;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -545,16 +575,38 @@ void NetSession::Render()
 	startPosition -= Vector2(0, 2*fontSizeBig);
 	//Renderer::GetInstance()->DrawTextOnPoint("-- idx ", startPosition + Vector2(150, 0), fontSize, Rgba::WHITE);
 	int indent = 1;
-	std::string entryString = Stringf("%*s%-*s %-15s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
-		(3 * indent),
+	std::string entryString = Stringf("%*s%-*s %s %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
+		(3 * indent),"",
 		"idx", "address", "rtt", "loss", "lrcv(s)", "lsnt(s)", "sntack", "rcvack", "rcvbits");
 
 	Renderer::GetInstance()->DrawTextOnPoint(entryString, startPosition, fontSize, Rgba::WHITE);
-
 	std::map<int, NetConnection*>::iterator it;
 	for(it = m_remoteConnections.begin();it != m_remoteConnections.end();it++)
 	{
-
+		int index = it->second->m_index;
+		std::string ip = it->second->GetIPPortAsString();
+		float rtt =  it->second->m_rtt;
+		float loss = it->second->m_loss;
+		float lrcv = static_cast<float>(GetCurrentTimeSeconds()) - static_cast<float>(it->second->m_lastReceivedTime);
+		float lsnt = static_cast<float>(GetCurrentTimeSeconds()) - static_cast<float>(it->second->m_lastSendTime);
+		uint16_t sntack = it->second->m_nextSentAck;
+		uint16_t rcvack = it->second->m_lastReceivedAck;
+		uint16_t rcvBit = it->second->m_previousReceivedAckBitField;
+		//std::string entryString1;
+		startPosition += Vector2(0, -50);
+		std::string connectionDetailsStr;
+		if (it->second == m_myConnection)
+		{
+		connectionDetailsStr = Stringf("%*s%-*s %s   %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
+			(3 * indent),"L",ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(),ToString(lsnt, 2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToString(rcvBit).c_str());
+		}
+		else
+		{
+			connectionDetailsStr = Stringf("%*s%-*s %s   %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
+				(3 * indent), "",ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(), ToString(lsnt, 2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToString(rcvBit).c_str());
+		}
+		Renderer::GetInstance()->DrawTextOnPoint(connectionDetailsStr, startPosition, fontSize, Rgba::WHITE);
+		
 	}
 
 
