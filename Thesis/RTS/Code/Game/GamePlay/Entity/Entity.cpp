@@ -96,9 +96,9 @@ void Entity::InitNeuralNet()
 	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, g_hiddenLayerCount, static_cast<int>(m_taskTypeSupported.size()));
 	if(m_type == CIVILIAN)
 	{
-		//m_neuralNet.LoadFromFile(("Data\\NN\\" + GetEntityTypeAsString(m_type) + ".txt").c_str());
+		m_neuralNet.LoadFromFile(("Data\\NN\\" + GetEntityTypeAsString(m_type) + ".txt").c_str());
 	}
-	m_neuralNet.SetRandomWeight();
+	//m_neuralNet.SetRandomWeight();
 	// input + 6 -> for game stat && output + 2 for positions x,y
 
 	for(int index = 0;index < m_neuralNet.m_outputs->m_neurons.size();index++)
@@ -130,6 +130,12 @@ void Entity::InitStates()
 		m_minTeritaryArea = m_map->ClampCoordinates(m_minTeritaryArea);
 		m_maxTeritaryArea = m_map->ClampCoordinates(m_maxTeritaryArea);
 	}
+
+	for (int index = 0; index < 15; index++)
+	{
+		m_state.m_favoredMoveTaskCount.push_back(0);
+		m_previousState.m_favoredMoveTaskCount.push_back(0);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,10 +154,18 @@ void Entity::ProcessInputs(float deltaTime)
 	{
 		if(g_currentSelectedEntity == this)
 		{
+			
 			m_neuralNet.StoreToFile(("Data\\NN\\"+GetEntityTypeAsString(m_type) + ".txt").c_str());
 		}
 	}
-
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_D))
+	{
+		if(g_currentSelectedEntity == this)
+		{
+			m_health = 0;
+			g_currentSelectedEntity = nullptr;
+		}
+	}
 
 	if (InputSystem::GetInstance()->WasLButtonJustPressed())
 	{
@@ -218,7 +232,7 @@ void Entity::TrainNN(Task *task)
 		}
 		if (m_neuralNet.m_outputs->m_neurons.at(index).m_sumOfPreviousLayer > 5.f)
 		{
-			m_desiredOuputs.at(index) = -1;
+			m_desiredOuputs.at(index) = 0;
 		}
 	}
 
@@ -460,7 +474,13 @@ void Entity::PrintDebugNN()
 			debugNN.append(ToString(GetTaskValueFromDesiredOutput(task)));
 			DebugDraw::GetInstance()->DebugRenderLogf(debugNN, m_debugPrintDelay, GetTeamColor(), GetTeamColor());
 		}
+		float maxValue = 0;
+		int index = GetMostFavoredMoveTask(&maxValue);
+		std::string taskStr = GetFavoredMoveToAsString((FavoredMoveStats)index);
+
+		DebugDraw::GetInstance()->DebugRenderLogf(taskStr, m_debugPrintDelay, GetTeamColor(), GetTeamColor());
 	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -640,6 +660,188 @@ void Entity::UpdateUnitStatForWoodUsed(int count)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::UpdateMostFavoredMoveTask(EntityState prevState,IntVector2 cords)
+{
+	int oldIndex = m_map->GetTileIndex(prevState.m_position);
+	int newIndex = m_map->GetTileIndex(cords);
+
+	CellSensoryValues oldSensoryValue = m_map->m_cellSensoryValues.at(oldIndex);
+	CellSensoryValues newSensoryValue = m_map->m_cellSensoryValues.at(newIndex);
+
+	for(int index = 0;index < oldSensoryValue.m_entityNearness.size();index++)
+	{
+		float newPositionSensoryValue = newSensoryValue.m_entityNearness.at(index);
+		float oldPositionSensoryValue = oldSensoryValue.m_entityNearness.at(index);
+		if(m_type == SHORT_RANGE_WARRIOR && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE) && m_teamID == 2)
+		{
+			oldPositionSensoryValue -= m_map->GetCellDistance(cords,m_map->GetCordinates(prevState.m_position)) / m_map->m_classAWarriors.size();
+		}
+
+		if(newPositionSensoryValue < oldPositionSensoryValue)
+		{
+			m_state.m_favoredMoveTaskCount.at(index)++;
+		}
+	}
+	int a = 1;
+	/*if(newSensoryValue.m_team1ArmyNearness > oldSensoryValue.m_team1ArmyNearness)
+	{
+		if(m_teamID == 1)
+		{
+			m_state.m_numTimesFavoredMoveToAllyArmy++;
+		}
+		else if(m_teamID == 2)
+		{
+			m_state.m_numTimesFavoredMoveToEnemyArmy++;
+		}
+	}
+
+	if(newSensoryValue.m_team1BuildingNearness > oldSensoryValue.m_team1BuildingNearness)
+	{
+		if(m_teamID == 1)
+		{
+			m_state.m_numTimesFavoredMoveToAllyBuilding++;
+		}
+		else if(m_teamID == 2)
+		{
+			m_state.m_numTimesFavoredMoveToEnemyBuilding++;
+		}
+	}
+
+	if(newSensoryValue.m_team1CivilianNearness > oldSensoryValue.m_team1CivilianNearness)
+	{
+		if(m_teamID == 1)
+		{
+			m_state.m_numTimesFavoredMoveToAllyCivilian++;
+		}
+		else if(m_teamID == 2)
+		{
+			m_state.m_numTimesFavoredMoveToEnemyCivilian++;
+		}
+	}
+
+	if(newSensoryValue.m_team1TownCenterNearness > newSensoryValue.m_team1TownCenterNearness)
+	{
+		if(m_teamID == 1)
+		{
+			m_state.m_numTimesFavoredMoveToAllyTownCenter++;
+		}
+		else if(m_teamID == 2)
+		{
+			m_state.m_numTimesFavoredMoveToEnemyTownCenter++;
+		}
+	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (newSensoryValue.m_team2ArmyNearness > oldSensoryValue.m_team2ArmyNearness)
+	{
+		if (m_teamID == 2)
+		{
+			m_state.m_numTimesFavoredMoveToAllyArmy++;
+		}
+		else if (m_teamID == 1)
+		{
+			m_state.m_numTimesFavoredMoveToEnemyArmy++;
+		}
+	}
+
+	if (newSensoryValue.m_team2BuildingNearness > oldSensoryValue.m_team2BuildingNearness)
+	{
+		if (m_teamID == 2)
+		{
+			m_state.m_numTimesFavoredMoveToAllyBuilding++;
+		}
+		else if (m_teamID == 1)
+		{
+			m_state.m_numTimesFavoredMoveToEnemyBuilding++;
+		}
+	}
+
+	if (newSensoryValue.m_team2CivilianNearness > oldSensoryValue.m_team2CivilianNearness)
+	{
+		if (m_teamID == 2)
+		{
+			m_state.m_numTimesFavoredMoveToAllyCivilian++;
+		}
+		else if (m_teamID == 1)
+		{
+			m_state.m_numTimesFavoredMoveToEnemyCivilian++;
+		}
+	}
+
+	if (newSensoryValue.m_team2TownCenterNearness > newSensoryValue.m_team2TownCenterNearness)
+	{
+		if (m_teamID == 2)
+		{
+			m_state.m_numTimesFavoredMoveToAllyTownCenter++;
+		}
+		else if (m_teamID == 1)
+		{
+			m_state.m_numTimesFavoredMoveToEnemyTownCenter++;
+		}
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/23
+*@purpose : Retrieves most favored entity task
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Entity::GetMostFavoredMoveTask(float *max)
+{
+	*max = -1;
+	int retIndex = 0;
+	for(int index = 0;index < m_state.m_favoredMoveTaskCount.size();index++)
+	{
+		if(m_state.m_favoredMoveTaskCount.at(index) > *max)
+		{
+			*max = m_state.m_favoredMoveTaskCount.at(index);
+			retIndex = index;
+		}
+	}
+	return retIndex;
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::IsCurrentMoveFavoredByPastMoveTask(EntityState prevState, IntVector2 cords)
+{
+/*
+	float total = m_state.m_numTimesFavoredMoveToAllyArmy + m_state.m_numTimesFavoredMoveToAllyBuilding
+	+ m_state.m_numTimesFavoredMoveToAllyCivilian + m_state.m_numTimesFavoredMoveToAllyTownCenter + m_state.m_numTimesFavoredMoveToEnemyArmy 
+		+ m_state.m_numTimesFavoredMoveToEnemyBuilding + m_state.m_numTimesFavoredMoveToEnemyCivilian + m_state.m_numTimesFavoredMoveToEnemyTownCenter;*/
+
+	int oldIndex = m_map->GetTileIndex(prevState.m_position);
+	int newIndex = m_map->GetTileIndex(cords);
+
+	CellSensoryValues oldSensoryValue = m_map->m_cellSensoryValues.at(oldIndex);
+	CellSensoryValues newSensoryValue = m_map->m_cellSensoryValues.at(newIndex);
+
+	/*float team1ArmyNearness		  = newSensoryValue.m_team1ArmyNearness       - oldSensoryValue.m_team1ArmyNearness;
+	float team1BuildingNearness   = newSensoryValue.m_team1BuildingNearness   - oldSensoryValue.m_team1BuildingNearness;
+	float team1CivilianNearness   = newSensoryValue.m_team1CivilianNearness   - oldSensoryValue.m_team1CivilianNearness;
+	float team1TownCenterNearness = newSensoryValue.m_team1TownCenterNearness - newSensoryValue.m_team1TownCenterNearness;
+	
+	/////////////////////////////////////////////////////////////////////////////////////////////////////////
+	float team2ArmyNearness       = newSensoryValue.m_team2ArmyNearness       - oldSensoryValue.m_team2ArmyNearness;
+	float team2BuildingNearness   = newSensoryValue.m_team2BuildingNearness   - oldSensoryValue.m_team2BuildingNearness;
+	float team2CivilianNearness   = newSensoryValue.m_team2CivilianNearness   - oldSensoryValue.m_team2CivilianNearness;
+	float team2TownCenterNearness = newSensoryValue.m_team2TownCenterNearness - newSensoryValue.m_team2TownCenterNearness;*/
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/30
 *@purpose : Gets the task index from type
 *@param   : Task type
@@ -809,6 +1011,28 @@ void Entity::SetDesiredOutputToMoveToNeighbour(int distance)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/27
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetDesiredOutputToMoveToNeighbourOpposite(int cellDistance, IntVector2 cords)
+{
+	int xDistance = GetCordinates().x - cords.x;
+	int yDistance = GetCordinates().y - cords.y;
+	xDistance = ClampInt(xDistance,-1, 1);
+	yDistance = ClampInt(yDistance,-1, 1);
+	IntVector2 neighBour = GetCordinates() + IntVector2(xDistance, yDistance);
+	if(m_map->IsValidCordinate(neighBour))
+	{
+		SetDesiredOutputForTask(TASK_MOVE, 1);
+		SetDesiredOutputForTask(TASK_MOVEX, neighBour.x);
+		SetDesiredOutputForTask(TASK_MOVEY, neighBour.y);
+		m_map->CreateExplosions(m_map->GetMapPosition(neighBour));
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/21
 *@purpose : NIL
 *@param   : NIL
@@ -822,7 +1046,7 @@ void Entity::SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance)
 	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
 	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
 
-	m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
+	//m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -925,6 +1149,10 @@ void Entity::ClearDesiredOutputs()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::SetDesiredOutputForTask(TaskType type,float value)
 {
+	if(value < 0)
+	{
+		int a = 1;
+	}
 	int taskIndex = GetIndexOfTaskInNN(type);
 	if(taskIndex >=0 && taskIndex < m_taskTypeSupported.size())
 	{
@@ -1600,4 +1828,47 @@ std::string Entity::GetEntityTypeAsString(EntityType entityType)
 		break;
 	}
 	return "";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Entity::GetFavoredMoveToAsString(FavoredMoveStats stats)
+{
+	switch (stats)
+	{
+	case FAVORED_MOVETO_RESOURCE_FOOD:
+		return "FAVORED_MOVETO_RESOURCE";
+		break;
+	case FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE:
+		return "FAVORED_MOVETO_TEAM1_ARMY";
+		break;
+	case FAVORED_MOVETO_TEAM1_BUILDING:
+		return "FAVORED_MOVETO_TEAM1_BUILDING";
+		break;
+	case FAVORED_MOVETO_TEAM1_CIVILIAN:
+		return "FAVORED_MOVETO_TEAM1_CIVILIAN";
+		break;
+	case FAVORED_MOVETO_TEAM1_TOWNCENTER:
+		return "FAVORED_MOVETO_TEAM1_TOWNCENTER";
+		break;
+	case FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE:
+		return "FAVORED_MOVETO_TEAM2_ARMY";
+		break;
+	case FAVORED_MOVETO_TEAM2_BUILDING:
+		return "FAVORED_MOVETO_TEAM2_BUILDING";
+		break;
+	case FAVORED_MOVETO_TEAM2_CIVILIAN:
+		return "FAVORED_MOVETO_TEAM2_CIVILIAN";
+		break;
+	case FAVORED_MOVETO_TEAM2_TOWNCENTER:
+		return "FAVORED_MOVETO_TEAM2_TOWNCENTER";
+		break;
+	default:
+		break;
+	}
+	return "INVALID";
 }

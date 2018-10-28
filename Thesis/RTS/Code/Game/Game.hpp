@@ -43,6 +43,9 @@ public:
 	void Initialize();
 	void InitMainMenuItems();
 	void InitCamera();
+
+	void InitMapAndStartGame();
+
 	void Update(float deltaTime);
 	void Render();
 

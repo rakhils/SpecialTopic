@@ -25,8 +25,6 @@ Map::Map()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::Initialize()
 {
-	m_entitiesHavingTraning.push_back(CIVILIAN);
-	m_entitiesHavingTraning.push_back(SHORT_RANGE_WARRIOR);
 	InitCamera();
 	switch (m_mapMode)
 	{
@@ -74,95 +72,181 @@ void Map::InitCellSensoryValues()
 	for(int index = 0;index < m_maxWidth*m_maxHeight;index++)
 	{
 		CellSensoryValues cellValue;
-		int cellDistanceTC1 = GetCellDistance(m_townCenters.at(0)->GetCordinates(), GetCordinates(index));
-		int cellDistanceTC2 = GetCellDistance(m_townCenters.at(1)->GetCordinates(), GetCordinates(index));
-		int resourceFoodCount  = 0;
-		int resourceStoneCount = 0;
-		int resourceWoodCount  = 0;
-		int cellDistanceResourceFood  = 0;
-		int cellDistanceResourceStone = 0;
-		int cellDistanceResourceWood  = 0;
+		cellValue.m_entityNearness.at(FAVORED_MOVETO_RESOURCE_FOOD)  = GetHeatMapDistanceFromEntity(GetCordinates(index), RESOURCE_FOOD, 0);
+		cellValue.m_entityNearness.at(FAVORED_MOVETO_RESOURCE_STONE) = GetHeatMapDistanceFromEntity(GetCordinates(index), RESOURCE_STONE, 0);
+		cellValue.m_entityNearness.at(FAVORED_MOVETO_RESOURCE_WOOD)  = GetHeatMapDistanceFromEntity(GetCordinates(index), RESOURCE_WOOD, 0);
 
-		for(int resourceIndex = 0;resourceIndex < m_resources.size();resourceIndex++)
-		{
-			if(m_resources.at(resourceIndex)->m_type == RESOURCE_FOOD)
-			{
-				resourceFoodCount++;
-				cellDistanceResourceFood += GetCellDistance(m_resources.at(resourceIndex)->GetCordinates(), GetCordinates(index));
-			}
-			if (m_resources.at(resourceIndex)->m_type == RESOURCE_STONE)
-			{
-				resourceStoneCount++;
-				cellDistanceResourceStone += GetCellDistance(m_resources.at(resourceIndex)->GetCordinates(), GetCordinates(index));
-			}
-			if (m_resources.at(resourceIndex)->m_type == RESOURCE_WOOD)
-			{
-				resourceWoodCount++;
-				cellDistanceResourceWood += GetCellDistance(m_resources.at(resourceIndex)->GetCordinates(), GetCordinates(index));
-			}
-		}
-
-		int maxDistance = GetMax(m_maxHeight, m_maxWidth);
-		cellValue.m_coords = GetCordinates(index);
-		cellValue.m_townCenter1Nearness = RangeMapFloat(static_cast<float>(cellDistanceTC1), 1.f, static_cast<float>(maxDistance), 0,1);
-		cellValue.m_townCenter2Nearness = RangeMapFloat(static_cast<float>(cellDistanceTC2), 1.f, static_cast<float>(maxDistance), 0,1);
-		if(cellDistanceTC1 == 0 || cellDistanceTC1 == 1)
-		{
-			cellValue.m_townCenter1Nearness = 0;
-		}
-		if (cellDistanceTC2 == 0 || cellDistanceTC2 == 1)
-		{
-			cellValue.m_townCenter2Nearness = 0;
-		}
-		if(resourceFoodCount > 0)
-		{
-			if(cellDistanceResourceFood == 0 || cellDistanceResourceFood == 1)
-			{
-				cellValue.m_resourceNearnessForFood = 0;
-			}
-			else
-			{
-				cellValue.m_resourceNearnessForFood  = RangeMapFloat(static_cast<float>(cellDistanceResourceFood/resourceFoodCount), 1.f, static_cast<float>(maxDistance), 0.f,1.f);
-			}
-		}
-		else
-		{
-			cellValue.m_resourceNearnessForFood = -1;
-		}
-
-		if(resourceStoneCount > 0)
-		{
-			if(cellDistanceResourceStone == 0 || cellDistanceResourceStone == 1)
-			{
-				cellValue.m_resourceNearnessForStone = 0;
-			}
-			else
-			{
-				cellValue.m_resourceNearnessForStone = RangeMapFloat(static_cast<float>(cellDistanceResourceStone/resourceStoneCount), 0.f, static_cast<float>(maxDistance), 0, 1);
-			}
-		}
-		else
-		{
-			cellValue.m_resourceNearnessForStone = -1.f;
-		}
-
-		if(resourceWoodCount > 0)
-		{
-			if(cellDistanceResourceWood == 0 || cellDistanceResourceWood == 1)
-			{
-				cellValue.m_resourceNearnessForWood = 0;
-			}
-			else
-			{
-				cellValue.m_resourceNearnessForWood  = RangeMapFloat(static_cast<float>(cellDistanceResourceWood/resourceWoodCount), 0.f, static_cast<float>(maxDistance), 0, 1);
-			}
-		}
-		else
-		{
-			cellValue.m_resourceNearnessForWood = -1.f;
-		}
+		cellValue.m_entityNearness.at(FAVORED_MOVETO_TEAM1_TOWNCENTER) = GetHeatMapDistanceFromEntity(GetCordinates(index), TOWN_CENTER, 1);
+		cellValue.m_entityNearness.at(FAVORED_MOVETO_TEAM2_TOWNCENTER) = GetHeatMapDistanceFromEntity(GetCordinates(index), TOWN_CENTER, 2);
 		m_cellSensoryValues.push_back(cellValue);
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/27
+*@purpose : Calculate and retrieves heatmap distance from enity of type
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float Map::GetHeatMapDistanceFromEntity(IntVector2 cellposition, EntityType type, int teamID)
+{
+	float avgCellDistance = 0.f;
+	int   entityCount = 0;
+	if(type == RESOURCE_FOOD || type == RESOURCE_STONE || type == RESOURCE_WOOD)
+	{
+		for(int resourceIndex = 0;resourceIndex < m_resources.size();resourceIndex++)
+		{
+			if(m_resources.at(resourceIndex)->m_type == type)
+			{
+				int cellDistance = GetCellDistance(m_resources.at(resourceIndex)->GetCordinates(), cellposition);
+				entityCount++;
+				if(cellDistance == 1 || cellDistance == 2)
+				{
+					return static_cast<float>(cellDistance);
+				}
+				avgCellDistance += cellDistance;
+			}
+		}
+		if(entityCount > 0)
+		{
+			return 2 + avgCellDistance / entityCount;
+		}
+		return 0;
+	}
+	if(type == TOWN_CENTER)
+	{
+		for (int entityIndex = 0; entityIndex < m_townCenters.size(); entityIndex++)
+		{
+			Entity *entity = m_townCenters.at(entityIndex);
+			if (entity->m_type == type && entity->m_teamID == teamID)
+			{
+				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
+				entityCount++;
+				if (cellDistance == 1 || cellDistance == 2)
+				{
+					return static_cast<float>(cellDistance);
+				}
+				avgCellDistance += cellDistance;
+			}
+		}
+		if (entityCount > 0)
+		{
+			return 2 + avgCellDistance / entityCount;
+		}
+		return 0;
+	}
+
+	if (type == CIVILIAN)
+	{
+		for (int entityIndex = 0; entityIndex < m_civilians.size(); entityIndex++)
+		{
+			Entity *entity = m_civilians.at(entityIndex);
+			if (entity->m_type == type && entity->m_teamID == teamID)
+			{
+				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
+				entityCount++;
+				if (cellDistance == 1 || cellDistance == 2)
+				{
+					return static_cast<float>(cellDistance);
+				}
+				avgCellDistance += cellDistance;
+			}
+		}
+		if (entityCount > 0)
+		{
+			return 2 + avgCellDistance / entityCount;
+		}
+		return 0;
+	}
+	if(type == ARMY_SPAWNER)
+	{
+		for (int entityIndex = 0; entityIndex < m_armySpawners.size(); entityIndex++)
+		{
+			Entity *entity = m_armySpawners.at(entityIndex);
+			if (entity->m_type == type && entity->m_teamID == teamID)
+			{
+				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
+				entityCount++;
+				if (cellDistance == 1 || cellDistance == 2)
+				{
+					return static_cast<float>(cellDistance);
+				}
+				avgCellDistance += cellDistance;
+			}
+		}
+		if (entityCount > 0)
+		{
+			return 2 + avgCellDistance / entityCount;
+		}
+		return 0;
+	}
+	if (type == SHORT_RANGE_WARRIOR)
+	{
+		for (int entityIndex = 0; entityIndex < m_classAWarriors.size(); entityIndex++)
+		{
+			Entity *entity = m_classAWarriors.at(entityIndex);
+			if (entity->m_type == type && entity->m_teamID == teamID)
+			{
+				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
+				entityCount++;
+				if (cellDistance == 1 || cellDistance == 2)
+				{
+					return static_cast<float>(cellDistance);
+				}
+				avgCellDistance += cellDistance;
+			}
+		}
+		if (entityCount > 0)
+		{
+			return 2 + avgCellDistance / entityCount;
+		}
+		return 0;
+	}
+	if (type == LONG_RANGE_WARRIOR)
+	{
+		for (int entityIndex = 0; entityIndex < m_classBWarriors.size(); entityIndex++)
+		{
+			Entity *entity = m_classBWarriors.at(entityIndex);
+			if (entity->m_type == type && entity->m_teamID == teamID)
+			{
+				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
+				entityCount++;
+				if (cellDistance == 1 || cellDistance == 2)
+				{
+					return static_cast<float>(cellDistance);
+				}
+				avgCellDistance += cellDistance;
+			}
+		}
+		if (entityCount > 0)
+		{
+			return 2 + avgCellDistance / entityCount;
+		}
+		return 0;
+	}
+	if (type == HOUSE)
+	{
+		for (int entityIndex = 0; entityIndex < m_houses.size(); entityIndex++)
+		{
+			Entity *entity = m_houses.at(entityIndex);
+			if (entity->m_type == type && entity->m_teamID == teamID)
+			{
+				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
+				entityCount++;
+				if (cellDistance == 1 || cellDistance == 2)
+				{
+					return static_cast<float>(cellDistance);
+				}
+				avgCellDistance += cellDistance;
+			}
+		}
+		if (entityCount > 0)
+		{
+			return 2 + avgCellDistance / entityCount;
+		}
+		return 0;
+	}
+	return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,11 +288,13 @@ void Map::SetMapType(MapMode type)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForCivilianGatherFood()
 {
+	m_entitiesHavingTraning.push_back(CIVILIAN);
 	m_maxWidth  = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
+	g_hiddenLayerCount = 50;
 
-	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(8),  RESOURCE_FOOD);
+	CreateTownCenter(GetMapPosition(6), 1);
+	CreateResources(GetMapPosition(10),  RESOURCE_FOOD);
 
 	CreateTownCenter(GetMapPosition(61), 2);
 	CreateCivilian(GetMapPosition(42), 2);
@@ -224,15 +310,17 @@ void Map::InitTrainingForCivilianGatherAllResources()
 {
 	m_maxWidth  = 8; //g_mapMaxWidth;
 	m_maxHeight = 8;// g_mapMaxHeight;
+	g_hiddenLayerCount = 50;
+	m_entitiesHavingTraning.push_back(CIVILIAN);
 
 	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(32), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(56), RESOURCE_STONE);
-	CreateResources(GetMapPosition(63), RESOURCE_WOOD);
+	CreateResources(GetMapPosition(9), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(57), RESOURCE_STONE);
+	CreateResources(GetMapPosition(62), RESOURCE_WOOD);
 
 
 	CreateTownCenter(GetMapPosition(35), 2);
-	CreateCivilian(GetMapPosition(33), 2);
+	CreateCivilian(GetMapPosition(17), 2);
 
 
 	/*m_maxWidth  = 8; //g_mapMaxWidth;
@@ -258,11 +346,12 @@ void Map::InitTrainingForCivilianBuildAll()
 {
 	m_maxWidth = 8;
 	m_maxHeight = 8;
+	m_entitiesHavingTraning.push_back(CIVILIAN);
 
 	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(8), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(20), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(9), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(57), RESOURCE_STONE);
+	CreateResources(GetMapPosition(62), RESOURCE_WOOD);
 
 
 	CreateTownCenter(GetMapPosition(61), 2);
@@ -280,11 +369,12 @@ void Map::InitTrainingForCivilian()
 {
 	m_maxWidth = 8;
 	m_maxHeight = 8;
+	m_entitiesHavingTraning.push_back(CIVILIAN);
 
 	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(0), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(56), RESOURCE_WOOD);
-	CreateResources(GetMapPosition(63), RESOURCE_STONE);
+	CreateResources(GetMapPosition(9), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(57), RESOURCE_STONE);
+	CreateResources(GetMapPosition(62), RESOURCE_WOOD);
 
 
 	CreateTownCenter(GetMapPosition(34), 2);
@@ -317,14 +407,17 @@ void Map::InitTrainingForTownCenter()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForShortRangeArmy()
 {
+	m_entitiesHavingTraning.push_back(SHORT_RANGE_WARRIOR);
+
 	m_maxWidth = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
+	g_hiddenLayerCount = 50;
 
-	CreateTownCenter(GetMapPosition(15), 1);
+	CreateTownCenter(GetMapPosition(57), 1);
 	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
 
-	CreateTownCenter(GetMapPosition(61), 2);
-	//CreateCivilian(GetMapPosition(42), 2);
+	CreateTownCenter(GetMapPosition(62), 2);
+	CreateCivilian(GetMapPosition(14), 1);
 	CreateClassAWarrior(GetMapPosition(20),2);
 
 }
@@ -394,12 +487,22 @@ void Map::InitNonTrainingMode()
 
 	m_maxWidth  = 40;
 	m_maxHeight = 20;
-
+	g_hiddenLayerCount = 650;
+	m_entitiesHavingTraning.push_back(CIVILIAN);
 	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(400), RESOURCE_FOOD);
+	//CreateResources(GetMapPosition(410), RESOURCE_FOOD);
+
+	CreateResources(GetMapPosition(600), RESOURCE_STONE);
+	//CreateResources(GetMapPosition(610), RESOURCE_STONE);
+
+	CreateResources(GetMapPosition(100), RESOURCE_WOOD);
+	//CreateResources(GetMapPosition(110), RESOURCE_WOOD);
+
+
 
 	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
+	CreateClassAWarrior(GetMapPosition(42), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -451,6 +554,7 @@ void Map::CreateCivilian(Vector2 position, int teamID)
 	m_civilians.push_back(civilian);
 	m_movableEntities.push_back(civilian);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_civilians++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -465,6 +569,7 @@ void Map::CreateArmySpawner(Vector2 position, int teamID)
 	m_armySpawners.push_back(armySpawner);
 	m_standAloneEntities.push_back(armySpawner);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_armySpawners++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -479,6 +584,7 @@ void Map::CreateClassAWarrior(Vector2 position, int teamID)
 	m_classAWarriors.push_back(classAWarrior);
 	m_movableEntities.push_back(classAWarrior);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_shortRangeArmies++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -493,6 +599,7 @@ void Map::CreateClassBWarrior(Vector2 position, int teamID)
 	m_classBWarriors.push_back(classBWarrior);
 	m_movableEntities.push_back(classBWarrior);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_longRangeArmies++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -506,6 +613,7 @@ void Map::CreateHouse(Vector2 position, int teamID)
 	House *house = new House(this,position,teamID);
 	m_houses.push_back(house);
 	m_standAloneEntities.push_back(house);
+	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
 }
 
@@ -561,6 +669,22 @@ bool Map::IsPositionInsideMap(Vector2 position)
 		return false;
 	}
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/27
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::IsFreeTile(IntVector2 position)
+{
+	Entity *entity = GetEntityFromPosition(position);
+	if(entity == nullptr)
+	{
+		return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -697,39 +821,212 @@ void Map::SetMiniMapValues(int x, int y, float minimapValue)
 float Map::NearnessValueToTownCenter(IntVector2 coords, int teamID)
 {
 	CellSensoryValues cellValue = m_cellSensoryValues.at(GetTileIndex(coords));
-	if(teamID == 1)
+	/*if(teamID == 1)
 	{
-		return cellValue.m_townCenter1Nearness;
+		return cellValue.m_team1TownCenterNearness;
 	}
 	if(teamID == 2)
 	{
-		return cellValue.m_townCenter2Nearness;
-	}
+		return cellValue.m_team2TownCenterNearness;
+	}*/
 	return -1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Nearness value to type of resource
+/*DATE    : 2018/10/23
+*@purpose : Updates cell sensory values
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Map::NearnessValueToResources(IntVector2 coords, EntityType type)
+void Map::UpdateCellSensoryValues()
 {
-	CellSensoryValues cellValue = m_cellSensoryValues.at(GetTileIndex(coords));
-	switch (type)
+	for(int index = 0;index < m_maxHeight*m_maxWidth;index++)
 	{
-	case RESOURCE_FOOD:
-		cellValue.m_resourceNearnessForFood;
-		break;
-	case RESOURCE_STONE:
-		cellValue.m_resourceNearnessForStone;
-		break;
-	case RESOURCE_WOOD:
-		cellValue.m_resourceNearnessForWood;
-		break;
+		/*float shortRangeArmyTeam1NearnessValue	 = 0.f;
+		float shortRangeArmyTeam1Count			 = 0.f;
+		float shortRangeArmyTeam2NearnessValue	 = 0.f;
+		float shortRangeArmyTeam2Count			 = 0.f;
+
+		float longRangeArmyTeam1NearnessValue = 0.f;
+		float longRangeArmyTeam1Count = 0.f;
+		float longRangeArmyTeam2NearnessValue = 0.f;
+		float longRangeArmyTeam2Count = 0.f;
+
+		float buildingTeam1NearnessValue = 0.f;
+		float buildingTeam1Count		 = 0.f;
+		float buildingTeam2NearnessValue = 0.f;
+		float buildingTeam2Count		 = 0.f;
+
+		float civilianTeam1NearnessValue = 0.f;
+		float civilianTeam1Count		 = 0.f;
+		float civilianTeam2NearnessValue = 0.f;
+		float civilianTeam2Count		 = 0.f;
+
+		float townCenterTeam1NearnessValue = 0.f;
+		float townCenterTeam1Count		   = 0.f;
+		float townCenterTeam2NearnessValue = 0.f;
+		float townCenterTeam2Count		   = 0.f;
+
+
+		for(int civilianIndex = 0;civilianIndex < m_civilians.size();civilianIndex++)
+		{
+			if(m_civilians.at(civilianIndex)->m_teamID == 1)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_civilians.at(civilianIndex)->GetCordinates());
+				civilianTeam1NearnessValue += cellDistance;
+				civilianTeam1Count++;
+			}
+			if(m_civilians.at(civilianIndex)->m_teamID == 2)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_civilians.at(civilianIndex)->GetCordinates());
+				civilianTeam2NearnessValue += cellDistance;
+				civilianTeam2Count++;
+			}
+		}
+
+		for(int houseIndex = 0;houseIndex < m_houses.size();houseIndex++)
+		{
+			if (m_houses.at(houseIndex)->m_teamID == 1)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_houses.at(houseIndex)->GetCordinates());
+				buildingTeam1NearnessValue += cellDistance;
+				buildingTeam1Count++;
+			}
+			if (m_houses.at(houseIndex)->m_teamID == 2)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_houses.at(houseIndex)->GetCordinates());
+				buildingTeam2NearnessValue += cellDistance;
+				buildingTeam2Count++;
+			}
+		}
+
+		for (int armySpawnerIndex = 0; armySpawnerIndex < m_armySpawners.size(); armySpawnerIndex++)
+		{
+			if (m_armySpawners.at(armySpawnerIndex)->m_teamID == 1)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_armySpawners.at(armySpawnerIndex)->GetCordinates());
+				buildingTeam1NearnessValue += cellDistance;
+				buildingTeam1Count++;
+			}
+			if (m_armySpawners.at(armySpawnerIndex)->m_teamID == 2)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_armySpawners.at(armySpawnerIndex)->GetCordinates());
+				buildingTeam2NearnessValue += cellDistance;
+				buildingTeam2Count++;
+			}
+		}
+
+
+		for (int armyUnitIndex = 0; armyUnitIndex < m_classAWarriors.size(); armyUnitIndex++)
+		{
+			if (m_classAWarriors.at(armyUnitIndex)->m_teamID == 1)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_classAWarriors.at(armyUnitIndex)->GetCordinates());
+				shortRangeArmyTeam1NearnessValue += cellDistance;
+				shortRangeArmyTeam1Count++;
+			}
+			if (m_classAWarriors.at(armyUnitIndex)->m_teamID == 2)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_classAWarriors.at(armyUnitIndex)->GetCordinates());
+				shortRangeArmyTeam2NearnessValue += cellDistance;
+				shortRangeArmyTeam2Count++;
+			}
+		}
+
+		for (int armyUnitIndex = 0; armyUnitIndex < m_classBWarriors.size(); armyUnitIndex++)
+		{
+			if (m_classBWarriors.at(armyUnitIndex)->m_teamID == 1)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_classBWarriors.at(armyUnitIndex)->GetCordinates());
+				longRangeArmyTeam1NearnessValue += cellDistance;
+				longRangeArmyTeam1Count++;
+			}
+			if (m_classBWarriors.at(armyUnitIndex)->m_teamID == 2)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_classBWarriors.at(armyUnitIndex)->GetCordinates());
+				longRangeArmyTeam2NearnessValue += cellDistance;
+				longRangeArmyTeam2Count++;
+			}
+		}
+
+		for (int townCenterIndex = 0; townCenterIndex < m_townCenters.size(); townCenterIndex++)
+		{
+			if (m_townCenters.at(townCenterIndex)->m_teamID == 1)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_townCenters.at(townCenterIndex)->GetCordinates());
+				townCenterTeam1NearnessValue += cellDistance;
+				townCenterTeam1Count++;
+			}
+			if (m_townCenters.at(townCenterIndex)->m_teamID == 2)
+			{
+				int cellDistance = GetCellDistance(GetCordinates(index), m_townCenters.at(townCenterIndex)->GetCordinates());
+				townCenterTeam2NearnessValue += cellDistance;
+				townCenterTeam2Count++;
+			}
+		}
+
+		//armyTeam1NearnessValue = RangeMap(armyTeam1NearnessValue, 0, GetMax(m_maxHeight, m_maxWidth), 0, 1);
+
+
+
+		if (shortRangeArmyTeam1Count == 0)
+		{
+			shortRangeArmyTeam1Count = 1;
+		}
+		if (shortRangeArmyTeam2Count == 0)
+		{
+			shortRangeArmyTeam2Count = 1;
+		}
+		if (longRangeArmyTeam1Count == 0)
+		{
+			longRangeArmyTeam1Count = 1;
+		}
+		if (longRangeArmyTeam2Count == 0)
+		{
+			longRangeArmyTeam2Count = 1;
+		}
+		if (buildingTeam1Count == 0)
+		{
+			buildingTeam1Count = 1;
+		}
+		if (buildingTeam2Count == 0)
+		{
+			buildingTeam2Count = 1;
+		}
+		if (civilianTeam1Count == 0)
+		{
+			civilianTeam1Count = 1;
+		}
+		if (civilianTeam2Count == 0)
+		{
+			civilianTeam2Count = 1;
+		}*/
+
+
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE) 
+			= GetHeatMapDistanceFromEntity(GetCordinates(index),SHORT_RANGE_WARRIOR,1);
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE) 
+			= GetHeatMapDistanceFromEntity(GetCordinates(index),SHORT_RANGE_WARRIOR,2);
+
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_ARMY_LONG_RANGE) 
+			= GetHeatMapDistanceFromEntity(GetCordinates(index),LONG_RANGE_WARRIOR,1);
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_ARMY_LONG_RANGE) 
+			= GetHeatMapDistanceFromEntity(GetCordinates(index),LONG_RANGE_WARRIOR,2);
+
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_BUILDING)   
+			= GetHeatMapDistanceFromEntity(GetCordinates(index),HOUSE,1);
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_BUILDING)   
+			= GetHeatMapDistanceFromEntity(GetCordinates(index),HOUSE,2);
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_ARMYSPAWNER)
+			= GetHeatMapDistanceFromEntity(GetCordinates(index), ARMY_SPAWNER, 1);
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_ARMYSPAWNER)
+			= GetHeatMapDistanceFromEntity(GetCordinates(index), ARMY_SPAWNER, 2);
+
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_CIVILIAN)  
+			= GetHeatMapDistanceFromEntity(GetCordinates(index),CIVILIAN,1);
+		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_CIVILIAN)  
+			= GetHeatMapDistanceFromEntity(GetCordinates(index),CIVILIAN,2);
 	}
-	return -1;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -740,7 +1037,17 @@ float Map::NearnessValueToResources(IntVector2 coords, EntityType type)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IntVector2 Map::GetFreeNeighbourTile(Vector2 position)
 {
-	return GetFreeNeighbourTile(position, 1);
+	IntVector2 freeNeighbourTile = GetFreeNeighbourTile(position, 1);
+	if(freeNeighbourTile == IntVector2(-1,-1))
+	{
+		freeNeighbourTile = GetFreeNeighbourTile(position, 2);
+		if (freeNeighbourTile == IntVector2(-1, -1))
+		{
+			return GetFreeNeighbourTile(position, 3);
+		}
+		return freeNeighbourTile;
+	}
+	return freeNeighbourTile;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1680,10 +1987,57 @@ void Map::ProcessInputs(float deltaTime)
 	{
 		m_displaySensoryWoodValue = m_displaySensoryWoodValue == true ? false : true;
 	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_T))
+
+
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_Z))
+	{
+		m_displaySensoryArmySpawner1Value = m_displaySensoryArmySpawner1Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_X))
+	{
+		m_displaySensoryArmySpawner2Value = m_displaySensoryArmySpawner2Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_C))
+	{
+		m_displaySensoryCivilian1Value = m_displaySensoryCivilian1Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_V))
+	{
+		m_displaySensoryCivilian2Value = m_displaySensoryCivilian2Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_B))
+	{
+		m_displaySensoryBuilding1Value = m_displaySensoryBuilding1Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_N))
+	{
+		m_displaySensoryBuilding2Value = m_displaySensoryBuilding2Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_M))
+	{
+		m_displaySensoryLongRangeArmy1Value = m_displaySensoryLongRangeArmy1Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_G))
+	{
+		m_displaySensoryLongRangeArmy2Value = m_displaySensoryLongRangeArmy2Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_H))
+	{
+		m_displaySensoryShortRangeArmy1Value = m_displaySensoryShortRangeArmy1Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_J))
+	{
+		m_displaySensoryShortRangeArmy2Value = m_displaySensoryShortRangeArmy2Value == true ? false : true;
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_K))
 	{
 		m_displaySensoryTC1Value = m_displaySensoryTC1Value == true ? false : true;
 	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_L))
+	{
+		m_displaySensoryTC2Value = m_displaySensoryTC2Value == true ? false : true;
+	}
+
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_1))
 	{
 		m_townCenters.at(0)->m_resourceStat.m_food++;
@@ -1724,6 +2078,35 @@ void Map::ProcessInputs(float deltaTime)
 	{
 		CreateClassBWarrior(m_mousePosition, 2);
 	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_U))
+	{
+		CreateArmySpawner(m_mousePosition, 1);
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_I))
+	{
+		CreateArmySpawner(m_mousePosition, 2);
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_O))
+	{
+		CreateHouse(m_mousePosition, 1);
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_P))
+	{
+		//CreateHouse(m_mousePosition, 2);
+	}
+
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_Y))
+	{
+		CreateResources(m_mousePosition,RESOURCE_FOOD);
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_U))
+	{
+		CreateResources(m_mousePosition, RESOURCE_STONE);
+	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_I))
+	{
+		CreateResources(m_mousePosition, RESOURCE_WOOD);
+	}
 
 }
 
@@ -1762,13 +2145,33 @@ void Map::CheckAndClearEntityOverlap()
 				if (m_movableEntities.at(entityOneIndex)->GetTileIndex() == m_movableEntities.at(entityTwoIndex)->GetTileIndex())
 				{
 					IntVector2 freeCords = GetFreeNeighbourTile(m_movableEntities.at(entityOneIndex)->GetPosition());
-
 					if (freeCords == IntVector2(-1, -1))
 					{
 						freeCords = GetCordinates(m_movableEntities.at(entityOneIndex)->GetPosition());
 						freeCords = freeCords + IntVector2(GetRandomIntInRange(-1,2), GetRandomIntInRange(-1,2));
 					}
 					m_movableEntities.at(entityOneIndex)->SetPosition(GetMapPosition(freeCords));
+				}
+			}
+		}
+	}
+
+
+	for (size_t entityOneIndex = 0; entityOneIndex < m_standAloneEntities.size(); entityOneIndex++)
+	{
+		for (size_t entityTwoIndex = 0; entityTwoIndex < m_movableEntities.size(); entityTwoIndex++)
+		{
+			if (m_movableEntities.at(entityTwoIndex)->m_taskQueue.size() == 0)
+			{
+				if (m_movableEntities.at(entityTwoIndex)->GetTileIndex() == m_standAloneEntities.at(entityOneIndex)->GetTileIndex())
+				{
+					IntVector2 freeCords = GetFreeNeighbourTile(m_movableEntities.at(entityTwoIndex)->GetPosition());
+					if (freeCords == IntVector2(-1, -1))
+					{
+						freeCords = GetCordinates(m_movableEntities.at(entityTwoIndex)->GetPosition());
+						freeCords = freeCords + IntVector2(GetRandomIntInRange(-1, 2), GetRandomIntInRange(-1, 2));
+					}
+					m_movableEntities.at(entityTwoIndex)->SetPosition(GetMapPosition(freeCords));
 				}
 			}
 		}
@@ -1785,6 +2188,7 @@ void Map::Update(float deltaTime)
 	}
 	ProcessInputs(deltaTime);
 	UpdateMiniMap();
+	UpdateCellSensoryValues();
 
 	UpdateCamera(deltaTime);
 	UpdateResources(deltaTime);
@@ -1820,6 +2224,12 @@ void Map::UpdateCivilans(float deltaTime)
 	for (size_t civiliansIndex = 0; civiliansIndex < m_civilians.size(); civiliansIndex++)
 	{
 		m_civilians.at(civiliansIndex)->Update(deltaTime);
+		if(m_civilians.at(civiliansIndex)->m_health <= 0)
+		{
+			delete m_civilians.at(civiliansIndex);
+			m_civilians.erase(m_civilians.begin() + civiliansIndex, m_civilians.begin() + civiliansIndex + 1);
+			civiliansIndex--;
+		}
 	}
 }
 
@@ -1834,6 +2244,12 @@ void Map::UpdateArmySpawners(float deltaTime)
 	for (size_t armySpawnerIndex = 0; armySpawnerIndex < m_armySpawners.size(); armySpawnerIndex++)
 	{
 		m_armySpawners.at(armySpawnerIndex)->Update(deltaTime);
+		if (m_armySpawners.at(armySpawnerIndex)->m_health <= 0)
+		{
+			delete m_armySpawners.at(armySpawnerIndex);
+			m_armySpawners.erase(m_armySpawners.begin() + armySpawnerIndex, m_armySpawners.begin() + armySpawnerIndex + 1);
+			armySpawnerIndex--;
+		}
 	}
 }
 
@@ -1848,6 +2264,12 @@ void Map::UpdateClassAWarriors(float deltaTime)
 	for (size_t classAWarriorIndex = 0; classAWarriorIndex < m_classAWarriors.size(); classAWarriorIndex++)
 	{
 		m_classAWarriors.at(classAWarriorIndex)->Update(deltaTime);
+		if (m_classAWarriors.at(classAWarriorIndex)->m_health <= 0)
+		{
+			delete m_classAWarriors.at(classAWarriorIndex);
+			m_classAWarriors.erase(m_classAWarriors.begin() + classAWarriorIndex, m_classAWarriors.begin() + classAWarriorIndex + 1);
+			classAWarriorIndex--;
+		}
 	}
 }
 
@@ -1862,6 +2284,12 @@ void Map::UpdateClassBWarriors(float deltaTime)
 	for (size_t classBWarriorIndex = 0; classBWarriorIndex < m_classBWarriors.size(); classBWarriorIndex++)
 	{
 		m_classBWarriors.at(classBWarriorIndex)->Update(deltaTime);
+		if (m_classBWarriors.at(classBWarriorIndex)->m_health <= 0)
+		{
+			delete m_classBWarriors.at(classBWarriorIndex);
+			m_classBWarriors.erase(m_classBWarriors.begin() + classBWarriorIndex, m_classBWarriors.begin() + classBWarriorIndex + 1);
+			classBWarriorIndex--;
+		}
 	}
 }
 
@@ -1876,6 +2304,12 @@ void Map::UpdateHouses(float deltaTime)
 	for (size_t houseIndex = 0; houseIndex < m_houses.size(); houseIndex++)
 	{
 		m_houses.at(houseIndex)->Update(deltaTime);
+		if (m_houses.at(houseIndex)->m_health <= 0)
+		{
+			delete m_houses.at(houseIndex);
+			m_houses.erase(m_houses.begin() + houseIndex, m_houses.begin() + houseIndex + 1);
+			houseIndex--;
+		}
 	}
 }
 
@@ -2320,11 +2754,29 @@ void Map::RenderCensoryValues()
 	{
 		return;
 	}
-	float resourceNearnessCurrentForFood  =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForFood;
-	float resourceNearnessCurrentForStone =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForStone;
-	float resourceNearnessCurrentForWood  =  m_cellSensoryValues.at(tileIndex).m_resourceNearnessForWood;
-	float townCenter1NearnessValue		  =  m_cellSensoryValues.at(tileIndex).m_townCenter1Nearness;
-	float townCenter2NearnessValue		  =  m_cellSensoryValues.at(tileIndex).m_townCenter1Nearness;
+	float resourceNearnessCurrentForFood  =  m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_RESOURCE_FOOD);
+	float resourceNearnessCurrentForStone =  m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_RESOURCE_STONE);
+	float resourceNearnessCurrentForWood  =  m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_RESOURCE_WOOD);
+
+	float army1NearnessValue		      = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE);
+	float army2NearnessValue			  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE);
+
+	float longArmy1NearnessValue          = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_ARMY_LONG_RANGE);
+	float longArmy2NearnessValue          = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_ARMY_LONG_RANGE);
+
+	float building1NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_BUILDING);
+	float building2NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_BUILDING);
+
+	float armySpawner1NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_ARMYSPAWNER);
+	float armySpawner2NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_ARMYSPAWNER);
+										  
+	float civilian1NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_CIVILIAN);
+	float civilian2NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_CIVILIAN);
+										  
+	float townCenter1NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_TOWNCENTER);
+	float townCenter2NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_TOWNCENTER);
+
+
 
 	if(m_displaySensoryFoodValue)
 	{
@@ -2338,6 +2790,50 @@ void Map::RenderCensoryValues()
 	{
 		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(resourceNearnessCurrentForWood), 5.f, Rgba::YELLOW);
 	}
+	// SENSORY VALUES
+	if (m_displaySensoryShortRangeArmy1Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(army1NearnessValue), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryShortRangeArmy2Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(army2NearnessValue), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryLongRangeArmy1Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(longArmy1NearnessValue), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryLongRangeArmy2Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(longArmy2NearnessValue), 5.f, Rgba::YELLOW);
+	}
+
+	if (m_displaySensoryBuilding1Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(building1NearnessValue), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryBuilding2Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(building2NearnessValue), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryArmySpawner1Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(armySpawner1NearnessValue), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryArmySpawner2Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(armySpawner2NearnessValue), 5.f, Rgba::YELLOW);
+	}
+
+	if (m_displaySensoryCivilian1Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(civilian1NearnessValue), 5.f, Rgba::YELLOW);
+	}
+	if (m_displaySensoryCivilian2Value)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(civilian2NearnessValue), 5.f, Rgba::YELLOW);
+	}
+
 	if (m_displaySensoryTC1Value)
 	{
 		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(townCenter1NearnessValue), 5.f, Rgba::YELLOW);
@@ -2346,6 +2842,7 @@ void Map::RenderCensoryValues()
 	{
 		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(townCenter2NearnessValue), 5.f, Rgba::YELLOW);
 	}
+	///////////////////////////////////////////////////////////////
 	delete textMaterial;
 }
 

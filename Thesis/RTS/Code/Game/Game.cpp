@@ -60,6 +60,23 @@ void Game::InitCamera()
 	Camera::SetCurrentCamera(m_camera);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/23
+*@purpose : Inits map and start game
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::InitMapAndStartGame()
+{
+	if (m_map == nullptr)
+	{
+		m_map = new Map();
+		m_map->SetMapType(MapMode(m_currentIndex));
+		m_map->Initialize();
+		m_gameMode = GAME_PLAY;
+	}
+}
+
 void Game::Update(float deltaTime)
 {
 	if(!m_init)
@@ -140,15 +157,55 @@ void Game::UpdateMainMenu(float deltaTime)
 	{
 		m_currentIndex++;
 	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_1))
+	{
+		m_currentIndex = 0;
+		InitMapAndStartGame();
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_2))
+	{
+		m_currentIndex = 1;
+		InitMapAndStartGame();
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_3))
+	{
+		m_currentIndex = 2;
+		InitMapAndStartGame();
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_4))
+	{
+		m_currentIndex = 3;
+		InitMapAndStartGame();
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_5))
+	{
+		m_currentIndex = 4;
+		InitMapAndStartGame();
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_6))
+	{
+		m_currentIndex = 5;
+		InitMapAndStartGame();
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_7))
+	{
+		m_currentIndex = 6;
+		InitMapAndStartGame();
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_8))
+	{
+		m_currentIndex = 7;
+		InitMapAndStartGame();
+	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_9))
+	{
+		m_currentIndex = 8;
+		InitMapAndStartGame();
+	}
+
 	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_ENTER))
 	{
-		if (m_map == nullptr)
-		{
-			m_map = new Map();
-			m_map->SetMapType(MapMode(m_currentIndex));
-			m_map->Initialize();
-			m_gameMode = GAME_PLAY;
-		}
+		InitMapAndStartGame();
 	}
 	m_currentIndex = ClampInt(m_currentIndex, 0, static_cast<int>(m_mainMenuItems.size() - 1));
 }
@@ -185,7 +242,7 @@ void Game::RenderMainMenu()
 	//Renderer::GetInstance()->DrawAABB(AABB2(menuItemStartPosition + Vector2(-100, m_currentIndex*g_fontSize * 4),500,50),Rgba::WHITE);
 	for(int menuItemIndex = 0;menuItemIndex < m_mainMenuItems.size();menuItemIndex++)
 	{
-		std::string menuItemString = ToString(menuItemIndex);
+		std::string menuItemString = ToString(menuItemIndex + 1);
 		menuItemString.append(" :: "+m_mainMenuItems.at(menuItemIndex).m_menuItemString);
 		Rgba color = Rgba::WHITE;
 		if(m_currentIndex == menuItemIndex)

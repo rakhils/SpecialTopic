@@ -17,6 +17,11 @@ struct Resources
 	int m_wood = 0;
 	int m_stone = 0;
 	int m_buildings = 0;
+	int m_houses = 0;
+	int m_armySpawners = 0;
+	int m_civilians = 0;
+	int m_shortRangeArmies = 0;
+	int m_longRangeArmies  = 0;
 	int m_units = 0;
 	int m_unitsKilled = 0;
 
@@ -54,6 +59,12 @@ extern float				g_desiredOutputForSameVeryCriticalPosition;
 extern float				g_desiredOutputForVeryCriticalPosition;
 
 extern int					g_minCellDistanceToStartCounting;
+
+// GAME PLAY
+extern float				g_maxResourceCountRequired;
+extern float				g_maxHousesBuilt;
+extern float				g_maxArmySpawnerBuilt;
+extern float				g_maxUnits;
 
 // MAIN MENU
 extern float				g_mainMenuStartY;

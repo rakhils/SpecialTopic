@@ -30,6 +30,12 @@ float				g_mapYOffset;
 float				g_mainMenuStartX = 300.f;
 float				g_mainMenuStartY = 800.f;
 
+// GAME PLAY
+float				g_maxResourceCountRequired = 100;
+float				g_maxHousesBuilt		   = 3;
+float				g_maxArmySpawnerBuilt	   = 2;
+float				g_maxUnits				   = 20;
+
 // NN 
 float				g_desiredOutputForSameRandomPosition        = 0.5f;
 float				g_desiredOutputForRandomPosition            = 0.5f;

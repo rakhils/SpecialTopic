@@ -35,6 +35,10 @@ bool TaskBuildArmySpawner::DoTask(float deltaTime)
 	{
 		return false;
 	}
+	if (HasStandAloneEntity(m_entity->GetCordinates()))
+	{
+		return true;
+	}
 	m_buildDelay = 0;
 	m_map->CreateArmySpawner(m_entity->GetPosition(), m_entity->m_teamID);
 	m_entity->UpdateUnitStatForArmySpawnerBuilt(1);

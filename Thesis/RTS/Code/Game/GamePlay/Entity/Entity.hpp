@@ -19,6 +19,24 @@ enum EntityType
 	RESOURCE_WOOD,
 	ARMY_SPAWNER
 };
+enum FavoredMoveStats
+{
+	FAVORED_MOVETO_RESOURCE_FOOD,
+	FAVORED_MOVETO_RESOURCE_STONE,
+	FAVORED_MOVETO_RESOURCE_WOOD,
+	FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE,
+	FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE,
+	FAVORED_MOVETO_TEAM1_ARMY_LONG_RANGE,
+	FAVORED_MOVETO_TEAM2_ARMY_LONG_RANGE,
+	FAVORED_MOVETO_TEAM1_ARMYSPAWNER,
+	FAVORED_MOVETO_TEAM2_ARMYSPAWNER,
+	FAVORED_MOVETO_TEAM1_BUILDING,
+	FAVORED_MOVETO_TEAM2_BUILDING,
+	FAVORED_MOVETO_TEAM1_CIVILIAN,
+	FAVORED_MOVETO_TEAM2_CIVILIAN,
+	FAVORED_MOVETO_TEAM1_TOWNCENTER,
+	FAVORED_MOVETO_TEAM2_TOWNCENTER,
+};
 
 enum Stats
 {
@@ -59,6 +77,10 @@ public:
 
 		m_neuralNetPoints				= state.m_neuralNetPoints;
 
+		for(int index = 0;index < m_favoredMoveTaskCount.size();index++)
+		{
+			m_favoredMoveTaskCount.at(index) = state.m_favoredMoveTaskCount.at(index);
+		}
 	}
 
 	int		m_resourceFoodUsed			= 0;
@@ -85,6 +107,20 @@ public:
 
 	float	m_health					= 0.f;
 	bool	m_hasResource				= false;
+
+	std::vector<float> m_favoredMoveTaskCount;
+
+	/*int   m_numTimesFavoredMoveToResource	     = 0;
+											     
+	int   m_numTimesFavoredMoveToEnemyCivilian   = 0;
+	int   m_numTimesFavoredMoveToEnemyBuilding   = 0;
+	int   m_numTimesFavoredMoveToEnemyArmy       = 0;
+	int   m_numTimesFavoredMoveToEnemyTownCenter = 0;
+
+	int   m_numTimesFavoredMoveToAllyCivilian    = 0;
+	int   m_numTimesFavoredMoveToAllyBuilding    = 0;
+	int   m_numTimesFavoredMoveToAllyArmy		 = 0;
+	int   m_numTimesFavoredMoveToAllyTownCenter  = 0;*/
 
 	int		m_neuralNetPoints			= 0;
 	Vector2	m_position;
@@ -125,96 +161,103 @@ public:
 	Entity();
 	Entity(float x,float y);
 
-	Vector2					GetPosition();
-	IntVector2				GetCordinates();
-	int						GetTileIndex();
-	Rgba					GetTeamColor();
-	int						GetIndexOfMoveXPosition();
-	int						GetIndexOfMoveYPosition();
-	float					GetMiniMapValue();
-	double					GetTaskValueFromNNOutput(TaskType type);
-	double					GetTaskValueFromDesiredOutput(TaskType type);
-	TaskType				GetTaskFromNNOutput(double &max);
-	IntVector2				GetTaskPositonFromNNOutput();
-	IntVector2				GetRelativeCellLocation(float x, float y);
-	IntVector2				GetRandomSafeArea();
-	IntVector2				GetRandomTeritaryArea();
-	bool					HasResource();
+	Vector2							GetPosition();
+	IntVector2						GetCordinates();
+	int								GetTileIndex();
+	Rgba							GetTeamColor();
+	int								GetIndexOfMoveXPosition();
+	int								GetIndexOfMoveYPosition();
+	float							GetMiniMapValue();
+	double							GetTaskValueFromNNOutput(TaskType type);
+	double							GetTaskValueFromDesiredOutput(TaskType type);
+	TaskType						GetTaskFromNNOutput(double &max);
+	IntVector2						GetTaskPositonFromNNOutput();
+	IntVector2						GetRelativeCellLocation(float x, float y);
+	IntVector2						GetRandomSafeArea();
+	IntVector2						GetRandomTeritaryArea();
+	bool							HasResource();
 
-	int						GetIndexOfTaskInNN(TaskType type);
-	Entity*					FindMyTownCenter();
-	std::vector<Entity*>	GetAllEntitiesNearMe(int cellDistance);
+	int								GetIndexOfTaskInNN(TaskType type);
+	Entity*							FindMyTownCenter();
+	std::vector<Entity*>			GetAllEntitiesNearMe(int cellDistance);
 
-	std::vector<Entity*>	GetResourceEntityFromList(std::vector<Entity*> &list);
-	std::vector<Entity*>	GetTownCenterEntityFromList(std::vector<Entity*> &list);
-	std::vector<Entity*>	GetMyTownCenterEntityFromList(std::vector<Entity*> &list);
+	std::vector<Entity*>			GetResourceEntityFromList(std::vector<Entity*> &list);
+	std::vector<Entity*>			GetTownCenterEntityFromList(std::vector<Entity*> &list);
+	std::vector<Entity*>			GetMyTownCenterEntityFromList(std::vector<Entity*> &list);
 	
-	IntVector2				GetBestNeighbour();
+	IntVector2						GetBestNeighbour();
 
-	void					InitNeuralNet();
-	void					InitStates();
-	void					ProcessInputs(float deltaTime);
+	void							InitNeuralNet();
+	void							InitStates();
+	void							ProcessInputs(float deltaTime);
 
-	void					Update(float deltaTime);
-	void					UpdateTask();
-	virtual void			EvaluateNN(Task *task,EntityState previousState,IntVector2 cords);
-	virtual void			TrainNN(Task *task);
-	void					UpdateNN(float deltaTime);
-	void					UpdateTaskFromNN(float deltaTime);
-	void					UpdateEntityState();
-	void					PrintDebugNN();
-	void					Render();
+	void							Update(float deltaTime);
+	void							UpdateTask();
+	virtual void					EvaluateNN(Task *task,EntityState previousState,IntVector2 cords);
+	virtual void					TrainNN(Task *task);
+	void							UpdateNN(float deltaTime);
+	void							UpdateTaskFromNN(float deltaTime);
+	void							UpdateEntityState();
+	void							PrintDebugNN();
+	void							Render();
 
-	void					UpdateUnitStatForFoodGathered(int count);
-	void					UpdateUnitStatForStoneGathered(int count);
-	void					UpdateUnitStatForWoodGathered(int count);
-	void					UpdateUnitStatForFoodDropped(int count);
-	void					UpdateUnitStatForStoneDropped(int count);
-	void					UpdateUnitStatForWoodDropped(int count);
-	void					UpdateUnitStatForArmySpawnerBuilt(int count);
-	void					UpdateUnitStatForHouseBuilt(int count);
-	void					UpdateUnitStatForShortRangeArmySpawned(int count);
-	void					UpdateUnitStatForLongRangeArmySpawned(int count);
-	void					UpdateUnitStatForEnemiesAttacked(int count);
-	void					UpdateUnitStatForEnemiesKilled(int count);
-	void					UpdateUnitStatForVillagerSpawned(int count);
+	void							UpdateUnitStatForFoodGathered(int count);
+	void							UpdateUnitStatForStoneGathered(int count);
+	void							UpdateUnitStatForWoodGathered(int count);
+	void							UpdateUnitStatForFoodDropped(int count);
+	void							UpdateUnitStatForStoneDropped(int count);
+	void							UpdateUnitStatForWoodDropped(int count);
+	void							UpdateUnitStatForArmySpawnerBuilt(int count);
+	void							UpdateUnitStatForHouseBuilt(int count);
+	void							UpdateUnitStatForShortRangeArmySpawned(int count);
+	void							UpdateUnitStatForLongRangeArmySpawned(int count);
+	void							UpdateUnitStatForEnemiesAttacked(int count);
+	void							UpdateUnitStatForEnemiesKilled(int count);
+	void							UpdateUnitStatForVillagerSpawned(int count);
 
-	void					UpdateUnitStatForFoodUsed(int count);
-	void					UpdateUnitStatForStoneUsed(int count);
-	void					UpdateUnitStatForWoodUsed(int count);
+	void							UpdateUnitStatForFoodUsed(int count);
+	void							UpdateUnitStatForStoneUsed(int count);
+	void							UpdateUnitStatForWoodUsed(int count);
 
-	void					SetTeam(int team);
-	void					SetPosition(Vector2 position);
-	void					SetPosition(int index);
-	void					SetPositionInFloat(Vector2 position);
+	void							UpdateMostFavoredMoveTask(EntityState prevState,IntVector2 cords);
+	int 							GetMostFavoredMoveTask(float *maxValue);
+	std::vector<FavoredMoveStats>   GetPastFavoredMoveTaskOrderer();
+	bool							IsCurrentMoveFavoredByPastMoveTask(EntityState prevState,IntVector2 cords);
 
-	void					SetDesiredOutputToMoveToNeighbour(int cellDistance);
-	void					SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance);
+	void							SetTeam(int team);
+	void							SetPosition(Vector2 position);
+	void							SetPosition(int index);
+	void							SetPositionInFloat(Vector2 position);
 
-	void					EmptyTaskQueue();
-	void					CopyDesiredOutputs();
-	void					ClearDesiredOutputs();
-	void					SetDesiredOutputForTask(TaskType type,float value);
+	void							SetDesiredOutputToMoveToNeighbour(int cellDistance);
+	void							SetDesiredOutputToMoveToNeighbourOpposite(int cellDistance,IntVector2 cords);
+	void							SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance);
 
-	void					TakeDamage(float hitPoint);
+	void							EmptyTaskQueue();
+	void							CopyDesiredOutputs();
+	void							ClearDesiredOutputs();
+	void							SetDesiredOutputForTask(TaskType type,float value);
 
-	bool					IsPositionInside(Vector2 position);
-	bool					IsMovalbleObject();
-	bool					IsDifferentFaction(Entity *entity);
-	bool					IsResourceNearMe(int cellDistance);
+	void							TakeDamage(float hitPoint);
 
-	bool					CreateAndPushIdleTask(IntVector2 cordinate);
-	bool					CreateAndPushMoveTask(IntVector2 cordinate);
-	bool					CreateAndPushBuildHouseTask(IntVector2 cordinate);
-	bool					CreateAndPushGatherResourceTask(IntVector2 cordinate);
-	bool					CreateAndPushDropResourceTask(IntVector2 cordinate);
-	bool					CreateAndPushBuildTownCenterTask(IntVector2 cordinate);
-	bool					CreateAndPushBuildArmySpawnerTask(IntVector2 cordinate);
-	bool					CreateAndPushLongRangeAttackTask(IntVector2 cordinate);
-	bool					CreateAndPushShortRangeAttackTask(IntVector2 cordinate);
-	bool					CreateAndPushSpawnVillagerTask(IntVector2 cordinate);
-	bool					CreateAndPushSpawnClassAArmyTask(IntVector2 cordinate);
-	bool					CreateAndPushSpawnClassBArmyTask(IntVector2 cordinate);
+	bool							IsPositionInside(Vector2 position);
+	bool							IsMovalbleObject();
+	bool							IsDifferentFaction(Entity *entity);
+	bool							IsResourceNearMe(int cellDistance);
 
-	static std::string		GetEntityTypeAsString(EntityType entityType);
+	bool							CreateAndPushIdleTask(IntVector2 cordinate);
+	bool							CreateAndPushMoveTask(IntVector2 cordinate);
+	bool							CreateAndPushBuildHouseTask(IntVector2 cordinate);
+	bool							CreateAndPushGatherResourceTask(IntVector2 cordinate);
+	bool							CreateAndPushDropResourceTask(IntVector2 cordinate);
+	bool							CreateAndPushBuildTownCenterTask(IntVector2 cordinate);
+	bool							CreateAndPushBuildArmySpawnerTask(IntVector2 cordinate);
+	bool							CreateAndPushLongRangeAttackTask(IntVector2 cordinate);
+	bool							CreateAndPushShortRangeAttackTask(IntVector2 cordinate);
+	bool							CreateAndPushSpawnVillagerTask(IntVector2 cordinate);
+	bool							CreateAndPushSpawnClassAArmyTask(IntVector2 cordinate);
+	bool							CreateAndPushSpawnClassBArmyTask(IntVector2 cordinate);
+
+	static std::string				GetEntityTypeAsString(EntityType entityType);
+	static std::string				GetFavoredMoveToAsString(FavoredMoveStats stats);
 };

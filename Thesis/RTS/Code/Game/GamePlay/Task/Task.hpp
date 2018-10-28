@@ -60,6 +60,7 @@ public:
 	void SetStartPosition(Vector2 position);
 
 	bool HasEnoughResources();
+	bool HasStandAloneEntity(IntVector2 cords);
 
 	void Update(float deltaTime);
 	virtual bool DoTask(float delatTime) = 0;

@@ -16,4 +16,5 @@ void		FileClose(FILE* fp);
 std::string FileReadNextLine(FILE *fp);
 std::string GetFileContentAsString(char const* filename);
 bool		DoFileExist(std::string filepath);
+void        CreateLocalDirectory(std::string path);
 

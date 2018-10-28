@@ -42,19 +42,15 @@ struct CellSensoryValues
 {
 	CellSensoryValues()
 	{
-		m_coords = IntVector2::MINUS_ONE;
-		m_townCenter1Nearness		= 0.f;
-		m_townCenter2Nearness		= 0.f;
-		m_resourceNearnessForFood	= 0.f;
-		m_resourceNearnessForStone	= 0.f;
-		m_resourceNearnessForWood   = 0.f;
+		m_coords					= IntVector2::MINUS_ONE;
+
+		for(int index = 0;index < 15;index++)
+		{
+			m_entityNearness.push_back(0.f);
+		}
 	}
 	IntVector2 m_coords;
-	float	   m_townCenter1Nearness;
-	float	   m_townCenter2Nearness;
-	float      m_resourceNearnessForWood;
-	float	   m_resourceNearnessForFood;
-	float	   m_resourceNearnessForStone;
+	std::vector<float> m_entityNearness;
 };
 
 class Map
@@ -66,6 +62,16 @@ public:
 	bool							m_displaySensoryFoodValue = false;
 	bool							m_displaySensoryStoneValue = false;
 	bool							m_displaySensoryWoodValue = false;
+	bool							m_displaySensoryShortRangeArmy1Value = false;
+	bool							m_displaySensoryShortRangeArmy2Value = false;
+	bool							m_displaySensoryLongRangeArmy1Value = false;
+	bool							m_displaySensoryLongRangeArmy2Value = false;
+	bool							m_displaySensoryBuilding1Value = false;
+	bool							m_displaySensoryBuilding2Value = false;
+	bool							m_displaySensoryArmySpawner1Value = false;
+	bool							m_displaySensoryArmySpawner2Value = false;
+	bool							m_displaySensoryCivilian1Value = false;
+	bool							m_displaySensoryCivilian2Value = false;
 	bool							m_displaySensoryTC1Value = false;
 	bool							m_displaySensoryTC2Value = false;
 
@@ -101,6 +107,7 @@ public:
 
 	void							Initialize();
 	void							InitCellSensoryValues();
+	float							GetHeatMapDistanceFromEntity(IntVector2 cellposition, EntityType type,int teamID);
 	void							InitCamera();
 
 	void							SetMapType(MapMode type);
@@ -127,6 +134,7 @@ public:
 	void							CreateExplosions(Vector2 position);
 
 	bool							IsPositionInsideMap(Vector2 position);
+	bool							IsFreeTile(IntVector2 position);
 	bool							IsNeighbours(IntVector2 position1, IntVector2 position2);
 	bool							IsNeighbours(IntVector2 position1, IntVector2 position2,int distance);
 	bool							IsResource(Entity * entity);
@@ -141,6 +149,7 @@ public:
 	// CELL VALUE
 	float							NearnessValueToTownCenter(IntVector2 coords,int teamID);
 	float							NearnessValueToResources (IntVector2 coords, EntityType type);
+	void							UpdateCellSensoryValues();
 	///////////////////////////////////////////////////////////////////////
 
 

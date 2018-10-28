@@ -42,6 +42,9 @@ public:
 	void EvaluateBuildHouseTask(EntityState prevState,IntVector2 location);
 	void EvaluateBuildArmySpawnerTask(EntityState prevState,IntVector2 location);
 
+	void TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords);
+	void TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2 cords);
+
 	IntVector2 GetBestNeighbour();
 
 	//void SetDesiredOutputToMoveToNeighbour();

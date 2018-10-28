@@ -38,13 +38,14 @@ bool TaskShortRangeAttack::DoTask(float deltaTime)
 	currentPosition			+= direction * m_speed * deltaTime;
 	m_entity->SetPositionInFloat(currentPosition);*/
 
-	Entity *attackedEntity = m_entity->m_map->AttackOnPosition(m_targetPosition, 1);
-	if (attackedEntity != nullptr)
+	Entity *entityToBeAttacked = m_entity->m_map->GetEntityFromPosition(m_targetPosition);
+	if (entityToBeAttacked != nullptr )
 	{
-		if(attackedEntity->m_teamID != 0 && attackedEntity->m_teamID != m_entity->m_teamID)
+		if(entityToBeAttacked->m_teamID != 0 && entityToBeAttacked->m_teamID != m_entity->m_teamID)
 		{
-			m_entity->m_map->CreateExplosions(m_entity->m_map->GetMapPosition(m_attackTile));
+			m_entity->m_map->CreateExplosions(m_targetPosition);
 			m_entity->UpdateUnitStatForEnemiesAttacked(1);
+			Entity *attackedEntity = m_entity->m_map->AttackOnPosition(m_targetPosition, 1);
 			if (attackedEntity->m_health <= 0)
 			{
 				m_entity->UpdateUnitStatForEnemiesKilled(1);

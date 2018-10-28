@@ -1,5 +1,10 @@
 
 #include "Engine/FileUtil/File.h"
+
+#include <stdio.h>
+
+#include <windows.h>		
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/02/06
 *@purpose : Reads file to char buffer and returns the same
@@ -171,4 +176,19 @@ bool DoFileExist(std::string filepath)
 	}
 	return true;
 	
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/23
+*@purpose : Creates directory
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void CreateLocalDirectory(std::string path)
+{
+	std::wstring folder( L"ScreenShots");
+	if (CreateDirectory(folder.c_str(), NULL) || ERROR_ALREADY_EXISTS == GetLastError())
+	{
+
+	}
 }
