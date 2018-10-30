@@ -16,7 +16,7 @@ class PacketTracker
 
 public:
 	//Member_Variables
-	float m_sendTime;
+	uint64_t m_sendTime;
 	uint16_t m_ackID;
 	//Static_Member_Variables
 

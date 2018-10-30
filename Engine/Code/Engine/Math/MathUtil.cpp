@@ -1421,6 +1421,15 @@ bool AreBitsSet(size_t value64, size_t flagsToCheck)
 	return false;
 }
 
+bool AreBitsSet(uint16_t value16, uint16_t flagsToCheck)
+{
+	if ((value16 & flagsToCheck) == flagsToCheck)
+	{
+		return true;
+	}
+	return false;
+}
+
 void SetBits(unsigned char& bitFlags8, unsigned char flagsToSet)
 {
 	bitFlags8 = (bitFlags8 | flagsToSet);
@@ -1442,6 +1451,17 @@ void SetBits(size_t& value32, size_t flagsToSet)
 	value32 = (value32 | flagsToSet);
 }
 
+/*
+void SetBits(uint8_t& value, uint8_t flagToSet)
+{
+	value = (value | flagToSet);
+}*/
+
+void SetBits(uint16_t& value, uint16_t flagToSet)
+{
+	value = (value | flagToSet);
+}
+
 void ClearBits(unsigned char& bitFlags8, unsigned char flagToClear)
 {
 	bitFlags8 = (bitFlags8 & ~flagToClear);
@@ -1452,15 +1472,19 @@ void ClearBits(unsigned int& bitFlags32, unsigned int flagToClear)
 	bitFlags32 = (bitFlags32 & ~flagToClear);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/09/03
-*@purpose : Clears bits at position
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClearBits(size_t& value32, size_t flagToClear)
 {
 	value32 = (value32 & ~flagToClear);
+}
+
+void RightShift(uint16_t& value, uint16_t count)
+{
+	value = value >> count;
+}
+
+void RightShift(uint8_t& value, uint8_t count)
+{
+	value = value >> count;
 }
 
 const Vector2 GetProjectedVector(const Vector2& vectorToProject, const Vector2& projectOnto)
@@ -1643,6 +1667,16 @@ std::string GetHexaDecimalEquivalent(int value)
 
 	}
 	return hex;
+}
+
+void LeftShift(uint16_t& value, uint16_t count)
+{
+	value = value << count;
+}
+
+void LeftShift(uint8_t& value, uint8_t count)
+{
+	value = value << count;
 }
 
 const Vector2 Interpolate(const Vector2& start, const Vector2& end, float fractionTowardEnd)

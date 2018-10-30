@@ -1440,6 +1440,28 @@ void SetupUDPConnections(Command &cmd)
 
 	std::string rcmd = "listen_udp 10085";
 	RCS::GetInstance()->SendMsg(index, false, rcmd.c_str());
+	std::string myIp = Net::GetIP();
+	std::string addConnection0 = "add_connection 0 "+myIp+":10084";
+	std::string addConnection1 = "add_connection 1 "+myIp+":10085";
+	
+	RCS::GetInstance()->SendMsg(index, false, addConnection0.c_str());
+	RCS::GetInstance()->SendMsg(index, false, addConnection1.c_str());
+
+	NetSession::GetInstance()->AddConnection(0, myIp, 10084);
+	NetSession::GetInstance()->AddConnection(1, myIp, 10085);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetupUDPConnectionWithoutPortChangeInRemote(Command &cmd)
+{
+	int index = 0;
+	cmd.GetNextInt(&index);
+
 	std::string addConnection0 = "add_connection 0 192.168.0.123:10084";
 	std::string addConnection1 = "add_connection 1 192.168.0.123:10085";
 	RCS::GetInstance()->SendMsg(index, false, addConnection0.c_str());
@@ -1457,8 +1479,9 @@ void SetupUDPConnections(Command &cmd)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void AddLocal(Command &cmd)
 {
-	std::string addConnection0 = "add_connection 0 192.168.0.123:10084";
-	NetSession::GetInstance()->AddConnection(0, "192.168.0.123",10084);
+	std::string myIp = Net::GetIP();
+	std::string addConnection0 = "add_connection 0 "+myIp+":10084";
+	NetSession::GetInstance()->AddConnection(0, myIp,10084);
 	RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
 }
 

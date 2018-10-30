@@ -152,6 +152,7 @@ void SetUDPConnectionSendRate(Command &cmd);
 void ListenUDPPort(Command &cmd);
 
 void SetupUDPConnections(Command &cmd);
+void SetupUDPConnectionWithoutPortChangeInRemote(Command &cmd);
 void AddLocal(Command &cmd);
 void AddRemote(Command &cmd);
 

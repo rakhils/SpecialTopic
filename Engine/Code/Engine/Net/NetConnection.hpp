@@ -42,6 +42,7 @@ public:
 	float						m_lastHeartbeatHPC;
 	float						m_heartBeatFrequency = 0.25;
 	float						m_sendRate			 = 20;
+	uint64_t					m_startTime;
 
 	uint16_t					m_nextSentAck = 0U;
 
@@ -52,13 +53,17 @@ public:
 	float						m_rtt				= 0.0f;
 
 	float						m_lastSendTime		= 0.f;
-
 	float						m_lastReceivedTime  = 0.f;
+
+	float						m_AckBitfieldMinPosition = 0;
+	float						m_AckBitfieldMaxPosition = 15;
 
 	std::map<uint16_t, PacketTracker*> m_trackerMap;
 	uint16_t					m_trackerMaxCount = 64;
 	int							m_trackerMinPosition = 0;
-	int							m_trackerMaxPosition = 0;
+	int							m_trackerMaxPosition = m_trackerMaxCount;
+
+
 
 	//Static_Member_Variables
 
@@ -81,10 +86,13 @@ public:
 
 	// ACK
 	void  ConfirmPacketReceived(uint16_t ack);
+	void  PushToAckBitField(NetAddress *netaddress,uint16_t ack);
+	void  UpdateAckStatus(NetAddress *netConnection,uint16_t ackReceived);
 	///////////////////////////////////////////////////////////////////
 	void CalculateLossPercent();
 	//HEADER
 	UDPHeader GetHeaderFromPacket(void *data);
+	int       GetCommandIndex(void *data,int size);
 	int    GetHeaderSize();
 	void   WriteConnectionIndex();
 	void   WriteUnrealiableMsgCount();
@@ -95,9 +103,9 @@ public:
 	///////////////////////////////////////////////////////////////////
 
 	//PAYLOAD
-	bool   WritePayload(NetMessage *msg);
+	bool   WritePayload(NetMessage *msg,NetAddress *address);
 	///////////////////////////////////////////////////////////////////
-	void   SendHeartBeat();
+	void   SendHeartBeat(NetAddress *address);
 
 	void   Update(float deltaTime);
 

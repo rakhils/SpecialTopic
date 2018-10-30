@@ -1,5 +1,6 @@
 #include "Engine/Net/NetMessage.hpp"
 #include "Engine/Net/NetSession.hpp"
+#include "Engine/Net/NetAddress.hpp"
 // CONSTRUCTOR
 // 0 -> add
 // 1 -> add_response
@@ -51,6 +52,17 @@ void NetMessage::WriteCommandIndex()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/28
+*@purpose : Returns the size of msg
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+size_t NetMessage::GetSize()
+{
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/03
 *@purpose : Creates add msg
 *@param   : NIL
@@ -99,9 +111,10 @@ NetMessage * NetMessage::CreatePingMessage(std::string msg)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetMessage * NetMessage::CreateHeartBeatMessage()
+NetMessage * NetMessage::CreateHeartBeatMessage(NetAddress *netaddress)
 {
 	NetMessage *netMsg = new NetMessage("heartbeat");
+	netMsg->m_address = netaddress;
 	size_t msgSize = 0;
 	// write temporarily 
 	netMsg->WriteBytes(2, (char*)&msgSize);
@@ -110,6 +123,7 @@ NetMessage * NetMessage::CreateHeartBeatMessage()
 	netMsg->m_currentWritePosition = 0;
 	msgSize = netMsg->m_bufferSize - 2;
 	netMsg->WriteBytes(2, (char*)&(msgSize));
+	std::string pp = netMsg->GetBitString();
 	return netMsg;
 }
 

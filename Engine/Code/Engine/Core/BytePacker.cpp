@@ -214,7 +214,7 @@ uint16_t BytePacker::ReadSize2()
 {
 	uint16_t size;
 	ReadBytes((void*)&size, 2);
-	//Endianness::ToEndianness(2, (void*)&size, BIG_ENDIAN);
+	Endianness::ToEndianness(2, (void*)&size, BIG_ENDIAN);
 	return size;
 }
 

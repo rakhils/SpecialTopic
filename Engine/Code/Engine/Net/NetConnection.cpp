@@ -9,6 +9,7 @@
 
 NetConnection::NetConnection(int index, NetAddress netAddress)
 {
+	m_startTime = Clock::GetMasterClock()->total.m_seconds;
 	m_index     = index;
 	m_address   = netAddress;
 	m_udpSocket = new UDPSocket(netAddress);
@@ -18,8 +19,11 @@ NetConnection::NetConnection(int index, NetAddress netAddress)
 
 NetConnection::NetConnection(int listenPort)
 {
+	m_startTime = Clock::GetMasterClock()->total.m_seconds;
 	m_udpSocket = new UDPSocket(listenPort);
 	m_address.m_port = listenPort;
+	m_address.m_address = (m_udpSocket->m_address.m_address);
+	m_index = 0;
 	InitTrakcer();
 }
 
@@ -108,6 +112,7 @@ size_t NetConnection::SendImmediately(int connectionIndex, std::vector<NetMessag
 	{
 		return 0;
 	}
+	NetAddress *address = msgs.at(0)->m_address;
 	int msgCount = msgs.size();
 	int actualSendCount = 0;
 
@@ -121,7 +126,7 @@ size_t NetConnection::SendImmediately(int connectionIndex, std::vector<NetMessag
 	
 	for(int index = 0;index < msgs.size();index++)
 	{
-		if(WritePayload(msgs.at(index)))
+		if(WritePayload(msgs.at(index),address))
 		{
 			delete msgs.at(index);
 			actualSendCount++;
@@ -142,7 +147,7 @@ size_t NetConnection::SendImmediately(int connectionIndex, std::vector<NetMessag
 
 	size_t length = m_packet.m_bufferSize;
 	size_t sendCount = m_session->m_channel->m_udpSocket->SendTo(m_address, (char *)m_packet.m_buffer, length);
-	m_lastSendTime = static_cast<float>(GetCurrentTimeSeconds());
+	m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
 	AddTracker(m_nextSentAck);
 	IncrementSendAck();
 
@@ -207,15 +212,15 @@ PacketTracker * NetConnection::GetTracker(uint16_t ack)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t NetConnection::FlushMsgs()
 {
+	m_index = 255;
 	float min = GetMinOf2(m_sendRate, m_session->m_sendRate);
-	if (m_lastSendTime + 1 / min > Clock::GetMasterClock()->total.m_milliSeconds)
+	if (m_lastSendTime + 1 / min > Clock::GetMasterClock()->total.m_seconds)
 	{
-		m_lastSendTime = Clock::GetMasterClock()->total.m_milliSeconds;
 		if (m_outboundMsgs.size() <= 0)
 		{
 			return 0;
 		}
-
+		NetAddress *address = m_outboundMsgs.at(0)->m_address;
 		int actualSendCount = 0;
 		m_header.m_unrealiableCount = static_cast<uint8_t>(1);
 		m_header.m_connectionindex = static_cast<uint8_t>(m_index);
@@ -226,7 +231,7 @@ size_t NetConnection::FlushMsgs()
 
 		for (int index = 0; index < m_outboundMsgs.size(); index++)
 		{
-			if (WritePayload(m_outboundMsgs.at(index)))
+			if (WritePayload(m_outboundMsgs.at(index),address))
 			{
 				delete m_outboundMsgs.at(index);
 				actualSendCount++;
@@ -242,10 +247,11 @@ size_t NetConnection::FlushMsgs()
 		m_header.m_previousReceivedAckBitfield = m_previousReceivedAckBitField;
 		WriteHeader();
 
+		std::string pack = m_packet.GetBitString();
 		size_t length    = m_packet.m_bufferSize;
-		size_t sendCount = m_session->m_channel->m_udpSocket->SendTo(m_address, (char *)m_packet.m_buffer, length + 1);
+		size_t sendCount = m_udpSocket->SendTo(*address, (char *)m_packet.m_buffer, length);
 
-		m_lastSendTime = static_cast<float>(GetCurrentTimeSeconds());
+		m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
 		AddTracker(m_nextSentAck);
 		IncrementSendAck();
 		m_packet.Reset();
@@ -323,12 +329,16 @@ size_t NetConnection::Recv(char *data,size_t &length,NetAddress *netAddress)
 	{
 		return 0;
 	}
-	m_lastReceivedTime = static_cast<float>(GetCurrentTimeSeconds());
+	
+	m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
 	UDPHeader header   = GetHeaderFromPacket(data);
-	if(header.m_lastReceivedAck != INVALID_PACKET_ACK)
+	UpdateAckStatus(netAddress, header.m_ack);
+	
+	if (header.m_lastReceivedAck != INVALID_PACKET_ACK)
 	{
 		ConfirmPacketReceived(header.m_lastReceivedAck);
 	}
+	return readSize;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -394,17 +404,61 @@ void NetConnection::IncrementSendAck()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::ConfirmPacketReceived(uint16_t ack)
 {
+	
 	PacketTracker *tracker = GetTracker(ack);
 	if(tracker == nullptr)
 	{
 		return;
 	}
-	float newrtt = static_cast<float>(GetCurrentTimeSeconds()) - static_cast<float>(tracker->m_sendTime);
+	/*std::map<uint16_t, PacketTracker*>::iterator it = m_trackerMap.begin();
+	for (; it != m_trackerMap.end(); it++)
+	{
+
+	}*/
+		
+
+	float newrtt = Clock::GetMasterClock()->total.m_seconds - (tracker->m_sendTime);
 	m_rtt = m_rtt * 0.9 * newrtt *0.1; // blend of 90 percent
 	std::map<uint16_t, PacketTracker*>::iterator it = m_trackerMap.find(ack);
 	delete tracker;
 	tracker = nullptr;
-	//m_trackerMap.erase(it);
+	m_trackerMap.erase(it);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/28
+*@purpose : Pushes into prev ack bit field
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::PushToAckBitField(NetAddress *netAddress,uint16_t ack)
+{
+	if(ack > m_AckBitfieldMinPosition && ack < m_AckBitfieldMaxPosition)
+	{
+		uint16_t diff = ack - m_AckBitfieldMinPosition;
+		SetBits(m_previousReceivedAckBitField, 1<<diff);
+	}
+	if(ack > m_AckBitfieldMaxPosition)
+	{
+		uint16_t diff = ack - m_AckBitfieldMaxPosition;
+		RightShift(m_previousReceivedAckBitField, diff);
+		m_AckBitfieldMinPosition += diff;
+		m_AckBitfieldMaxPosition += diff;
+		diff = ack - m_AckBitfieldMinPosition;
+		SetBits(m_previousReceivedAckBitField, 1<<diff);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::UpdateAckStatus(NetAddress *netAddress,uint16_t ackReceived)
+{
+	m_lastReceivedAck = ackReceived;
+	PushToAckBitField(netAddress,ackReceived);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -444,12 +498,29 @@ UDPHeader NetConnection::GetHeaderFromPacket(void *data)
 	BytePacker packer;
 	packer.WriteBytes(GetHeaderSize(), data);
 	UDPHeader header;
-	header.m_connectionindex = packer.ReadBytes((void*)&header.m_connectionindex, 1);
-	header.m_connectionindex = packer.ReadBytes((void*)&header.m_unrealiableCount, 1);
-	header.m_connectionindex = packer.ReadBytes((void*)&header.m_ack, 2);
-	header.m_connectionindex = packer.ReadBytes((void*)&header.m_lastReceivedAck, 2);
-	header.m_connectionindex = packer.ReadBytes((void*)&header.m_previousReceivedAckBitfield, 2);
+	packer.ReadBytes((void*)&header.m_connectionindex, 1);
+	packer.ReadBytes((void*)&header.m_ack, 2);
+	packer.ReadBytes((void*)&header.m_lastReceivedAck, 2);
+	packer.ReadBytes((void*)&header.m_previousReceivedAckBitfield, 2);
+	packer.ReadBytes((void*)&header.m_unrealiableCount, 1);
+	std::string packetStr = packer.GetBitString();
 	return header;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int NetConnection::GetCommandIndex(void *data,int size)
+{
+	int startPosition = GetHeaderSize();
+	BytePacker packer;
+	packer.WriteBytes(size, data);
+	int cmdIndex = -1;
+	packer.ReadBytes(&cmdIndex, 1);
+	return cmdIndex;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -487,7 +558,7 @@ void NetConnection::WriteConnectionIndex()
 void NetConnection::WriteUnrealiableMsgCount()
 {
 	size_t temp = m_packet.m_currentWritePosition;
-	m_packet.m_currentWritePosition = 6;
+	m_packet.m_currentWritePosition = 7;
 	m_packet.WriteBytes(1, (char*)&m_header.m_unrealiableCount);
 	m_packet.m_currentWritePosition = temp;
 }
@@ -543,11 +614,11 @@ void NetConnection::WritePreviousReceviedAckBitField()
 void NetConnection::WriteHeader()
 {
 	WriteConnectionIndex();
-	WriteUnrealiableMsgCount();
 	WriteNextSentAck();
 	WriteLastReceivedAck();
 	WritePreviousReceviedAckBitField();
-	m_packet.m_currentWritePosition = GetHeaderSize() - 1;
+	WriteUnrealiableMsgCount();
+	m_packet.m_currentWritePosition = GetHeaderSize();
 	std::string header = m_packet.GetBitString();
 }
 
@@ -557,8 +628,13 @@ void NetConnection::WriteHeader()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool NetConnection::WritePayload(NetMessage *msg)
+bool NetConnection::WritePayload(NetMessage *msg,NetAddress *address)
 {
+	if(!(*msg->m_address == *address))
+	{
+		return false;
+	}
+
 	if(m_packet.m_bufferSize + msg->m_bufferSize + GetHeaderSize() > ETHERNET_MTU)
 	{
 		return false;
@@ -573,11 +649,14 @@ bool NetConnection::WritePayload(NetMessage *msg)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetConnection::SendHeartBeat()
+void NetConnection::SendHeartBeat(NetAddress *address)
 {
-	NetMessage *msg = NetMessage::CreateHeartBeatMessage();
-	//SendImmediately(*msg);
-	Append(msg);
+	if (m_lastHeartbeatHPC + 1 / m_heartBeatFrequency < Clock::GetMasterClock()->total.m_seconds)
+	{
+		NetMessage *msg = NetMessage::CreateHeartBeatMessage(address);
+		Append(msg);
+		m_lastHeartbeatHPC = Clock::GetMasterClock()->total.m_seconds;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -588,9 +667,5 @@ void NetConnection::SendHeartBeat()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::Update(float deltaTime)
 {
-	if(m_lastHeartbeatHPC + 1/m_heartBeatFrequency < Clock::GetMasterClock()->total.m_seconds)
-	{
-		SendHeartBeat();
-		m_lastHeartbeatHPC = Clock::GetMasterClock()->total.m_seconds;
-	}
+	FlushMsgs();
 }

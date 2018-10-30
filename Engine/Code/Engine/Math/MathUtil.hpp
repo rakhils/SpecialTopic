@@ -145,13 +145,21 @@ std::string      GetHexaDecimalEquivalent(int value);
 bool			 AreBitsSet( unsigned char value8, unsigned char flagsToCheck );
 bool			 AreBitsSet( unsigned int value32, unsigned int flagsToCheck );
 bool			 AreBitsSet(size_t value64, size_t flagsToCheck);
+bool			 AreBitsSet(uint16_t value64, uint16_t flagsToCheck);
+
 void			 SetBits   (unsigned char& value8, unsigned char flagsToSet);
 void			 SetBits   (unsigned int&  value32, unsigned int flagsToSet);
 void			 SetBits   (size_t&  value32, size_t flagsToSet);
+void			 SetBits   (uint16_t& value, uint16_t flagToSet);
+//void			 SetBits   (uint8_t& value, uint8_t flagToSet);
 void			 ClearBits (unsigned char& value8, unsigned char flagToClear);
 void			 ClearBits (unsigned int&  value32, unsigned int flagToClear);
 void			 ClearBits (size_t&  value32, size_t flagToClear);
 
+void			 RightShift(uint16_t& value, uint16_t count);
+void			 RightShift(uint8_t& value,  uint8_t count);
+void			 LeftShift (uint16_t& value, uint16_t count);
+void			 LeftShift (uint8_t& value,  uint8_t count);
 
 //INTERPOLATE FUNCTIONS
 int				 Interpolate( int start, int end, float fractionTowardEnd );

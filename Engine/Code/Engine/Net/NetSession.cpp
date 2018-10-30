@@ -12,7 +12,8 @@ int			NetSession::s_defaultPort = 10084;
 // CONSTRUCTOR
 NetSession::NetSession(int port)
 {
-	m_channel = new NetConnection(port);
+	/*m_channel = new NetConnection(port);
+	m_channel->m_session = this;*/
 	Init();
 }
 
@@ -67,10 +68,21 @@ void NetSession::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::UpdateConnections(float deltaTime)
 {
-	std::map<int, NetConnection*>::iterator it = m_remoteConnections.begin();
+	/*std::map<int, NetConnection*>::iterator it = m_remoteConnections.begin();
 	for(;it!= m_remoteConnections.end();it++)
 	{
 		it->second->Update(deltaTime);
+	}*/
+
+	if(m_channel != nullptr)
+	{
+		m_channel->SendHeartBeat(&m_channel->m_address);
+		std::map<int, NetConnection*>::iterator it = m_remoteConnections.begin();
+		for(;it != m_remoteConnections.end();it++)
+		{
+			m_channel->SendHeartBeat(&(it->second->m_address));
+		}
+		m_channel->Update(deltaTime);
 	}
 }
 
@@ -233,16 +245,16 @@ void NetSession::ProcessIncomingMessage()
 	char data[PACKET_MTU];
 	size_t maxsize = PACKET_MTU;
 	NetAddress netAddr;
-	size_t recvd = m_channel->Recv(data, maxsize,&netAddr);
-	if(recvd > m_minHeaderSize)
+
+	if(m_channel != nullptr)
 	{
-		//float simLossForThisPacket = GetRandomFloatZeroToOne();
-		//if(simLossForThisPacket > m_lossAmount)
-		//{
-		//	return;
-		//}
-		ProcessMsg(ConstructMsgFromData(netAddr,recvd,data),&netAddr);
+		size_t recvd = m_channel->Recv(data, maxsize,&netAddr);
+		if(recvd > m_minHeaderSize)
+		{
+			ProcessMsg(ConstructMsgFromData(netAddr,recvd,data),&netAddr);
+		}
 	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -283,7 +295,15 @@ NetConnection* NetSession::AddConnection(int index, NetAddress *netaddress)
 	std::map<int, NetConnection*>::iterator it = m_remoteConnections.find(index);
 	if(it == m_remoteConnections.end())
 	{
-		NetConnection *connection  = new NetConnection(index, *netaddress);
+		NetConnection *connection = nullptr;
+		if(netaddress->m_port == s_defaultPort)
+		{
+			connection  = new NetConnection(s_defaultPort);
+		}
+		else
+		{
+			connection = new NetConnection(index, *netaddress);
+		}
 		connection->m_session = this;
 		m_remoteConnections[index] = connection;
 		return connection;
@@ -301,9 +321,9 @@ NetConnection* NetSession::AddConnection(int index,std::string ip, int port)
 {
 	if (ip == Net::GetIP() && port == s_defaultPort)
 	{
-		if(m_myConnection != nullptr)
+		if(m_channel != nullptr)
 		{
-			return m_myConnection;
+			return m_channel;
 		}
 	}
 
@@ -313,9 +333,10 @@ NetConnection* NetSession::AddConnection(int index,std::string ip, int port)
 	NetAddress::GetRemoteAddress(address, (sockaddr*)&out, &out_addrlen, ip.c_str(), ToString(port).c_str());
 	NetConnection *connection = AddConnection(index, address);
 	connection->m_index = index;
+	connection->m_session = this;
 	if(ip == Net::GetIP() && port == s_defaultPort)
 	{
-		m_myConnection = connection;
+		m_channel = connection;
 	}
 	return connection;
 }
@@ -363,7 +384,7 @@ NetConnection* NetSession::GetConnection(NetAddress *netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 NetConnection* NetSession::GetMyConnection()
 {
-	return m_myConnection;
+	return m_channel;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -374,7 +395,7 @@ NetConnection* NetSession::GetMyConnection()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int NetSession::GetMySessionIndex()
 {
-	return m_myConnection->m_index;
+	return m_channel->m_index;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -397,6 +418,10 @@ void NetSession::CloseAllConnections()
 std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress, size_t size, void *data)
 {
 	std::vector<NetMessage*> retmsgs;
+	if (size < m_minHeaderSize)
+	{
+		return retmsgs;
+	}
 	// - 01 01->packet header
 	// - 07 00 02 [ 05 'h' 'e' 'l' 'l' 'o' ]
 	// - 00000001 00000001 
@@ -410,66 +435,56 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 	recvdPacket.WriteBytes(size, data);
 	std::string str = recvdPacket.GetBitString();
 
-	char connectionIndex;
-	char unreliableCount;
-	recvdPacket.ReadBytes(&connectionIndex, 1);
-	recvdPacket.ReadBytes(&unreliableCount, 1);
-	//if(connectionIndex < 0 || connectionIndex == 255)
+	NetConnection* connection = GetConnection(&netAddress);
+	int index = -1;
+	if(connection != nullptr)
 	{
-		NetConnection* connection = GetConnection(&netAddress);
-		int index = -1;
-		if(connection != nullptr)
+		std::map<int, NetConnection*>::iterator it;
+		for (it = m_remoteConnections.begin(); it != m_remoteConnections.end(); it++)
 		{
-			std::map<int, NetConnection*>::iterator it;
-			for (it = m_remoteConnections.begin(); it != m_remoteConnections.end(); it++)
+			if (it->second->m_address == netAddress)
 			{
-				if (it->second->m_address == netAddress)
-				{
-					index = it->first;
-				}
+				index = it->first;
 			}
 		}
-		else
-		{
-			DevConsole::GetInstance()->PushToOutputText("BAD CONNECTION INDEX FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port) + " SIZE " + ToString(static_cast<int>(size))+ "DATA "+str, Rgba::RED);
-			return retmsgs;
+	}
+	else
+	{
+		DevConsole::GetInstance()->PushToOutputText("BAD CONNECTION INDEX FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port) + " SIZE " + ToString(static_cast<int>(size))+ "DATA "+str, Rgba::RED);
+		return retmsgs;
 
-		}
-		if(index == -1)
-		{
-			DevConsole::GetInstance()->PushToOutputText("NO INDEX PRESENT " + netAddress.GetIP() + ":" + ToString(netAddress.m_port) + " SIZE " + ToString(static_cast<int>(size)) + "DATA " + str, Rgba::RED);
-			return retmsgs;
-		}
+	}
 
+	std::string recvData = recvdPacket.GetBitString();
+
+	UDPHeader header = connection->GetHeaderFromPacket(data);
+
+	uint8_t connectionIndex = header.m_connectionindex;
+	uint8_t unreliableCount = header.m_unrealiableCount;
+
+	if(index == -1)
+	{
+		DevConsole::GetInstance()->PushToOutputText("NO INDEX PRESENT " + netAddress.GetIP() + ":" + ToString(netAddress.m_port) + " SIZE " + ToString(static_cast<int>(size)) + "DATA " + str, Rgba::RED);
+		return retmsgs;
 	}
 	if(unreliableCount <= 0)
 	{
 		DevConsole::GetInstance()->PushToOutputText("BAD MSG RECEVIED UC = 0 FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
 		return retmsgs;
 	}
+	
+	recvdPacket.AdvanceReadHead(connection->GetHeaderSize());
 	for(int msgCount = 0;msgCount < static_cast<int>(unreliableCount);msgCount++)
 	{
 		uint16_t msgSize = recvdPacket.ReadSize2();
 		char cmdIndex;
 		recvdPacket.ReadBytes(&cmdIndex, 1);
-		//char cmdSize;
-		//recvdPacket.ReadBytes(&cmdSize, 1);
-		//char msg[1000];
-		//recvdPacket.ReadString(msg, cmdSize);
-		//std::string msgstr (msg, cmdSize);
-		//NetMessageDefinition * msgdef = GetMsgDefinition(static_cast<int>(cmdIndex));
-		// (char*)m_buffer + m_currentReadPosition
-		// 
-
 		if(cmdIndex >=0 && cmdIndex < m_netMessageCmdDefinition.size())
 		{
-			DevConsole::GetInstance()->PushToOutputText("MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
+			DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
 			NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
 			netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
 			recvdPacket.m_currentReadPosition += msgSize - 1;
-			//(*(iter->second.m_callback))(newcommand);
-			//(*msgdef->m_callback)();
-			//NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
 			retmsgs.push_back(netmsg);
 		}
 		else
@@ -548,68 +563,110 @@ void NetSession::Render()
 	{
 		return;
 	}
+	if (m_channel == nullptr)
+	{
+		return;
+	}
+	RenderSessionDetails();
+	Vector2 startPosition(100, 800);
+	RenderConnectionDetails(m_channel,startPosition,false);
+	std::map<int, NetConnection*>::iterator it = m_remoteConnections.begin();
+	for(;it != m_remoteConnections.end();it++)
+	{
+		startPosition.y += -100;
+		if(it->second == m_channel)
+		{
+			continue;
+		}
+		RenderConnectionDetails(it->second,startPosition,true);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/29
+*@purpose : Renders session details
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::RenderSessionDetails()
+{
+	
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Material *defaultMaterial = Material::AquireResource("default");
-	Vector2 startPosition(100, 1000);
+
 	float fontSizeBig = 15;
 	float fontSize = 10;
-
+	Vector2 startPosition(100, 1000);
 	Renderer::GetInstance()->BindMaterial(textMaterial);
 	Renderer::GetInstance()->DrawTextOnPoint("SESSION INFO", startPosition, fontSizeBig, Rgba::WHITE);
-	startPosition -= Vector2(0, 2*fontSizeBig);
-	Renderer::GetInstance()->DrawTextOnPoint("sim lag:", startPosition + Vector2(50,0), fontSize, Rgba::WHITE);
+	startPosition -= Vector2(0, 2 * fontSizeBig);
+	Renderer::GetInstance()->DrawTextOnPoint("sim lag:", startPosition + Vector2(50, 0), fontSize, Rgba::WHITE);
 
 	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_minLatency) + " ms  " + ToString(m_maxLatency) + " ms", startPosition + Vector2(250, 0), fontSize, Rgba::WHITE);
 
-	Renderer::GetInstance()->DrawTextOnPoint("sim loss:", startPosition + Vector2(900,0), fontSize, Rgba::WHITE);
-	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_lossAmount)+"%", startPosition + Vector2(1100, 0), fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOnPoint("sim loss:", startPosition + Vector2(900, 0), fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_lossAmount) + "%", startPosition + Vector2(1100, 0), fontSize, Rgba::WHITE);
 
-	startPosition -= Vector2(0, 2*fontSizeBig);
+	startPosition -= Vector2(0, 2 * fontSizeBig);
 	Renderer::GetInstance()->DrawTextOnPoint("Socket Address(es)...", startPosition + Vector2(100, 0), fontSize, Rgba::WHITE);
-	startPosition -= Vector2(0, 2*fontSizeBig);
+	startPosition -= Vector2(0, 2 * fontSizeBig);
 	Renderer::GetInstance()->DrawTextOnPoint(m_channel->GetIPPortAsString(), startPosition + Vector2(200, 0), fontSize, Rgba::WHITE);
-	startPosition -= Vector2(0, 2*fontSizeBig);
+	startPosition -= Vector2(0, 2 * fontSizeBig);
 	Renderer::GetInstance()->DrawTextOnPoint("Connections...", startPosition + Vector2(150, 0), fontSize, Rgba::WHITE);
-	startPosition -= Vector2(0, 2*fontSizeBig);
+	startPosition -= Vector2(0, 2 * fontSizeBig);
 
-	startPosition -= Vector2(0, 2*fontSizeBig);
-	//Renderer::GetInstance()->DrawTextOnPoint("-- idx ", startPosition + Vector2(150, 0), fontSize, Rgba::WHITE);
+	startPosition -= Vector2(0, 2 * fontSizeBig);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 startPosition,bool skipHeading)
+{
+	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	Material *defaultMaterial = Material::AquireResource("default");
+	
+	float fontSizeBig = 15;
+	float fontSize = 10;
+
 	int indent = 1;
 	std::string entryString = Stringf("%*s%-*s %s %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
-		(3 * indent),"",
+		(3 * indent), "",
 		"idx", "address", "rtt", "loss", "lrcv(s)", "lsnt(s)", "sntack", "rcvack", "rcvbits");
+	startPosition.x = 25;
+	fontSize = 9;
 
-	Renderer::GetInstance()->DrawTextOnPoint(entryString, startPosition, fontSize, Rgba::WHITE);
-	std::map<int, NetConnection*>::iterator it;
-	for(it = m_remoteConnections.begin();it != m_remoteConnections.end();it++)
+	if(!skipHeading)
 	{
-		int index = it->second->m_index;
-		std::string ip = it->second->GetIPPortAsString();
-		float rtt =  it->second->m_rtt;
-		float loss = it->second->m_loss;
-		float lrcv = static_cast<float>(GetCurrentTimeSeconds()) - static_cast<float>(it->second->m_lastReceivedTime);
-		float lsnt = static_cast<float>(GetCurrentTimeSeconds()) - static_cast<float>(it->second->m_lastSendTime);
-		uint16_t sntack = it->second->m_nextSentAck;
-		uint16_t rcvack = it->second->m_lastReceivedAck;
-		uint16_t rcvBit = it->second->m_previousReceivedAckBitField;
-		//std::string entryString1;
-		startPosition += Vector2(0, -50);
-		std::string connectionDetailsStr;
-		if (it->second == m_myConnection)
-		{
-		connectionDetailsStr = Stringf("%*s%-*s %s   %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
-			(3 * indent),"L",ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(),ToString(lsnt, 2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToString(rcvBit).c_str());
-		}
-		else
-		{
-			connectionDetailsStr = Stringf("%*s%-*s %s   %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
-				(3 * indent), "",ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(), ToString(lsnt, 2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToString(rcvBit).c_str());
-		}
-		Renderer::GetInstance()->DrawTextOnPoint(connectionDetailsStr, startPosition, fontSize, Rgba::WHITE);
-		
+		Renderer::GetInstance()->DrawTextOnPoint(entryString, startPosition, fontSize, Rgba::WHITE);
 	}
+	startPosition.y -= 50;
+	int index = connection->m_index;
+	std::string ip = connection->GetIPPortAsString();
+	float rtt = connection->m_rtt;
+	float loss = connection->m_loss;
+	float lrcv = connection->m_lastReceivedTime;
+	float lsnt = connection->m_lastSendTime;
+	uint16_t sntack = connection->m_nextSentAck;
+	uint16_t rcvack = connection->m_lastReceivedAck;
+	uint16_t prevRcvBit = connection->m_previousReceivedAckBitField;
+	//std::string entryString1;
 
-
+	std::string connectionDetailsStr;
+	if (connection == m_channel)
+	{
+		connectionDetailsStr = Stringf("%*s%-*s %s   %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
+			(3 * indent), "L", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(), ToString(lsnt,2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
+	}
+	else
+	{
+		connectionDetailsStr = Stringf("%*s%-*s %s   %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
+			(3 * indent), "", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(), ToString(lsnt,2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
+	}
+	Renderer::GetInstance()->DrawTextOnPoint(connectionDetailsStr, startPosition, fontSize, Rgba::WHITE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

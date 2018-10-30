@@ -12,6 +12,7 @@
 * \contact: srsrakhil@gmail.com
 */
 class NetConnection;
+class NetAddress;
 class NetMessage : public BytePacker
 {
 
@@ -22,6 +23,7 @@ public:
 	uint8_t				  m_definitionIndex;
 	std::string			  m_definitionName;
 	int					  m_connectionIndex;
+	NetAddress			  *m_address = nullptr;
 	//Static_Member_Variables
 
 	//Methods
@@ -30,10 +32,12 @@ public:
 	~NetMessage();
 
 	void WriteCommandIndex();
+	size_t				  GetSize();
+
 	//Static_Methods
 	static NetMessage * CreateAddMessage(float value1, float value2);
 	static NetMessage * CreatePingMessage(std::string msg);
-	static NetMessage * CreateHeartBeatMessage();
+	static NetMessage * CreateHeartBeatMessage(NetAddress  *netaddress);
 	static NetMessage * CreateHeartBeatMessage(NetConnection *connection);
 	static NetMessage * CreateBadMessage();
 protected:

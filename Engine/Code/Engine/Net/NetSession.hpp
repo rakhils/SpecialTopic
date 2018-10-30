@@ -3,6 +3,7 @@
 #include "Engine/Net/NetMessage.hpp"
 #include "Engine/Net/NetConnection.hpp"
 #include "Engine/Core/BytePacker.hpp"
+#include "Engine/Math/MathUtil.hpp"
 /*\class  : NetSession	   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -40,7 +41,6 @@ public:
 	//Member_Variables
 	std::map<int, NetConnection*>					m_remoteConnections;
 	NetConnection *									m_channel      = nullptr;
-	NetConnection *									m_myConnection = nullptr;
 												
 	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;
 
@@ -95,6 +95,8 @@ public:
 	void					  PushOutboundMsgs(NetAddress address,NetMessage *msg);
 
 	void					  Render();
+	void					  RenderSessionDetails();
+	void					  RenderConnectionDetails(NetConnection *connection,Vector2 startPOsitino,bool skipHeading);
 	//Static_Methods
 
 	static NetSession*		  GetInstance();
