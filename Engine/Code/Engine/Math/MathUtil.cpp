@@ -819,6 +819,15 @@ Vector3 GetMin(Vector3 a, Vector3 b)
 	return returnValue;
 }
 
+double GetMin(double value1, double value2)
+{
+	if(value1 < value2)
+	{
+		return value1;
+	}
+	return value2;
+}
+
 float ClampZeroOrToOne(float value)
 {
 	if(value > 0.5)

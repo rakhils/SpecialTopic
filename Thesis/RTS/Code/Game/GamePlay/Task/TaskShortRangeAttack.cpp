@@ -43,7 +43,7 @@ bool TaskShortRangeAttack::DoTask(float deltaTime)
 	{
 		if(entityToBeAttacked->m_teamID != 0 && entityToBeAttacked->m_teamID != m_entity->m_teamID)
 		{
-			m_entity->m_map->CreateExplosions(m_targetPosition);
+			m_entity->m_map->CreateExplosions(m_targetPosition,Rgba::RED);
 			m_entity->UpdateUnitStatForEnemiesAttacked(1);
 			Entity *attackedEntity = m_entity->m_map->AttackOnPosition(m_targetPosition, 1);
 			if (attackedEntity->m_health <= 0)

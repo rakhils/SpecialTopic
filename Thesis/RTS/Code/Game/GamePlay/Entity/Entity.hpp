@@ -145,6 +145,7 @@ public:
 	NeuralNetwork				m_neuralNet;
 	float						m_lastDebug				= 0;
 	float						m_debugPrintDelay		= 1;
+	bool						m_miniMapDebug			= false;
 
 	Rgba						m_color;
 	std::queue<Task*>			m_taskQueue;
@@ -171,7 +172,7 @@ public:
 	double							GetTaskValueFromNNOutput(TaskType type);
 	double							GetTaskValueFromDesiredOutput(TaskType type);
 	TaskType						GetTaskFromNNOutput(double &max);
-	IntVector2						GetTaskPositonFromNNOutput();
+	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition);
 	IntVector2						GetRelativeCellLocation(float x, float y);
 	IntVector2						GetRandomSafeArea();
 	IntVector2						GetRandomTeritaryArea();
@@ -190,6 +191,7 @@ public:
 	void							InitNeuralNet();
 	void							InitStates();
 	void							ProcessInputs(float deltaTime);
+	std::vector<double>				GetMyMiniMap();
 
 	void							Update(float deltaTime);
 	void							UpdateTask();
@@ -229,8 +231,9 @@ public:
 	void							SetPosition(int index);
 	void							SetPositionInFloat(Vector2 position);
 
-	void							SetDesiredOutputToMoveToNeighbour(int cellDistance);
+	void							SetDesiredOutputToMoveToNeighbour(EntityState prevState,int cellDistance);
 	void							SetDesiredOutputToMoveToNeighbourOpposite(int cellDistance,IntVector2 cords);
+	void							SetDesiredOutputToMoveToPrevPosition();
 	void							SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance);
 
 	void							EmptyTaskQueue();

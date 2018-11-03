@@ -56,7 +56,7 @@ bool TaskLongRangeAttack::DoTask(float deltaTime)
 		Entity *attackedEntity = m_entity->m_map->AttackOnPosition(m_attackTile, 1);
 		if(attackedEntity != nullptr)
 		{
-			m_entity->m_map->CreateExplosions(m_entity->m_map->GetMapPosition(m_attackTile));
+			m_entity->m_map->CreateExplosions(m_entity->m_map->GetMapPosition(m_attackTile),Rgba::RED);
 			m_entity->UpdateUnitStatForEnemiesAttacked(1);
 			if(attackedEntity->m_health <=0)
 			{

@@ -1,33 +1,32 @@
 #pragma once
-#include "Engine/Math/Vector2.hpp"
+#include "Game/GamePlay/Entity/Entity.hpp"
 #include "Engine/Core/Rgba.hpp"
-/*\class  : Explosion		   
+/*\class  : DebugEntity		   
 * \group  : <GroupName>		   
 * \brief  :		   
-* \TODO:  :		   
-* \note   :		   
+* \TODO:  :	   
+* \note   :	   
 * \author : Rakhil Soman		   
 * \version: 1.0		   
-* \date   : 9/1/2018 9:06:55 PM
+* \date   : 10/30/2018 8:47:20 PM
 * \contact: srsrakhil@gmail.com
 */
  
-class Explosion
+class DebugEntity : public Entity
 {
 
 public:
 	//Member_Variables
-	float m_currentRadius = 0;
-	float m_direction	  = 1;
-	bool  m_completed	  = false;
-	Rgba  m_color;
-	Vector2 m_position;
+	std::string m_debugString;
+	float m_fontSize;
+	Rgba  color;
+	float m_isCompleted;
+	float m_startTime;
 	//Static_Member_Variables
-
 	//Methods
 
-	Explosion(Vector2 position);
-	~Explosion();
+	DebugEntity();
+	~DebugEntity();
 
 	void Update(float deltaTime);
 	void Render();

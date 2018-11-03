@@ -52,7 +52,7 @@ public:
 	void SetDesiredOutputToMoveToRandomArea();
 	void SetDesiredOutputToRandomTask();
 
-	void SetDesiredOuputForMoveToTownCenterTask(float value,EntityState previousState,IntVector2 cords);
+	void SetDesiredOutputToMoveToTownCenter(float value,EntityState previousState,IntVector2 cords);
 	void SetDesiredOuputForMoveToResourceTask  (float value, EntityState previousState, IntVector2 cords);
 
 

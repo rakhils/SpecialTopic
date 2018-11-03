@@ -45,6 +45,6 @@ void Explosion::Render()
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Disc2 disc(m_position, m_currentRadius);
-	g_theRenderer->DrawCircle(disc,Rgba::RED);
+	g_theRenderer->DrawCircle(disc,m_color);
 	delete defaultMaterial;
 }

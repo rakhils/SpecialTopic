@@ -448,9 +448,9 @@ void Renderer::DrawCircle(float centreX,float centreY,float nradius,Rgba color,f
 
 		float endX   =  centreX + (nradius)*CosDegrees((i+1)*nangle);
 		float endY   =  centreY + (nradius)*SinDegrees((i+1)*nangle);
-		line[i].setRGBA(Rgba::WHITE);
+		line[i].setRGBA(color);
 		line[i].setPoint(startX,startY);
-		line[i + 1].setRGBA(Rgba::WHITE);
+		line[i + 1].setRGBA(color);
 		line[i + 1].setPoint(endX,endY);
 	}
 	DrawMeshImmediate(PRIMITIVE_LINES,static_cast<int>(MAX_NUM_VERTEX),line);

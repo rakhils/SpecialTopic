@@ -14,6 +14,7 @@
 #include "Game/GamePlay/Entity/TownCenter.hpp"
 #include "Game/GamePlay/Entity/Resource.hpp"
 #include "Game/GamePlay/Utils/Explosion.hpp"
+#include "Game/GamePlay/Entity/DebugEntity.hpp"
 
 enum MapMode
 {
@@ -85,6 +86,7 @@ public:
 	std::vector<Resource*>			m_resources;
 
 	std::vector<Explosion*>			m_explosions;
+	std::vector<DebugEntity*>       m_debugEntities;
 
 	std::vector<Entity*>			m_movableEntities;
 	std::vector<Entity*>			m_standAloneEntities;
@@ -131,7 +133,8 @@ public:
 	void							CreateHouse(Vector2 position, int teamID);
 	void							CreateTownCenter(Vector2 position, int teamID);
 	void							CreateResources(Vector2 position, EntityType type);
-	void							CreateExplosions(Vector2 position);
+	void							CreateExplosions(Vector2 position,Rgba color);
+	void							CreateDebugLetterEntity(Vector2 position,std::string str,float fontsize,Rgba color);
 
 	bool							IsPositionInsideMap(Vector2 position);
 	bool							IsFreeTile(IntVector2 position);
@@ -208,6 +211,7 @@ public:
 	void							UpdateTownCenters(float deltaTime);
 	void							UpdateResources(float deltaTime);
 	void							UpdateExplosions(float deltaTime);
+	void							UpdateDebugEntities(float deltaTime);
 
 	void							Render();
 	void							RenderCivilians();
@@ -219,6 +223,7 @@ public:
 	void							RenderResources();
 	void							RenderGrids();
 	void							RenderExplosions();
+	void							RenderDebugEntites();
 	void							RenderHUDGameStat();
 	void							RenderHUDUnitStat();
 	void							RenderUnitTask();

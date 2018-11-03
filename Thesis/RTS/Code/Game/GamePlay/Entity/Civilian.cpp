@@ -31,7 +31,7 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_IDLE);
 	m_taskTypeSupported.push_back(TASK_MOVEX);
 	m_taskTypeSupported.push_back(TASK_MOVEY);
-
+	m_resourceTypeCarrying = m_map->m_resources.at(0);
 	InitNeuralNet();
 	InitStates();
 	m_taskQueue.push(new TaskGatherResource(this));
@@ -148,7 +148,7 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 
 	if(m_state.m_health < previousState.m_health)
 	{
-		SetDesiredOutputToMoveToNeighbour(3);
+		SetDesiredOutputToMoveToNeighbour(previousState,3);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -194,7 +194,7 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::EvaluateMoveTask(EntityState previousState,IntVector2 cords)
 {
-	Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
+	//Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
 	/*if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
 	{
 		m_state.m_neuralNetPoints++;
@@ -437,7 +437,7 @@ void Civilian::SetDesiredOutputToMoveToSafeArea()
 	SetDesiredOutputForTask(TASK_MOVE, 1.f);
 	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
 	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
-	m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
+	//m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -454,7 +454,7 @@ void Civilian::SetDesiredOutputToMoveToRandomArea()
 	SetDesiredOutputForTask(TASK_MOVE, 1.f);
 	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
 	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
-	m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
+	//m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -477,16 +477,9 @@ void Civilian::SetDesiredOutputToRandomTask()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Civilian::SetDesiredOuputForMoveToTownCenterTask(float value,EntityState previousState,IntVector2 cords)
+void Civilian::SetDesiredOutputToMoveToTownCenter(float value,EntityState previousState,IntVector2 cords)
 {
-	if (m_map->GetCordinates(previousState.m_position) == cords)
-	{
-		SetDesiredOutputForTask(TASK_MOVE, g_desiredOutputForSameRandomPosition);
-		return;
-	}
-
-	SetDesiredOutputForTask(TASK_MOVE, value);
-	return;
+	//float currentTownCenterNearnessValue = 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -515,6 +508,7 @@ void Civilian::SetDesiredOuputForMoveToResourceTask(float value, EntityState pre
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cords)
 {
+	Rgba color = Rgba::GREEN;
 	float tcNearnessCurrent = 0.f;//m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_team2TownCenterNearness;
 	float tcNearnessOld     = 0.f;
 	if(m_teamID == 1)
@@ -527,23 +521,32 @@ void Civilian::EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cor
 		tcNearnessCurrent = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_entityNearness.at(FAVORED_MOVETO_TEAM2_TOWNCENTER);
 		tcNearnessOld     = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(prevState.m_position)).m_entityNearness.at(FAVORED_MOVETO_TEAM2_TOWNCENTER);
 	}
-	
+
+	IntVector2 cords1 = GetCordinates();
+	IntVector2 cords2 = m_map->GetCordinates(m_previousState.m_position);
+	int index1 = m_map->GetTileIndex(cords);
+	int index2 = m_map->GetTileIndex(prevState.m_position);
+
 
 	if (tcNearnessCurrent == 1 && tcNearnessOld == 1)
 	{
 		SetDesiredOutputForTask(TASK_MOVE, 0.f);
+		m_map->CreateExplosions(GetPosition(), Rgba::RED);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
 	if (tcNearnessCurrent == 1 && tcNearnessOld > 1)
 	{
-		if (m_map->IsFreeTile(cords))
+		if (m_map->GetEntityFromPosition(cords) == this)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 1.f);
+			m_map->CreateExplosions(GetPosition(), Rgba::RED);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		SetDesiredOutputToMoveToNeighbour(2);
+		m_map->CreateExplosions(GetPosition(), Rgba::RED);
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
+		//SetDesiredOuputForMoveToTownCenterTask()
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -551,6 +554,7 @@ void Civilian::EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cor
 	{
 		SetDesiredOutputForTask(TASK_MOVE, 0.f);
 		m_state.m_neuralNetPoints++;
+		m_map->CreateExplosions(GetPosition(), Rgba::RED);
 		return;
 	}
 
@@ -558,25 +562,31 @@ void Civilian::EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cor
 
 	if (tcNearnessCurrent - tcNearnessOld < 0) // moving towards
 	{
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() == cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 1.f);
+			m_map->CreateExplosions(GetPosition(), Rgba::MAGENTA);
+			//DebugDraw::GetInstance()->DebugRenderLogf(2,"moving towards cords = this");
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		SetDesiredOutputToMoveToNeighbour(2);
+		//DebugDraw::GetInstance()->DebugRenderLogf(2,"moving towards");
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
+		m_map->CreateExplosions(GetPosition(), Rgba::WHITE);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
 	else if (tcNearnessCurrent - tcNearnessOld == 0)
 	{
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
+		//DebugDraw::GetInstance()->DebugRenderLogf(2,"moving same");
 		m_state.m_neuralNetPoints++;
 		return;
 	}
 	else if (tcNearnessCurrent - tcNearnessOld > 0.f)
 	{
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
+		//DebugDraw::GetInstance()->DebugRenderLogf(2, "moving away");
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -591,6 +601,7 @@ void Civilian::EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cor
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords)
 {
+	Rgba color = Rgba::GREEN;
 	TownCenter *myTownCenter = ((TownCenter*)FindMyTownCenter());
 	float currentResourceNearnessForFood  
 		= m_map->m_cellSensoryValues.at(m_map->GetTileIndex(cords)).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_RESOURCE_FOOD);
@@ -619,7 +630,7 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	oldResourceNearness		+= GetMaxOf2(oldResourceNearnessForStone,0);
 	oldResourceNearness		+= GetMaxOf2(oldResourceNearnessForWood,0);
 
-	float max = g_maxResourceCountRequired;
+	float max = g_maxResourceCountRequired + 5000;
 	float foodWeight  = (max - myTownCenter->m_resourceStat.m_food) / max;
 	float stoneWeight = (max - myTownCenter->m_resourceStat.m_stone)/ max;
 	float woodWeight  = (max - myTownCenter->m_resourceStat.m_wood) / max;
@@ -632,11 +643,11 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	{
 		if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_food > max)
 		{
-			SetDesiredOutputToMoveToNeighbour(2);
+			SetDesiredOutputToMoveToNeighbour(prevState,2);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		if(m_map->IsFreeTile(cords))
+		if (GetCordinates() != cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 0.f);
 			m_state.m_neuralNetPoints++;
@@ -650,11 +661,11 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	{
 		if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_stone > max)
 		{
-			SetDesiredOutputToMoveToNeighbour(2);
+			SetDesiredOutputToMoveToNeighbour(prevState,2);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() != cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 0.f);
 			m_state.m_neuralNetPoints++;
@@ -668,11 +679,11 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	{
 		if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_wood > max)
 		{
-			SetDesiredOutputToMoveToNeighbour(2);
+			SetDesiredOutputToMoveToNeighbour(prevState,2);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() != cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 0.f);
 			m_state.m_neuralNetPoints++;
@@ -690,17 +701,18 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	{
 		if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_food > max)
 		{
-			SetDesiredOutputToMoveToNeighbour(2);
+			SetDesiredOutputToMoveToNeighbour(prevState,2);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() == cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 1.f);
+			m_map->CreateExplosions(GetPosition(), color);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -709,17 +721,18 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	{
 		if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_stone > max)
 		{
-			SetDesiredOutputToMoveToNeighbour(2);
+			SetDesiredOutputToMoveToNeighbour(prevState,2);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() == cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 1.f);
+			m_map->CreateExplosions(GetPosition(), color);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -728,17 +741,18 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	{
 		if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_wood > max)
 		{
-			SetDesiredOutputToMoveToNeighbour(2);
+			SetDesiredOutputToMoveToNeighbour(prevState,2);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() == cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 1.f);
+			m_map->CreateExplosions(GetPosition(), color);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -747,11 +761,18 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	{
 		if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_food > max)
 		{
+			if (GetCordinates() != cords)
+			{
+				SetDesiredOutputToMoveToNeighbour(prevState,2);
+				m_state.m_neuralNetPoints++;
+				return;
+			}
 			SetDesiredOutputForTask(TASK_MOVE, 1.f);
+			m_map->CreateExplosions(GetPosition(), color);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() != cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 0.f);
 			m_state.m_neuralNetPoints++;
@@ -765,11 +786,18 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	{
 		if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_stone > max)
 		{
+			if (GetCordinates() == cords)
+			{
+				SetDesiredOutputToMoveToNeighbour(prevState,2);
+				m_state.m_neuralNetPoints++;
+				return;
+			}
 			SetDesiredOutputForTask(TASK_MOVE, 1.f);
+			m_map->CreateExplosions(GetPosition(), color);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() != cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 0.f);
 			m_state.m_neuralNetPoints++;
@@ -783,11 +811,18 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	{
 		if (((TownCenter*)FindMyTownCenter())->m_resourceStat.m_wood > max)
 		{
+			if (GetCordinates() != cords)
+			{
+				SetDesiredOutputToMoveToNeighbour(prevState,2);
+				m_state.m_neuralNetPoints++;
+				return;
+			}
 			SetDesiredOutputForTask(TASK_MOVE, 1.f);
+			m_map->CreateExplosions(GetPosition(), color);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() != cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 0.f);
 			m_state.m_neuralNetPoints++;
@@ -801,25 +836,26 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 
 	if (currentResourceNearness - oldResourceNearness < 0) // moving towards
 	{
-		if (m_map->IsFreeTile(cords))
+		if (GetCordinates() == cords)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 1.f);
+			m_map->CreateExplosions(GetPosition(), color);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
 	else if (currentResourceNearness - oldResourceNearness == 0)
 	{
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
 	else if (currentResourceNearness - oldResourceNearness > 0.f)
 	{
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(prevState,2);
 		m_state.m_neuralNetPoints++;
 		return;
 	}

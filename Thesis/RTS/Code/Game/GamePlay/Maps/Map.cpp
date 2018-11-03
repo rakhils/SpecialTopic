@@ -487,22 +487,27 @@ void Map::InitNonTrainingMode()
 
 	m_maxWidth  = 40;
 	m_maxHeight = 20;
-	g_hiddenLayerCount = 650;
+	g_hiddenLayerCount = 100;
 	m_entitiesHavingTraning.push_back(CIVILIAN);
-	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(400), RESOURCE_FOOD);
-	//CreateResources(GetMapPosition(410), RESOURCE_FOOD);
+	m_entitiesHavingTraning.push_back(SHORT_RANGE_WARRIOR);
+	m_entitiesHavingTraning.push_back(LONG_RANGE_WARRIOR);
+	m_entitiesHavingTraning.push_back(ARMY_SPAWNER);
+	m_entitiesHavingTraning.push_back(TOWN_CENTER);
 
-	CreateResources(GetMapPosition(600), RESOURCE_STONE);
-	//CreateResources(GetMapPosition(610), RESOURCE_STONE);
+	CreateTownCenter(GetMapPosition(722), 1);
+	CreateResources(GetMapPosition(402), RESOURCE_FOOD);
+	CreateResources(GetMapPosition(435), RESOURCE_FOOD);
 
-	CreateResources(GetMapPosition(100), RESOURCE_WOOD);
-	//CreateResources(GetMapPosition(110), RESOURCE_WOOD);
+	CreateResources(GetMapPosition(670), RESOURCE_STONE);
+	CreateResources(GetMapPosition(610), RESOURCE_STONE);
+
+	CreateResources(GetMapPosition(105), RESOURCE_WOOD);
+	CreateResources(GetMapPosition(126), RESOURCE_WOOD);
 
 
 
-	CreateTownCenter(GetMapPosition(61), 2);
-	CreateClassAWarrior(GetMapPosition(42), 2);
+	CreateTownCenter(GetMapPosition(75), 2);
+	//CreateClassAWarrior(GetMapPosition(42), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -649,10 +654,31 @@ void Map::CreateResources(Vector2 position,EntityType type)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::CreateExplosions(Vector2 position)
+void Map::CreateExplosions(Vector2 position,Rgba color)
 {
+	if(true)
+	{
+		return;
+	}
 	Explosion *explosion = new Explosion(position);
+	explosion->m_color = color;
 	m_explosions.push_back(explosion);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/30
+*@purpose : Createas a debug entity push to vector
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::CreateDebugLetterEntity(Vector2 position, std::string str, float fontsize, Rgba color)
+{
+	DebugEntity *entity = new DebugEntity();
+	entity->m_debugString = str;
+	entity->m_fontSize = fontsize;
+	entity->color = color;
+	entity->m_disc.center = position;
+	m_debugEntities.push_back(entity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2199,6 +2225,12 @@ void Map::Update(float deltaTime)
 	UpdateHouses(deltaTime);
 	UpdateTownCenters(deltaTime);
 	UpdateExplosions(deltaTime);
+	UpdateDebugEntities(deltaTime);
+
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_E))
+	{
+		
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2362,11 +2394,41 @@ void Map::UpdateExplosions(float deltaTime)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/30
+*@purpose : Updates debug entities
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::UpdateDebugEntities(float deltaTime)
+{
+	for (int explosionIndex = 0; explosionIndex < m_debugEntities.size(); explosionIndex++)
+	{
+		DebugEntity *explosion = m_debugEntities.at(explosionIndex);
+		explosion->Update(deltaTime);
+		if (explosion->m_isCompleted)
+		{
+			delete explosion;
+			m_debugEntities.erase(m_debugEntities.begin() + explosionIndex, m_debugEntities.begin() + explosionIndex + 1);
+			explosionIndex--;
+		}
+	}
+}
+
 void Map::Render()
 {
 	Camera::SetCurrentCamera(m_camera);
 	Renderer::GetInstance()->BeginFrame();
 	DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d", App::s_gameCounter);
+
+	if(g_isCurrentlyTraining)
+	{
+		Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+		Renderer::GetInstance()->BindMaterial(textMaterial);
+		g_theRenderer->DrawTextOn3DPoint(Vector3(600,500,0), Vector3::RIGHT, Vector3::UP, "TRAINING ON", 50.f, Rgba::YELLOW);
+		delete textMaterial;
+	}
+
 	RenderCivilians();
 	RenderClassAWarriors();
 	RenderClassBWarriors();
@@ -2376,6 +2438,7 @@ void Map::Render()
 	RenderResources();
 	RenderGrids();
 	RenderExplosions();
+	RenderDebugEntites();
 	RenderHUDGameStat();
 	RenderHUDUnitStat();
 	RenderUnitTask();
@@ -2520,6 +2583,20 @@ void Map::RenderExplosions()
 	for(int explosionIndex = 0;explosionIndex < m_explosions.size();explosionIndex++)
 	{
 		m_explosions.at(explosionIndex)->Render();
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/30
+*@purpose : Renders debug string
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderDebugEntites()
+{
+	for (int explosionIndex = 0; explosionIndex < m_debugEntities.size(); explosionIndex++)
+	{
+		m_debugEntities.at(explosionIndex)->Render();
 	}
 }
 

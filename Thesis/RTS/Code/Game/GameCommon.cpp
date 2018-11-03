@@ -21,6 +21,8 @@ bool				g_isCurrentlyTraining = false;
 bool				g_enableNeuralNet = true;
 bool				g_enableDebugPrints = false;
 int					g_extraNNInputs = 8;
+double				g_entityMiniMapMaxWidth  = 8;
+double				g_entityMiniMapMaxHeight = 8;
 
 float				g_mapXOffset;
 float				g_mapYOffset;

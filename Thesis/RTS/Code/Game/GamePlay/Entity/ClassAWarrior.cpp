@@ -121,13 +121,13 @@ void ClassAWarrior::TrainNN(Task *task)
 void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
 {
 	CopyDesiredOutputs();
-	Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
+	/*Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
 	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
 	{
 		m_state.m_neuralNetPoints++;
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(previousState,2);
 		return;
-	}
+	}*/
 	switch (task->m_taskType)
 	{
 		case TASK_MOVE:
@@ -152,7 +152,7 @@ void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 {
 	if(m_map->GetCordinates(m_previousState.m_position) == cords)
 	{
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(previousState,2);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -176,7 +176,7 @@ void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 		m_state.m_neuralNetPoints++;
 		return;
 	}
-	SetDesiredOutputToMoveToNeighbour(2);
+	SetDesiredOutputToMoveToNeighbour(previousState,2);
 	m_state.m_neuralNetPoints++;
 }
 

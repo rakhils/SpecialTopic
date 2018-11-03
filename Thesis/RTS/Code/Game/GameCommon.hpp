@@ -45,6 +45,8 @@ extern bool					g_isCurrentlyTraining;
 extern bool					g_enableDebugPrints;
 extern int					g_extraNNInputs;
 extern int					g_hiddenLayerCount;
+extern double				g_entityMiniMapMaxWidth;
+extern double				g_entityMiniMapMaxHeight;
 
 extern float				g_mapXOffset;
 extern float				g_mapYOffset;

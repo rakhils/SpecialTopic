@@ -6,6 +6,7 @@
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/AI/NeuralNetwork/NeuralNetwork.hpp"
 #include "Engine/Core/EngineCommon.hpp"
+#include "Engine/Math/MathUtil.hpp"
 
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Task/TaskMove.hpp"
@@ -93,12 +94,15 @@ void Entity::InitNeuralNet()
 	m_statsSupported.push_back(HEALTH);
 	m_statsSupported.push_back(RESOURCE_COUNT);
 
-	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, g_hiddenLayerCount, static_cast<int>(m_taskTypeSupported.size()));
+	int inputCount = g_entityMiniMapMaxHeight * g_entityMiniMapMaxWidth;
+//	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, g_hiddenLayerCount, static_cast<int>(m_taskTypeSupported.size()));
+	m_neuralNet.CreateNeuralNetwork(inputCount + g_extraNNInputs, g_hiddenLayerCount, static_cast<int>(m_taskTypeSupported.size()));
+
 	if(m_type == CIVILIAN)
 	{
-		m_neuralNet.LoadFromFile(("Data\\NN\\" + GetEntityTypeAsString(m_type) + ".txt").c_str());
+		//m_neuralNet.LoadFromFile(("Data\\NN\\" + GetEntityTypeAsString(m_type) + "_"+ToString(m_teamID)+".txt").c_str());
 	}
-	//m_neuralNet.SetRandomWeight();
+	m_neuralNet.SetRandomWeight();
 	// input + 6 -> for game stat && output + 2 for positions x,y
 
 	for(int index = 0;index < m_neuralNet.m_outputs->m_neurons.size();index++)
@@ -155,7 +159,7 @@ void Entity::ProcessInputs(float deltaTime)
 		if(g_currentSelectedEntity == this)
 		{
 			
-			m_neuralNet.StoreToFile(("Data\\NN\\"+GetEntityTypeAsString(m_type) + ".txt").c_str());
+			m_neuralNet.StoreToFile(("Data\\NN\\"+GetEntityTypeAsString(m_type) + "_"+ToString(m_teamID)+".txt").c_str());
 		}
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_D))
@@ -166,7 +170,13 @@ void Entity::ProcessInputs(float deltaTime)
 			g_currentSelectedEntity = nullptr;
 		}
 	}
-
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_SPACE))
+	{
+		if(g_currentSelectedEntity == this)
+		{
+			m_miniMapDebug = m_miniMapDebug == true ? false : true;
+		}
+	}
 	if (InputSystem::GetInstance()->WasLButtonJustPressed())
 	{
 		if (IsPositionInside(mousePosition))
@@ -216,6 +226,79 @@ void Entity::ProcessInputs(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/30
+*@purpose : Retrives my minimap
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::vector<double> Entity::GetMyMiniMap()
+{
+	std::vector<double> minmapValues;
+	for(int index = 0;index < g_entityMiniMapMaxHeight * g_entityMiniMapMaxWidth;index++)
+	{
+		minmapValues.push_back(0);
+	}
+
+	int xPosition = GetCordinates().x;
+	int yPosition = GetCordinates().y;
+
+	int minX = xPosition - g_entityMiniMapMaxWidth  / 2;
+	int minY = yPosition - g_entityMiniMapMaxHeight / 2;
+
+	int maxX = xPosition + g_entityMiniMapMaxWidth / 2;
+	int maxY = yPosition + g_entityMiniMapMaxHeight / 2;
+
+	if(minX < 0)
+	{
+		maxX += (0 - minX);
+	}
+	if(minY < 0)
+	{
+		maxY += (0 - minY);
+	}
+	if(maxX > m_map->m_maxWidth)
+	{
+		minX -= (maxX - m_map->m_maxWidth);
+	}
+	if(maxY > m_map->m_maxHeight)
+	{
+		minY -= (maxY - m_map->m_maxHeight);
+	}
+
+
+
+	int mapMinX = GetMax(minX, 0);
+	int mapMinY = GetMax(minY, 0);
+
+	int mapMaxX = GetMin(maxX, m_map->m_maxWidth);
+	int mapMaxY = GetMin(maxY, m_map->m_maxHeight);
+
+	for(int indexY = mapMinY;indexY < mapMaxY;indexY++)
+	{
+		for(int indexX = mapMinX;indexX < mapMaxX;indexX++)
+		{
+			double minimapValue    = m_map->GetMiniMapValueAtPosition(indexX, indexY);
+			IntVector2 miniMapCords(indexX - mapMinX, indexY - mapMinY);
+			int miniMapIndex = miniMapCords.y * g_entityMiniMapMaxHeight + miniMapCords.x;
+			if(indexX == GetCordinates().x && indexY == GetCordinates().y)
+			{
+				minmapValues.at(miniMapIndex) = 1;
+				continue;
+			}
+			minmapValues.at(miniMapIndex) = (minimapValue);
+			if(m_miniMapDebug)
+			{
+				m_map->CreateDebugLetterEntity(m_map->GetMapPosition(IntVector2(indexX, indexY)), ToString(miniMapIndex), 8, Rgba::YELLOW);
+				//m_map->CreateExplosions(m_map->GetMapPosition(IntVector2(indexX, indexY)));
+			}
+		}
+	}
+	return minmapValues;
+
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/30
 *@purpose : Trains NN with the snapshot input
 *@param   : NIL
@@ -224,13 +307,13 @@ void Entity::ProcessInputs(float deltaTime)
 void Entity::TrainNN(Task *task)
 {
 	UNUSED(task);
-	for(int index = 0;index < m_taskTypeSupported.size()-2;index++)
+	for(int index = 0;index < m_taskTypeSupported.size();index++)
 	{
-		if(m_neuralNet.m_outputs->m_neurons.at(index).m_sumOfPreviousLayer < -5.f)
+		if(m_neuralNet.m_outputs->m_neurons.at(index).m_sumOfPreviousLayer < -3.f)
 		{
 			m_desiredOuputs.at(index) = 1;
 		}
-		if (m_neuralNet.m_outputs->m_neurons.at(index).m_sumOfPreviousLayer > 5.f)
+		if (m_neuralNet.m_outputs->m_neurons.at(index).m_sumOfPreviousLayer > 3.f)
 		{
 			m_desiredOuputs.at(index) = 0;
 		}
@@ -238,7 +321,7 @@ void Entity::TrainNN(Task *task)
 
 	if (m_state.m_neuralNetPoints > m_previousState.m_neuralNetPoints)
 	{
-		for (int index = 0; index < 20; index++)
+		for (int index = 0; index < 10; index++)
 		{
 			m_neuralNet.DoBackPropogation(m_desiredOuputs);
 		}
@@ -261,7 +344,7 @@ void Entity::Update(float deltaTime)
 			m_taskQueue.pop();
 			if(g_enableNeuralNet && m_taskQueue.size() == 0)
 			{
-				EvaluateNN(task,m_previousState,GetTaskPositonFromNNOutput());
+				EvaluateNN(task,m_previousState,GetTaskPositonFromNNOutput(m_previousState.m_position));
 				TrainNN(task);
 				UpdateEntityState();
 				UpdateNN(deltaTime);
@@ -331,7 +414,10 @@ void Entity::UpdateNN(float deltaTime)
 	IntVector2 myPosition = m_map->GetCordinates(GetPosition());
 	double minimapValue    = m_map->GetMiniMapValueAtPosition(myPosition.x, myPosition.y);
 	m_map->SetMiniMapValues(myPosition.x, myPosition.y, 1);
-	m_neuralNet.FeedForward(m_map->m_minimapValue, m_gameStats);
+
+	std::vector<double> entityMiniMapInput = GetMyMiniMap();
+
+	m_neuralNet.FeedForward(entityMiniMapInput, m_gameStats);
 	m_map->SetMiniMapValues(myPosition.x, myPosition.y, static_cast<float>(minimapValue));
 }
 
@@ -343,7 +429,7 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 	}
 	double max = 0;
 	TaskType task			= GetTaskFromNNOutput(max);
-	IntVector2 taskPosition = GetTaskPositonFromNNOutput();
+	IntVector2 taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position);
 	m_previousState			= m_state;
 
 	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -459,7 +545,7 @@ void Entity::PrintDebugNN()
 		m_lastDebug = static_cast<float>(GetCurrentTimeSeconds());
 		double max = 0;
 		TaskType task = GetTaskFromNNOutput(max);
-		IntVector2	taskPosition = GetTaskPositonFromNNOutput();
+		IntVector2	taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position);
 		DebugDraw::GetInstance()->DebugRenderLogf(m_debugPrintDelay, GetTeamColor(), (Task::GetTaskTypeAsString(task) + " POSX = %d POSY = %d").c_str(), taskPosition.x, taskPosition.y);
 
 		for (int index = 0; index < m_taskTypeSupported.size(); index++)
@@ -997,17 +1083,59 @@ void Entity::SetPositionInFloat(Vector2 position)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetDesiredOutputToMoveToNeighbour(int distance)
+void Entity::SetDesiredOutputToMoveToNeighbour(EntityState prevState,int distance)
 {
-	UNUSED(distance);
-	IntVector2 neighbour = m_map->GetRandomNeighbour(GetCordinates(), distance);
-	float xPosition = RangeMapFloat(static_cast<float>(neighbour.x), 0.f, static_cast<float>(m_map->m_maxWidth - 1), 0.f, 1.f);
-	float yPosition = RangeMapFloat(static_cast<float>(neighbour.y), 0.f, static_cast<float>(m_map->m_maxHeight - 1), 0.f, 1.f);
-	SetDesiredOutputForTask(TASK_MOVE, 1);
-	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
-	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
+	IntVector2 cords = m_map->GetCordinates(prevState.m_position);
+	int xPosition = cords.x;
+	int yPosition = cords.y;
+	int minX = xPosition - g_entityMiniMapMaxWidth / 2;
+	int minY = yPosition - g_entityMiniMapMaxHeight / 2;
 
-	m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
+	int maxX = xPosition + g_entityMiniMapMaxWidth / 2;
+	int maxY = yPosition + g_entityMiniMapMaxHeight / 2;
+
+	if (minX < 0)
+	{
+		maxX += (0 - minX);
+	}
+	if (minY < 0)
+	{
+		maxY += (0 - minY);
+	}
+	if (maxX > m_map->m_maxWidth)
+	{
+		minX -= (maxX - m_map->m_maxWidth);
+	}
+	if (maxY > m_map->m_maxHeight)
+	{
+		minY -= (maxY - m_map->m_maxHeight);
+	}
+
+
+
+	int mapMinX = GetMax(minX, 0);
+	int mapMinY = GetMax(minY, 0);
+
+	int mapMaxX = GetMin(maxX, m_map->m_maxWidth);
+	int mapMaxY = GetMin(maxY, m_map->m_maxHeight);
+
+
+	UNUSED(distance);
+	IntVector2 neighbour = m_map->GetRandomNeighbour(m_map->GetCordinates(prevState.m_position), distance);
+	float desiredXPosition = RangeMapFloat(static_cast<float>(neighbour.x),mapMinX, static_cast<float>(mapMaxX), 0.f, 1.f);
+	float desiredYPosition = RangeMapFloat(static_cast<float>(neighbour.y),mapMinY, static_cast<float>(mapMaxY), 0.f, 1.f);
+
+	desiredXPosition = GetRandomFloatZeroToOne();
+	desiredYPosition = GetRandomFloatZeroToOne();
+
+	SetDesiredOutputForTask(TASK_MOVE, 1);
+	SetDesiredOutputForTask(TASK_MOVEX, desiredXPosition);
+	SetDesiredOutputForTask(TASK_MOVEY, desiredYPosition);
+	if(desiredXPosition > 1 || desiredYPosition > 1 || desiredXPosition < 0 || desiredYPosition < 0)
+	{
+		m_map->CreateExplosions(m_map->GetMapPosition(neighbour),Rgba::WHITE);
+	}
+	m_map->CreateExplosions(m_map->GetMapPosition(neighbour),Rgba::YELLOW);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1028,8 +1156,19 @@ void Entity::SetDesiredOutputToMoveToNeighbourOpposite(int cellDistance, IntVect
 		SetDesiredOutputForTask(TASK_MOVE, 1);
 		SetDesiredOutputForTask(TASK_MOVEX, neighBour.x);
 		SetDesiredOutputForTask(TASK_MOVEY, neighBour.y);
-		m_map->CreateExplosions(m_map->GetMapPosition(neighBour));
+		//m_map->CreateExplosions(m_map->GetMapPosition(neighBour));
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetDesiredOutputToMoveToPrevPosition()
+{
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1504,12 +1643,47 @@ TaskType Entity::GetTaskFromNNOutput(double &max)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetTaskPositonFromNNOutput()
+IntVector2 Entity::GetTaskPositonFromNNOutput(Vector2 prevPosition)
 {
-	double xPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
-	double yPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
-	float xRangedValue = RangeMapFloat(static_cast<float>(xPosition), 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxWidth));
-	float yRangedValue = RangeMapFloat(static_cast<float>(yPosition), 0.f, 1.f, 0.f, static_cast<float>(m_map->m_maxHeight));
+	int xPosition = m_map->GetCordinates(prevPosition).x;
+	int yPosition = m_map->GetCordinates(prevPosition).y;
+
+	int minX = xPosition - g_entityMiniMapMaxWidth / 2;
+	int minY = yPosition - g_entityMiniMapMaxHeight / 2;
+
+	int maxX = xPosition + g_entityMiniMapMaxWidth / 2;
+	int maxY = yPosition + g_entityMiniMapMaxHeight / 2;
+
+	if (minX < 0)
+	{
+		maxX += (0 - minX);
+	}
+	if (minY < 0)
+	{
+		maxY += (0 - minY);
+	}
+	if (maxX > m_map->m_maxWidth)
+	{
+		minX -= (maxX - m_map->m_maxWidth);
+	}
+	if (maxY > m_map->m_maxHeight)
+	{
+		minY -= (maxY - m_map->m_maxHeight);
+	}
+
+
+
+	int mapMinX = GetMax(minX, 0);
+	int mapMinY = GetMax(minY, 0);
+
+	int mapMaxX = GetMin(maxX, m_map->m_maxWidth);
+	int mapMaxY = GetMin(maxY, m_map->m_maxHeight);
+
+
+	double taskXPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
+	double taskYPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
+	float xRangedValue = RangeMapFloat(static_cast<float>(taskXPosition), 0.f, 1.f, mapMinX, static_cast<float>(mapMaxX));
+	float yRangedValue = RangeMapFloat(static_cast<float>(taskYPosition), 0.f, 1.f, mapMinY, static_cast<float>(mapMaxY));
 	int xPos		   = ClampInt(static_cast<int>(xRangedValue), 0, m_map->m_maxWidth - 1);
 	int yPos		   = ClampInt(static_cast<int>(yRangedValue), 0, m_map->m_maxHeight - 1);
 	return IntVector2(xPos,yPos);

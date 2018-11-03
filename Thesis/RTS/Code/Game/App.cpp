@@ -74,13 +74,21 @@ void App::Update(float deltaTime)
 {
 	ProfilerManager::PushProfiler("App::Update");
 	int temp = s_gameCounter;
-
+	bool once = true;
 	do
 	{
 		g_theInput->BeginFrame();
 		s_gameCounter++;
 		g_theGame->Update(deltaTime);
 		g_theInput->EndFrame();
+		if(once && g_isCurrentlyTraining)
+		{
+			Renderer::GetInstance()->BeginFrame();
+			Render();
+			Renderer::GetInstance()->EndFrame();
+			once = false;
+		}
+
 	} while (g_isCurrentlyTraining);
 
 	m_netSession->Update(deltaTime);
