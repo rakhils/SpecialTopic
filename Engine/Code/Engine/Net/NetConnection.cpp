@@ -211,7 +211,11 @@ PacketTracker * NetConnection::GetTracker(uint16_t ack)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t NetConnection::FlushMsgs()
 {
-	m_index = 255;
+	if(m_session->m_channel == nullptr)
+	{
+		return 0;
+	}
+	//m_index = 255;
 	float min = GetMinOf2(m_sendRate, m_session->m_sendRate);
 	if (m_lastSendTime + 1 / min > Clock::GetMasterClock()->total.m_seconds)
 	{
@@ -262,7 +266,7 @@ size_t NetConnection::FlushMsgs()
 		std::string pack = m_packet.GetBitString();
 		size_t length    = m_packet.m_bufferSize;
 		connection->AddTracker(m_nextSentAck);
-		size_t sendCount = m_udpSocket->SendTo(*address, (char *)m_packet.m_buffer, length);
+		size_t sendCount = m_session->m_channel->m_udpSocket->SendTo(*address, (char *)m_packet.m_buffer, length);
 
 		connection->m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
 		//IncrementSendAck();
@@ -272,62 +276,6 @@ size_t NetConnection::FlushMsgs()
 	}
 	return 0;
 }
-
-/*
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2018/09/16
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-size_t NetConnection::Send(NetMessage netmsg)
-{
-	size_t startIndex = 0;
-	size_t endIndex = ETHERNET_MTU;
-	if (endIndex > netmsg.m_totalBytes) endIndex = netmsg.m_totalBytes;
-
-	BytePacker bytePacker;
-	bytePacker.SetEndianess(LITTLE_ENDIAN);
-
-	int index = 0;
-	//chunking all data
-	for (; endIndex <= netmsg.m_totalBytes; startIndex += ETHERNET_MTU, endIndex += ETHERNET_MTU)
-	{
-		if (endIndex > netmsg.m_totalBytes)
-		{
-			endIndex = netmsg.m_totalBytes;
-		}
-		bytePacker.WriteSize(startIndex);
-		float timeStamp = GetTimeStamp();
-		bytePacker.WriteBytes(sizeof(float), (char*)&timeStamp);
-		bytePacker.WriteBytes(sizeof(uint16_t), (char*)&netmsg.m_index);
-		bytePacker.WriteBytes(endIndex - startIndex, ((char*)netmsg.m_bytePacker.m_buffer + startIndex));
-	}
-	uint16_t totalPacketCount = static_cast<uint16_t>(index);
-	// sneding the index ofdata and how many total packets coming along
-	// can do a handshake similar to tcp
-	// Node1 : send request 
-	// Node2 : send ack
-	// Node1 : send all data followed by this
-
-
-	Endianness::ToEndianness(sizeof(uint16_t), (void *)&netmsg.m_index, BIG_ENDIAN);
-	Endianness::ToEndianness(sizeof(uint16_t), (void *)&totalPacketCount, BIG_ENDIAN);
-
-	m_udpSocket->SendTo(m_address, (char*)&netmsg.m_index, 2);
-	m_udpSocket->SendTo(m_address, (char*)&totalPacketCount, 2);
-
-	bytePacker.ResetRead();
-
-	while (bytePacker.m_currentReadPosition < bytePacker.m_bufferSize)
-	{
-		size_t currentPacketSize;
-		bytePacker.ReadSize(&currentPacketSize);
-		m_udpSocket->SendTo(m_address, ((char*)bytePacker.m_buffer + bytePacker.m_currentReadPosition), currentPacketSize);
-		bytePacker.AdvanceReadHead(currentPacketSize);
-	}
-	return 0;
-}*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/17
@@ -348,15 +296,23 @@ size_t NetConnection::Recv(char *data,size_t &length,NetAddress *netAddress)
 		return 0;
 	}
 	
+	if (netAddress->m_port == 10084)
+	{
+		int a = 1;
+	}
 	NetConnection *connection = m_session->GetConnection(netAddress);
 	if(connection == nullptr)
 	{
 		return 0;
 	}
+	
 	connection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - connection->m_startTime;
 	UDPHeader header   = GetHeaderFromPacket(data);
 	connection->m_lastReceivedAck = header.m_ack;
-	
+	if (netAddress->m_port == 10084)
+	{
+		int a = 1;
+	}
 
 	if (header.m_lastReceivedAck != INVALID_PACKET_ACK)
 	{

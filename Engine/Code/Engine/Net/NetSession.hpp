@@ -96,6 +96,7 @@ public:
 
 	void					  Render();
 	void					  RenderSessionDetails();
+	void					  RenderConnectionColumnDetails(Vector2 startPosition);
 	void					  RenderConnectionDetails(NetConnection *connection,Vector2 startPOsitino,bool skipHeading);
 	//Static_Methods
 

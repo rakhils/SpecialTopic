@@ -1495,8 +1495,8 @@ void SetupUDPConnectionWithoutPortChangeInRemote(Command &cmd)
 void AddLocal(Command &cmd)
 {
 	std::string myIp = Net::GetIP();
-	std::string addConnection0 = "add_connection 0 "+myIp+":10084";
-	NetSession::GetInstance()->AddConnection(0, myIp,10084);
+	std::string addConnection0 = "add_connection 0 "+myIp+":"+ToString(NetSession::GetInstance()->s_defaultPort);
+	NetSession::GetInstance()->AddConnection(0, myIp,NetSession::GetInstance()->s_defaultPort);
 	RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
 }
 

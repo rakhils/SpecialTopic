@@ -8,7 +8,7 @@
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/Time/Clock.hpp"
 NetSession *NetSession::s_netSession = nullptr;
-int			NetSession::s_defaultPort = 10084;
+int			NetSession::s_defaultPort = 10085;
 // CONSTRUCTOR
 NetSession::NetSession(int port)
 {
@@ -68,12 +68,6 @@ void NetSession::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::UpdateConnections(float deltaTime)
 {
-	/*std::map<int, NetConnection*>::iterator it = m_remoteConnections.begin();
-	for(;it!= m_remoteConnections.end();it++)
-	{
-		it->second->Update(deltaTime);
-	}*/
-
 	if(m_channel != nullptr)
 	{
 		m_channel->SendHeartBeat(&m_channel->m_address);
@@ -482,6 +476,11 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 	for(int msgCount = 0;msgCount < static_cast<int>(unreliableCount);msgCount++)
 	{
 		uint16_t msgSize = recvdPacket.ReadSize2();
+		if(msgSize > 200)
+		{
+			std::string rcv = recvdPacket.GetBitString();
+			int a  = 1;
+		}
 		char cmdIndex;
 		recvdPacket.ReadBytes(&cmdIndex, 1);
 		if(cmdIndex >=0 && cmdIndex < m_netMessageCmdDefinition.size())
@@ -568,22 +567,24 @@ void NetSession::Render()
 	{
 		return;
 	}
-	if (m_channel == nullptr)
-	{
-		return;
-	}
+	
 	RenderSessionDetails();
 	Vector2 startPosition(100, 800);
-	RenderConnectionDetails(m_channel,startPosition,false);
+	RenderConnectionColumnDetails(startPosition);
+	if (m_channel != nullptr)
+	{
+		startPosition.y += -100;
+		RenderConnectionDetails(m_channel,startPosition,false);
+	}
 	std::map<int, NetConnection*>::iterator it = m_remoteConnections.begin();
 	for(;it != m_remoteConnections.end();it++)
 	{
 		startPosition.y += -100;
-		if(it->second == m_channel)
+		if (it->second == m_channel)
 		{
 			continue;
 		}
-		RenderConnectionDetails(it->second,startPosition,true);
+		RenderConnectionDetails(it->second,startPosition,false);
 	}
 }
 
@@ -615,12 +616,35 @@ void NetSession::RenderSessionDetails()
 	startPosition -= Vector2(0, 2 * fontSizeBig);
 	Renderer::GetInstance()->DrawTextOnPoint("Socket Address(es)...", startPosition + Vector2(100, 0), fontSize, Rgba::WHITE);
 	startPosition -= Vector2(0, 2 * fontSizeBig);
-	Renderer::GetInstance()->DrawTextOnPoint(m_channel->GetIPPortAsString(), startPosition + Vector2(200, 0), fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOnPoint(Net::GetIP(), startPosition + Vector2(200, 0), fontSize, Rgba::WHITE);
 	startPosition -= Vector2(0, 2 * fontSizeBig);
 	Renderer::GetInstance()->DrawTextOnPoint("Connections...", startPosition + Vector2(150, 0), fontSize, Rgba::WHITE);
 	startPosition -= Vector2(0, 2 * fontSizeBig);
 
 	startPosition -= Vector2(0, 2 * fontSizeBig);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/03
+*@purpose : Renders session columns
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::RenderConnectionColumnDetails(Vector2 startPosition)
+{
+	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	Material *defaultMaterial = Material::AquireResource("default");
+
+	float fontSizeBig = 15;
+	float fontSize    = 10;
+
+	int indent = 1;
+	std::string entryString = Stringf("%*s%-*s %s %-22s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
+		(3 * indent), "",
+		"idx", "address", "rtt", "loss", "lrcv(s)", "lsnt(s)", "sntack", "rcvack", "rcvbits");
+	startPosition.x = 25;
+	fontSize = 9;
+	Renderer::GetInstance()->DrawTextOnPoint(entryString, startPosition, fontSize, Rgba::WHITE);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -638,17 +662,9 @@ void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 start
 	float fontSize = 10;
 
 	int indent = 1;
-	std::string entryString = Stringf("%*s%-*s %s %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
-		(3 * indent), "",
-		"idx", "address", "rtt", "loss", "lrcv(s)", "lsnt(s)", "sntack", "rcvack", "rcvbits");
 	startPosition.x = 25;
 	fontSize = 9;
 
-	if(!skipHeading)
-	{
-		Renderer::GetInstance()->DrawTextOnPoint(entryString, startPosition, fontSize, Rgba::WHITE);
-	}
-	startPosition.y -= 50;
 	int index = connection->m_index;
 	std::string ip = connection->GetIPPortAsString();
 	float rtt = connection->m_rtt;
@@ -665,15 +681,17 @@ void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 start
 	std::string connectionDetailsStr;
 	if (connection == m_channel)
 	{
-		connectionDetailsStr = Stringf("%*s%-*s %s   %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
+		connectionDetailsStr = Stringf("%*s%-*s %s   %-22s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
 			(3 * indent), "L", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(), ToString(lsnt,2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
 	}
 	else
 	{
-		connectionDetailsStr = Stringf("%*s%-*s %s   %-20s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
+		connectionDetailsStr = Stringf("%*s%-*s %s   %-22s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
 			(3 * indent), "", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(), ToString(lsnt,2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
 	}
 	Renderer::GetInstance()->DrawTextOnPoint(connectionDetailsStr, startPosition, fontSize, Rgba::WHITE);
+	delete textMaterial;
+	delete defaultMaterial;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
