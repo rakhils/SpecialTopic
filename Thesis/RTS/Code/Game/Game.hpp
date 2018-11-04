@@ -12,6 +12,7 @@
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Engine/Core/Rgba.hpp"
 #include "Engine/Core/Image.hpp"
+#include "Engine/Net/NetMessage.hpp"
 
 enum GameMode
 {
@@ -23,6 +24,11 @@ struct MainMenuItems
 	int m_index;
 	std::string m_menuItemString;
 };
+enum eNetGameMessage : uint8_t
+{
+	NETMSG_TEST_GAME_MESSAGE = NETMSG_CORE_COUNT, 							 
+	NETMSG_UNRELIABLE_TEST   = 127,
+};
 class Game
 {
 public:
@@ -32,6 +38,11 @@ public:
 	Camera *     m_camera		 = nullptr;
 	int			 m_currentIndex = 0;
 	bool		 m_init			= false;
+	int          m_netMsgConnectionIndex = 0;
+	int          m_netMsgCount = 0;
+	int		     m_netMsgMaxUnrealiableMsgCount = 0;
+	float        m_netMsgSendDelay   = .3f;
+	float        m_netMsgSendTime = 0;
 	std::vector<MainMenuItems> m_mainMenuItems;
 	// STATIC
 	static Game *s_game;
@@ -40,6 +51,8 @@ public:
 	Game();
 	~Game();
 	
+	void RegisterGameMessage();
+
 	void Initialize();
 	void InitMainMenuItems();
 	void InitCamera();
@@ -49,6 +62,8 @@ public:
 	void UpdateMap(float deltaTime);
 	void UpdateMainMenu(float deltaTime);
 
+	void UpdateUnreliableMsgs(float deltaTime);
+
 	void RenderMap();
 	void RenderMainMenu();
 
@@ -56,3 +71,4 @@ public:
 	static Game* GetInstance();
 
 };
+bool OnUnreliableTest(NetMessage &netMsg, NetAddress &netAddress);

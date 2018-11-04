@@ -63,6 +63,21 @@ size_t NetMessage::GetSize()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Check if the msg requires a connection 
+*@param   : NIL
+*@return  : true if connection bit is set else false
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool NetMessage::RequiresConnection()
+{
+	if(NetSession::GetInstance()->m_netMessageCmdDefinition.at(m_definitionIndex).m_options == NETMESSAGE_OPTION_CONNECTION)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/03
 *@purpose : Creates add msg
 *@param   : NIL
@@ -136,5 +151,28 @@ NetMessage * NetMessage::CreateHeartBeatMessage(NetAddress *netaddress)
 NetMessage * NetMessage::CreateHeartBeatMessage(NetConnection *connection)
 {
 	return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Creates a unreliable test msg
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateUnreliableTestMessage(NetConnection *connection,int count,int maxCount)
+{
+	NetMessage *msg = new NetMessage("unreliable_test");
+	msg->m_address = &connection->m_address;
+	size_t msgSize = 0;
+	// write temporarily 
+	msg->WriteBytes(2, (char*)&msgSize);
+	///////////////
+	msg->WriteCommandIndex();
+	msg->WriteBytes(4, (char*)&count);
+	msg->WriteBytes(4, (char*)&maxCount);
+	msg->m_currentWritePosition = 0;
+	msgSize = msg->m_bufferSize - 2;
+	msg->WriteBytes(2, (char*)&(msgSize));
+	return msg;
 }
 

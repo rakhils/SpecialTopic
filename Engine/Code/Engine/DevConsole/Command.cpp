@@ -284,6 +284,7 @@ void CommandStartup()
 	CommandRegister("net_set_connection_send_rate", SetUDPConnectionSendRate, "SETS UDP CONNECTION'S SEND RATE");
 	CommandRegister("net_sim_loss", SetUDPSessionLossRate, "SETS UDP SESSION LOSS RATE");
 
+
 	CommandRegister("setup_udp", SetupUDPConnections, "SETS UP CONNECTION FOR UDP");
 	CommandRegister("add_local",  AddLocal, "ADDS LOCAL CONNECTION TO LCOAL AND REMOTE");
 	CommandRegister("add_remote", AddRemote, "ADDS REMOTE CONNECTION TO LOCAL AND REMOTE");

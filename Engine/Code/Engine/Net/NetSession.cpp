@@ -8,7 +8,7 @@
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/Time/Clock.hpp"
 NetSession *NetSession::s_netSession = nullptr;
-int			NetSession::s_defaultPort = 10085;
+int			NetSession::s_defaultPort = 10084;
 // CONSTRUCTOR
 NetSession::NetSession(int port)
 {
@@ -31,11 +31,15 @@ NetSession::~NetSession()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::Init()
 {
-	RegisterMessage("ping",			OnPing,			"Pings connection");
-	RegisterMessage("add",			OnAdd,			"Adds 2 numbers");
-	RegisterMessage("add_response", OnAddResponse,  "Adds a response");
-	RegisterMessage("pong",			OnPong,			"Send pong on a connection");
-	RegisterMessage("heartbeat",	OnHeartBeatMessage, "Update last heartbeat received");
+	//RegisterMessage("ping",			OnPing,			"Pings connection");
+	//RegisterMessage("add",			OnAdd,			"Adds 2 numbers");
+	//RegisterMessage("add_response", OnAddResponse,  "Adds a response");
+	//RegisterMessage("pong",			OnPong,			"Pings connection");
+	//RegisterMessage("heartbeat",	OnHeartBeatMessage, "Update last heartbeat received");
+	
+	RegisterMessage(NETMSG_PING,	  "ping", OnPing, "Pings connection",NETMESSAGE_OPTION_CONNECTIONLESS);
+	RegisterMessage(NETMSG_PONG,	  "pong", OnPong, "Pings connection",NETMESSAGE_OPTION_CONNECTIONLESS);		
+	RegisterMessage(NETMSG_HEARTBEAT, "heartbeat", OnHeartBeatMessage,"Update last heartbeat received",NETMESSAGE_OPTION_CONNECTIONLESS);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -132,6 +136,21 @@ void NetSession::SetSimulateLatency(float minLatency, float maxLatency)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Reserves spaces for msg definition
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::InitMsgDefinition()
+{
+	for (size_t msgDefinitionIndex = 0; msgDefinitionIndex < static_cast<size_t>(NETMSG_CORE_COUNT); msgDefinitionIndex++)
+	{
+		NetMessageDefinition netMsgDefinition;
+		m_netMessageCmdDefinition.push_back(netMsgDefinition);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/23
 *@purpose : Registers new callback msgs
 *@param   : NIL
@@ -150,6 +169,32 @@ void NetSession::RegisterMessage(std::string msgName, NetMessageCB netMsgCB, std
 		}
 	}
 	m_netMessageCmdDefinition.push_back(netMsgDefinition);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Registers core msgs
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::RegisterMessage(eNetCoreMessage coreMsg, std::string name, NetMessageCB cb, std::string desc, eNetMessageOption flag)
+{
+	if(!m_initMsgDefinition)
+	{
+		InitMsgDefinition();
+		m_initMsgDefinition = true;
+	}
+	if(static_cast<size_t>(coreMsg) > m_netMessageCmdDefinition.size())
+	{
+		for(int index = m_netMessageCmdDefinition.size();index <= static_cast<size_t>(coreMsg);index++)
+		{
+			NetMessageDefinition netMsgDefinition;
+			m_netMessageCmdDefinition.push_back(netMsgDefinition);
+		}
+	}
+
+	NetMessageDefinition &netMsgDefinition = m_netMessageCmdDefinition.at(static_cast<size_t>(coreMsg));
+	netMsgDefinition.Init(coreMsg, name, cb, desc, flag);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -532,11 +577,14 @@ void NetSession::ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *fromAdd
 
 
 
-	UNUSED(netmsg);
+	
 	for(int msgIndex = 0; msgIndex < netmsg.size(); msgIndex++)
 	{
 		NetMessageDefinition * msgdef = GetMsgDefinition(netmsg.at(msgIndex)->m_definitionName);
-		(*msgdef->m_callback)(*netmsg.at(msgIndex), *fromAddress);
+		//if(netmsg.at(msgIndex)->RequiresConnection() && GetConnection(fromAddress)!= nullptr)
+		{
+			(*msgdef->m_callback)(*netmsg.at(msgIndex), *fromAddress);
+		}
 	}
 	// check for the all function pointers stored in session and call back
 }

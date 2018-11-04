@@ -21,7 +21,7 @@ App::App()
 	g_theRenderer   = Renderer::GetInstance();
 	g_theInput		= InputSystem::GetInstance();
 	g_audio			= AudioSystem::GetInstance();
-	g_theGame		= new Game();
+	g_theGame		= Game::GetInstance();
 
 	Clock::g_theMasterClock = new Clock();
 	g_theGameClock = new Clock();
@@ -73,7 +73,7 @@ void App::RunFrame()
 void App::Update(float deltaTime)
 {
 	ProfilerManager::PushProfiler("App::Update");
-	int temp = s_gameCounter;
+	//int temp = s_gameCounter;
 
 	do
 	{

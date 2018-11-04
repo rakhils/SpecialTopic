@@ -14,26 +14,46 @@
 * \date   : 9/16/2018 6:52:56 PM
 * \contact: srsrakhil@gmail.com
 */
-typedef bool (*NetMessageCB)(NetMessage &msg, NetAddress &from);
-struct NetMessageDefinition
-{
-	NetMessageDefinition(std::string name, NetMessageCB callback, std::string description)
-	{
-		m_name = name;
-		m_callback = callback;
-		m_description = description;
-	}
-	std::string m_name;
-	NetMessageCB m_callback;
-	std::string  m_description;
-};
+
 
 struct OutBoundMSG
 {
 	NetAddress m_address;
 	NetMessage *m_msg = nullptr;
 };
+typedef bool (*NetMessageCB)(NetMessage &msg, NetAddress &from);
+struct NetMessageDefinition
+{
+	NetMessageDefinition()
+	{
 
+	}
+	NetMessageDefinition(std::string name, NetMessageCB callback, std::string description)
+	{
+		m_name = name;
+		m_callback = callback;
+		m_description = description;
+
+	}
+	NetMessageDefinition(eNetCoreMessage coreMsg, std::string name, NetMessageCB callback, std::string description, eNetMessageOption flag)
+	{
+		Init(coreMsg, name, callback, description, flag);
+	}
+
+	void Init(eNetCoreMessage coreMsg, std::string name, NetMessageCB callback, std::string description, eNetMessageOption flag)
+	{
+		m_name = name;
+		m_callback = callback;
+		m_description = description;
+		m_coreMsg = coreMsg;
+		m_options = flag;
+	}
+	std::string     m_name;
+	NetMessageCB    m_callback;
+	std::string     m_description;
+	eNetCoreMessage m_coreMsg;
+	eNetMessageOption m_options;
+};
 class NetSession
 {
 
@@ -43,6 +63,7 @@ public:
 	NetConnection *									m_channel      = nullptr;
 												
 	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;
+	bool											m_initMsgDefinition = false;
 
 	std::vector<OutBoundMSG>						m_outboudMsgs;
 	int												m_minHeaderSize = 2;
@@ -68,7 +89,10 @@ public:
 	void					  SetHeartBeatFrequency(float time);
 	void					  SetSimulateLoss(float lossAmount);
 	void					  SetSimulateLatency(float m_minLatency, float m_maxLatency);
+
+	void					  InitMsgDefinition();
 	void					  RegisterMessage(std::string id, NetMessageCB netMsgCB,std::string description);
+	void					  RegisterMessage(eNetCoreMessage coreMsg, std::string name, NetMessageCB callback, std::string desc, eNetMessageOption flag = (eNetMessageOption)0);
 	NetMessageDefinition *    GetMsgDefinition(std::string cmdid);
 	NetMessageDefinition *    GetMsgDefinition(int index);
 	int						  GetMsgIndex(std::string cmdname);

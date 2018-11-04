@@ -89,6 +89,7 @@ extern AABB2				g_unitStatHUDSecondButton;
 
 void InitVariables();
 void QuitApp(Command &cmd);
+void UnreliableTest(Command &cmd);
 
 
 

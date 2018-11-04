@@ -6,6 +6,7 @@
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Net/UDP/PacketTracker.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/DevConsole/DevConsole.hpp"
 // CONSTRUCTOR
 
 NetConnection::NetConnection(int index, NetAddress netAddress)
@@ -224,6 +225,7 @@ size_t NetConnection::FlushMsgs()
 			return 0;
 		}
 		NetAddress *address       = m_outboundMsgs.at(0)->m_address;
+		std::string  defName	  = m_outboundMsgs.at(0)->m_definitionName;
 		NetConnection *connection = m_session->GetConnection(address);
 		if(connection == nullptr)
 		{
@@ -267,7 +269,7 @@ size_t NetConnection::FlushMsgs()
 		size_t length    = m_packet.m_bufferSize;
 		connection->AddTracker(m_nextSentAck);
 		size_t sendCount = m_session->m_channel->m_udpSocket->SendTo(*address, (char *)m_packet.m_buffer, length);
-
+		DevConsole::GetInstance()->PushToOutputText("SENT "+defName+" OF SIZE "+ToString(sendCount) +" TO "+ address->GetIP() + ":" + ToString(address->m_port));
 		connection->m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
 		//IncrementSendAck();
 		connection->m_nextSentAck++;
@@ -286,7 +288,10 @@ size_t NetConnection::FlushMsgs()
 size_t NetConnection::Recv(char *data,size_t &length,NetAddress *netAddress)
 {
 	size_t readSize    = m_udpSocket->ReceiveFrom(data, length,netAddress);
-	m_trackerMap;
+	if(readSize > 1)
+	{
+		int a = 1;
+	}
 	if(GetRandomFloatZeroToOne() < m_session->m_lossAmount)
 	{
 		return 0;
@@ -649,6 +654,10 @@ bool NetConnection::WritePayload(NetMessage *msg,NetAddress *address)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::SendHeartBeat(NetAddress *address)
 {
+	if(true)
+	{
+		return;
+	}
 	if(m_session->GetConnection(address) == nullptr)
 	{
 		return;

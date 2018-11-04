@@ -13,6 +13,23 @@
 */
 class NetConnection;
 class NetAddress;
+enum eNetCoreMessage : uint8_t
+{
+	NETMSG_PING = 0,    // unreliable, connectionless
+	NETMSG_PONG, 		// unreliable, connectionless
+	NETMSG_HEARTBEAT,	// unreliable
+	NETMSG_CORE_COUNT,
+};
+
+enum eNetMessageOption
+{
+	NETMESSAGE_OPTION_CONNECTION = 0,
+	NETMESSAGE_OPTION_CONNECTIONLESS = BIT_FLAG(0),
+	NETMESSAGE_OPTION_RELIABLE = BIT_FLAG(1),
+	NETMESSAGE_OPTION_IN_ORDER = BIT_FLAG(2),
+	NETMESSAGE_OPTION_RELIALBE_IN_ORDER = NETMESSAGE_OPTION_RELIABLE | NETMESSAGE_OPTION_IN_ORDER,
+};
+
 class NetMessage : public BytePacker
 {
 
@@ -33,12 +50,14 @@ public:
 
 	void WriteCommandIndex();
 	size_t				  GetSize();
+	bool				  RequiresConnection();
 
 	//Static_Methods
 	static NetMessage * CreateAddMessage(float value1, float value2);
 	static NetMessage * CreatePingMessage(std::string msg);
 	static NetMessage * CreateHeartBeatMessage(NetAddress  *netaddress);
 	static NetMessage * CreateHeartBeatMessage(NetConnection *connection);
+	static NetMessage * CreateUnreliableTestMessage(NetConnection *connection,int count,int maxCount);
 	static NetMessage * CreateBadMessage();
 protected:
 	//Member_Variables

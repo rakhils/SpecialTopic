@@ -3,6 +3,7 @@
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Renderer/Camera/OrthographicCamera.hpp"
+#include "Engine/Net/NetSession.hpp"
 
 Game *Game::s_game = nullptr;
 
@@ -16,11 +17,25 @@ Game::~Game()
 
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Registers game net message
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::RegisterGameMessage()
+{
+	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_UNRELIABLE_TEST, "unreliable_test", OnUnreliableTest,
+		"TEST AN UNRELIABLE MSGS");
+	
+}
+
 // INIT GAME
 void Game::Initialize()
 {
 	InitCamera();
 	InitMainMenuItems();
+	RegisterGameMessage();
 	m_gameMode = MAIN_MENU;
 }
 
@@ -78,6 +93,7 @@ void Game::Update(float deltaTime)
 	default:
 		break;
 	}
+	UpdateUnreliableMsgs(deltaTime);
 }
 
 
@@ -151,6 +167,33 @@ void Game::UpdateMainMenu(float deltaTime)
 		}
 	}
 	m_currentIndex = ClampInt(m_currentIndex, 0, static_cast<int>(m_mainMenuItems.size() - 1));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::UpdateUnreliableMsgs(float deltaTime)
+{
+	if(m_netMsgCount <  m_netMsgMaxUnrealiableMsgCount)
+	{
+		m_netMsgSendTime += deltaTime;
+		if(m_netMsgSendTime > m_netMsgSendDelay)
+		{
+			m_netMsgSendTime = 0.f;
+			NetMessage *msg = NetMessage::CreateUnreliableTestMessage(NetSession::GetInstance()->GetConnection(m_netMsgConnectionIndex), 
+				m_netMsgCount, m_netMsgMaxUnrealiableMsgCount);
+			NetSession::GetInstance()->m_channel->Append(msg);
+			m_netMsgCount++;
+			if(m_netMsgCount >= m_netMsgMaxUnrealiableMsgCount)
+			{
+				m_netMsgMaxUnrealiableMsgCount = 0;
+				m_netMsgCount = 0;
+			}
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -259,4 +302,20 @@ void Game::InitSampleNN()
 	}
 	neuralNet.FeedForward(inputs);
 	neuralNet;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Unreliable test msg
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnUnreliableTest(NetMessage &netMsg, NetAddress &netAddress)
+{
+	int value1 = 0;
+	int value2 = 0;
+	netMsg.ReadBytes(&value1, 4);
+	netMsg.ReadBytes(&value2, 4);
+	DevConsole::GetInstance()->PushToOutputText("UNRELIABLE TEST ( " + ToString(value1) + " , " + ToString(value2)+" )");
+	return true;
 }
