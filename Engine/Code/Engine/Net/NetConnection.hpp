@@ -59,7 +59,7 @@ public:
 	float						m_AckBitfieldMaxPosition = 15;
 
 	std::map<uint16_t, PacketTracker*> m_trackerMap;
-	uint16_t					m_trackerMaxCount = 64;
+	uint16_t					m_trackerMaxCount = 16;
 	int							m_trackerMinPosition = 0;
 	int							m_trackerMaxPosition = m_trackerMaxCount;
 
@@ -73,7 +73,7 @@ public:
 	NetConnection(int listenPort);					// As Server
 	~NetConnection();
 
-	void InitTrakcer();
+	void InitTracker();
 
 
 	void  SetLastHeartBeatReceivedTime(float time);
@@ -86,10 +86,10 @@ public:
 
 	// ACK
 	void  ConfirmPacketReceived(uint16_t ack);
+	void  CalculateLoss();
 	void  PushToAckBitField(NetAddress *netaddress,uint16_t ack);
 	void  UpdateAckStatus(NetAddress *netConnection,uint16_t ackReceived);
 	///////////////////////////////////////////////////////////////////
-	void CalculateLossPercent();
 	//HEADER
 	UDPHeader GetHeaderFromPacket(void *data);
 	int       GetCommandIndex(void *data,int size);

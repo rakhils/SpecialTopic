@@ -6,7 +6,7 @@
 #include "Engine/DevConsole/DevConsole.hpp"
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Renderer/Materials/Material.hpp"
-
+#include "Engine/Time/Clock.hpp"
 NetSession *NetSession::s_netSession = nullptr;
 int			NetSession::s_defaultPort = 10084;
 // CONSTRUCTOR
@@ -96,6 +96,7 @@ void NetSession::RestartInPort(int port)
 {
 	delete m_channel;
 	m_channel = new NetConnection(port);
+	m_channel->m_session = this;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -373,6 +374,10 @@ NetConnection* NetSession::GetConnection(NetAddress *netAddress)
 			return it->second;
 		}
 	}
+	if(m_channel->m_address == *netAddress)
+	{
+		return m_channel;
+	}
 	return nullptr;
 }
 
@@ -462,11 +467,11 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 	uint8_t connectionIndex = header.m_connectionindex;
 	uint8_t unreliableCount = header.m_unrealiableCount;
 
-	if(index == -1)
+	/*if(index == -1)
 	{
 		DevConsole::GetInstance()->PushToOutputText("NO INDEX PRESENT " + netAddress.GetIP() + ":" + ToString(netAddress.m_port) + " SIZE " + ToString(static_cast<int>(size)) + "DATA " + str, Rgba::RED);
 		return retmsgs;
-	}
+	}*/
 	if(unreliableCount <= 0)
 	{
 		DevConsole::GetInstance()->PushToOutputText("BAD MSG RECEVIED UC = 0 FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
@@ -649,7 +654,9 @@ void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 start
 	float rtt = connection->m_rtt;
 	float loss = connection->m_loss;
 	float lrcv = connection->m_lastReceivedTime;
+	lrcv = Clock::GetMasterClock()->total.m_seconds - connection->m_startTime - lrcv;
 	float lsnt = connection->m_lastSendTime;
+	lsnt = Clock::GetMasterClock()->total.m_seconds - connection->m_startTime - lsnt;
 	uint16_t sntack = connection->m_nextSentAck;
 	uint16_t rcvack = connection->m_lastReceivedAck;
 	uint16_t prevRcvBit = connection->m_previousReceivedAckBitField;

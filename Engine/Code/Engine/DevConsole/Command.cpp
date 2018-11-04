@@ -282,6 +282,7 @@ void CommandStartup()
 
 	CommandRegister("net_set_session_send_rate", SetUDPSessionSendRate, "SETS UDP SESSION'S SEND RATE");
 	CommandRegister("net_set_connection_send_rate", SetUDPConnectionSendRate, "SETS UDP CONNECTION'S SEND RATE");
+	CommandRegister("net_sim_loss", SetUDPSessionLossRate, "SETS UDP SESSION LOSS RATE");
 
 	CommandRegister("setup_udp", SetupUDPConnections, "SETS UP CONNECTION FOR UDP");
 	CommandRegister("add_local",  AddLocal, "ADDS LOCAL CONNECTION TO LCOAL AND REMOTE");
@@ -1415,6 +1416,19 @@ void SetUDPConnectionSendRate(Command &cmd)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/03
+*@purpose : Sets udp session loss rate
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetUDPSessionLossRate(Command &cmd)
+{
+	float lossAmount = 0;
+	cmd.GetNextFloat(&lossAmount);
+	NetSession::GetInstance()->m_lossAmount = lossAmount;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/18
 *@purpose : Netsession recv port
 *@param   : NIL
@@ -1424,6 +1438,7 @@ void ListenUDPPort(Command &cmd)
 {
 	int port = -1;
 	cmd.GetNextInt(&port);
+	NetSession::GetInstance()->s_defaultPort = port;
 	NetSession::GetInstance()->RestartInPort(port);
 }
 

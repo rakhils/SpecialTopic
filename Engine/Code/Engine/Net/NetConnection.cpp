@@ -5,6 +5,7 @@
 #include "Engine/Time/Clock.hpp"
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Net/UDP/PacketTracker.hpp"
+#include "Engine/Debug/DebugDraw.hpp"
 // CONSTRUCTOR
 
 NetConnection::NetConnection(int index, NetAddress netAddress)
@@ -14,7 +15,7 @@ NetConnection::NetConnection(int index, NetAddress netAddress)
 	m_address   = netAddress;
 	m_udpSocket = new UDPSocket(netAddress);
 	m_udpSocket->SetBlocking(false);
-	InitTrakcer();
+	InitTracker();
 }
 
 NetConnection::NetConnection(int listenPort)
@@ -24,7 +25,7 @@ NetConnection::NetConnection(int listenPort)
 	m_address.m_port = listenPort;
 	m_address.m_address = (m_udpSocket->m_address.m_address);
 	m_index = 0;
-	InitTrakcer();
+	InitTracker();
 }
 
 // DESTRUCTOR
@@ -42,11 +43,11 @@ NetConnection::~NetConnection()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetConnection::InitTrakcer()
+void NetConnection::InitTracker()
 {
 	for(uint16_t index = 0;index < m_trackerMaxCount;index++)
 	{
-		m_trackerMap[index] = nullptr;
+		//m_trackerMap[index] = nullptr;
 	}
 }
 
@@ -174,6 +175,8 @@ void NetConnection::Append(NetMessage *msg)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::AddTracker(uint16_t ack)
 {
+	CalculateLoss();
+
 	PacketTracker *existingTracker = GetTracker(ack);
 	if(existingTracker != nullptr)
 	{
@@ -182,10 +185,6 @@ void NetConnection::AddTracker(uint16_t ack)
 	}
 	PacketTracker *tracker = new PacketTracker(ack);
 	m_trackerMap[ack] = tracker;
-	if(ack % m_trackerMaxCount == 0 && ack != 0)
-	{
-		CalculateLossPercent();
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,15 +219,28 @@ size_t NetConnection::FlushMsgs()
 		{
 			return 0;
 		}
-		NetAddress *address = m_outboundMsgs.at(0)->m_address;
+		NetAddress *address       = m_outboundMsgs.at(0)->m_address;
+		NetConnection *connection = m_session->GetConnection(address);
+		if(connection == nullptr)
+		{
+			return 0;
+		}
+
 		int actualSendCount = 0;
 		m_header.m_unrealiableCount = static_cast<uint8_t>(1);
 		m_header.m_connectionindex = static_cast<uint8_t>(m_index);
-		m_header.m_lastReceivedAck = m_lastReceivedAck;
-		m_header.m_ack			   = m_nextSentAck;
-		m_header.m_previousReceivedAckBitfield = m_previousReceivedAckBitField;
+		m_header.m_lastReceivedAck = connection->m_lastReceivedAck;
+		m_header.m_ack			   = connection->m_nextSentAck;
+		m_header.m_previousReceivedAckBitfield = connection->m_previousReceivedAckBitField;
 		WriteHeader();
-
+		if(address->m_port == 10085)
+		{
+			int a = 1;
+		}
+		if (address->m_port == 10084)
+		{
+			int a = 1;
+		}
 		for (int index = 0; index < m_outboundMsgs.size(); index++)
 		{
 			if (WritePayload(m_outboundMsgs.at(index),address))
@@ -242,18 +254,19 @@ size_t NetConnection::FlushMsgs()
 
 		m_header.m_unrealiableCount = static_cast<uint8_t>(actualSendCount);
 		m_header.m_connectionindex  = static_cast<uint8_t>(m_index);
-		m_header.m_lastReceivedAck  = m_lastReceivedAck;
-		m_header.m_ack				= m_nextSentAck;
-		m_header.m_previousReceivedAckBitfield = m_previousReceivedAckBitField;
+		m_header.m_lastReceivedAck  = connection->m_lastReceivedAck;
+		m_header.m_ack				= connection->m_nextSentAck;
+		m_header.m_previousReceivedAckBitfield = connection->m_previousReceivedAckBitField;
 		WriteHeader();
-
+		DebugDraw::GetInstance()->DebugRenderLogf(2,"SENDING PACKET %d ", static_cast<int>(m_nextSentAck));
 		std::string pack = m_packet.GetBitString();
 		size_t length    = m_packet.m_bufferSize;
+		connection->AddTracker(m_nextSentAck);
 		size_t sendCount = m_udpSocket->SendTo(*address, (char *)m_packet.m_buffer, length);
 
-		m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
-		AddTracker(m_nextSentAck);
-		IncrementSendAck();
+		connection->m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
+		//IncrementSendAck();
+		connection->m_nextSentAck++;
 		m_packet.Reset();
 		return sendCount;
 	}
@@ -325,18 +338,30 @@ size_t NetConnection::Send(NetMessage netmsg)
 size_t NetConnection::Recv(char *data,size_t &length,NetAddress *netAddress)
 {
 	size_t readSize    = m_udpSocket->ReceiveFrom(data, length,netAddress);
+	m_trackerMap;
+	if(GetRandomFloatZeroToOne() < m_session->m_lossAmount)
+	{
+		return 0;
+	}
 	if(readSize < GetHeaderSize())
 	{
 		return 0;
 	}
 	
-	m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
+	NetConnection *connection = m_session->GetConnection(netAddress);
+	if(connection == nullptr)
+	{
+		return 0;
+	}
+	connection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - connection->m_startTime;
 	UDPHeader header   = GetHeaderFromPacket(data);
-	UpdateAckStatus(netAddress, header.m_ack);
+	connection->m_lastReceivedAck = header.m_ack;
 	
+
 	if (header.m_lastReceivedAck != INVALID_PACKET_ACK)
 	{
-		ConfirmPacketReceived(header.m_lastReceivedAck);
+		connection->UpdateAckStatus(netAddress, header.m_lastReceivedAck);
+		connection->ConfirmPacketReceived(header.m_lastReceivedAck);
 	}
 	return readSize;
 }
@@ -404,25 +429,55 @@ void NetConnection::IncrementSendAck()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::ConfirmPacketReceived(uint16_t ack)
 {
-	
-	PacketTracker *tracker = GetTracker(ack);
+	std::map<uint16_t, PacketTracker*>::iterator it = m_trackerMap.find(ack);
+	if (it == m_trackerMap.end())
+	{
+		return;
+	}
+	PacketTracker *tracker = it->second;
 	if(tracker == nullptr)
 	{
 		return;
 	}
-	/*std::map<uint16_t, PacketTracker*>::iterator it = m_trackerMap.begin();
-	for (; it != m_trackerMap.end(); it++)
-	{
-
-	}*/
-		
-
 	float newrtt = Clock::GetMasterClock()->total.m_seconds - (tracker->m_sendTime);
-	m_rtt = m_rtt * 0.9 * newrtt *0.1; // blend of 90 percent
-	std::map<uint16_t, PacketTracker*>::iterator it = m_trackerMap.find(ack);
-	delete tracker;
-	tracker = nullptr;
-	m_trackerMap.erase(it);
+	m_rtt = m_rtt * 0.9 + newrtt * 0.1; // blend of 90 percent
+	delete it->second;
+	it->second = nullptr;
+	DebugDraw::GetInstance()->DebugRenderLogf(2,"CONFIRMING PACKET %d", static_cast<int>(ack));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/03
+*@purpose : Calculates loss
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::CalculateLoss()
+{
+	if (m_trackerMap.size() >= m_trackerMaxCount)
+	{
+		std::map<uint16_t, PacketTracker*>::iterator it = m_trackerMap.begin();
+		int numOfAcksNotReceived = 0;
+		for (; it != m_trackerMap.end(); it++)
+		{
+			if (it->second != nullptr && it->second->m_valid)
+			{
+				numOfAcksNotReceived++;
+			}
+		}
+		std::map<uint16_t, PacketTracker*>::reverse_iterator iter = m_trackerMap.rbegin();
+		for (iter = m_trackerMap.rbegin(); iter != m_trackerMap.rend(); iter++)
+		{
+			if (iter->second != nullptr)
+			{
+				delete iter->second;
+				iter->second = nullptr;
+			}
+		}
+		m_trackerMap.erase(m_trackerMap.begin(), m_trackerMap.end());
+		m_loss = static_cast<float>(numOfAcksNotReceived) / static_cast<float>(m_trackerMaxCount);
+		DebugDraw::GetInstance()->DebugRenderLogf(2, "CLEARING LOGS");
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -433,7 +488,7 @@ void NetConnection::ConfirmPacketReceived(uint16_t ack)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::PushToAckBitField(NetAddress *netAddress,uint16_t ack)
 {
-	if(ack > m_AckBitfieldMinPosition && ack < m_AckBitfieldMaxPosition)
+	if(ack >= m_AckBitfieldMinPosition && ack <= m_AckBitfieldMaxPosition)
 	{
 		uint16_t diff = ack - m_AckBitfieldMinPosition;
 		SetBits(m_previousReceivedAckBitField, 1<<diff);
@@ -457,29 +512,9 @@ void NetConnection::PushToAckBitField(NetAddress *netAddress,uint16_t ack)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::UpdateAckStatus(NetAddress *netAddress,uint16_t ackReceived)
 {
-	m_lastReceivedAck = ackReceived;
 	PushToAckBitField(netAddress,ackReceived);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/23
-*@purpose : Calculates loss percent
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetConnection::CalculateLossPercent()
-{
-	int totalLoss = 0;
-	std::map<uint16_t, PacketTracker*>::iterator it = m_trackerMap.begin();
-	for(;it != m_trackerMap.end();it++)
-	{
-		if(it->second != nullptr)
-		{
-			totalLoss++;
-		}
-	}
-	m_loss = static_cast<float>(totalLoss) / static_cast<float>(m_trackerMaxCount);
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/22
@@ -639,7 +674,14 @@ bool NetConnection::WritePayload(NetMessage *msg,NetAddress *address)
 	{
 		return false;
 	}
-	m_packet.WriteBytes(msg->m_bufferSize, msg->m_buffer);
+	if(msg->m_address == address)
+	{
+		m_packet.WriteBytes(msg->m_bufferSize, msg->m_buffer);
+	}
+	else
+	{
+		int a = 1;
+	}
 	return true;
 }
 
@@ -651,11 +693,19 @@ bool NetConnection::WritePayload(NetMessage *msg,NetAddress *address)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::SendHeartBeat(NetAddress *address)
 {
-	if (m_lastHeartbeatHPC + 1 / m_heartBeatFrequency < Clock::GetMasterClock()->total.m_seconds)
+	if(m_session->GetConnection(address) == nullptr)
+	{
+		return;
+	}
+
+	float lastHearBeatHPC = m_session->GetConnection(address)->m_lastHeartbeatHPC;
+	float heartBeatFreq   = m_session->GetConnection(address)->m_heartBeatFrequency;
+
+	if (lastHearBeatHPC + 1 / heartBeatFreq < Clock::GetMasterClock()->total.m_seconds)
 	{
 		NetMessage *msg = NetMessage::CreateHeartBeatMessage(address);
 		Append(msg);
-		m_lastHeartbeatHPC = Clock::GetMasterClock()->total.m_seconds;
+		m_session->GetConnection(address)->m_lastHeartbeatHPC = Clock::GetMasterClock()->total.m_seconds;
 	}
 }
 

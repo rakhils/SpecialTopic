@@ -148,6 +148,7 @@ void SendCommandOverUDP(Command &cmd);
 
 void SetUDPSessionSendRate(Command &cmd);
 void SetUDPConnectionSendRate(Command &cmd);
+void SetUDPSessionLossRate(Command &cmd);
 
 void ListenUDPPort(Command &cmd);
 

@@ -18,6 +18,7 @@ public:
 	//Member_Variables
 	uint64_t m_sendTime;
 	uint16_t m_ackID;
+	bool     m_valid = false;
 	//Static_Member_Variables
 
 	//Methods
