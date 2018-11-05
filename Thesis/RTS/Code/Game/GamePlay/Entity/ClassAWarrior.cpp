@@ -64,14 +64,14 @@ void ClassAWarrior::ProcessInputs(float deltaTime)
 			Entity *entity = m_map->GetEntityFromPosition(tileIndex);	
 			if (entity == nullptr)
 			{
-				EmptyTaskQueue();
+				ClearTaskQueue();
 				Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
 				Task *task = new TaskMove(m_map, this, mapPosition);
 				m_taskQueue.push(task);
 			}
 			else if (entity != nullptr && m_map->IsEnemies(entity,this))// && IsInRange(m_map->GetCordinates(entity->GetPosition())))
 			{
-				EmptyTaskQueue();
+				ClearTaskQueue();
 				Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
 				Task *task = new TaskShortRangeAttack(m_map,this, m_map->GetTileIndex(mapPosition));
 				if(task->m_isValid)
@@ -213,6 +213,7 @@ void ClassAWarrior::EvaluateShortAttackTask(EntityState previousState, IntVector
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
 {
+	UNUSED(cords);
 	SetDesiredOutputForTask(TASK_IDLE, 0);
 	m_state.m_neuralNetPoints++;
 }

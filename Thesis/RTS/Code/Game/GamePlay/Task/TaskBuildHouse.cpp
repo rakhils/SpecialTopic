@@ -7,8 +7,8 @@ TaskBuildHouse::TaskBuildHouse(Map *map, Entity *entity, Vector2 position)
 	m_map = map;
 	m_entity = entity;
 	m_targetPosition = position;
-	m_resourcesNeeded.m_stone = 2;
-	m_resourcesNeeded.m_wood  = 2;
+	m_resourcesNeeded.m_stone = 5;
+	m_resourcesNeeded.m_wood  = 5;
 	m_taskType = TASK_BUILD_HOUSE;
 }
 

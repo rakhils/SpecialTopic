@@ -828,6 +828,15 @@ double GetMin(double value1, double value2)
 	return value2;
 }
 
+int GetMin(int value1, int value2)
+{
+	if(value1 < value2)
+	{
+		return value1;
+	}
+	return value2;
+}
+
 float ClampZeroOrToOne(float value)
 {
 	if(value > 0.5)

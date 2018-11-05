@@ -45,6 +45,7 @@ float			 GetMax(float a, float b);
 float		     GetMaxOf2 (float value1, float value2);
 float		     GetMinOf2 (float value1, float value2);
 double			 GetMin(double value1, double value2);
+int				 GetMin(int value1, int value2);
 bool		     IsInRangeOf(int value,int lowerLimit,int upperLimit);
 bool		     isInRangeOf(float value,float lowerLimit,float upperLimit);
 float		     GetAbsolute(float value);

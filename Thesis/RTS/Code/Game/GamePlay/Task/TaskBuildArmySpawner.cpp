@@ -7,8 +7,8 @@ TaskBuildArmySpawner::TaskBuildArmySpawner(Map *map, Entity *entity,Vector2 posi
 	m_map = map;
 	m_entity = entity;
 	m_targetPosition = position;
-	m_resourcesNeeded.m_stone = 5;
-	m_resourcesNeeded.m_wood  = 5;
+	m_resourcesNeeded.m_stone = 8;
+	m_resourcesNeeded.m_wood  = 8;
 	m_taskType = TASK_BUILD_ARMY_SPAWNER;
 }
 

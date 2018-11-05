@@ -34,6 +34,7 @@ DebugEntity::~DebugEntity()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void DebugEntity::Update(float deltaTime)
 {
+	UNUSED(deltaTime);
 	if(static_cast<float>(GetCurrentTimeSeconds()) > m_startTime + 60)
 	{
 		m_isCompleted = true;

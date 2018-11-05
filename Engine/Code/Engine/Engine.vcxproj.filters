@@ -481,6 +481,9 @@
     <ClCompile Include="Net\NetPacket.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="System\System.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -791,6 +794,7 @@
     <ClInclude Include="Net\NetMessage.hpp" />
     <ClInclude Include="Net\NetConnection.hpp" />
     <ClInclude Include="Net\NetPacket.hpp" />
+    <ClInclude Include="System\System.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

@@ -170,7 +170,7 @@ void NetSession::ProcessIncomingMessage()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::ProcessOutgoingMessage()
 {
-	std::map<int, NetConnection*>::iterator it;
+	/*std::map<int, NetConnection*>::iterator it;
 	for (it = m_remoteConnections.begin(); it != m_remoteConnections.end(); it++)
 	{
 		NetConnection * netConnection = it->second;
@@ -182,7 +182,7 @@ void NetSession::ProcessOutgoingMessage()
 			int a = 1;
 		}
 		//ProcessMsg(ConstructNetMsgFromData(data));
-	}
+	}*/
 
 }
 
@@ -512,7 +512,7 @@ bool OnAddResponse(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnBadMessage(NetMessage &netMsg, NetAddress &netAddress)
 {
-	UNUSED(netAddress);
+	UNUSED(netMsg);
 	DevConsole::GetInstance()->PushToOutputText("RECEIVED BAD MSG FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port), Rgba::YELLOW, true);
 	return true;
 }

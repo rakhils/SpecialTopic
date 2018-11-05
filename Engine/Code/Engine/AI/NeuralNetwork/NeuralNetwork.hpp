@@ -120,7 +120,7 @@ public:
 	bool				 CopyWeightsTo(NeuralNetwork &copy);
 	void				 CrossOver(NeuralNetwork &second);
 	void				 StoreToFile(const char* filePathname);
-	void				 LoadFromFile(const char* filePath);
+	bool				 LoadFromFile(const char* filePath);
 	//Static_Methods
 
 protected:

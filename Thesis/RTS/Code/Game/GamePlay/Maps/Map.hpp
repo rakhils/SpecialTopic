@@ -4,6 +4,8 @@
 
 #include "Engine/Math/Vector2.hpp"
 #include "Engine/Renderer/Camera.hpp"
+#include "Engine/FileUtil/File.h"
+#include "Engine/Core/StringUtils.hpp"
 
 #include "Game/GamePlay/Entity/Entity.hpp"
 #include "Game/ArmySpawner.hpp"
@@ -28,6 +30,111 @@ enum MapMode
 	MAP_MODE_TRAINING_ARMYSPAWNER,
 	MAP_MODE_TRAINING_NONE,
 	MAP_MODE_NUM_ITEMS
+};
+struct ScoreBoard
+{
+public:
+	int m_resourceFoodCollected     = 0;
+	int m_resourceStoneCollected    = 0;
+	int m_resourceWoodCollected     = 0;
+	int m_housesBuilt				= 0;
+	int m_armySpawnersBuilt    	    = 0;
+	int m_civiliansSpawned			= 0;
+	int m_shortRangeArmySpawned     = 0;
+	int m_longRangeArmySpawned      = 0;
+	int m_housesAttacked			= 0;
+	int m_armySpawnerAttacked		= 0;
+	int m_civiilansAttacked			= 0;
+	int m_shortRangeArmyAttacked	= 0;
+	int m_longRangeArmyAttacked		= 0;
+	int m_townCenterAttacked		= 0;
+	int m_housesDestroyed			= 0;
+	int m_armySpawnerDestroyed      = 0;
+	int m_civiliansKilled			= 0;
+	int m_shortRangeArmyKilled		= 0;
+	int m_longRangeArmyKilled		= 0;
+	int m_townCenterDestroyed		= 0;
+	int m_totalTimeSec				= 0;
+	int m_totalScore				= 0;
+
+
+	int m_resourceFoodCollectedPoints	= 1;
+	int m_resourceStoneCollectedPoints	= 1;
+	int m_resourceWoodCollectedPoints	= 1;
+	int m_housesBuiltPoints				= 10;
+	int m_armySpawnersBuiltPoints		= 16;
+	int m_civiliansSpawnedPoints		= 20;
+	int m_shortRangeArmySpawnedPoints	= 30;
+	int m_longRangeArmySpawnedPoints	= 32;
+	int m_housesAttackedPoints			= 2;
+	int m_armySpawnerAttackedPoints		= 3;
+	int m_civiilansAttackedPoints		= 4;
+	int m_shortRangeArmyAttackedPoints  = 6;
+	int m_longRangeArmyAttackedPoints	= 7;
+	int m_townCenterAttackedPoints		= 12;
+	int m_housesDestroyedPoints			= 4;
+	int m_armySpawnerDestroyedPoints	= 6;
+	int m_civiliansKilledPoints			= 8;
+	int m_shortRangeArmyKilledPoints	= 12;
+	int m_longRangeArmyKilledPoints		= 14;
+	int m_townCenterDestroyedPoints		= 1000;
+
+	void CalculateTotalScore()
+	{
+		m_totalScore = (m_resourceFoodCollected  *		 m_resourceFoodCollectedPoints      +
+			            m_resourceStoneCollected *       m_resourceStoneCollectedPoints     +
+			            m_resourceWoodCollected  *       m_resourceWoodCollectedPoints      +
+			            m_housesBuilt			 *       m_housesBuiltPoints			    +
+			            m_armySpawnersBuilt		 *       m_armySpawnersBuiltPoints		    +
+			            m_civiliansSpawned		 *       m_civiliansSpawnedPoints		    +
+			            m_shortRangeArmySpawned	 *       m_shortRangeArmySpawnedPoints      +
+			            m_longRangeArmySpawned	 *       m_longRangeArmySpawnedPoints       +
+			            m_housesAttacked		 *       m_housesAttackedPoints			    +
+			            m_armySpawnerAttacked	 *       m_armySpawnerAttackedPoints	    +
+			            m_civiilansAttacked		 *       m_civiilansAttackedPoints		    +
+			            m_shortRangeArmyAttacked *       m_shortRangeArmyAttackedPoints     +
+			            m_longRangeArmyAttacked	 *       m_longRangeArmyAttackedPoints      +
+						m_townCenterAttacked	 *		 m_townCenterAttackedPoints			+
+			            m_housesDestroyed		 *       m_housesDestroyedPoints		    +
+			            m_armySpawnerDestroyed	 *       m_armySpawnerDestroyedPoints	    +
+			            m_civiliansKilled		 *       m_civiliansKilledPoints		    +
+			            m_shortRangeArmyKilled	 *       m_shortRangeArmyKilledPoints	    +
+			            m_longRangeArmyKilled	 *       m_longRangeArmyKilledPoints	    +
+			            m_townCenterDestroyed	 *		 m_townCenterDestroyedPoints);
+		m_totalScore += m_totalTimeSec;
+	}
+	void SaveToFile(char const *fileName)
+	{
+		FILE *fp = FileOpenForWrite(fileName);
+		FileAppendString(fp, ToString(m_totalScore)+  "\n");
+		FileAppendString(fp, "TOTAL_RESOURCE_FOOD_COLLECTED       : " + ToString(m_resourceFoodCollected)   + "\n");
+		FileAppendString(fp, "TOTAL_RESOURCE_STONE_COLLECTED      : " + ToString(m_resourceStoneCollected)  + "\n");
+		FileAppendString(fp, "TOTAL_RESOURCE_WOOD_COLLECTED       : " + ToString(m_resourceWoodCollected)   + "\n");
+		FileAppendString(fp, "TOTAL_HOUSES_BUILT                  : " + ToString(m_housesBuilt)			    + "\n");
+		FileAppendString(fp, "TOTAL_ARMY_CENTRE_SPAWNED           : " + ToString(m_armySpawnersBuilt)		+ "\n");
+		FileAppendString(fp, "TOTAL_CIVILIANS_SPAWNED             : " + ToString(m_civiliansSpawned)		+ "\n");
+		FileAppendString(fp, "TOTAL_SHORT_RANGE_ARMY_SPAWNED      : " + ToString(m_shortRangeArmySpawned)	+ "\n");
+		FileAppendString(fp, "TOTAL_LONG_RANGE_ARMY_SPAWNED       : " + ToString(m_longRangeArmySpawned)	+ "\n");
+
+		FileAppendString(fp, "TOTAL_ATTACK_ON_HOUSES              : " + ToString(m_housesAttacked)			+ "\n");
+		FileAppendString(fp, "TOTAL_ATTACK_ON_ARMY_SPAWNERS       : " + ToString(m_armySpawnerAttacked)		+ "\n");
+		FileAppendString(fp, "TOTAL_ATTACK_ON_CIVILIANS           : " + ToString(m_civiilansAttacked)		+ "\n");
+		FileAppendString(fp, "TOTAL_ATTACK_ON_SHORT_RANGE_ARMIES  : " + ToString(m_shortRangeArmyAttacked)  + "\n");
+		FileAppendString(fp, "TOTAL_ATTACK_ON_LONG_RANGE_ARMIES   : " + ToString(m_longRangeArmyAttacked)	+ "\n");
+		FileAppendString(fp, "TOTAL_ATTACK_ON_TOWNCENTERS         : " + ToString(m_townCenterAttacked)		+ "\n");
+
+		FileAppendString(fp, "TOTAL_KILL_ON_HOUSES                : " + ToString(m_housesDestroyed)			+ "\n");
+		FileAppendString(fp, "TOTAL_KILL_ON_ARMY_SPAWNERS         : " + ToString(m_armySpawnerDestroyed)	+ "\n");
+		FileAppendString(fp, "TOTAL_KILL_ON_CIVILIANS             : " + ToString(m_civiliansKilled)			+ "\n");
+		FileAppendString(fp, "TOTAL_KILL_ON_SHORT_RANGE_ARMIES    : " + ToString(m_shortRangeArmyKilled)	+ "\n");
+		FileAppendString(fp, "TOTAL_KILL_ON_LONG_RANGE_ARMIES     : " + ToString(m_longRangeArmyKilled)		+ "\n");
+		FileAppendString(fp, "TOTAL_KILL_ON_TOWNCENTERS           : " + ToString(m_townCenterDestroyed)		+ "\n");
+
+		FileAppendString(fp, "TOTAL_TIME                          : " + ToString(m_totalTimeSec)				+ "\n");
+		FileAppendString(fp, "TOTAL_SCORE                         : " + ToString(m_totalScore)				+ "\n");
+		FileClose(fp);
+	}
+
 };
 struct Tile
 {
@@ -104,6 +211,10 @@ public:
 	float							m_yOffset			= g_mapYOffset;
 	Vector2							m_mousePosition;
 
+	ScoreBoard						m_team1;
+	ScoreBoard						m_team2;
+	bool							m_isScoreBoardUpdated = false;
+
 	Map();
 	~Map();
 
@@ -155,7 +266,7 @@ public:
 	void							UpdateCellSensoryValues();
 	///////////////////////////////////////////////////////////////////////
 
-
+	ScoreBoard &					GetMyScoreBoard(Entity *entity);
 	IntVector2						GetFreeNeighbourTile(Vector2 position);
 	IntVector2						GetFreeNeighbourTile(Vector2 position,int distance);
 	IntVector2						GetTilePosition(int tilePosition);
@@ -199,7 +310,14 @@ public:
 	void							ProcessInputsOnHUD(float deltaTime);
 	
 	void							CheckAndUpdateOnWinCondition();
+	void							CheckAndSaveBestStats();
+	void							CheckAndSaveBestNNByType(bool saveTeam1,bool saveTeam2);
+	void							SaveCurrentGamePlayNN();
+
 	void							CheckAndClearEntityOverlap();
+
+	void							DeleteFromMovableEntityList(Entity *entity);
+	void							DeleteFromStandAlonEntityList(Entity *entity);
 
 	void							Update(float deltaTime);
 	void							UpdateCamera(float deltaTime);

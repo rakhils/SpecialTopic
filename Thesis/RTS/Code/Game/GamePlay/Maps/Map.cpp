@@ -11,7 +11,8 @@
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
 #include "Engine/Math/MathUtil.hpp"
-
+#include "Engine/FileUtil/File.h"
+#include "Engine/System/System.hpp"
 Map::Map()
 {
 
@@ -505,8 +506,11 @@ void Map::InitNonTrainingMode()
 	CreateResources(GetMapPosition(126), RESOURCE_WOOD);
 
 
-
 	CreateTownCenter(GetMapPosition(75), 2);
+
+	CreateCivilian      (GetMapPosition(76), 2);
+	CreateCivilian      (GetMapPosition(723), 1);
+	CreateArmySpawner   (GetMapPosition(733), 1);
 	//CreateClassAWarrior(GetMapPosition(42), 2);
 }
 
@@ -846,6 +850,7 @@ void Map::SetMiniMapValues(int x, int y, float minimapValue)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 float Map::NearnessValueToTownCenter(IntVector2 coords, int teamID)
 {
+	UNUSED(teamID);
 	CellSensoryValues cellValue = m_cellSensoryValues.at(GetTileIndex(coords));
 	/*if(teamID == 1)
 	{
@@ -1053,6 +1058,21 @@ void Map::UpdateCellSensoryValues()
 		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_CIVILIAN)  
 			= GetHeatMapDistanceFromEntity(GetCordinates(index),CIVILIAN,2);
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : returns my score board
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ScoreBoard & Map::GetMyScoreBoard(Entity *entity)
+{
+	if(entity->m_teamID == 1)
+	{
+		return m_team1;
+	}
+	return m_team2;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2012,6 +2032,7 @@ void Map::ProcessInputs(float deltaTime)
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_W))
 	{
 		m_displaySensoryWoodValue = m_displaySensoryWoodValue == true ? false : true;
+		Renderer::GetInstance()->TakeScreenShotAndSave("Data\\NN\\BestGame\\");
 	}
 
 
@@ -2144,14 +2165,297 @@ void Map::ProcessInputs(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::CheckAndUpdateOnWinCondition()
 {
+	if(m_gameFinished)
+	{
+		CheckAndSaveBestStats();
+		return;
+	}
 	for(size_t townCenterIndex = 0;townCenterIndex < m_townCenters.size();townCenterIndex++)
 	{
 		if(m_townCenters.at(townCenterIndex)->m_health <= 0)
 		{
 			m_gameFinished = true;
+			g_isCurrentlyTraining = false;
 			return;
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Check and compare the current best stat and overwrite if the current one is best
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::CheckAndSaveBestStats()
+{
+	if(m_isScoreBoardUpdated)
+	{
+		return;
+	}
+	m_isScoreBoardUpdated = true;
+	std::string fileContentTeam1 = GetFileContentAsString("Data\\NN\\Team1.txt");
+	std::string fileContentTeam2 = GetFileContentAsString("Data\\NN\\Team2.txt");
+	int scoreTeam1 = 0;
+	int scoreTeam2 = 0;
+	ToInt(fileContentTeam1.substr(0, fileContentTeam1.find('\n')), &scoreTeam1);
+	ToInt(fileContentTeam2.substr(0, fileContentTeam2.find('\n')), &scoreTeam2);
+	m_team1.CalculateTotalScore();
+	m_team2.CalculateTotalScore();
+	bool saveTeam1 = false;
+	bool saveTeam2 = false;
+	if(m_team1.m_totalScore > scoreTeam1)
+	{
+		m_team1.SaveToFile("Data\\NN\\Team1.txt");
+		saveTeam1 = true;
+	}
+	if (m_team2.m_totalScore > scoreTeam2)
+	{
+		m_team2.SaveToFile("Data\\NN\\Team2.txt");
+		saveTeam2 = true;
+	}
+	CheckAndSaveBestNNByType(saveTeam1, saveTeam2);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Check for all Entities and save the best by type by faction
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::CheckAndSaveBestNNByType(bool saveTeam1,bool saveTeam2)
+{
+	int civilianTeam1MaxScore		= 0;
+	int civilianTeam1Index			= -1;
+	int civilianTeam2MaxScore		= 0;
+	int civilianTeam2Index			= -1;
+
+	int shortRangeArmy1MaxScore		= 0;
+	int shortRangeArmy1Index		= -1;
+	int shortRangeArmy2MaxScore		= 0;
+	int shortRangeArmy2Index		= -1;
+
+	int longRangeArmy1MaxScore		= 0;
+	int longRangeArmy1Index			= -1;
+	int longRangeArmy2MaxScore		= 0;
+	int longRangeArmy2Index			= -1;
+
+	int armySpawner1MaxScore		= 0;
+	int armySpawner1Index			= -1;
+	int armySpawner2MaxScore		= 0;
+	int armySpawner2Index			= -1;
+
+	int townCenter1MaxScore			= 0;
+	int townCenter1Index			= -1;
+	int townCenter2MaxScore			= 0;
+	int townCenter2Index		    = -1;
+
+
+	for (size_t civilianIndex = 0; civilianIndex < m_civilians.size(); civilianIndex++)
+	{
+		Civilian *civilian = m_civilians.at(civilianIndex);
+		civilian->m_scoreBoard.CalculateTotalScore();
+		if(civilian->m_teamID == 1)
+		{
+			if(civilian->m_scoreBoard.m_totalScore > civilianTeam1MaxScore)
+			{
+				civilianTeam1MaxScore = civilian->m_scoreBoard.m_totalScore;
+				civilianTeam1Index = civilianIndex;
+			}
+		}
+		if (civilian->m_teamID == 2)
+		{
+			if (civilian->m_scoreBoard.m_totalScore > civilianTeam2MaxScore)
+			{
+				civilianTeam2MaxScore = civilian->m_scoreBoard.m_totalScore;
+				civilianTeam2Index    = civilianIndex;
+			}
+		}
+		
+	}
+	for (size_t shortRangeArmyIndex = 0; shortRangeArmyIndex < m_classAWarriors.size(); shortRangeArmyIndex++)
+	{
+		ClassAWarrior *classAWarrior = m_classAWarriors.at(shortRangeArmyIndex);
+		classAWarrior->m_scoreBoard.CalculateTotalScore();
+		if (classAWarrior->m_teamID == 1)
+		{
+			if (classAWarrior->m_scoreBoard.m_totalScore > shortRangeArmy1MaxScore)
+			{
+				shortRangeArmy1MaxScore = classAWarrior->m_scoreBoard.m_totalScore;
+				shortRangeArmy1Index = shortRangeArmyIndex;
+			}
+		}
+		if (classAWarrior->m_teamID == 2)
+		{
+			if (classAWarrior->m_scoreBoard.m_totalScore > shortRangeArmy2MaxScore)
+			{
+				shortRangeArmy2MaxScore = classAWarrior->m_scoreBoard.m_totalScore;
+				shortRangeArmy2Index    = shortRangeArmyIndex;
+			}
+		}
+	}
+
+	for (size_t longRangeArmyIndex = 0; longRangeArmyIndex < m_classBWarriors.size(); longRangeArmyIndex++)
+	{
+		ClassBWarrior *classBWarrior = m_classBWarriors.at(longRangeArmyIndex);
+		classBWarrior->m_scoreBoard.CalculateTotalScore();
+		if (classBWarrior->m_teamID == 1)
+		{
+			if (classBWarrior->m_scoreBoard.m_totalScore > longRangeArmy1MaxScore)
+			{
+				longRangeArmy1MaxScore = classBWarrior->m_scoreBoard.m_totalScore;
+				longRangeArmy1Index = longRangeArmyIndex;
+			}
+		}
+		if (classBWarrior->m_teamID == 2)
+		{
+			if (classBWarrior->m_scoreBoard.m_totalScore > longRangeArmy2MaxScore)
+			{
+				longRangeArmy2MaxScore = classBWarrior->m_scoreBoard.m_totalScore;
+				longRangeArmy2Index = longRangeArmyIndex;
+			}
+		}
+	}
+
+	for (size_t armySpawnerIndex = 0; armySpawnerIndex < m_armySpawners.size(); armySpawnerIndex++)
+	{
+		ArmySpawner *armySpawner = m_armySpawners.at(armySpawnerIndex);
+		armySpawner->m_scoreBoard.CalculateTotalScore();
+		if (armySpawner->m_teamID == 1)
+		{
+			if (armySpawner->m_scoreBoard.m_totalScore > armySpawner1MaxScore)
+			{
+				armySpawner1MaxScore = armySpawner->m_scoreBoard.m_totalScore;
+				armySpawner1Index    = armySpawnerIndex;
+			}
+		}
+		if (armySpawner->m_teamID == 2)
+		{
+			if (armySpawner->m_scoreBoard.m_totalScore > armySpawner2MaxScore)
+			{
+				armySpawner2MaxScore = armySpawner->m_scoreBoard.m_totalScore;
+				armySpawner2Index    = armySpawnerIndex;
+			}
+		}
+	}
+
+	time_t rawtime;
+	char buffer[80];
+	time(&rawtime);
+
+	struct tm info;
+	localtime_s(&info, &rawtime);
+	strftime(buffer, 50, "%Y-%m-%d  %H'%M'%S", &info);
+
+	System::CreateDirectoryFromPath(("Data\\NN\\" + std::string(buffer)).c_str());
+	System::CreateDirectoryFromPath(("Data\\NN\\" + std::string(buffer)).c_str());
+
+	std::string bestGameFilePath = "Data\\NN\\BestGame\\";
+	std::string currentFolderFilePath = "Data\\NN\\" + std::string(buffer)+"\\";
+	if(saveTeam1)
+	{
+		if(civilianTeam1Index >= 0)
+		{
+			m_civilians.at(civilianTeam1Index)->m_neuralNet.StoreToFile((m_civilians.at(civilianTeam1Index)->GetBestGameFilePath()).c_str());
+		}
+		if(shortRangeArmy1Index >= 0)
+		{
+			m_classAWarriors.at(shortRangeArmy1Index)->m_neuralNet.StoreToFile(m_classAWarriors.at(shortRangeArmy1Index)->GetBestGameFilePath().c_str());
+		}
+		if(longRangeArmy1Index >= 0)
+		{
+			m_classBWarriors.at(longRangeArmy1Index)->m_neuralNet.StoreToFile(m_classBWarriors.at(longRangeArmy1Index)->GetBestGameFilePath().c_str());
+		}
+		if(armySpawner1Index >= 0)
+		{
+			m_armySpawners.at(armySpawner1Index)->m_neuralNet.StoreToFile(m_armySpawners.at(armySpawner1Index)->GetBestGameFilePath().c_str());
+		}
+		m_townCenters.at(0)->m_neuralNet.StoreToFile(m_townCenters.at(0)->GetBestGameFilePath().c_str());
+	}
+	if(saveTeam2)
+	{
+		if (civilianTeam2Index >= 0)
+		{
+			m_civilians.at(civilianTeam2Index)->m_neuralNet.StoreToFile(m_civilians.at(civilianTeam2Index)->GetBestGameFilePath().c_str());
+		}
+		if (shortRangeArmy2Index >= 0)
+		{
+			m_classAWarriors.at(shortRangeArmy2Index)->m_neuralNet.StoreToFile(m_classAWarriors.at(shortRangeArmy2Index)->GetBestGameFilePath().c_str());
+		}
+		if (longRangeArmy2Index >= 0)
+		{
+			m_classBWarriors.at(longRangeArmy2Index)->m_neuralNet.StoreToFile(m_classBWarriors.at(longRangeArmy2Index)->GetBestGameFilePath().c_str());
+		}
+		if (armySpawner2Index >= 0)
+		{
+			m_armySpawners.at(armySpawner2Index)->m_neuralNet.StoreToFile(m_armySpawners.at(armySpawner2Index)->GetBestGameFilePath().c_str());
+		}
+		m_townCenters.at(1)->m_neuralNet.StoreToFile(m_townCenters.at(1)->GetBestGameFilePath().c_str());
+	}
+	if(saveTeam1 || saveTeam2)
+	{
+		Renderer::GetInstance()->TakeScreenShotAndSave(bestGameFilePath);
+	}
+
+	if (civilianTeam1Index >= 0)
+	{
+		int teamID = m_civilians.at(civilianTeam1Index)->m_teamID;
+		std::string filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(CIVILIAN) + "_" + ToString(teamID) + ".txt";
+		m_civilians.at(civilianTeam1Index)->m_neuralNet.StoreToFile(filePath.c_str());
+	}
+	if (shortRangeArmy1Index >= 0)
+	{
+		int teamID = m_classAWarriors.at(shortRangeArmy1Index)->m_teamID;
+		std::string filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(SHORT_RANGE_WARRIOR) + "_" + ToString(teamID) + ".txt";
+		m_classAWarriors.at(shortRangeArmy1Index)->m_neuralNet.StoreToFile(filePath.c_str());
+	}
+	if (longRangeArmy1Index >= 0)
+	{
+		int teamID = m_classBWarriors.at(longRangeArmy1Index)->m_teamID;
+		std::string filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(LONG_RANGE_WARRIOR) + "_" + ToString(teamID) + ".txt";
+		m_classBWarriors.at(longRangeArmy1Index)->m_neuralNet.StoreToFile(filePath.c_str());
+	}
+	if (armySpawner1Index >= 0)
+	{
+		int teamID = m_armySpawners.at(armySpawner1Index)->m_teamID;
+		std::string filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(ARMY_SPAWNER) + "_" + ToString(teamID) + ".txt";
+		m_armySpawners.at(armySpawner1Index)->m_neuralNet.StoreToFile(filePath.c_str());
+	}
+
+	if (civilianTeam2Index >= 0)
+	{
+		int teamID = m_civilians.at(civilianTeam2Index)->m_teamID;
+		std::string filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(CIVILIAN) + "_" + ToString(teamID) + ".txt";
+		m_civilians.at(civilianTeam2Index)->m_neuralNet.StoreToFile(filePath.c_str());
+	}
+	if (shortRangeArmy2Index >= 0)
+	{
+		int teamID = m_classAWarriors.at(shortRangeArmy2Index)->m_teamID;
+		std::string filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(SHORT_RANGE_WARRIOR) + "_" + ToString(teamID) + ".txt";
+		m_classAWarriors.at(shortRangeArmy2Index)->m_neuralNet.StoreToFile(filePath.c_str());
+	}
+	if (longRangeArmy2Index >= 0)
+	{
+		int teamID = m_classBWarriors.at(longRangeArmy2Index)->m_teamID;
+		std::string filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(LONG_RANGE_WARRIOR) + "_" + ToString(teamID) + ".txt";
+		m_classBWarriors.at(longRangeArmy2Index)->m_neuralNet.StoreToFile(filePath.c_str());
+	}
+	if (armySpawner2Index >= 0)
+	{
+		int teamID = m_armySpawners.at(armySpawner2Index)->m_teamID;
+		std::string filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(ARMY_SPAWNER) + "_" + ToString(teamID) + ".txt";
+		m_armySpawners.at(armySpawner2Index)->m_neuralNet.StoreToFile(filePath.c_str());
+	}
+
+	int teamID = m_townCenters.at(0)->m_teamID;
+	std::string filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(TOWN_CENTER) + "_" + ToString(teamID) + ".txt";
+	m_townCenters.at(0)->m_neuralNet.StoreToFile(filePath.c_str());
+
+	teamID = m_townCenters.at(1)->m_teamID;
+	filePath = currentFolderFilePath + Entity::GetEntityTypeAsString(TOWN_CENTER) + "_" + ToString(teamID) + ".txt";
+	m_townCenters.at(1)->m_neuralNet.StoreToFile(filePath.c_str());
+
+	Renderer::GetInstance()->TakeScreenShotAndSave(currentFolderFilePath);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2182,7 +2486,6 @@ void Map::CheckAndClearEntityOverlap()
 		}
 	}
 
-
 	for (size_t entityOneIndex = 0; entityOneIndex < m_standAloneEntities.size(); entityOneIndex++)
 	{
 		for (size_t entityTwoIndex = 0; entityTwoIndex < m_movableEntities.size(); entityTwoIndex++)
@@ -2200,6 +2503,42 @@ void Map::CheckAndClearEntityOverlap()
 					m_movableEntities.at(entityTwoIndex)->SetPosition(GetMapPosition(freeCords));
 				}
 			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Deletes entity from movable entity list
+*@param   : Entity to be deleted
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::DeleteFromMovableEntityList(Entity *entity)
+{
+	for (size_t movableEntityIndex = 0; movableEntityIndex < m_movableEntities.size(); movableEntityIndex++)
+	{
+		if(m_movableEntities.at(movableEntityIndex) == entity)
+		{
+			m_movableEntities.erase(m_movableEntities.begin() + movableEntityIndex, m_movableEntities.begin() + movableEntityIndex + 1);
+			return;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Deletes entity from standalone list
+*@param   : Entity to be deleted
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::DeleteFromStandAlonEntityList(Entity *entity)
+{
+	for (size_t standAlonEntityIndex = 0; standAlonEntityIndex < m_standAloneEntities.size(); standAlonEntityIndex++)
+	{
+		if (m_standAloneEntities.at(standAlonEntityIndex) == entity)
+		{
+			m_standAloneEntities.erase(m_standAloneEntities.begin() + standAlonEntityIndex, m_standAloneEntities.begin() + standAlonEntityIndex + 1);
+			return;
 		}
 	}
 }
@@ -2258,6 +2597,7 @@ void Map::UpdateCivilans(float deltaTime)
 		m_civilians.at(civiliansIndex)->Update(deltaTime);
 		if(m_civilians.at(civiliansIndex)->m_health <= 0)
 		{
+			DeleteFromMovableEntityList(m_civilians.at(civiliansIndex));
 			delete m_civilians.at(civiliansIndex);
 			m_civilians.erase(m_civilians.begin() + civiliansIndex, m_civilians.begin() + civiliansIndex + 1);
 			civiliansIndex--;
@@ -2278,6 +2618,7 @@ void Map::UpdateArmySpawners(float deltaTime)
 		m_armySpawners.at(armySpawnerIndex)->Update(deltaTime);
 		if (m_armySpawners.at(armySpawnerIndex)->m_health <= 0)
 		{
+			DeleteFromStandAlonEntityList(m_armySpawners.at(armySpawnerIndex));
 			delete m_armySpawners.at(armySpawnerIndex);
 			m_armySpawners.erase(m_armySpawners.begin() + armySpawnerIndex, m_armySpawners.begin() + armySpawnerIndex + 1);
 			armySpawnerIndex--;
@@ -2298,6 +2639,7 @@ void Map::UpdateClassAWarriors(float deltaTime)
 		m_classAWarriors.at(classAWarriorIndex)->Update(deltaTime);
 		if (m_classAWarriors.at(classAWarriorIndex)->m_health <= 0)
 		{
+			DeleteFromMovableEntityList(m_classAWarriors.at(classAWarriorIndex));
 			delete m_classAWarriors.at(classAWarriorIndex);
 			m_classAWarriors.erase(m_classAWarriors.begin() + classAWarriorIndex, m_classAWarriors.begin() + classAWarriorIndex + 1);
 			classAWarriorIndex--;
@@ -2318,6 +2660,7 @@ void Map::UpdateClassBWarriors(float deltaTime)
 		m_classBWarriors.at(classBWarriorIndex)->Update(deltaTime);
 		if (m_classBWarriors.at(classBWarriorIndex)->m_health <= 0)
 		{
+			DeleteFromMovableEntityList(m_classBWarriors.at(classBWarriorIndex));
 			delete m_classBWarriors.at(classBWarriorIndex);
 			m_classBWarriors.erase(m_classBWarriors.begin() + classBWarriorIndex, m_classBWarriors.begin() + classBWarriorIndex + 1);
 			classBWarriorIndex--;
@@ -2338,6 +2681,7 @@ void Map::UpdateHouses(float deltaTime)
 		m_houses.at(houseIndex)->Update(deltaTime);
 		if (m_houses.at(houseIndex)->m_health <= 0)
 		{
+			DeleteFromStandAlonEntityList(m_houses.at(houseIndex));
 			delete m_houses.at(houseIndex);
 			m_houses.erase(m_houses.begin() + houseIndex, m_houses.begin() + houseIndex + 1);
 			houseIndex--;

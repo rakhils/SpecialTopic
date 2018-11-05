@@ -2,6 +2,7 @@
 #include "Engine/Net/UDP/UDPSocket.hpp"
 #include "Engine/Net/NetSession.hpp"
 #include "Engine/Core/StringUtils.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 
 NetConnection::NetConnection(int index, NetAddress netAddress)
@@ -54,7 +55,8 @@ size_t NetConnection::Send(NetMessage msg)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t NetConnection::Send(int connectionIndex, std::vector<NetMessage*> &msgs)
 {
-	int msgCount = msgs.size();
+	UNUSED(connectionIndex);
+	int msgCount = static_cast<int>(msgs.size());
 	m_header.m_unrealiableCount = static_cast<uint8_t>(msgCount);
 	m_header.m_connectionindex = static_cast<uint8_t>(m_index);
 	WriteHeader();

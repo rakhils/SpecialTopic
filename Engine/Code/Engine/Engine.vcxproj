@@ -673,6 +673,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="System\System.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="System\Thread\Thread.cpp">
       <SubType>
       </SubType>
@@ -1107,6 +1111,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="SceneManagement\SceneManager.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="System\System.hpp">
       <SubType>
       </SubType>
     </ClInclude>

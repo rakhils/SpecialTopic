@@ -285,6 +285,7 @@ public:
 	bool			CopyFrameBuffer( FrameBuffer *dst, FrameBuffer *src );
 
 	void			TakeScreenShotAndSave();
+	void			TakeScreenShotAndSave(std::string directoryLocation);
 	//////////////////////////////////////////////////////////////////////////
 	//Static functions
 	static Renderer*		GetInstance();

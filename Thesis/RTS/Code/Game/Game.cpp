@@ -148,6 +148,7 @@ void Game::UpdateMap(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Game::UpdateMainMenu(float deltaTime)
 {
+	UNUSED(deltaTime);
 	m_camera->SetOrthoProjection();
 	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_UP_ARROW))
 	{

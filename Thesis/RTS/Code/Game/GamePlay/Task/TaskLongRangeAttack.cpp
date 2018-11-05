@@ -57,10 +57,10 @@ bool TaskLongRangeAttack::DoTask(float deltaTime)
 		if(attackedEntity != nullptr)
 		{
 			m_entity->m_map->CreateExplosions(m_entity->m_map->GetMapPosition(m_attackTile),Rgba::RED);
-			m_entity->UpdateUnitStatForEnemiesAttacked(1);
+			m_entity->UpdateUnitStatForEnemiesAttacked(attackedEntity,1);
 			if(attackedEntity->m_health <=0)
 			{
-				m_entity->UpdateUnitStatForEnemiesKilled(1);
+				m_entity->UpdateUnitStatForEnemiesKilled(attackedEntity,1);
 			}
 			CheckAndUpdateResourcesUsed();
 		}

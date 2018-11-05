@@ -1398,7 +1398,8 @@ void SetSimulationLag(Command &cmd)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SetSimulationLoss(Command &cmd)
 {
-	float simLost = 0;
+	UNUSED(cmd);
+	//float simLost = 0;
 	//NetSession::GetInstance()->SetSimulateLoss(simLost);
 }
 

@@ -93,20 +93,20 @@ void Civilian::ProcessInputs(float deltaTime)
 			}
 			if(entity == nullptr)
 			{
-				EmptyTaskQueue();
+				ClearTaskQueue();
 				Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
 				Task *task = new TaskMove(m_map,this,mapPosition);
 				m_taskQueue.push(task);
 			}
 			else if(entity != nullptr && (entity->m_type == RESOURCE_FOOD || entity->m_type == RESOURCE_STONE|| entity->m_type == RESOURCE_WOOD))
 			{
-				EmptyTaskQueue();
+				ClearTaskQueue();
 				Task *task = new TaskGatherResource(this);
 				m_taskQueue.push(task);
 			}
 			else if(entity != nullptr && (entity->m_type == TOWN_CENTER))
 			{
-				EmptyTaskQueue();
+				ClearTaskQueue();
 				Task *task = new TaskDropResource(this,FindMyTownCenter());
 				m_taskQueue.push(task);
 			}
@@ -178,10 +178,6 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 		break;
 	}
 	int moveIndex = GetIndexOfTaskInNN(TASK_MOVE);
-	if(m_desiredOuputs.at(moveIndex) < 0)
-	{
-		int a = 1;
-	}
 	TrainOnBuildHouseTask(previousState, cords);
 	TrainOnBuildArmySpawnerTask(previousState, cords);
 }
@@ -348,6 +344,7 @@ void Civilian::EvaluateBuildArmySpawnerTask(EntityState prevState, IntVector2 lo
 void Civilian::TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords)
 {
 	TownCenter* townCenter = (TownCenter*)FindMyTownCenter();
+	UNUSED(cords);
 
 	if(townCenter->m_resourceStat.m_houses < g_maxHousesBuilt)
 	{
@@ -368,6 +365,7 @@ void Civilian::TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2 cords)
 {
+	UNUSED(cords);
 	TownCenter* townCenter = (TownCenter*)FindMyTownCenter();
 
 	if (townCenter->m_resourceStat.m_houses < g_maxHousesBuilt)
@@ -389,7 +387,7 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IntVector2 Civilian::GetBestNeighbour()
 {
-	std::vector<IntVector2> neighbours = m_map->GetAllNeighbourCoordinates(GetCordinates(), 1);
+	/*std::vector<IntVector2> neighbours = m_map->GetAllNeighbourCoordinates(GetCordinates(), 1);
 	float townCenterNearnessValue = static_cast<float>(GetMax(m_map->m_maxHeight,m_map->m_maxWidth)) + 1.f;
 	float resourceNearnessValue   = static_cast<float>(GetMax(m_map->m_maxHeight,m_map->m_maxWidth)) + 1.f;
 	IntVector2 bestNeighbour;
@@ -399,28 +397,29 @@ IntVector2 Civilian::GetBestNeighbour()
 		CellSensoryValues cellValue = m_map->m_cellSensoryValues.at(m_map->GetTileIndex(neighbours.at(index)));
 		if(HasResource())
 		{
-			/*if(townCenterNearnessValue > cellValue.m_team2TownCenterNearness)
+			/ *if(townCenterNearnessValue > cellValue.m_team2TownCenterNearness)
 			{
 				if (m_map->GetEntityFromPosition(cellValue.m_coords) == nullptr)
 				{
 					townCenterNearnessValue = cellValue.m_team2TownCenterNearness;
 					bestNeighbour			= cellValue.m_coords;
 				}
-			}*/
+			}* /
 		}
 		else
 		{
-			/*if(resourceNearnessValue > cellValue.m_resourceNearnessForFood)
+			/ *if(resourceNearnessValue > cellValue.m_resourceNearnessForFood)
 			{
 				if(m_map->GetEntityFromPosition(cellValue.m_coords) == nullptr)
 				{
 					resourceNearnessValue = cellValue.m_resourceNearnessForFood;
 					bestNeighbour		  = cellValue.m_coords;
 				}
-			}*/
+			}* /
 		}
 	}
-	return bestNeighbour;
+	return bestNeighbour;*/
+	return IntVector2::ZERO;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -479,6 +478,9 @@ void Civilian::SetDesiredOutputToRandomTask()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::SetDesiredOutputToMoveToTownCenter(float value,EntityState previousState,IntVector2 cords)
 {
+	UNUSED(value);
+	UNUSED(previousState);
+	UNUSED(cords);
 	//float currentTownCenterNearnessValue = 
 }
 
@@ -524,9 +526,12 @@ void Civilian::EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cor
 
 	IntVector2 cords1 = GetCordinates();
 	IntVector2 cords2 = m_map->GetCordinates(m_previousState.m_position);
+	UNUSED(cords1);
+	UNUSED(cords2);
 	int index1 = m_map->GetTileIndex(cords);
 	int index2 = m_map->GetTileIndex(prevState.m_position);
-
+	UNUSED(index1);
+	UNUSED(index2);
 
 	if (tcNearnessCurrent == 1 && tcNearnessOld == 1)
 	{

@@ -33,6 +33,22 @@ Entity::Entity(float x, float y)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : returns team's score board
+*@param   : NIL
+*@return  : score board
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
+ScoreBoard Entity::GetMyTeamScoreBoard()
+{
+	if(m_teamID == 1)
+	{
+		return m_map->m_team1;
+	}
+	return m_map->m_team2;
+}*/
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/21
 *@purpose : Gets the current position
 *@param   : NIL
@@ -94,15 +110,15 @@ void Entity::InitNeuralNet()
 	m_statsSupported.push_back(HEALTH);
 	m_statsSupported.push_back(RESOURCE_COUNT);
 
-	int inputCount = g_entityMiniMapMaxHeight * g_entityMiniMapMaxWidth;
+	int inputCount = static_cast<int>( g_entityMiniMapMaxHeight * g_entityMiniMapMaxWidth);
 //	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, g_hiddenLayerCount, static_cast<int>(m_taskTypeSupported.size()));
 	m_neuralNet.CreateNeuralNetwork(inputCount + g_extraNNInputs, g_hiddenLayerCount, static_cast<int>(m_taskTypeSupported.size()));
 
-	if(m_type == CIVILIAN)
+	bool loadSuccess = m_neuralNet.LoadFromFile(GetBestGameFilePath().c_str());
+	if(!loadSuccess)
 	{
-		//m_neuralNet.LoadFromFile(("Data\\NN\\" + GetEntityTypeAsString(m_type) + "_"+ToString(m_teamID)+".txt").c_str());
+		m_neuralNet.SetRandomWeight();
 	}
-	m_neuralNet.SetRandomWeight();
 	// input + 6 -> for game stat && output + 2 for positions x,y
 
 	for(int index = 0;index < m_neuralNet.m_outputs->m_neurons.size();index++)
@@ -611,6 +627,8 @@ void Entity::UpdateUnitStatForWoodGathered(int count)
 void Entity::UpdateUnitStatForFoodDropped(int count)
 {
 	m_state.m_resourceFoodDropped += count;
+	m_map->GetMyScoreBoard(this).m_resourceFoodCollected++;
+	m_scoreBoard.m_resourceFoodCollected++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -622,6 +640,8 @@ void Entity::UpdateUnitStatForFoodDropped(int count)
 void Entity::UpdateUnitStatForStoneDropped(int count)
 {
 	m_state.m_resourceStoneDropped += count;
+	m_map->GetMyScoreBoard(this).m_resourceStoneCollected++;
+	m_scoreBoard.m_resourceStoneCollected++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -633,6 +653,8 @@ void Entity::UpdateUnitStatForStoneDropped(int count)
 void Entity::UpdateUnitStatForWoodDropped(int count)
 {
 	m_state.m_resourceWoodDropped += count;
+	m_map->GetMyScoreBoard(this).m_resourceWoodCollected++;
+	m_scoreBoard.m_resourceWoodCollected++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -644,6 +666,8 @@ void Entity::UpdateUnitStatForWoodDropped(int count)
 void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 {
 	m_state.m_numberOfArmySpawnerBuilt += count;
+	m_map->GetMyScoreBoard(this).m_armySpawnersBuilt++;
+	m_scoreBoard.m_armySpawnersBuilt++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -655,6 +679,8 @@ void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 void Entity::UpdateUnitStatForHouseBuilt(int count)
 {
 	m_state.m_numberOfHouseBuilt += count;
+	m_map->GetMyScoreBoard(this).m_housesBuilt++;
+	m_scoreBoard.m_housesBuilt++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -666,6 +692,8 @@ void Entity::UpdateUnitStatForHouseBuilt(int count)
 void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 {
 	m_state.m_shortRangeArmySpawned += count;
+	m_map->GetMyScoreBoard(this).m_shortRangeArmySpawned++;
+	m_scoreBoard.m_shortRangeArmySpawned++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -677,6 +705,8 @@ void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
 {
 	m_state.m_longRangeArmySpawned += count;
+	m_map->GetMyScoreBoard(this).m_longRangeArmySpawned++;
+	m_scoreBoard.m_longRangeArmySpawned++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -685,9 +715,38 @@ void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
 *@param   : Update by count
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::UpdateUnitStatForEnemiesAttacked(int count)
+void Entity::UpdateUnitStatForEnemiesAttacked(Entity* attackedEntity ,int count)
 {
 	m_state.m_enemiesAttacked += count;
+	switch (attackedEntity->m_type)
+	{
+	case HOUSE:
+		m_map->GetMyScoreBoard(this).m_housesAttacked++;
+		m_scoreBoard.m_housesAttacked++;
+		break;
+	case ARMY_SPAWNER:
+		m_map->GetMyScoreBoard(this).m_armySpawnerAttacked++;
+		m_scoreBoard.m_armySpawnerAttacked++;
+		break;
+	case CIVILIAN:
+		m_map->GetMyScoreBoard(this).m_civiilansAttacked++;
+		m_scoreBoard.m_civiilansAttacked++;
+		break;
+	case SHORT_RANGE_WARRIOR:
+		m_map->GetMyScoreBoard(this).m_shortRangeArmyAttacked++;
+		m_scoreBoard.m_shortRangeArmyAttacked++;
+		break;
+	case LONG_RANGE_WARRIOR:
+		m_map->GetMyScoreBoard(this).m_longRangeArmyAttacked++;
+		m_scoreBoard.m_longRangeArmyAttacked++;
+		break;
+	case TOWN_CENTER:
+		m_map->GetMyScoreBoard(this).m_townCenterAttacked++;
+		m_scoreBoard.m_townCenterAttacked++;
+		break;
+	default:
+		break;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -696,9 +755,38 @@ void Entity::UpdateUnitStatForEnemiesAttacked(int count)
 *@param   : Update by count
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::UpdateUnitStatForEnemiesKilled(int count)
+void Entity::UpdateUnitStatForEnemiesKilled(Entity* attackedEntity,int count)
 {
 	m_state.m_enemiesKilled += count;
+	switch (attackedEntity->m_type)
+	{
+	case HOUSE:
+		m_map->GetMyScoreBoard(this).m_housesDestroyed++;
+		m_scoreBoard.m_housesDestroyed++;
+		break;
+	case ARMY_SPAWNER:
+		m_map->GetMyScoreBoard(this).m_armySpawnerDestroyed++;
+		m_scoreBoard.m_armySpawnerDestroyed++;
+		break;
+	case CIVILIAN:
+		m_map->GetMyScoreBoard(this).m_civiliansKilled++;
+		m_scoreBoard.m_civiliansKilled++;
+		break;
+	case SHORT_RANGE_WARRIOR:
+		m_map->GetMyScoreBoard(this).m_shortRangeArmyKilled++;
+		m_scoreBoard.m_shortRangeArmyKilled++;
+		break;
+	case LONG_RANGE_WARRIOR:
+		m_map->GetMyScoreBoard(this).m_longRangeArmyKilled++;
+		m_scoreBoard.m_longRangeArmyKilled++;
+		break;
+	case TOWN_CENTER:
+		m_map->GetMyScoreBoard(this).m_townCenterDestroyed++;
+		m_scoreBoard.m_townCenterDestroyed++;
+		break;
+	default:
+		break;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -710,6 +798,8 @@ void Entity::UpdateUnitStatForEnemiesKilled(int count)
 void Entity::UpdateUnitStatForVillagerSpawned(int count)
 {
 	m_state.m_villagerSpawned += count;
+	m_map->GetMyScoreBoard(this).m_civiliansSpawned++;
+	m_scoreBoard.m_civiliansSpawned++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -773,7 +863,6 @@ void Entity::UpdateMostFavoredMoveTask(EntityState prevState,IntVector2 cords)
 			m_state.m_favoredMoveTaskCount.at(index)++;
 		}
 	}
-	int a = 1;
 	/*if(newSensoryValue.m_team1ArmyNearness > oldSensoryValue.m_team1ArmyNearness)
 	{
 		if(m_teamID == 1)
@@ -1122,8 +1211,8 @@ void Entity::SetDesiredOutputToMoveToNeighbour(EntityState prevState,int distanc
 
 	UNUSED(distance);
 	IntVector2 neighbour = m_map->GetRandomNeighbour(m_map->GetCordinates(prevState.m_position), distance);
-	float desiredXPosition = RangeMapFloat(static_cast<float>(neighbour.x),mapMinX, static_cast<float>(mapMaxX), 0.f, 1.f);
-	float desiredYPosition = RangeMapFloat(static_cast<float>(neighbour.y),mapMinY, static_cast<float>(mapMaxY), 0.f, 1.f);
+	float desiredXPosition = RangeMapFloat(static_cast<float>(neighbour.x),static_cast<float>(mapMinX), static_cast<float>(mapMaxX), 0.f, 1.f);
+	float desiredYPosition = RangeMapFloat(static_cast<float>(neighbour.y),static_cast<float>(mapMinY), static_cast<float>(mapMaxY), 0.f, 1.f);
 
 	desiredXPosition = GetRandomFloatZeroToOne();
 	desiredYPosition = GetRandomFloatZeroToOne();
@@ -1146,6 +1235,7 @@ void Entity::SetDesiredOutputToMoveToNeighbour(EntityState prevState,int distanc
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::SetDesiredOutputToMoveToNeighbourOpposite(int cellDistance, IntVector2 cords)
 {
+	UNUSED(cellDistance);
 	int xDistance = GetCordinates().x - cords.x;
 	int yDistance = GetCordinates().y - cords.y;
 	xDistance = ClampInt(xDistance,-1, 1);
@@ -1154,8 +1244,8 @@ void Entity::SetDesiredOutputToMoveToNeighbourOpposite(int cellDistance, IntVect
 	if(m_map->IsValidCordinate(neighBour))
 	{
 		SetDesiredOutputForTask(TASK_MOVE, 1);
-		SetDesiredOutputForTask(TASK_MOVEX, neighBour.x);
-		SetDesiredOutputForTask(TASK_MOVEY, neighBour.y);
+		SetDesiredOutputForTask(TASK_MOVEX, static_cast<float>(neighBour.x));
+		SetDesiredOutputForTask(TASK_MOVEY, static_cast<float>(neighBour.y));
 		//m_map->CreateExplosions(m_map->GetMapPosition(neighBour));
 	}
 }
@@ -1224,7 +1314,7 @@ void Entity::UpdateTask()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::EmptyTaskQueue()
+void Entity::ClearTaskQueue()
 {
 	while(!m_taskQueue.empty())
 	{
@@ -1288,10 +1378,6 @@ void Entity::ClearDesiredOutputs()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::SetDesiredOutputForTask(TaskType type,float value)
 {
-	if(value < 0)
-	{
-		int a = 1;
-	}
 	int taskIndex = GetIndexOfTaskInNN(type);
 	if(taskIndex >=0 && taskIndex < m_taskTypeSupported.size())
 	{
@@ -1743,6 +1829,17 @@ IntVector2 Entity::GetRandomTeritaryArea()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : Returns NN location of best games current entities file path
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Entity::GetBestGameFilePath()
+{
+	return "Data\\NN\\BestGame\\" + GetEntityTypeAsString(m_type) + "_" + ToString(m_teamID) + ".txt";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/13
 *@purpose : NIL
 *@param   : NIL
@@ -1766,7 +1863,7 @@ bool Entity::HasResource()
 bool Entity::CreateAndPushIdleTask(IntVector2 cordinate)
 {
 	UNUSED(cordinate);
-	EmptyTaskQueue();
+	ClearTaskQueue();
 	Task *idleTask = new TaskIdle();
 	m_taskQueue.push(idleTask);
 	return true;
@@ -1781,7 +1878,7 @@ bool Entity::CreateAndPushIdleTask(IntVector2 cordinate)
 bool Entity::CreateAndPushMoveTask(IntVector2 cordinate)
 {
 
-	EmptyTaskQueue();
+	ClearTaskQueue();
 	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
 	Task *moveTask = new TaskMove(m_map, this, mapPosition);
 	m_taskQueue.push(moveTask);
@@ -1811,7 +1908,7 @@ bool Entity::CreateAndPushBuildHouseTask(IntVector2 cordinate)
 bool Entity::CreateAndPushGatherResourceTask(IntVector2 cordinate)
 {
 	UNUSED(cordinate);
-	EmptyTaskQueue();
+	ClearTaskQueue();
 	Task *task = new TaskGatherResource(this);
 	m_taskQueue.push(task);	
 	return false;
@@ -1826,7 +1923,7 @@ bool Entity::CreateAndPushGatherResourceTask(IntVector2 cordinate)
 bool Entity::CreateAndPushDropResourceTask(IntVector2 cordinate)
 {
 	UNUSED(cordinate);
-	EmptyTaskQueue();
+	ClearTaskQueue();
 	Task *task = new TaskDropResource(this, FindMyTownCenter());
 	m_taskQueue.push(task);
 	return true;
@@ -1879,7 +1976,7 @@ bool Entity::CreateAndPushBuildArmySpawnerTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushLongRangeAttackTask(IntVector2 cordinate)
 {
-	EmptyTaskQueue();
+	ClearTaskQueue();
 	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
 	Task *task = new TaskLongRangeAttack(m_map, this, m_map->GetTileIndex(mapPosition));
 	m_taskQueue.push(task);
@@ -1894,7 +1991,7 @@ bool Entity::CreateAndPushLongRangeAttackTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushShortRangeAttackTask(IntVector2 cordinate)
 {
-	EmptyTaskQueue();
+	ClearTaskQueue();
 	Vector2 mapPosition = m_map->GetMapPosition(cordinate);
 	Task *task = new TaskShortRangeAttack(m_map, this, m_map->GetTileIndex(mapPosition));
 	m_taskQueue.push(task);

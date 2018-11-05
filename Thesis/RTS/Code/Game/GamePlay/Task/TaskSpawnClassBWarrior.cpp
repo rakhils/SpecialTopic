@@ -9,8 +9,8 @@ TaskSpawnClassBWarrior::TaskSpawnClassBWarrior(Map *map, Entity *entity)
 {
 	m_map    = map;
 	m_entity = entity;
-	m_resourcesNeeded.m_food = 4;
-	m_resourcesNeeded.m_wood = 4;
+	m_resourcesNeeded.m_food = 16;
+	m_resourcesNeeded.m_wood = 16;
 	m_targetPosition = entity->GetPosition();
 }
 

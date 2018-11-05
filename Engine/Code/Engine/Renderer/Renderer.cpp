@@ -2275,6 +2275,7 @@ bool Renderer::CopyFrameBuffer(FrameBuffer *dst, FrameBuffer *src)
 	return true;//GLSucceeded();
 }
 
+
 void Renderer::TakeScreenShotAndSave()
 {
 	int width = Camera::GetCurrentCamera()->m_defaultFrameBuffer->GetDimensions().x;
@@ -2306,6 +2307,40 @@ void Renderer::TakeScreenShotAndSave()
 		stbi_write_png(filename.c_str(), width, height, 4, pixels.data(), 0);
 		stbi_write_png("ScreenShots//screenshot.png", width, height, 4, pixels.data(), 0);
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Renderer::TakeScreenShotAndSave(std::string directoryLocation)
+{
+	int width = Camera::GetCurrentCamera()->m_defaultFrameBuffer->GetDimensions().x;
+	int height = Camera::GetCurrentCamera()->m_defaultFrameBuffer->GetDimensions().y;
+
+	std::vector<GLubyte> pixels;
+	pixels.reserve(width * height * 4);
+	glReadBuffer(GL_FRONT);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glReadPixels(0, 0, width, height, GL_RGBA, GL_UNSIGNED_BYTE, pixels.data());
+	stbi_flip_vertically_on_write(true);
+
+	time_t rawtime;
+	char buffer[80];
+	time(&rawtime);
+
+	struct tm info;
+	localtime_s(&info, &rawtime);
+	strftime(buffer, 50, "%Y %m %d  %H'%M'%S", &info);
+
+	std::string filename = directoryLocation;
+	filename.append(buffer);// +".png");
+	filename.append(".png");
+
+	std::wstring folder(L"ScreenShots");
+	stbi_write_png(filename.c_str(), width, height, 4, pixels.data(), 0);	
 }
 
 std::string Renderer::GetBlendOperationAsString(eBlendOperation operation)

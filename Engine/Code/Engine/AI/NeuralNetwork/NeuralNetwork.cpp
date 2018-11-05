@@ -910,8 +910,12 @@ void NeuralNetwork::StoreToFile(const char* filePathname)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NeuralNetwork::LoadFromFile(const char* filePathname)
+bool NeuralNetwork::LoadFromFile(const char* filePathname)
 {
+	if(!DoFileExist(std::string(filePathname)))
+	{
+		return false;
+	}
 	std::string fileContent		    = GetFileContentAsString(filePathname);
 	std::vector<std::string> values;
 	Split(values,fileContent, ':');
@@ -946,4 +950,5 @@ void NeuralNetwork::LoadFromFile(const char* filePathname)
 		ToDouble(values.at(index++), &weight);
 		m_hiddenLayers->m_bias.m_weights.at(hiddenNeuronWeightIndex) = weight;
 	}
+	return true;
 }
