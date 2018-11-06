@@ -26,8 +26,9 @@ struct MainMenuItems
 };
 enum eNetGameMessage : uint8_t
 {
-	NETMSG_TEST_GAME_MESSAGE = NETMSG_CORE_COUNT, 							 
+	NETMSG_TEST_GAME_MESSAGE = NETMSG_CORE_COUNT,
 	NETMSG_UNRELIABLE_TEST   = 127,
+	NETMSG_RELIABLE_TEST     = 129,
 };
 class Game
 {
@@ -41,6 +42,7 @@ public:
 	int          m_netMsgConnectionIndex = 0;
 	int          m_netMsgCount = 0;
 	int		     m_netMsgMaxUnrealiableMsgCount = 0;
+	bool		 m_reliableMsg = false;
 	float        m_netMsgSendDelay   = .3f;
 	float        m_netMsgSendTime = 0;
 	std::vector<MainMenuItems> m_mainMenuItems;
@@ -63,6 +65,7 @@ public:
 	void UpdateMainMenu(float deltaTime);
 
 	void UpdateUnreliableMsgs(float deltaTime);
+	void UpdateReliableMsgs(float deltaTime);
 
 	void RenderMap();
 	void RenderMainMenu();
@@ -72,3 +75,4 @@ public:
 
 };
 bool OnUnreliableTest(NetMessage &netMsg, NetAddress &netAddress);
+bool OnReliableTest(NetMessage &netMsg, NetAddress &netAddress);

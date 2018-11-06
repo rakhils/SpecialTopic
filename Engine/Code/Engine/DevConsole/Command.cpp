@@ -283,6 +283,7 @@ void CommandStartup()
 	CommandRegister("net_set_session_send_rate", SetUDPSessionSendRate, "SETS UDP SESSION'S SEND RATE");
 	CommandRegister("net_set_connection_send_rate", SetUDPConnectionSendRate, "SETS UDP CONNECTION'S SEND RATE");
 	CommandRegister("net_sim_loss", SetUDPSessionLossRate, "SETS UDP SESSION LOSS RATE");
+	CommandRegister("net_sim_latency", SetUDPSessionMinMaxLatency, "SETS UDP SESSION MIN AND MAX LATENCY");
 
 
 	CommandRegister("setup_udp", SetupUDPConnections, "SETS UP CONNECTION FOR UDP");
@@ -1430,6 +1431,22 @@ void SetUDPSessionLossRate(Command &cmd)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : Sets min and max latency  udp netsession
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetUDPSessionMinMaxLatency(Command &cmd)
+{
+	float minLatency = 0;
+	float maxLatency = 0;
+	cmd.GetNextFloat(&minLatency);
+	cmd.GetNextFloat(&maxLatency);
+	NetSession::GetInstance()->m_minLatency = minLatency;
+	NetSession::GetInstance()->m_maxLatency = maxLatency;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/18
 *@purpose : Netsession recv port
 *@param   : NIL
@@ -1495,6 +1512,7 @@ void SetupUDPConnectionWithoutPortChangeInRemote(Command &cmd)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void AddLocal(Command &cmd)
 {
+	UNUSED(cmd);
 	std::string myIp = Net::GetIP();
 	std::string addConnection0 = "add_connection 0 "+myIp+":"+ToString(NetSession::GetInstance()->s_defaultPort);
 	NetSession::GetInstance()->AddConnection(0, myIp,NetSession::GetInstance()->s_defaultPort);
@@ -1509,6 +1527,7 @@ void AddLocal(Command &cmd)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void AddRemote(Command &cmd)
 {
+	UNUSED(cmd);
 	std::string addConnection0 = "add_connection 1 192.168.0.123:10085";
 	NetSession::GetInstance()->AddConnection(1,"192.168.0.123",10085);
 	RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());

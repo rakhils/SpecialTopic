@@ -27,7 +27,8 @@ void Game::RegisterGameMessage()
 {
 	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_UNRELIABLE_TEST, "unreliable_test", OnUnreliableTest,
 		"TEST AN UNRELIABLE MSGS");
-	
+	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_RELIABLE_TEST,   "reliable_test",   OnReliableTest,
+		"TEST AN RELIABLE MSGS",NETMESSAGE_OPTION_RELIABLE);
 }
 
 // INIT GAME
@@ -197,6 +198,33 @@ void Game::UpdateUnreliableMsgs(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::UpdateReliableMsgs(float deltaTime)
+{
+	if (m_netMsgCount < m_netMsgMaxUnrealiableMsgCount)
+	{
+		m_netMsgSendTime += deltaTime;
+		if (m_netMsgSendTime > m_netMsgSendDelay)
+		{
+			m_netMsgSendTime = 0.f;
+			NetMessage *msg = NetMessage::CreateUnreliableTestMessage(NetSession::GetInstance()->GetConnection(m_netMsgConnectionIndex),
+				m_netMsgCount, m_netMsgMaxUnrealiableMsgCount);
+			NetSession::GetInstance()->m_channel->Append(msg);
+			m_netMsgCount++;
+			if (m_netMsgCount >= m_netMsgMaxUnrealiableMsgCount)
+			{
+				m_netMsgMaxUnrealiableMsgCount = 0;
+				m_netMsgCount = 0;
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/14
 *@purpose : Renders map
 *@param   : NIL
@@ -317,5 +345,21 @@ bool OnUnreliableTest(NetMessage &netMsg, NetAddress &netAddress)
 	netMsg.ReadBytes(&value1, 4);
 	netMsg.ReadBytes(&value2, 4);
 	DevConsole::GetInstance()->PushToOutputText("UNRELIABLE TEST ( " + ToString(value1) + " , " + ToString(value2)+" )");
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : Once a reliable test msg is received
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnReliableTest(NetMessage &netMsg, NetAddress &netAddress)
+{
+	int value1 = 0;
+	int value2 = 0;
+	netMsg.ReadBytes(&value1, 4);
+	netMsg.ReadBytes(&value2, 4);
+	DevConsole::GetInstance()->PushToOutputText("RELIABLE TEST ( " + ToString(value1) + " , " + ToString(value2) + " )");
 	return true;
 }

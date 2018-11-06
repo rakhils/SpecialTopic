@@ -12,6 +12,7 @@ int			NetSession::s_defaultPort = 10084;
 // CONSTRUCTOR
 NetSession::NetSession(int port)
 {
+	UNUSED(port);
 	/*m_channel = new NetConnection(port);
 	m_channel->m_session = this;*/
 	Init();
@@ -289,10 +290,8 @@ void NetSession::ProcessIncomingMessage()
 	if(m_channel != nullptr)
 	{
 		size_t recvd = m_channel->Recv(data, maxsize,&netAddr);
-		if(recvd > m_minHeaderSize)
-		{
-			ProcessMsg(ConstructMsgFromData(netAddr,recvd,data),&netAddr);
-		}
+		std::vector<NetMessage*> netMsgs = ConstructMsgFromData(netAddr, recvd, data);
+		ProcessMsg(netMsgs,&netAddr);
 	}
 
 }
@@ -532,6 +531,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 		{
 			DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
 			NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
+			netmsg->m_header = header;
 			netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
 			recvdPacket.m_currentReadPosition += msgSize - 1;
 			retmsgs.push_back(netmsg);
@@ -553,39 +553,76 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *fromAddress)
 {
-	/*for(int msgIndex = 0;msgIndex < netmsg.size();msgIndex++)
+	float currSec = static_cast<float>(GetCurrentTimeSeconds());
+	for (int msgIndex = 0; msgIndex < netmsg.size(); msgIndex++)
 	{
-		netmsg.at(msgIndex)->m_Lag = GetCurrentTimeSeconds() + GetRandomFloatInRange(m_minLatency, m_maxLatency);
+		netmsg.at(msgIndex)->m_lag = static_cast<float>(GetCurrentTimeSeconds()) + GetRandomFloatInRange(m_minLatency, m_maxLatency);
 	}
 
-	for(int msgIndex = 0;msgIndex < netmsg.size();msgIndex++)
+	for (int laggedMsgindex = 0; laggedMsgindex < m_laggedMsgs.size(); laggedMsgindex++)
 	{
-		for(int msgIndexJ = msgIndex+1;msgIndexJ < netmsg.size();msgIndexJ++)
+		if (m_laggedMsgs.at(laggedMsgindex)->m_lag < static_cast<float>(GetCurrentTimeSeconds()))
 		{
-			//if(netmsg.at(msgIndex))
+			continue;
 		}
+		NetMessageDefinition * msgdef = GetMsgDefinition(m_laggedMsgs.at(laggedMsgindex)->m_definitionName);
+		//if(netmsg.at(msgIndex)->RequiresConnection() && GetConnection(fromAddress)!= nullptr)
+		{
+			(*msgdef->m_callback)(*m_laggedMsgs.at(laggedMsgindex), *fromAddress);
+		}
+		NetConnection *connection = GetConnection(fromAddress);
+		if (connection == nullptr)
+		{
+			continue;
+		}
+
+		connection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - connection->m_startTime;
+		UDPHeader header = m_laggedMsgs.at(laggedMsgindex)->m_header;
+		connection->m_lastReceivedAck = header.m_ack;
+
+		if (header.m_lastReceivedAck != INVALID_PACKET_ACK)
+		{
+			connection->UpdateAckStatus(fromAddress, header.m_lastReceivedAck);
+			connection->ConfirmPacketReceived(header.m_lastReceivedAck);
+		}
+		m_laggedMsgs.erase(m_laggedMsgs.begin() + laggedMsgindex, m_laggedMsgs.begin() + laggedMsgindex + 1);
+		laggedMsgindex--;
 	}
 
-
-	for(int laggedMsgindex = 0;laggedMsgindex < m_laggedMsgs.size();laggedMsgindex++)
-	{
-		for(int msgIndex = 0; msgIndex < netmsg.size();msgIndex++)
-		{
-			//if()
-		}
-	}*/
-
-
-
-	
 	for(int msgIndex = 0; msgIndex < netmsg.size(); msgIndex++)
 	{
+		if(netmsg.at(msgIndex)->m_lag > static_cast<float>(GetCurrentTimeSeconds()))
+		{
+			m_laggedMsgs.push_back(netmsg.at(msgIndex));
+			netmsg.erase(netmsg.begin() + msgIndex, netmsg.begin() + msgIndex + 1);
+			msgIndex --;
+			continue;
+		}
 		NetMessageDefinition * msgdef = GetMsgDefinition(netmsg.at(msgIndex)->m_definitionName);
 		//if(netmsg.at(msgIndex)->RequiresConnection() && GetConnection(fromAddress)!= nullptr)
 		{
 			(*msgdef->m_callback)(*netmsg.at(msgIndex), *fromAddress);
 		}
+
+		NetConnection *connection = GetConnection(fromAddress);
+		if (connection == nullptr)
+		{
+			continue;
+		}
+
+		connection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - connection->m_startTime;
+		UDPHeader header = netmsg.at(msgIndex)->m_header;
+		connection->m_lastReceivedAck = header.m_ack;
+
+		if (header.m_lastReceivedAck != INVALID_PACKET_ACK)
+		{
+			connection->UpdateAckStatus(fromAddress, header.m_lastReceivedAck);
+			connection->ConfirmPacketReceived(header.m_lastReceivedAck);
+		}
 	}
+
+
+	
 	// check for the all function pointers stored in session and call back
 }
 
@@ -595,13 +632,14 @@ void NetSession::ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *fromAdd
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*
 void NetSession::PushOutboundMsgs(NetAddress address,NetMessage *msg)
 {
 	OutBoundMSG outboudMsg;
 	outboudMsg.m_address = address;
 	outboudMsg.m_msg     = msg;
 	m_outboudMsgs.push_back(outboudMsg);
-}
+}*/
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/19
@@ -681,10 +719,8 @@ void NetSession::RenderSessionDetails()
 void NetSession::RenderConnectionColumnDetails(Vector2 startPosition)
 {
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
-	Material *defaultMaterial = Material::AquireResource("default");
-
-	float fontSizeBig = 15;
-	float fontSize    = 10;
+	Renderer::GetInstance()->BindMaterial(textMaterial);
+	float fontSize = 10;
 
 	int indent = 1;
 	std::string entryString = Stringf("%*s%-*s %s %-22s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
@@ -693,6 +729,7 @@ void NetSession::RenderConnectionColumnDetails(Vector2 startPosition)
 	startPosition.x = 25;
 	fontSize = 9;
 	Renderer::GetInstance()->DrawTextOnPoint(entryString, startPosition, fontSize, Rgba::WHITE);
+	delete textMaterial;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -704,7 +741,6 @@ void NetSession::RenderConnectionColumnDetails(Vector2 startPosition)
 void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 startPosition,bool skipHeading)
 {
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
-	Material *defaultMaterial = Material::AquireResource("default");
 	
 	float fontSizeBig = 15;
 	float fontSize = 10;
@@ -725,7 +761,7 @@ void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 start
 	uint16_t rcvack = connection->m_lastReceivedAck;
 	uint16_t prevRcvBit = connection->m_previousReceivedAckBitField;
 	//std::string entryString1;
-
+	Renderer::GetInstance()->BindMaterial(textMaterial);
 	std::string connectionDetailsStr;
 	if (connection == m_channel)
 	{
@@ -739,7 +775,6 @@ void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 start
 	}
 	Renderer::GetInstance()->DrawTextOnPoint(connectionDetailsStr, startPosition, fontSize, Rgba::WHITE);
 	delete textMaterial;
-	delete defaultMaterial;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

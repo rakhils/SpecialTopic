@@ -15,12 +15,6 @@
 * \contact: srsrakhil@gmail.com
 */
 
-
-struct OutBoundMSG
-{
-	NetAddress m_address;
-	NetMessage *m_msg = nullptr;
-};
 typedef bool (*NetMessageCB)(NetMessage &msg, NetAddress &from);
 struct NetMessageDefinition
 {
@@ -65,7 +59,7 @@ public:
 	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;
 	bool											m_initMsgDefinition = false;
 
-	std::vector<OutBoundMSG>						m_outboudMsgs;
+	std::vector<NetMessage*>						m_laggedMsgs;
 	int												m_minHeaderSize = 2;
 	float											m_lossAmount = 0.f;
 	float											m_minLatency = 0.f;
@@ -116,7 +110,7 @@ public:
 	std::vector<NetMessage*>  ConstructMsgFromData(NetAddress &netAddress,size_t size,void *data);
 	void					  ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *address);
 
-	void					  PushOutboundMsgs(NetAddress address,NetMessage *msg);
+	//void					  PushOutboundMsgs(NetAddress address,NetMessage *msg);
 
 	void					  Render();
 	void					  RenderSessionDetails();

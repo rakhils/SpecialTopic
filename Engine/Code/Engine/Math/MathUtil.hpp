@@ -52,6 +52,8 @@ Vector2			 GetAbsolute(Vector2 value);
 Vector3          GetAbsolute(Vector3 value);
 Vector4			 GetAbsolute(Vector4 value);
 double			 GetPower(int value, int power);
+bool			 CycleLess(uint16_t value1, uint16_t value2);
+bool			 CycleGreater(uint16_t value1, uint16_t value2);
 			     
 float		     GetDistance( const Vector2 a, const Vector2 b );
 float		     GetDistanceSquared( const Vector2 a, const Vector2 b );

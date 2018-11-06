@@ -235,6 +235,8 @@ void Initialize(HINSTANCE applicationInstanceHandle)
 	g_theRenderer = Renderer::GetInstance();
 	CommandRegister("quit", QuitApp, "QUITS APPLICATION");
 	CommandRegister("net_unreliable_test", UnreliableTest, "TEST UNRELIABLE");
+	CommandRegister("net_reliable_test", UnreliableTest, "TEST UNRELIABLE");
+
 	//CommandRegister("udp_star", UDPTestStart, "STARTS TEST UDP ");
 	//CommandRegister("udp_stop", UDPTestStop, "STOPS TEST UDP");
 	//CommandRegister("udp_send", UDPTestSend, "UDP SEND TEST");

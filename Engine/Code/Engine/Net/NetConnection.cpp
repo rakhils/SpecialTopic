@@ -7,6 +7,7 @@
 #include "Engine/Net/UDP/PacketTracker.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
 #include "Engine/DevConsole/DevConsole.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 
 NetConnection::NetConnection(int index, NetAddress netAddress)
@@ -110,12 +111,13 @@ size_t NetConnection::SendImmediately(NetMessage msg)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t NetConnection::SendImmediately(int connectionIndex, std::vector<NetMessage*> &msgs)
 {
+	UNUSED(connectionIndex);
 	if(msgs.size() <= 0)
 	{
 		return 0;
 	}
 	NetAddress *address = msgs.at(0)->m_address;
-	int msgCount = msgs.size();
+	//int msgCount = msgs.size();
 	int actualSendCount = 0;
 
 	m_header.m_unrealiableCount			   = static_cast<uint8_t>(1);
@@ -136,7 +138,7 @@ size_t NetConnection::SendImmediately(int connectionIndex, std::vector<NetMessag
 			index--;
 			continue;
 		}
-		m_outboundMsgs.push_back(msgs.at(index));
+		m_unsentUnreliableMsgs.push_back(msgs.at(index));
 	}
 	msgs.clear();
 
@@ -165,7 +167,7 @@ size_t NetConnection::SendImmediately(int connectionIndex, std::vector<NetMessag
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::Append(NetMessage *msg)
 {
-	m_outboundMsgs.push_back(msg);
+	m_unsentUnreliableMsgs.push_back(msg);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,12 +222,12 @@ size_t NetConnection::FlushMsgs()
 	float min = GetMinOf2(m_sendRate, m_session->m_sendRate);
 	if (m_lastSendTime + 1 / min > Clock::GetMasterClock()->total.m_seconds)
 	{
-		if (m_outboundMsgs.size() <= 0)
+		if (m_unsentUnreliableMsgs.size() <= 0)
 		{
 			return 0;
 		}
-		NetAddress *address       = m_outboundMsgs.at(0)->m_address;
-		std::string  defName	  = m_outboundMsgs.at(0)->m_definitionName;
+		NetAddress *address       = m_unsentUnreliableMsgs.at(0)->m_address;
+		std::string  defName	  = m_unsentUnreliableMsgs.at(0)->m_definitionName;
 		NetConnection *connection = m_session->GetConnection(address);
 		if(connection == nullptr)
 		{
@@ -239,21 +241,21 @@ size_t NetConnection::FlushMsgs()
 		m_header.m_ack			   = connection->m_nextSentAck;
 		m_header.m_previousReceivedAckBitfield = connection->m_previousReceivedAckBitField;
 		WriteHeader();
-		if(address->m_port == 10085)
+		/*if(address->m_port == 10085)
 		{
 			int a = 1;
 		}
 		if (address->m_port == 10084)
 		{
 			int a = 1;
-		}
-		for (int index = 0; index < m_outboundMsgs.size(); index++)
+		}*/
+		for (int index = 0; index < m_unsentUnreliableMsgs.size(); index++)
 		{
-			if (WritePayload(m_outboundMsgs.at(index),address))
+			if (WritePayload(m_unsentUnreliableMsgs.at(index),address))
 			{
-				delete m_outboundMsgs.at(index);
+				delete m_unsentUnreliableMsgs.at(index);
 				actualSendCount++;
-				m_outboundMsgs.erase(m_outboundMsgs.begin() + index, m_outboundMsgs.begin() + index + 1);
+				m_unsentUnreliableMsgs.erase(m_unsentUnreliableMsgs.begin() + index, m_unsentUnreliableMsgs.begin() + index + 1);
 				continue;
 			}
 		}
@@ -288,10 +290,6 @@ size_t NetConnection::FlushMsgs()
 size_t NetConnection::Recv(char *data,size_t &length,NetAddress *netAddress)
 {
 	size_t readSize    = m_udpSocket->ReceiveFrom(data, length,netAddress);
-	if(readSize > 1)
-	{
-		int a = 1;
-	}
 	if(GetRandomFloatZeroToOne() < m_session->m_lossAmount)
 	{
 		return 0;
@@ -300,12 +298,7 @@ size_t NetConnection::Recv(char *data,size_t &length,NetAddress *netAddress)
 	{
 		return 0;
 	}
-	
-	if (netAddress->m_port == 10084)
-	{
-		int a = 1;
-	}
-	NetConnection *connection = m_session->GetConnection(netAddress);
+	/*NetConnection *connection = m_session->GetConnection(netAddress);
 	if(connection == nullptr)
 	{
 		return 0;
@@ -314,16 +307,12 @@ size_t NetConnection::Recv(char *data,size_t &length,NetAddress *netAddress)
 	connection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - connection->m_startTime;
 	UDPHeader header   = GetHeaderFromPacket(data);
 	connection->m_lastReceivedAck = header.m_ack;
-	if (netAddress->m_port == 10084)
-	{
-		int a = 1;
-	}
-
+	
 	if (header.m_lastReceivedAck != INVALID_PACKET_ACK)
 	{
 		connection->UpdateAckStatus(netAddress, header.m_lastReceivedAck);
 		connection->ConfirmPacketReceived(header.m_lastReceivedAck);
-	}
+	}*/
 	return readSize;
 }
 
@@ -383,6 +372,86 @@ void NetConnection::IncrementSendAck()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+uint16_t NetConnection::GetNextRealiableIDToSend()
+{
+	return m_highestRealiableID;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+uint16_t NetConnection::GetOldestUnconfirmedRealiableID()
+{
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::ConfirmReliableID(uint16_t id)
+{
+	if(CycleGreater(id,m_highestRealiableID))
+	{
+		
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool NetConnection::HasReceivedRealiableID(uint16_t id)
+{
+	uint16_t maxWindowSize = m_highestRealiableID;
+	uint16_t minWindowSize = maxWindowSize - RELIABLE_WINDOW;
+
+	if(CycleLess(id,minWindowSize))
+	{
+		return true;
+	}
+	return false;
+	//return m_reliableIDs.contains(id);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::ConfirmSentRealiable(uint16_t relID)
+{
+	// go through unconfirmer list and delete it
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool NetConnection::CanSendNewReliableMessage()
+{
+	uint16_t nextReliableID       = GetNextRealiableIDToSend();
+	uint16_t oldestConfirmedRelID = GetOldestUnconfirmedRealiableID();
+	//uint16_t diff = 
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/22
 *@purpose : Confirms packet ack
 *@param   : Ack number
@@ -400,7 +469,7 @@ void NetConnection::ConfirmPacketReceived(uint16_t ack)
 	{
 		return;
 	}
-	float newrtt = Clock::GetMasterClock()->total.m_seconds - (tracker->m_sendTime);
+	double newrtt = Clock::GetMasterClock()->total.m_seconds - (tracker->m_sendTime);
 	m_rtt = m_rtt * 0.9 + newrtt * 0.1; // blend of 90 percent
 	delete it->second;
 	it->second = nullptr;
@@ -639,10 +708,6 @@ bool NetConnection::WritePayload(NetMessage *msg,NetAddress *address)
 	{
 		m_packet.WriteBytes(msg->m_bufferSize, msg->m_buffer);
 	}
-	else
-	{
-		int a = 1;
-	}
 	return true;
 }
 
@@ -654,23 +719,19 @@ bool NetConnection::WritePayload(NetMessage *msg,NetAddress *address)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::SendHeartBeat(NetAddress *address)
 {
-	if(true)
-	{
-		return;
-	}
 	if(m_session->GetConnection(address) == nullptr)
 	{
 		return;
 	}
 
-	float lastHearBeatHPC = m_session->GetConnection(address)->m_lastHeartbeatHPC;
+	float lastHearBeatHPC = m_session->GetConnection(address)->m_lastHeartbeatTime;
 	float heartBeatFreq   = m_session->GetConnection(address)->m_heartBeatFrequency;
 
 	if (lastHearBeatHPC + 1 / heartBeatFreq < Clock::GetMasterClock()->total.m_seconds)
 	{
 		NetMessage *msg = NetMessage::CreateHeartBeatMessage(address);
 		Append(msg);
-		m_session->GetConnection(address)->m_lastHeartbeatHPC = Clock::GetMasterClock()->total.m_seconds;
+		m_session->GetConnection(address)->m_lastHeartbeatTime = Clock::GetMasterClock()->total.m_seconds;
 	}
 }
 
@@ -682,5 +743,21 @@ void NetConnection::SendHeartBeat(NetAddress *address)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::Update(float deltaTime)
 {
+	UNUSED(deltaTime);
 	FlushMsgs();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void UDPHeader::operator=(const UDPHeader &copy)
+{
+	m_connectionindex = copy.m_connectionindex;
+	m_ack = copy.m_ack;
+	m_lastReceivedAck = copy.m_lastReceivedAck;
+	m_previousReceivedAckBitfield = copy.m_previousReceivedAckBitfield;
+	m_unrealiableCount = copy.m_unrealiableCount;
 }

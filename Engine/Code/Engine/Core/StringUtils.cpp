@@ -228,10 +228,10 @@ std::string ToString(float value, float precision)
 	try
 	{
 		floatStr = std::to_string(value);
-		int dotindex = floatStr.find(".");
+		int dotindex = static_cast<int>(floatStr.find("."));
 		if(precision <= 5)
 		{
-			floatStr = floatStr.substr(0, dotindex + precision + 1);
+			floatStr = floatStr.substr(0, dotindex + static_cast<size_t>(precision) + 1);
 		}
 	}
 	catch (const std::exception&)

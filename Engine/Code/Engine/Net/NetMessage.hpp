@@ -29,7 +29,17 @@ enum eNetMessageOption
 	NETMESSAGE_OPTION_IN_ORDER = BIT_FLAG(2),
 	NETMESSAGE_OPTION_RELIALBE_IN_ORDER = NETMESSAGE_OPTION_RELIABLE | NETMESSAGE_OPTION_IN_ORDER,
 };
+#define INVALID_PACKET_ACK (0xffff)
+struct UDPHeader
+{
+	uint8_t  m_connectionindex = static_cast<uint8_t>(-1);
+	uint16_t m_ack = static_cast<uint16_t>(0U);
+	uint16_t m_lastReceivedAck = INVALID_PACKET_ACK;
+	uint16_t m_previousReceivedAckBitfield = static_cast<uint8_t>(0U);
+	uint8_t  m_unrealiableCount = static_cast<uint8_t>(0U);
+	void operator=(const UDPHeader &copy);
 
+};
 class NetMessage : public BytePacker
 {
 
@@ -37,10 +47,12 @@ public:
 	//Member_Variables
 	//char m_localBuffer[ETHERNET_MTU];
 	//NetMessageDefinition* m_definition;
+	UDPHeader			  m_header;
 	uint8_t				  m_definitionIndex;
 	std::string			  m_definitionName;
 	int					  m_connectionIndex;
 	NetAddress			  *m_address = nullptr;
+	float				  m_lag = 0;
 	//Static_Member_Variables
 
 	//Methods
@@ -58,6 +70,7 @@ public:
 	static NetMessage * CreateHeartBeatMessage(NetAddress  *netaddress);
 	static NetMessage * CreateHeartBeatMessage(NetConnection *connection);
 	static NetMessage * CreateUnreliableTestMessage(NetConnection *connection,int count,int maxCount);
+	static NetMessage * CreateReliableTestMessage(NetConnection *connection, int count, int maxCount);
 	static NetMessage * CreateBadMessage();
 protected:
 	//Member_Variables

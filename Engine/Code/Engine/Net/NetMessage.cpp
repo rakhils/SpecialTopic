@@ -1,6 +1,7 @@
 #include "Engine/Net/NetMessage.hpp"
 #include "Engine/Net/NetSession.hpp"
 #include "Engine/Net/NetAddress.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 // 0 -> add
 // 1 -> add_response
@@ -150,6 +151,7 @@ NetMessage * NetMessage::CreateHeartBeatMessage(NetAddress *netaddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 NetMessage * NetMessage::CreateHeartBeatMessage(NetConnection *connection)
 {
+	UNUSED(connection);
 	return nullptr;
 }
 
@@ -162,6 +164,29 @@ NetMessage * NetMessage::CreateHeartBeatMessage(NetConnection *connection)
 NetMessage * NetMessage::CreateUnreliableTestMessage(NetConnection *connection,int count,int maxCount)
 {
 	NetMessage *msg = new NetMessage("unreliable_test");
+	msg->m_address = &connection->m_address;
+	size_t msgSize = 0;
+	// write temporarily 
+	msg->WriteBytes(2, (char*)&msgSize);
+	///////////////
+	msg->WriteCommandIndex();
+	msg->WriteBytes(4, (char*)&count);
+	msg->WriteBytes(4, (char*)&maxCount);
+	msg->m_currentWritePosition = 0;
+	msgSize = msg->m_bufferSize - 2;
+	msg->WriteBytes(2, (char*)&(msgSize));
+	return msg;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateReliableTestMessage(NetConnection *connection, int count, int maxCount)
+{
+	NetMessage *msg = new NetMessage("reliable_test");
 	msg->m_address = &connection->m_address;
 	size_t msgSize = 0;
 	// write temporarily 

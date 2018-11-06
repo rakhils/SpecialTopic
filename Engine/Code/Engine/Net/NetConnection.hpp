@@ -13,19 +13,21 @@
 * \date   : 9/16/2018 7:37:15 PM
 * \contact: srsrakhil@gmail.com
 */
-#define INVALID_PACKET_ACK (0xffff)
 class UDPSocket;
 class NetSession;
 class PacketTracker;
+/*
 struct UDPHeader
 {
-	uint8_t m_connectionindex  = static_cast<uint8_t>(-1);
+	uint8_t  m_connectionindex  = static_cast<uint8_t>(-1);
 	uint16_t m_ack			   = static_cast<uint16_t>(0U);
 	uint16_t m_lastReceivedAck = INVALID_PACKET_ACK;
 	uint16_t m_previousReceivedAckBitfield = static_cast<uint8_t>(0U);
-	uint8_t m_unrealiableCount = static_cast<uint8_t>(0U);
+	uint8_t  m_unrealiableCount = static_cast<uint8_t>(0U);
+	void operator=(const UDPHeader &copy);
 
-};
+};*/
+constexpr uint16_t RELIABLE_WINDOW = 64;
 class NetConnection
 {
 
@@ -34,15 +36,22 @@ public:
 	UDPSocket *					m_udpSocket;
 	NetAddress					m_address;
 	int							m_index;
-	std::vector<NetMessage*>	m_outboundMsgs;
+
+	std::vector<NetMessage*>	m_unsentUnreliableMsgs;
+	std::vector<NetMessage*>	m_unsentReliableMsgs;
+	std::vector<NetMessage*>    m_unconfirmedReliableMessages;
+	std::vector<NetMessage*>    m_laggedMsgs;
+
+	std::vector<uint16_t>       m_reliableIDs;
+	uint16_t					m_highestRealiableID;
 	BytePacker					m_packet;
 	UDPHeader					m_header;
 	NetSession *				m_session;
-	float						m_lastHeartbeatReceivedTime;
-	float						m_lastHeartbeatHPC;
+	double						m_lastHeartbeatReceivedTime = 0;
+	double						m_lastHeartbeatTime  = 0;
 	float						m_heartBeatFrequency = 0.25;
 	float						m_sendRate			 = 20;
-	uint64_t					m_startTime;
+	double					    m_startTime;
 
 	uint16_t					m_nextSentAck = 0U;
 
@@ -52,11 +61,11 @@ public:
 	float						m_loss				= 0.0f;
 	float						m_rtt				= 0.0f;
 
-	float						m_lastSendTime		= 0.f;
-	float						m_lastReceivedTime  = 0.f;
+	double						m_lastSendTime		= 0.f;
+	double						m_lastReceivedTime  = 0.f;
 
-	float						m_AckBitfieldMinPosition = 0;
-	float						m_AckBitfieldMaxPosition = 15;
+	uint16_t					m_AckBitfieldMinPosition = 0;
+	uint16_t					m_AckBitfieldMaxPosition = 15;
 
 	std::map<uint16_t, PacketTracker*> m_trackerMap;
 	uint16_t					m_trackerMaxCount = 16;
@@ -83,6 +92,20 @@ public:
 	void  SetSendRate(float sendRate);
 
 	void IncrementSendAck();
+	// RELIABLE
+	uint16_t GetHighestReceivedRealiableID();
+	uint16_t GetNextRealiableIDToSend();
+	uint16_t GetOldestUnconfirmedRealiableID();
+	bool GetRealiableID(uint16_t *out);
+	bool IsRealiablConfirmed(uint16_t id);
+	void UseRelialeID(uint16_t id);
+	void ConfirmReliableID(uint16_t id);
+	bool HasReceivedRealiableID(uint16_t id);
+
+	// SENDING PART
+	void ConfirmSentRealiable(uint16_t relID);
+	bool CanSendNewReliableMessage();
+
 
 	// ACK
 	void  ConfirmPacketReceived(uint16_t ack);
