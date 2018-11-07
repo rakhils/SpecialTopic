@@ -12,8 +12,8 @@
 enum EntityType
 {
 	CIVILIAN,
-	SHORT_RANGE_WARRIOR,
-	LONG_RANGE_WARRIOR,
+	SHORT_RANGE_ARMY,
+	LONG_RANGE_ARMY,
 	HOUSE,
 	TOWN_CENTER,
 	RESOURCE_FOOD,
@@ -283,7 +283,13 @@ public:
 	IntVector2						GetRelativeCellLocation(float x, float y);
 	IntVector2						GetRandomSafeArea();
 	IntVector2						GetRandomTeritaryArea();
-	std::string						GetBestGameFilePath();
+
+	std::string						GetGlobalBestFilePath();
+	std::string						GetLocalBestFilePath();
+	std::string						GetGlobalBestStatFilePath();
+	std::string						GetLocalBestStatFilePath();
+	
+	bool							IsStationaryEntity();
 	bool							HasResource();
 
 	int								GetIndexOfTaskInNN(TaskType type);

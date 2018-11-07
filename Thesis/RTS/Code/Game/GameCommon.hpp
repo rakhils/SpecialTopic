@@ -51,6 +51,32 @@ extern int				    g_entityMiniMapMaxHeight;
 extern float				g_mapXOffset;
 extern float				g_mapYOffset;
 // NN OUTPUT
+extern int					g_globalMaxScoreTeam1;
+extern int					g_globalMaxScoreTeam2;
+extern int					g_globalMaxScoreArmySpawnerTeam1;
+extern int					g_globalMaxScoreArmySpawnerTeam2;
+extern int					g_globalMaxScoreCivilianTeam1;
+extern int					g_globalMaxScoreCivilianTeam2;
+extern int					g_globalMaxScoreShortRangeArmy1;
+extern int					g_globalMaxScoreShortRangeArmy2;
+extern int					g_globalMaxScoreLongRangeArmy1;
+extern int					g_globalMaxScoreLongRangeArmy2;
+extern int					g_globalMaxScoreTownCenter1;
+extern int					g_globalMaxScoreTownCenter2;
+
+extern int					g_localMaxScoreTeam1;
+extern int					g_localMaxScoreTeam2;
+extern int					g_localMaxScoreArmySpawnerTeam1;
+extern int					g_localMaxScoreArmySpawnerTeam2;
+extern int					g_localMaxScoreCivilianTeam1;
+extern int					g_localMaxScoreCivilianTeam2;
+extern int					g_localMaxScoreShortRangeArmy1;
+extern int					g_localMaxScoreShortRangeArmy2;
+extern int					g_localMaxScoreLongRangeArmy1;
+extern int					g_localMaxScoreLongRangeArmy2;
+extern int					g_localMaxScoreTownCenter1;
+extern int					g_localMaxScoreTownCenter2;
+
 extern float				g_desiredOutputForSameRandomPosition;
 extern float				g_desiredOutputForRandomPosition;
 
@@ -63,10 +89,10 @@ extern float				g_desiredOutputForVeryCriticalPosition;
 extern int					g_minCellDistanceToStartCounting;
 
 // GAME PLAY
-extern float				g_maxResourceCountRequired;
-extern float				g_maxHousesBuilt;
-extern float				g_maxArmySpawnerBuilt;
-extern float				g_maxUnits;
+extern int					g_maxResourceCountRequired;
+extern int					g_maxHousesBuilt;
+extern int					g_maxArmySpawnerBuilt;
+extern int					g_maxUnits;
 
 // MAIN MENU
 extern float				g_mainMenuStartY;

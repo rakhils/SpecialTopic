@@ -359,7 +359,7 @@ void Civilian::TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/27
-*@purpose : NIL
+*@purpose : NI
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -368,7 +368,7 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 	UNUSED(cords);
 	TownCenter* townCenter = (TownCenter*)FindMyTownCenter();
 
-	if (townCenter->m_resourceStat.m_houses < g_maxHousesBuilt)
+	if (townCenter->m_resourceStat.m_armySpawners < g_maxHousesBuilt)
 	{
 		if (townCenter->m_resourceStat.m_food > g_maxResourceCountRequired &&
 			townCenter->m_resourceStat.m_stone > g_maxResourceCountRequired &&

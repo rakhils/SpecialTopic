@@ -203,6 +203,7 @@ public:
 	std::vector<CellSensoryValues>  m_cellSensoryValues;
 
 	MapMode							m_mapMode = MAP_MODE_TRAINING_NONE;
+	std::string						m_folder;
 
 	int								m_currentTileIndex = 0;
 	int								m_maxWidth;
@@ -220,6 +221,8 @@ public:
 
 	void							Initialize();
 	void							InitCellSensoryValues();
+	void							CreateDirectoryForNN();
+	void							InitAndStoreBestScoreFromFile();
 	float							GetHeatMapDistanceFromEntity(IntVector2 cellposition, EntityType type,int teamID);
 	void							InitCamera();
 
@@ -307,12 +310,18 @@ public:
 	IntVector2						GetCordinates(Vector2 mapPosition);
 
 	void							ProcessInputs(float deltaTime);
-	void							ProcessInputsOnHUD(float deltaTime);
 	
 	void							CheckAndUpdateOnWinCondition();
+
 	void							CheckAndSaveBestStats();
-	void							CheckAndSaveBestNNByType(bool saveTeam1,bool saveTeam2);
-	void							SaveCurrentGamePlayNN();
+	void							CheckAndSaveBestTeamStats();
+	void							CheckAndSaveBestEntities();
+
+	void							CheckAndSaveBestEntityNN(EntityType type,int teamID);
+	Entity*							FindLocalBestByEntity(EntityType type,int teamID);
+
+	void							SaveEntityBestGlobalScore(Entity *entity);
+	void							SaveEntityBestLocalScore(Entity *entity);
 
 	void							CheckAndClearEntityOverlap();
 

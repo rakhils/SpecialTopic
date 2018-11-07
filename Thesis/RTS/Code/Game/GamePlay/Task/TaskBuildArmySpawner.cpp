@@ -39,6 +39,14 @@ bool TaskBuildArmySpawner::DoTask(float deltaTime)
 	{
 		return true;
 	}
+	std::vector<Entity*> neighbourEntities = m_map->GetAllEntitiesNearLocation(m_entity->GetPosition(), 1);
+	for (int index = 0; index < neighbourEntities.size(); index++)
+	{
+		if (neighbourEntities.at(index)->IsStationaryEntity())
+		{
+			return true;
+		}
+	}
 	m_buildDelay = 0;
 	m_map->CreateArmySpawner(m_entity->GetPosition(), m_entity->m_teamID);
 	m_entity->UpdateUnitStatForArmySpawnerBuilt(1);

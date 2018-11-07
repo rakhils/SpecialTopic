@@ -22,7 +22,7 @@ ClassAWarrior::ClassAWarrior()
 ClassAWarrior::ClassAWarrior(Map *map,Vector2 position, int teamID)
 {
 	m_map		  = map;
-	m_type		  = SHORT_RANGE_WARRIOR;
+	m_type		  = SHORT_RANGE_ARMY;
 	SetPosition(position);
 	SetTeam(teamID);
 	m_taskTypeSupported.push_back(TASK_SHORT_ATTACK);

@@ -59,8 +59,8 @@ Vector2 Entity::GetPosition()
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case SHORT_RANGE_WARRIOR:
-	case LONG_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
+	case LONG_RANGE_ARMY:
 		return m_disc.center;
 		break;
 	case HOUSE:
@@ -114,7 +114,7 @@ void Entity::InitNeuralNet()
 //	m_neuralNet.CreateNeuralNetwork(m_map->m_maxHeight*m_map->m_maxWidth + g_extraNNInputs, g_hiddenLayerCount, static_cast<int>(m_taskTypeSupported.size()));
 	m_neuralNet.CreateNeuralNetwork(inputCount + g_extraNNInputs, g_hiddenLayerCount, static_cast<int>(m_taskTypeSupported.size()));
 
-	bool loadSuccess = m_neuralNet.LoadFromFile(GetBestGameFilePath().c_str());
+	bool loadSuccess = m_neuralNet.LoadFromFile(GetGlobalBestFilePath().c_str());
 	if(!loadSuccess)
 	{
 		m_neuralNet.SetRandomWeight();
@@ -201,7 +201,7 @@ void Entity::ProcessInputs(float deltaTime)
 			{
 				g_currentSelectedEntity = this;
 			}
-			if (g_currentSelectedEntity->m_type == SHORT_RANGE_WARRIOR || g_currentSelectedEntity->m_type == LONG_RANGE_WARRIOR)
+			if (g_currentSelectedEntity->m_type == SHORT_RANGE_ARMY || g_currentSelectedEntity->m_type == LONG_RANGE_ARMY)
 			{
 				switch (this->m_type)
 				{
@@ -229,8 +229,8 @@ void Entity::ProcessInputs(float deltaTime)
 				case TOWN_CENTER:
 				case HOUSE:
 				case CIVILIAN:
-				case LONG_RANGE_WARRIOR:
-				case SHORT_RANGE_WARRIOR:
+				case LONG_RANGE_ARMY:
+				case SHORT_RANGE_ARMY:
 					g_currentSelectedEntity = this;
 					break;
 				default:
@@ -627,8 +627,11 @@ void Entity::UpdateUnitStatForWoodGathered(int count)
 void Entity::UpdateUnitStatForFoodDropped(int count)
 {
 	m_state.m_resourceFoodDropped += count;
+	if(m_state.m_resourceFoodDropped < g_maxResourceCountRequired)
+	{
+		m_scoreBoard.m_resourceFoodCollected++;
+	}
 	m_map->GetMyScoreBoard(this).m_resourceFoodCollected++;
-	m_scoreBoard.m_resourceFoodCollected++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -641,7 +644,10 @@ void Entity::UpdateUnitStatForStoneDropped(int count)
 {
 	m_state.m_resourceStoneDropped += count;
 	m_map->GetMyScoreBoard(this).m_resourceStoneCollected++;
-	m_scoreBoard.m_resourceStoneCollected++;
+	if(m_state.m_resourceStoneDropped < g_maxResourceCountRequired)
+	{
+		m_scoreBoard.m_resourceStoneCollected++;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -654,7 +660,10 @@ void Entity::UpdateUnitStatForWoodDropped(int count)
 {
 	m_state.m_resourceWoodDropped += count;
 	m_map->GetMyScoreBoard(this).m_resourceWoodCollected++;
-	m_scoreBoard.m_resourceWoodCollected++;
+	if(m_state.m_resourceWoodDropped < g_maxResourceCountRequired)
+	{
+		m_scoreBoard.m_resourceWoodCollected++;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -667,7 +676,14 @@ void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 {
 	m_state.m_numberOfArmySpawnerBuilt += count;
 	m_map->GetMyScoreBoard(this).m_armySpawnersBuilt++;
-	m_scoreBoard.m_armySpawnersBuilt++;
+	if (m_state.m_numberOfArmySpawnerBuilt < g_maxArmySpawnerBuilt)
+	{
+		m_scoreBoard.m_armySpawnersBuilt++;
+	}
+	else
+	{
+		m_scoreBoard.m_armySpawnersBuilt--;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -680,7 +696,14 @@ void Entity::UpdateUnitStatForHouseBuilt(int count)
 {
 	m_state.m_numberOfHouseBuilt += count;
 	m_map->GetMyScoreBoard(this).m_housesBuilt++;
-	m_scoreBoard.m_housesBuilt++;
+	if(m_state.m_numberOfHouseBuilt < g_maxHousesBuilt)
+	{
+		m_scoreBoard.m_housesBuilt--;
+	}
+	else
+	{
+		m_scoreBoard.m_housesBuilt++;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -732,11 +755,11 @@ void Entity::UpdateUnitStatForEnemiesAttacked(Entity* attackedEntity ,int count)
 		m_map->GetMyScoreBoard(this).m_civiilansAttacked++;
 		m_scoreBoard.m_civiilansAttacked++;
 		break;
-	case SHORT_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
 		m_map->GetMyScoreBoard(this).m_shortRangeArmyAttacked++;
 		m_scoreBoard.m_shortRangeArmyAttacked++;
 		break;
-	case LONG_RANGE_WARRIOR:
+	case LONG_RANGE_ARMY:
 		m_map->GetMyScoreBoard(this).m_longRangeArmyAttacked++;
 		m_scoreBoard.m_longRangeArmyAttacked++;
 		break;
@@ -772,11 +795,11 @@ void Entity::UpdateUnitStatForEnemiesKilled(Entity* attackedEntity,int count)
 		m_map->GetMyScoreBoard(this).m_civiliansKilled++;
 		m_scoreBoard.m_civiliansKilled++;
 		break;
-	case SHORT_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
 		m_map->GetMyScoreBoard(this).m_shortRangeArmyKilled++;
 		m_scoreBoard.m_shortRangeArmyKilled++;
 		break;
-	case LONG_RANGE_WARRIOR:
+	case LONG_RANGE_ARMY:
 		m_map->GetMyScoreBoard(this).m_longRangeArmyKilled++;
 		m_scoreBoard.m_longRangeArmyKilled++;
 		break;
@@ -853,7 +876,7 @@ void Entity::UpdateMostFavoredMoveTask(EntityState prevState,IntVector2 cords)
 	{
 		float newPositionSensoryValue = newSensoryValue.m_entityNearness.at(index);
 		float oldPositionSensoryValue = oldSensoryValue.m_entityNearness.at(index);
-		if(m_type == SHORT_RANGE_WARRIOR && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE) && m_teamID == 2)
+		if(m_type == SHORT_RANGE_ARMY && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE) && m_teamID == 2)
 		{
 			oldPositionSensoryValue -= m_map->GetCellDistance(cords,m_map->GetCordinates(prevState.m_position)) / m_map->m_classAWarriors.size();
 		}
@@ -1068,8 +1091,8 @@ void Entity::Render()
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case SHORT_RANGE_WARRIOR:
-	case LONG_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
+	case LONG_RANGE_ARMY:
 		g_theRenderer->DrawCircle(m_disc,GetTeamColor());
 		break;
 	case HOUSE:
@@ -1108,8 +1131,8 @@ void Entity::SetPosition(Vector2 position)
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case SHORT_RANGE_WARRIOR:
-	case LONG_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
+	case LONG_RANGE_ARMY:
 		m_disc.center = m_map->GetMapPosition(m_map->GetTileIndex(position));
 		m_disc.radius = g_radius;
 		break;
@@ -1148,8 +1171,8 @@ void Entity::SetPositionInFloat(Vector2 position)
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case SHORT_RANGE_WARRIOR:
-	case LONG_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
+	case LONG_RANGE_ARMY:
 		m_disc.center = position;
 		m_disc.radius = g_radius;
 		break;
@@ -1408,7 +1431,7 @@ void Entity::TakeDamage(float hitPoint)
 	m_health -= hitPoint;
 	if(m_health <= 0)
 	{
-
+		m_map->CheckAndSaveBestEntityNN(m_type,m_teamID);
 	}
 }
 
@@ -1423,8 +1446,8 @@ bool Entity::IsPositionInside(Vector2 position)
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case SHORT_RANGE_WARRIOR:
-	case LONG_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
+	case LONG_RANGE_ARMY:
 		return m_disc.IsPointInside(position);
 		break;
 	case HOUSE:
@@ -1452,8 +1475,8 @@ bool Entity::IsMovalbleObject()
 	switch (m_type)
 	{
 	case CIVILIAN:
-	case SHORT_RANGE_WARRIOR:
-	case LONG_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
+	case LONG_RANGE_ARMY:
 		return true;
 		break;
 	case HOUSE:
@@ -1638,10 +1661,10 @@ float Entity::GetMiniMapValue()
 	case CIVILIAN:
 		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.30f;
 		break;
-	case SHORT_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
 		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.25f;
 		break;
-	case LONG_RANGE_WARRIOR:
+	case LONG_RANGE_ARMY:
 		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.20f;
 		break;
 	case HOUSE:
@@ -1829,14 +1852,62 @@ IntVector2 Entity::GetRandomTeritaryArea()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/05
-*@purpose : Returns NN location of best games current entities file path
+/*DATE    : 2018/11/06
+*@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string Entity::GetBestGameFilePath()
+std::string Entity::GetGlobalBestFilePath()
 {
-	return "Data\\NN\\BestGame\\" + GetEntityTypeAsString(m_type) + "_" + ToString(m_teamID) + ".txt";
+	return "Data\\NN\\BestGame\\" +ToString(m_teamID)+"\\"+GetEntityTypeAsString(m_type) +"_"+ ToString(m_teamID) + ".txt";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Entity::GetLocalBestFilePath()
+{
+	return "Data\\NN\\" +m_map->m_folder +"\\"+ ToString(m_teamID)+"\\" + GetEntityTypeAsString(m_type) +"_"+ ToString(m_teamID) + ".txt";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/06
+*@purpose : returns best stat global file path
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Entity::GetGlobalBestStatFilePath()
+{
+	return "Data\\NN\\BestGame\\" + ToString(m_teamID) + "\\BestStats\\" + GetEntityTypeAsString(m_type) + "_" + ToString(m_teamID) + "_STATS.txt";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/06
+*@purpose : returns best stat local file path
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string Entity::GetLocalBestStatFilePath()
+{
+	return "Data\\NN\\" + m_map->m_folder +"\\"+ToString(m_teamID)+"\\BestStats\\"+GetEntityTypeAsString(m_type) + "_"+ToString(m_teamID) + "_STATS.txt";
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/06
+*@purpose : Check if the entity is stationary (not moving)
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::IsStationaryEntity()
+{
+	if(m_type == HOUSE || m_type == ARMY_SPAWNER || m_type == TOWN_CENTER || m_type == RESOURCE_FOOD || m_type == RESOURCE_STONE || m_type == RESOURCE_WOOD)
+	{
+		return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2071,10 +2142,10 @@ std::string Entity::GetEntityTypeAsString(EntityType entityType)
 	case CIVILIAN:
 		return "CIVILIAN";
 		break;
-	case SHORT_RANGE_WARRIOR:
+	case SHORT_RANGE_ARMY:
 		return "ARMY SHORT RANGE";
 		break;
-	case LONG_RANGE_WARRIOR:
+	case LONG_RANGE_ARMY:
 		return "ARMY LONG RANGE";
 		break;
 	case HOUSE:

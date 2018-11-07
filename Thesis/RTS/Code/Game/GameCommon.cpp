@@ -33,12 +33,39 @@ float				g_mainMenuStartX = 300.f;
 float				g_mainMenuStartY = 800.f;
 
 // GAME PLAY
-float				g_maxResourceCountRequired = 100;
-float				g_maxHousesBuilt		   = 3;
-float				g_maxArmySpawnerBuilt	   = 2;
-float				g_maxUnits				   = 20;
+
+int				    g_maxResourceCountRequired = 200;
+int				    g_maxHousesBuilt		   = 3;
+int				    g_maxArmySpawnerBuilt	   = 2;
+int				    g_maxUnits				   = 20;
 
 // NN 
+int					g_globalMaxScoreTeam1 = -1;
+int					g_globalMaxScoreTeam2 = -1;
+int					g_globalMaxScoreArmySpawnerTeam1 = -1;
+int					g_globalMaxScoreArmySpawnerTeam2 = -1;
+int					g_globalMaxScoreCivilianTeam1 = -1;
+int					g_globalMaxScoreCivilianTeam2 = -1;
+int					g_globalMaxScoreShortRangeArmy1 = -1;
+int					g_globalMaxScoreShortRangeArmy2 = -1;
+int					g_globalMaxScoreLongRangeArmy1 = -1;
+int					g_globalMaxScoreLongRangeArmy2 = -1;
+int					g_globalMaxScoreTownCenter1 = -1;
+int					g_globalMaxScoreTownCenter2 = -1;
+
+int					g_localMaxScoreTeam1			= -1;
+int					g_localMaxScoreTeam2			= -1;
+int					g_localMaxScoreArmySpawnerTeam1 = -1;
+int					g_localMaxScoreArmySpawnerTeam2 = -1;
+int					g_localMaxScoreCivilianTeam1	= -1;
+int					g_localMaxScoreCivilianTeam2	= -1;
+int					g_localMaxScoreShortRangeArmy1	= -1;
+int					g_localMaxScoreShortRangeArmy2	= -1;
+int					g_localMaxScoreLongRangeArmy1	= -1;
+int					g_localMaxScoreLongRangeArmy2	= -1;
+int					g_localMaxScoreTownCenter1		= -1;
+int					g_localMaxScoreTownCenter2		= -1;
+
 float				g_desiredOutputForSameRandomPosition        = 0.5f;
 float				g_desiredOutputForRandomPosition            = 0.5f;
 

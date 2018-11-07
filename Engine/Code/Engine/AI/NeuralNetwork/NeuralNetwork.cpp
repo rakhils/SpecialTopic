@@ -869,7 +869,7 @@ void NeuralNetwork::CrossOver(NeuralNetwork &second)
 void NeuralNetwork::StoreToFile(const char* filePathname)
 {
 	FILE *fp = FileOpenForWrite(filePathname);
-
+	//Data\NN\BestGame\2
 	for (int inputNeuronIndex = 0; inputNeuronIndex < m_inputs->m_neurons.size(); inputNeuronIndex++)
 	{
 		for (int inputNeuronWeightIndex = 0; inputNeuronWeightIndex < m_inputs->m_neurons.at(inputNeuronIndex).m_weights.size(); inputNeuronWeightIndex++)
