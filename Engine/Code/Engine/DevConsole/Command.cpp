@@ -1455,9 +1455,11 @@ void SetUDPSessionMinMaxLatency(Command &cmd)
 void ListenUDPPort(Command &cmd)
 {
 	int port = -1;
+	int index = -1;
 	cmd.GetNextInt(&port);
+	cmd.GetNextInt(&index);
 	NetSession::GetInstance()->s_defaultPort = port;
-	NetSession::GetInstance()->RestartInPort(port);
+	NetSession::GetInstance()->RestartInPort(index,port);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1471,7 +1473,7 @@ void SetupUDPConnections(Command &cmd)
 	int index = 0;
 	cmd.GetNextInt(&index);
 
-	std::string rcmd = "listen_udp 10085";
+	std::string rcmd = "listen_udp 10085 1";
 	RCS::GetInstance()->SendMsg(index, false, rcmd.c_str());
 	std::string myIp = Net::GetIP();
 	std::string addConnection0 = "add_connection 0 "+myIp+":10084";

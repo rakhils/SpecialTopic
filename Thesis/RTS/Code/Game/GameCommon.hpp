@@ -86,6 +86,7 @@ extern Vector3				g_unitStatHUDTaskInfoPosition;
 extern AABB2				g_unitStatHUDFirstButton;
 extern AABB2				g_unitStatHUDSecondButton;
 
+extern int					g_counter;
 
 void InitVariables();
 void QuitApp(Command &cmd);

@@ -484,6 +484,9 @@
     <ClCompile Include="Net\UDP\PacketTracker.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Net\Packet.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -795,6 +798,7 @@
     <ClInclude Include="Net\NetConnection.hpp" />
     <ClInclude Include="Net\NetPacket.hpp" />
     <ClInclude Include="Net\UDP\PacketTracker.hpp" />
+    <ClInclude Include="Net\Packet.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

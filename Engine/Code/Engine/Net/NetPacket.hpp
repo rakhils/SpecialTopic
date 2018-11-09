@@ -11,6 +11,7 @@
 * \date   : 9/23/2018 10:38:09 AM
 * \contact: srsrakhil@gmail.com
 */
+/*
 #define ETHERNET_MTU 1500  // maximum transmission unit - determined by hardware part of OSI model.
 // 1500 is the MTU of EthernetV2, and is the minimum one - so we use it; 
 #define PACKET_MTU (ETHERNET_MTU - 40 - 8) 
@@ -23,13 +24,13 @@ struct PacketHeader
 	uint16_t m_ack;
 	uint16_t m_lastReceivedAck;
 	uint16_t m_previousReceivedAckBitfield;
-};
+};*/
 class NetPacket : public BytePacker
 {
 
 public:
 	//Member_Variables
-	char m_localBuffer[PACKET_MTU];
+	//char m_localBuffer[PACKET_MTU];
 
 	/*uint16_t m_next_sent_ack = 0U;
 

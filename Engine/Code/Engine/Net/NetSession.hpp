@@ -1,6 +1,6 @@
 #pragma once
 #include <map>
-#include "Engine/Net/NetMessage.hpp"
+#include "Engine/Net/Packet.hpp"
 #include "Engine/Net/NetConnection.hpp"
 #include "Engine/Core/BytePacker.hpp"
 #include "Engine/Math/MathUtil.hpp"
@@ -27,7 +27,6 @@ struct NetMessageDefinition
 		m_name = name;
 		m_callback = callback;
 		m_description = description;
-
 	}
 	NetMessageDefinition(eNetCoreMessage coreMsg, std::string name, NetMessageCB callback, std::string description, eNetMessageOption flag)
 	{
@@ -42,6 +41,12 @@ struct NetMessageDefinition
 		m_coreMsg = coreMsg;
 		m_options = flag;
 	}
+
+	bool IsReliable()
+	{
+		return true;
+	}
+
 	std::string     m_name;
 	NetMessageCB    m_callback;
 	std::string     m_description;
@@ -78,7 +83,7 @@ public:
 	void					  Update(float deltaTime);
 	void					  UpdateConnections(float deltaTime);
 
-	void					  RestartInPort(int port);
+	void					  RestartInPort(int index,int port);
 
 	void					  SetHeartBeatFrequency(float time);
 	void					  SetSimulateLoss(float lossAmount);
@@ -95,7 +100,8 @@ public:
 							  
 	void					  ProcessIncomingMessage();
 	void					  ProcessOutgoingMessage();
-							  
+
+	size_t					  SendPacket(Packet packet);
 	//virtual void			   Send(uint16_t idx, char *data, size_t length);
 	void					  AddBinding(int port);
 	NetConnection*			  AddConnection(int index,std::string ip, int port);
@@ -108,7 +114,8 @@ public:
 	void					  CloseAllConnections();
 							  
 	std::vector<NetMessage*>  ConstructMsgFromData(NetAddress &netAddress,size_t size,void *data);
-	void					  ProcessMsg(std::vector<NetMessage *> netmsg,NetAddress *address);
+	void					  ProcessMsgs(std::vector<NetMessage *> netmsg,NetAddress *address);
+	void					  ProcessMsg(NetMessage *msg, NetAddress *address);
 
 	//void					  PushOutboundMsgs(NetAddress address,NetMessage *msg);
 

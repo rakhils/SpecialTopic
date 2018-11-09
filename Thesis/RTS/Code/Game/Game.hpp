@@ -28,7 +28,7 @@ enum eNetGameMessage : uint8_t
 {
 	NETMSG_TEST_GAME_MESSAGE = NETMSG_CORE_COUNT,
 	NETMSG_UNRELIABLE_TEST   = 127,
-	NETMSG_RELIABLE_TEST     = 129,
+	NETMSG_RELIABLE_TEST     = 128,
 };
 class Game
 {
@@ -39,11 +39,12 @@ public:
 	Camera *     m_camera		 = nullptr;
 	int			 m_currentIndex = 0;
 	bool		 m_init			= false;
+
 	int          m_netMsgConnectionIndex = 0;
 	int          m_netMsgCount = 0;
 	int		     m_netMsgMaxUnrealiableMsgCount = 0;
 	bool		 m_reliableMsg = false;
-	float        m_netMsgSendDelay   = .3f;
+	float        m_netMsgSendDelay   = .05f;
 	float        m_netMsgSendTime = 0;
 	std::vector<MainMenuItems> m_mainMenuItems;
 	// STATIC

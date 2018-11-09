@@ -238,6 +238,15 @@ float GetMax(float a, float b)
 	return b;
 }
 
+uint16_t GetMax(uint16_t a, uint16_t b)
+{
+	if(a > b)
+	{
+		return a;
+	}
+	return b;
+}
+
 float GetMaxOf2(float val1, float val2)
 {
 	if(val1 > val2)

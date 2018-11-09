@@ -30,29 +30,40 @@ enum eNetMessageOption
 	NETMESSAGE_OPTION_RELIALBE_IN_ORDER = NETMESSAGE_OPTION_RELIABLE | NETMESSAGE_OPTION_IN_ORDER,
 };
 #define INVALID_PACKET_ACK (0xffff)
-struct UDPHeader
+#define INVALID_PACKET_RELIABLE (0xffff)
+struct PacketHeader
 {
-	uint8_t  m_connectionindex = static_cast<uint8_t>(-1);
-	uint16_t m_ack = static_cast<uint16_t>(0U);
-	uint16_t m_lastReceivedAck = INVALID_PACKET_ACK;
-	uint16_t m_previousReceivedAckBitfield = static_cast<uint8_t>(0U);
-	uint8_t  m_unrealiableCount = static_cast<uint8_t>(0U);
-	void operator=(const UDPHeader &copy);
-
+	uint8_t  m_connectionindex				= static_cast<uint8_t>(-1);
+	//uint16_t m_reliableID					= static_cast<uint16_t>(0U);
+	uint16_t m_ack							= static_cast<uint16_t>(0U);
+	uint16_t m_lastReceivedAck				= INVALID_PACKET_ACK;
+	uint16_t m_previousReceivedAckBitfield  = static_cast<uint8_t>(0U);
+	uint8_t  m_unrealiableCount				= static_cast<uint8_t>(0U);
+	void operator=(const PacketHeader &copy);
+};
+struct MsgHeader
+{
+	uint8_t  m_messageIndex;
+	uint16_t m_relibaleID;
+	void operator=(const MsgHeader &copy);	
 };
 class NetMessage : public BytePacker
 {
 
 public:
 	//Member_Variables
-	//char m_localBuffer[ETHERNET_MTU];
-	//NetMessageDefinition* m_definition;
-	UDPHeader			  m_header;
+	PacketHeader		  m_packetHeader;
+	MsgHeader			  m_msgHeader;
 	uint8_t				  m_definitionIndex;
 	std::string			  m_definitionName;
 	int					  m_connectionIndex;
 	NetAddress			  *m_address = nullptr;
 	float				  m_lag = 0;
+	bool				  m_isReliable = false;
+	uint16_t			  m_reliableID = 0;
+	float				  m_lastSentTime = 0.f;
+
+	int					  m_count = 0;
 	//Static_Member_Variables
 
 	//Methods
@@ -60,10 +71,12 @@ public:
 	NetMessage(std::string cmd);
 	~NetMessage();
 
-	void WriteCommandIndex();
-	size_t				  GetSize();
-	bool				  RequiresConnection();
-
+	void				WriteCommandIndex();
+	size_t				GetSize();
+	bool				RequiresConnection();
+	size_t				GetHeaderSize();
+	uint16_t			GetReliableID();
+	void				ResetAge();
 	//Static_Methods
 	static NetMessage * CreateAddMessage(float value1, float value2);
 	static NetMessage * CreatePingMessage(std::string msg);
@@ -71,7 +84,6 @@ public:
 	static NetMessage * CreateHeartBeatMessage(NetConnection *connection);
 	static NetMessage * CreateUnreliableTestMessage(NetConnection *connection,int count,int maxCount);
 	static NetMessage * CreateReliableTestMessage(NetConnection *connection, int count, int maxCount);
-	static NetMessage * CreateBadMessage();
 protected:
 	//Member_Variables
 

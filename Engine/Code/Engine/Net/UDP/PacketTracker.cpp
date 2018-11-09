@@ -4,7 +4,7 @@
 PacketTracker::PacketTracker(uint16_t ack)
 {
 	m_ackID = ack;
-	m_sendTime = static_cast<float>(GetCurrentTimeSeconds());
+	m_sendTime = (GetCurrentTimeSeconds());
 	m_valid = true;
 }
 

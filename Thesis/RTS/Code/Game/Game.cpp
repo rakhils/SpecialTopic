@@ -94,7 +94,8 @@ void Game::Update(float deltaTime)
 	default:
 		break;
 	}
-	UpdateUnreliableMsgs(deltaTime);
+	//UpdateUnreliableMsgs(deltaTime);
+	UpdateReliableMsgs(deltaTime);
 }
 
 
@@ -186,7 +187,8 @@ void Game::UpdateUnreliableMsgs(float deltaTime)
 			m_netMsgSendTime = 0.f;
 			NetMessage *msg = NetMessage::CreateUnreliableTestMessage(NetSession::GetInstance()->GetConnection(m_netMsgConnectionIndex), 
 				m_netMsgCount, m_netMsgMaxUnrealiableMsgCount);
-			NetSession::GetInstance()->m_channel->Append(msg);
+			NetConnection *connection = NetSession::GetInstance()->GetConnection(m_netMsgConnectionIndex);
+			connection->Append(msg);
 			m_netMsgCount++;
 			if(m_netMsgCount >= m_netMsgMaxUnrealiableMsgCount)
 			{
@@ -211,7 +213,7 @@ void Game::UpdateReliableMsgs(float deltaTime)
 		if (m_netMsgSendTime > m_netMsgSendDelay)
 		{
 			m_netMsgSendTime = 0.f;
-			NetMessage *msg = NetMessage::CreateUnreliableTestMessage(NetSession::GetInstance()->GetConnection(m_netMsgConnectionIndex),
+			NetMessage *msg = NetMessage::CreateReliableTestMessage(NetSession::GetInstance()->GetConnection(m_netMsgConnectionIndex),
 				m_netMsgCount, m_netMsgMaxUnrealiableMsgCount);
 			NetSession::GetInstance()->m_channel->Append(msg);
 			m_netMsgCount++;
@@ -267,6 +269,7 @@ void Game::RenderMainMenu()
 
 		g_theRenderer->DrawTextOn3DPoint(menuItemStartPosition, Vector3::RIGHT, Vector3::UP, menuItemString, g_fontSize, color);
 		menuItemStartPosition.y -= g_fontSize*4;
+		break;
 	}
 	delete textMaterial;
 }
@@ -340,11 +343,19 @@ void Game::InitSampleNN()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnUnreliableTest(NetMessage &netMsg, NetAddress &netAddress)
 {
+	std::string str = netMsg.GetBitString();
 	int value1 = 0;
 	int value2 = 0;
+	netMsg.m_currentReadPosition = 3;
 	netMsg.ReadBytes(&value1, 4);
 	netMsg.ReadBytes(&value2, 4);
+	g_counter++;
 	DevConsole::GetInstance()->PushToOutputText("UNRELIABLE TEST ( " + ToString(value1) + " , " + ToString(value2)+" )");
+	if(g_counter == value2)
+	{
+		DevConsole::GetInstance()->PushToOutputText("COUNTER - " + ToString(g_counter));
+		g_counter = 0;
+	}
 	return true;
 }
 
@@ -360,6 +371,12 @@ bool OnReliableTest(NetMessage &netMsg, NetAddress &netAddress)
 	int value2 = 0;
 	netMsg.ReadBytes(&value1, 4);
 	netMsg.ReadBytes(&value2, 4);
+	g_counter++;
 	DevConsole::GetInstance()->PushToOutputText("RELIABLE TEST ( " + ToString(value1) + " , " + ToString(value2) + " )");
+	if (g_counter == value2)
+	{
+		DevConsole::GetInstance()->PushToOutputText("COUNTER - " + ToString(g_counter));
+		g_counter = 0;
+	}
 	return true;
 }

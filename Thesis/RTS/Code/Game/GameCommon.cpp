@@ -69,7 +69,7 @@ Vector3				g_unitStatHUDTaskInfoPosition(Vector3::ONE);
 AABB2				g_unitStatHUDFirstButton(Vector2::ONE ,Vector2::ONE);
 AABB2				g_unitStatHUDSecondButton(Vector2::ONE,Vector2::ONE);
 
-
+int					g_counter = 0;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31
 *@purpose : Init all uninitilaized variables

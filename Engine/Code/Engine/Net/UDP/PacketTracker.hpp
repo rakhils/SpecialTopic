@@ -10,15 +10,18 @@
 * \date   : 10/22/2018 6:51:27 PM
 * \contact: srsrakhil@gmail.com
 */
- 
+#define MAX_RELIALBES_PER_PACKET 1
 class PacketTracker
 {
 
 public:
 	//Member_Variables
-	uint64_t m_sendTime;
+	double m_sendTime;
 	uint16_t m_ackID;
 	bool     m_valid = false;
+	uint16_t m_reliableID;
+	uint16_t m_sentReliableIDs[MAX_RELIALBES_PER_PACKET];
+	unsigned int m_reliablesInPacket = 1;
 	//Static_Member_Variables
 
 	//Methods

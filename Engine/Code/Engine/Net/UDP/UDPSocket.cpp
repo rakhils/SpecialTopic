@@ -73,7 +73,7 @@ size_t UDPSocket::SendTo(NetAddress &addr, void *data, size_t const byte_count)
 	SOCKET sock = (SOCKET)m_handle;
 	//int error = WSAGetLastError();
 	int sent = ::sendto(sock, (char *)data, static_cast<int>(byte_count), 0, (sockaddr*)&sockaddrr, static_cast<int>(addr_len));
-	int error1 = WSAGetLastError();
+	//int error1 = WSAGetLastError();
 	if(sent > 0)
 	{
 		return (size_t)sent;

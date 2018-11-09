@@ -456,6 +456,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Net\Packet.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Net\RCS.cpp">
       <SubType>
       </SubType>
@@ -892,6 +896,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Net\NetSession.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\Packet.hpp">
       <SubType>
       </SubType>
     </ClInclude>

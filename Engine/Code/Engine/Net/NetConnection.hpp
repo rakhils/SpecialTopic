@@ -16,18 +16,7 @@
 class UDPSocket;
 class NetSession;
 class PacketTracker;
-/*
-struct UDPHeader
-{
-	uint8_t  m_connectionindex  = static_cast<uint8_t>(-1);
-	uint16_t m_ack			   = static_cast<uint16_t>(0U);
-	uint16_t m_lastReceivedAck = INVALID_PACKET_ACK;
-	uint16_t m_previousReceivedAckBitfield = static_cast<uint8_t>(0U);
-	uint8_t  m_unrealiableCount = static_cast<uint8_t>(0U);
-	void operator=(const UDPHeader &copy);
-
-};*/
-constexpr uint16_t RELIABLE_WINDOW = 64;
+constexpr uint16_t RELIABLE_WINDOW = 4;
 class NetConnection
 {
 
@@ -35,7 +24,7 @@ public:
 	//Member_Variables
 	UDPSocket *					m_udpSocket;
 	NetAddress					m_address;
-	int							m_index;
+	uint8_t						m_index;
 
 	std::vector<NetMessage*>	m_unsentUnreliableMsgs;
 	std::vector<NetMessage*>	m_unsentReliableMsgs;
@@ -43,9 +32,10 @@ public:
 	std::vector<NetMessage*>    m_laggedMsgs;
 
 	std::vector<uint16_t>       m_reliableIDs;
-	uint16_t					m_highestRealiableID;
+	uint16_t					m_highestRealiableID = 0;
+	bool						m_isReliable = false;
 	BytePacker					m_packet;
-	UDPHeader					m_header;
+	PacketHeader				m_header;
 	NetSession *				m_session;
 	double						m_lastHeartbeatReceivedTime = 0;
 	double						m_lastHeartbeatTime  = 0;
@@ -72,8 +62,6 @@ public:
 	int							m_trackerMinPosition = 0;
 	int							m_trackerMaxPosition = m_trackerMaxCount;
 
-
-
 	//Static_Member_Variables
 
 	//Methods
@@ -92,17 +80,21 @@ public:
 	void  SetSendRate(float sendRate);
 
 	void IncrementSendAck();
+	void IncrementRealiableID();
 	// RELIABLE
-	uint16_t GetHighestReceivedRealiableID();
-	uint16_t GetNextRealiableIDToSend();
-	uint16_t GetOldestUnconfirmedRealiableID();
-	bool GetRealiableID(uint16_t *out);
-	bool IsRealiablConfirmed(uint16_t id);
-	void UseRelialeID(uint16_t id);
-	void ConfirmReliableID(uint16_t id);
-	bool HasReceivedRealiableID(uint16_t id);
+	NetMessage * GetUnconfirmedReliableMsg(uint16_t reliableID);
+	bool		 RemoveUnconfirmedReliableMsg(NetMessage *msg);
+	void         DestroyNetMessage(NetMessage *msg);
+
+	void		 ConfirmReceivedReliableID(uint16_t reliableID);
+	bool		 HasReceivedReliableID(uint16_t reliableID);
+
+	uint16_t	 GetNextRealiableIDToSend();
+	uint16_t	 GetOldestUnconfirmedRealiableID();
 
 	// SENDING PART
+	uint16_t GetNextPacketAck();
+	bool     ShouldSentUnconfirmedReliableMsg(NetMessage *msg);
 	void ConfirmSentRealiable(uint16_t relID);
 	bool CanSendNewReliableMessage();
 
@@ -114,10 +106,12 @@ public:
 	void  UpdateAckStatus(NetAddress *netConnection,uint16_t ackReceived);
 	///////////////////////////////////////////////////////////////////
 	//HEADER
-	UDPHeader GetHeaderFromPacket(void *data);
+	PacketHeader GetHeaderFromPacket(void *data);
 	int       GetCommandIndex(void *data,int size);
 	int    GetHeaderSize();
+	
 	void   WriteConnectionIndex();
+	void   WriteReliableID();
 	void   WriteUnrealiableMsgCount();
 	void   WriteNextSentAck();
 	void   WriteLastReceivedAck();
@@ -132,15 +126,18 @@ public:
 
 	void   Update(float deltaTime);
 
-	size_t SendImmediately(int connectionIndex, std::vector<NetMessage*> &msgs);
-	size_t SendImmediately(NetMessage msg);
-	void   Append(NetMessage *msg);
-	void   AddTracker(uint16_t ack);
-	PacketTracker * GetTracker(uint16_t ack);
-	size_t FlushMsgs();
-	size_t Recv(char *data,size_t &maxlength,NetAddress *netAddress);
+	size_t				SendImmediately(int connectionIndex, std::vector<NetMessage*> &msgs);
+	size_t				SendImmediately(NetMessage msg);
+	void				Append(NetMessage *msg);
+	PacketTracker *		AddTracker(uint16_t ack);
+	PacketTracker *		GetTracker(uint16_t ack);
+	size_t				FlushMsgs();
+	size_t				FlushUnConfirmedReliables();
+	size_t				FlushUnSentRealiables();
+	size_t				FlushUnrealiables();
+	size_t				Recv(char *data,size_t &maxlength,NetAddress *netAddress);
 	
-	std::string GetIPPortAsString();
+	std::string			GetIPPortAsString();
 	//Static_Methods
 
 protected:
