@@ -38,11 +38,11 @@ ClassAWarrior::ClassAWarrior(Map *map,Vector2 position, int teamID)
 // DESTRUCTOR
 ClassAWarrior::~ClassAWarrior()
 {
-	Entity::Render();
+	/*Entity::Render();
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
 	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "SA", g_fontSize / 2, GetTeamColor());
-	delete textMaterial;
+	delete textMaterial;*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

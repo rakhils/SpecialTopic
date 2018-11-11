@@ -225,6 +225,7 @@ public:
 	void							InitAndStoreBestScoreFromFile();
 	float							GetHeatMapDistanceFromEntity(IntVector2 cellposition, EntityType type,int teamID);
 	void							InitCamera();
+	void							RestartMap();
 
 	void							SetMapType(MapMode type);
 	void							InitTrainingForCivilianGatherFood();

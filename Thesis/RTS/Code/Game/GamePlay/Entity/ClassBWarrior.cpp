@@ -6,6 +6,7 @@
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Task/TaskMove.hpp"
 #include "Game/GamePlay/Task/TaskLongRangeAttack.hpp"
+#include "Game/GamePlay/Task/TaskIdle.hpp"
 // CONSTRUCTOR
 ClassBWarrior::ClassBWarrior()
 {
@@ -27,17 +28,22 @@ ClassBWarrior::ClassBWarrior(Map *map, Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_LONG_ATTACK);
 	m_taskTypeSupported.push_back(TASK_MOVE);
 	m_taskTypeSupported.push_back(TASK_IDLE);
+	m_taskTypeSupported.push_back(TASK_MOVEX);
+	m_taskTypeSupported.push_back(TASK_MOVEY);
+	InitStates();
 	InitNeuralNet();
+
+	m_taskQueue.push(new TaskIdle());
 }
 
 // DESTRUCTOR
 ClassBWarrior::~ClassBWarrior()
 {
-	Entity::Render();
+	/*Entity::Render();
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
 	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "SA", g_fontSize / 2, GetTeamColor());
-	delete textMaterial;
+	delete textMaterial;*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +114,13 @@ void ClassBWarrior::TrainNN(Task *task)
 void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
 {
 	CopyDesiredOutputs();
-
+	/*Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
+	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
+	{
+	m_state.m_neuralNetPoints++;
+	SetDesiredOutputToMoveToNeighbour(previousState,2);
+	return;
+	}*/
 	switch (task->m_taskType)
 	{
 	case TASK_MOVE:
@@ -132,14 +144,41 @@ void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords)
 {
 	UNUSED(cords);
-	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 2);
-	if (m_entityList.size() > 0)
+	if (m_map->GetCordinates(m_previousState.m_position) == cords)
+	{
+		SetDesiredOutputToMoveToNeighbour(previousState, 2);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+
+
+
+	std::vector<Entity*> entityList = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 2);
+	if (entityList.size() > 0)
 	{
 		SetDesiredOutputForTask(TASK_MOVE, 0);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
-	SetDesiredOutputForTask(TASK_MOVE, 1);
+	entityList.clear();
+	entityList = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
+	if (entityList.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_MOVE, 0);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+	UpdateMostFavoredMoveTask(previousState, cords);
+	float maxValue = -1;
+	int index = GetMostFavoredMoveTask(&maxValue);
+
+	if (previousState.m_favoredMoveTaskCount.at(index) < m_state.m_favoredMoveTaskCount.at(index))
+	{
+		SetDesiredOutputForTask(TASK_MOVE, 1);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+	SetDesiredOutputToMoveToNeighbour(previousState, 2);
 	m_state.m_neuralNetPoints++;
 }
 
@@ -151,13 +190,27 @@ void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassBWarrior::EvaluateLongAttackTask(EntityState previousState, IntVector2 cords)
 {
-	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 2);
-	if (m_entityList.size() > 0)
+	std::vector<Entity*> entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 2);
+	if (entityList.size() > 0)
 	{
 		SetDesiredOutputForTask(TASK_LONG_ATTACK, 1);
 		m_state.m_neuralNetPoints++;
 		Entity* enemy = m_map->GetEntityFromPosition(cords);
-		if (enemy->m_teamID != m_teamID)
+		if (enemy != nullptr && enemy->m_teamID != m_teamID)
+		{
+			return;
+		}
+		SetDesiredOutputToChooseRandomNeighbourLocation(2);
+		return;
+	}
+	entityList.clear();
+	entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 1);
+	if (entityList.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_LONG_ATTACK, 1);
+		m_state.m_neuralNetPoints++;
+		Entity* enemy = m_map->GetEntityFromPosition(cords);
+		if (enemy != nullptr && enemy->m_teamID != m_teamID)
 		{
 			return;
 		}

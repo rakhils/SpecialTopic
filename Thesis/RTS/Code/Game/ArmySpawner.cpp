@@ -5,6 +5,7 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Task/TaskSpawnClassAWarrior.hpp"
 #include "Game/GamePlay/Task/TaskSpawnClassBWarrior.hpp"
+#include "Game/GamePlay/Task/TaskIdle.hpp"
 
 // CONSTRUCTOR
 ArmySpawner::ArmySpawner()
@@ -21,6 +22,7 @@ ArmySpawner::ArmySpawner(Map *map, Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_SPAWN_CLASSA_WARRIOR);
 	m_taskTypeSupported.push_back(TASK_SPAWN_CLASSB_WARRIOR);
 	m_taskTypeSupported.push_back(TASK_IDLE);
+	m_taskQueue.push(new TaskIdle());
 	InitNeuralNet();
 }
 

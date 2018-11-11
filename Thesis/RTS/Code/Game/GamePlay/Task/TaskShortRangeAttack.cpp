@@ -39,6 +39,7 @@ bool TaskShortRangeAttack::DoTask(float deltaTime)
 	m_entity->SetPositionInFloat(currentPosition);*/
 
 	Entity *entityToBeAttacked = m_entity->m_map->GetEntityFromPosition(m_targetPosition);
+
 	if (entityToBeAttacked != nullptr )
 	{
 		if(entityToBeAttacked->m_teamID != 0 && entityToBeAttacked->m_teamID != m_entity->m_teamID)

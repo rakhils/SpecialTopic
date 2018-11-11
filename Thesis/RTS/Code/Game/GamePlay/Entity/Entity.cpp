@@ -508,11 +508,25 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 		break;
 	case TASK_LONG_ATTACK:
 	{
+		IntVector2 currentPosition = m_map->GetCordinates(m_previousState.m_position);
+
+		double taskXPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
+		double taskYPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
+
+		taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position, 4, 4);
+		//m_map->CreateExplosions(m_map->GetMapPosition(taskPosition), Rgba::RED);
 		CreateAndPushLongRangeAttackTask(taskPosition);
 	}
 		break;
 	case TASK_SHORT_ATTACK:
 	{
+		IntVector2 currentPosition = m_map->GetCordinates(m_previousState.m_position);
+
+		double taskXPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
+		double taskYPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
+
+		taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position,2,2);
+		
 		CreateAndPushShortRangeAttackTask(taskPosition);
 	}
 		break;
@@ -1292,13 +1306,10 @@ void Entity::SetDesiredOutputToMoveToPrevPosition()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance)
 {
-	IntVector2 neighbour = m_map->GetRandomNeighbour(GetCordinates(), cellDistance);
-	float xPosition = RangeMapFloat(static_cast<float>(neighbour.x), 0.f, static_cast<float>(m_map->m_maxWidth - 1), 0.f, 1.f);
-	float yPosition = RangeMapFloat(static_cast<float>(neighbour.y), 0.f, static_cast<float>(m_map->m_maxHeight - 1), 0.f, 1.f);
+	double xPosition = GetRandomDoubleInRange(0, 1);
+	double yPosition = GetRandomDoubleInRange(0, 1);
 	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
 	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
-
-	//m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1785,17 +1796,74 @@ IntVector2 Entity::GetTaskPositonFromNNOutput(Vector2 prevPosition)
 	int mapMinX = GetMax(minX, 0);
 	int mapMinY = GetMax(minY, 0);
 
-	int mapMaxX = GetMin(maxX, m_map->m_maxWidth);
-	int mapMaxY = GetMin(maxY, m_map->m_maxHeight);
+	int mapMaxX = GetMin(maxX, m_map->m_maxWidth - 1);
+	int mapMaxY = GetMin(maxY, m_map->m_maxHeight - 1);
 
 
 	double taskXPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
 	double taskYPosition    = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
-	float xRangedValue = RangeMapFloat(static_cast<float>(taskXPosition), 0.f, 1.f, mapMinX, static_cast<float>(mapMaxX));
-	float yRangedValue = RangeMapFloat(static_cast<float>(taskYPosition), 0.f, 1.f, mapMinY, static_cast<float>(mapMaxY));
-	int xPos		   = ClampInt(static_cast<int>(xRangedValue), 0, m_map->m_maxWidth - 1);
-	int yPos		   = ClampInt(static_cast<int>(yRangedValue), 0, m_map->m_maxHeight - 1);
+	float xRangedValue = RangeMapFloat(static_cast<float>(taskXPosition), 0.f, 1.f, static_cast<float>(mapMinX) - 0.49, static_cast<float>(mapMaxX) + 0.49);
+	float yRangedValue = RangeMapFloat(static_cast<float>(taskYPosition), 0.f, 1.f, static_cast<float>(mapMinY) - 0.49, static_cast<float>(mapMaxY) + 0.49);
+	int xPos = ClampInt(RoundToNearestInt(xRangedValue), 0, m_map->m_maxWidth  - 1);
+	int yPos = ClampInt(RoundToNearestInt(yRangedValue), 0, m_map->m_maxHeight - 1);
 	return IntVector2(xPos,yPos);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/09
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Entity::GetTaskPositonFromNNOutput(Vector2 prevPosition, int width, int height)
+{
+	int xPosition = m_map->GetCordinates(prevPosition).x;
+	int yPosition = m_map->GetCordinates(prevPosition).y;
+
+	int minX = xPosition - width / 2;
+	int minY = yPosition - height / 2;
+
+	int maxX = xPosition + width / 2;
+	int maxY = yPosition + height / 2;
+
+	/*if (minX < 0)
+	{
+		maxX += (0 - minX);
+	}
+	if (minY < 0)
+	{
+		maxY += (0 - minY);
+	}
+	if (maxX > m_map->m_maxWidth)
+	{
+		minX -= (maxX - m_map->m_maxWidth);
+	}
+	if (maxY > m_map->m_maxHeight)
+	{
+		minY -= (maxY - m_map->m_maxHeight);
+	}*/
+
+
+
+	int mapMinX = GetMax(minX, 0);
+	int mapMinY = GetMax(minY, 0);
+
+	int mapMaxX = GetMin(maxX, m_map->m_maxWidth  - 1);
+	int mapMaxY = GetMin(maxY, m_map->m_maxHeight - 1);
+
+
+	double taskXPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
+	double taskYPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
+
+	float xRangedValue = RangeMapFloat(static_cast<float>(taskXPosition), 0.f, 1.f, static_cast<float>(mapMinX) - 0.48, static_cast<float>(mapMaxX) + 0.48);
+	float yRangedValue = RangeMapFloat(static_cast<float>(taskYPosition), 0.f, 1.f, static_cast<float>(mapMinY) - 0.48, static_cast<float>(mapMaxY) + 0.48);
+	int xPos = ClampInt(RoundToNearestInt(xRangedValue), 0, m_map->m_maxWidth - 1);
+	int yPos = ClampInt(RoundToNearestInt(yRangedValue), 0, m_map->m_maxHeight - 1);
+	if(yPos == 4)
+	{
+		int a = 1;
+	}
+	return IntVector2(xPos, yPos);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2143,28 +2211,28 @@ std::string Entity::GetEntityTypeAsString(EntityType entityType)
 		return "CIVILIAN";
 		break;
 	case SHORT_RANGE_ARMY:
-		return "ARMY SHORT RANGE";
+		return "SHORT_RANGE_ARMY";
 		break;
 	case LONG_RANGE_ARMY:
-		return "ARMY LONG RANGE";
+		return "LONG_RANGE_ARMY";
 		break;
 	case HOUSE:
 		return "HOUSE";
 		break;
 	case TOWN_CENTER:
-		return "TOWN CENTER";
+		return "TOWN_CENTER";
 		break;
 	case RESOURCE_FOOD:
-		return "RESOURCE FOOD";
+		return "RESOURCE_FOOD";
 		break;
 	case RESOURCE_STONE:
-		return "RESOURCE STONE";
+		return "RESOURCE_STONE";
 		break;
 	case RESOURCE_WOOD:
-		return "RESOURCE WOOD";
+		return "RESOURCE_WOOD";
 		break;
 	case ARMY_SPAWNER:
-		return "ARMY SPAWNER";
+		return "ARMY_SPAWNER";
 		break;
 	default:
 		break;

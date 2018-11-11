@@ -73,6 +73,7 @@ void Map::Initialize()
 	InitCellSensoryValues();
 	CreateDirectoryForNN();
 	InitAndStoreBestScoreFromFile();
+	m_gameFinished = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -92,7 +93,12 @@ void Map::InitCellSensoryValues()
 
 		cellValue.m_entityNearness.at(FAVORED_MOVETO_TEAM1_TOWNCENTER) = GetHeatMapDistanceFromEntity(GetCordinates(index), TOWN_CENTER, 1);
 		cellValue.m_entityNearness.at(FAVORED_MOVETO_TEAM2_TOWNCENTER) = GetHeatMapDistanceFromEntity(GetCordinates(index), TOWN_CENTER, 2);
-		m_cellSensoryValues.push_back(cellValue);
+		if(index >= m_cellSensoryValues.size())
+		{
+			m_cellSensoryValues.push_back(cellValue);
+			continue;
+		}
+		m_cellSensoryValues.at(index) = cellValue;
 	}
 }
 
@@ -331,6 +337,10 @@ float Map::GetHeatMapDistanceFromEntity(IntVector2 cellposition, EntityType type
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitCamera()
 {
+	if(m_camera != nullptr)
+	{
+		return;
+	}
 	int width  = Windows::GetInstance()->GetDimensions().x;
 	int height = Windows::GetInstance()->GetDimensions().y;
 	m_camera   = new OrthographicCamera();
@@ -341,6 +351,80 @@ void Map::InitCamera()
 	m_camera->m_transform.SetLocalPosition(Vector3(static_cast<float>(width / 2), static_cast<float>(height / 2), 0));
 	Camera::SetGameplayCamera(m_camera);
 	Camera::SetCurrentCamera(m_camera);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/09
+*@purpose : Restarts the current map
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RestartMap()
+{
+	/*std::vector<ArmySpawner*>	    m_armySpawners;
+	std::vector<Civilian*>			m_civilians;
+	std::vector<ClassAWarrior*>		m_classAWarriors;
+	std::vector<ClassBWarrior*>		m_classBWarriors;
+	std::vector<House*>				m_houses;
+	std::vector<TownCenter*>		m_townCenters;
+	std::vector<Resource*>			m_resources;
+
+	std::vector<Explosion*>			m_explosions;
+	std::vector<DebugEntity*>       m_debugEntities;
+
+	std::vector<Entity*>			m_movableEntities;
+	std::vector<Entity*>			m_standAloneEntities;
+	std::vector<EntityType>			m_entitiesHavingTraning;*/
+	for(int index = 0;index < m_armySpawners.size();index++)
+	{
+		delete m_armySpawners.at(index);
+	}
+	for (int index = 0; index < m_civilians.size(); index++)
+	{
+		delete m_civilians.at(index);
+	}
+	for (int index = 0; index < m_classAWarriors.size(); index++)
+	{
+		delete m_classAWarriors.at(index);
+	}
+	for (int index = 0; index < m_classBWarriors.size(); index++)
+	{
+		delete m_classBWarriors.at(index);
+	}
+	for (int index = 0; index < m_houses.size(); index++)
+	{
+		delete m_houses.at(index);
+	}
+	for (int index = 0; index < m_townCenters.size(); index++)
+	{
+		delete m_townCenters.at(index);
+	}
+	for (int index = 0; index < m_explosions.size(); index++)
+	{
+		delete m_explosions.at(index);
+	}
+	for (int index = 0; index < m_resources.size(); index++)
+	{
+		delete m_resources.at(index);
+	}
+	for (int index = 0; index < m_debugEntities.size(); index++)
+	{
+		delete m_debugEntities.at(index);
+	}
+	m_armySpawners			.clear();
+	m_civilians				.clear();
+	m_classAWarriors		.clear();
+	m_classBWarriors		.clear();
+	m_houses				.clear();
+	m_townCenters			.clear();
+	m_resources				.clear();
+	m_explosions			.clear();
+	m_debugEntities			.clear();
+	m_movableEntities		.clear();
+	m_standAloneEntities	.clear();
+	m_entitiesHavingTraning .clear();
+	Initialize();
+	g_currentSelectedEntity = nullptr;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -362,10 +446,10 @@ void Map::SetMapType(MapMode type)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForCivilianGatherFood()
 {
+	m_entitiesHavingTraning.clear();
 	m_entitiesHavingTraning.push_back(CIVILIAN);
 	m_maxWidth  = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
-	g_hiddenLayerCount = 50;
 
 	CreateTownCenter(GetMapPosition(6), 1);
 	CreateResources(GetMapPosition(10),  RESOURCE_FOOD);
@@ -384,7 +468,7 @@ void Map::InitTrainingForCivilianGatherAllResources()
 {
 	m_maxWidth  = 8; //g_mapMaxWidth;
 	m_maxHeight = 8;// g_mapMaxHeight;
-	g_hiddenLayerCount = 50;
+	m_entitiesHavingTraning.clear();
 	m_entitiesHavingTraning.push_back(CIVILIAN);
 
 	CreateTownCenter(GetMapPosition(7), 1);
@@ -420,6 +504,7 @@ void Map::InitTrainingForCivilianBuildAll()
 {
 	m_maxWidth = 8;
 	m_maxHeight = 8;
+	m_entitiesHavingTraning.clear();
 	m_entitiesHavingTraning.push_back(CIVILIAN);
 
 	CreateTownCenter(GetMapPosition(7), 1);
@@ -443,6 +528,7 @@ void Map::InitTrainingForCivilian()
 {
 	m_maxWidth = 8;
 	m_maxHeight = 8;
+	m_entitiesHavingTraning.clear();
 	m_entitiesHavingTraning.push_back(CIVILIAN);
 
 	CreateTownCenter(GetMapPosition(7), 1);
@@ -481,11 +567,11 @@ void Map::InitTrainingForTownCenter()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitTrainingForShortRangeArmy()
 {
+	m_entitiesHavingTraning.clear();
 	m_entitiesHavingTraning.push_back(SHORT_RANGE_ARMY);
 
 	m_maxWidth = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
-	g_hiddenLayerCount = 50;
 
 	CreateTownCenter(GetMapPosition(57), 1);
 	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
@@ -507,6 +593,8 @@ void Map::InitTrainingForLongRangeArmy()
 	m_maxWidth = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
 
+	m_entitiesHavingTraning.clear();
+	m_entitiesHavingTraning.push_back(LONG_RANGE_ARMY);
 	CreateTownCenter(GetMapPosition(7), 1);
 	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
 
@@ -525,6 +613,7 @@ void Map::InitTrainingForArmySpawner()
 {
 	m_maxWidth = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
+	m_entitiesHavingTraning.clear();
 
 	CreateTownCenter(GetMapPosition(7), 1);
 	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
@@ -561,7 +650,7 @@ void Map::InitNonTrainingMode()
 
 	m_maxWidth  = 40;
 	m_maxHeight = 20;
-	g_hiddenLayerCount = 100;
+	m_entitiesHavingTraning.clear();
 	m_entitiesHavingTraning.push_back(CIVILIAN);
 	m_entitiesHavingTraning.push_back(SHORT_RANGE_ARMY);
 	m_entitiesHavingTraning.push_back(LONG_RANGE_ARMY);
@@ -733,10 +822,7 @@ void Map::CreateResources(Vector2 position,EntityType type)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::CreateExplosions(Vector2 position,Rgba color)
 {
-	if(true)
-	{
-		return;
-	}
+	if (true)return;
 	Explosion *explosion = new Explosion(position);
 	explosion->m_color = color;
 	m_explosions.push_back(explosion);
@@ -849,6 +935,10 @@ bool Map::IsResource(Entity * entity)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitMiniMap()
 {
+	if(m_minimapValue.size() >= m_maxHeight * m_maxWidth)
+	{
+		return;
+	}
 	for(int indexY = 0;indexY < m_maxHeight;indexY++)
 	{
 		for(int indexX = 0;indexX < m_maxWidth;indexX++)
@@ -2241,6 +2331,8 @@ void Map::CheckAndUpdateOnWinCondition()
 	if(m_gameFinished)
 	{
 		CheckAndSaveBestStats();
+		
+		g_isCurrentlyTraining = false;
 		return;
 	}
 	for(size_t townCenterIndex = 0;townCenterIndex < m_townCenters.size();townCenterIndex++)
@@ -2248,7 +2340,10 @@ void Map::CheckAndUpdateOnWinCondition()
 		if(m_townCenters.at(townCenterIndex)->m_health <= 0)
 		{
 			m_gameFinished = true;
-			g_isCurrentlyTraining = false;
+			if(g_isCurrentlyTraining)
+			{
+				g_isCurrentlyTraining = false;
+			}
 			return;
 		}
 	}
@@ -2266,6 +2361,7 @@ void Map::CheckAndSaveBestStats()
 	{
 		return;
 	}
+	Renderer::GetInstance()->TakeScreenShotAndSave("Data\\NN\\" + m_folder + "\\");
 	m_isScoreBoardUpdated = true;
 	CheckAndSaveBestTeamStats();
 	CheckAndSaveBestEntities();
@@ -2285,11 +2381,11 @@ void Map::CheckAndSaveBestTeamStats()
 	{
 		m_team1.SaveToFile("Data\\NN\\BestGame\\1\\BestStats\\TEAM_1_STATS.txt");
 	}
-	if (m_team2.m_totalScore > g_globalMaxScoreTeam1)
+	if (m_team2.m_totalScore > g_globalMaxScoreTeam2)
 	{
 		m_team2.SaveToFile("Data\\NN\\BestGame\\2\\BestStats\\TEAM_2_STATS.txt");
 	}
-	m_team2.SaveToFile(("Data\\NN\\" + m_folder+"\\1\\BestStats\\" + "TEAM_1_STATS.txt").c_str());
+	m_team1.SaveToFile(("Data\\NN\\" + m_folder+"\\1\\BestStats\\" + "TEAM_1_STATS.txt").c_str());
 	m_team2.SaveToFile(("Data\\NN\\" + m_folder+"\\2\\BestStats\\" + "TEAM_2_STATS.txt").c_str());
 }
 
@@ -2353,7 +2449,7 @@ void Map::CheckAndSaveBestEntityNN(EntityType type,int teamID)
 		{
 			SaveEntityBestGlobalScore(entity);
 		}
-		if (teamID == 1 && entity->m_scoreBoard.m_totalScore > g_globalMaxScoreLongRangeArmy1)
+		if (teamID == 2 && entity->m_scoreBoard.m_totalScore > g_globalMaxScoreLongRangeArmy2)
 		{
 			SaveEntityBestGlobalScore(entity);
 		}
@@ -2363,7 +2459,7 @@ void Map::CheckAndSaveBestEntityNN(EntityType type,int teamID)
 		{
 			SaveEntityBestGlobalScore(entity);
 		}
-		if (teamID == 1 && entity->m_scoreBoard.m_totalScore > g_globalMaxScoreTownCenter2)
+		if (teamID == 2 && entity->m_scoreBoard.m_totalScore > g_globalMaxScoreTownCenter2)
 		{
 			SaveEntityBestGlobalScore(entity);
 		}
@@ -2373,7 +2469,7 @@ void Map::CheckAndSaveBestEntityNN(EntityType type,int teamID)
 		{
 			SaveEntityBestGlobalScore(entity);
 		}
-		if (teamID == 1 && entity->m_scoreBoard.m_totalScore > g_globalMaxScoreArmySpawnerTeam2)
+		if (teamID == 2 && entity->m_scoreBoard.m_totalScore > g_globalMaxScoreArmySpawnerTeam2)
 		{
 			SaveEntityBestGlobalScore(entity);
 		}
@@ -2444,6 +2540,10 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				}
 			}
 		}
+		if (returnIndex >= 0)
+		{
+			return m_classAWarriors.at(returnIndex);
+		}
 		break;
 	case LONG_RANGE_ARMY:
 		for (size_t index = 0; index < m_classBWarriors.size(); index++)
@@ -2466,6 +2566,10 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 					returnIndex = index;
 				}
 			}
+		}
+		if (returnIndex >= 0)
+		{
+			return m_classBWarriors.at(returnIndex);
 		}
 		break;
 	case TOWN_CENTER:
@@ -2490,6 +2594,10 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				}
 			}
 		}
+		if (returnIndex >= 0)
+		{
+			return m_townCenters.at(returnIndex);
+		}
 		break;
 	case ARMY_SPAWNER:
 		for (size_t index = 0; index < m_armySpawners.size(); index++)
@@ -2512,6 +2620,10 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 					returnIndex = index;
 				}
 			}
+		}
+		if (returnIndex >= 0)
+		{
+			return m_armySpawners.at(returnIndex);
 		}
 		break;
 	default:

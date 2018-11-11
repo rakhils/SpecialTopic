@@ -125,7 +125,8 @@ void Game::UpdateMap(float deltaTime)
 	{
 		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_E))
 		{
-			g_isCurrentlyTraining = g_isCurrentlyTraining ? false : true;
+			g_isCurrentlyTraining        = g_isCurrentlyTraining ? false : true;
+			g_isGlobalyCurrentlyTraining = g_isGlobalyCurrentlyTraining ? false : true;
 		}
 		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_T))
 		{
@@ -134,6 +135,20 @@ void Game::UpdateMap(float deltaTime)
 		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_ESCAPE))
 		{
 			isQuitTriggered = true;
+		}
+		if(m_map->m_gameFinished)
+		{
+			g_lastTrainingStopTime += deltaTime;
+			if(g_lastTrainingStopTime > 5)
+			{
+				if(g_isGlobalyCurrentlyTraining)
+				{
+					g_isCurrentlyTraining = true;
+				}
+				g_lastTrainingStopTime = 0.f;
+				m_map->RestartMap();
+				m_map->m_gameFinished = false;
+			}
 		}
 		
 		m_map->Update(deltaTime);

@@ -5,6 +5,7 @@
 
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Task/TaskSpawnVillager.hpp"
+#include "Game/GamePlay/Task/TaskIdle.hpp"
 // CONSTRUCTOR
 TownCenter::TownCenter()
 {
@@ -19,6 +20,7 @@ TownCenter::TownCenter(Map *map,Vector2 position, int teamId)
 	SetPosition(position);
 	m_taskTypeSupported.push_back(TASK_SPAWN_VILLAGER);
 	m_taskTypeSupported.push_back(TASK_IDLE);
+	m_taskQueue.push(new TaskIdle());
 	InitNeuralNet();
 }
 

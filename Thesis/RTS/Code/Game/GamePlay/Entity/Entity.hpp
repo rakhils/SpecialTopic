@@ -280,6 +280,7 @@ public:
 	double							GetTaskValueFromDesiredOutput(TaskType type);
 	TaskType						GetTaskFromNNOutput(double &max);
 	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition);
+	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition,int width,int height);
 	IntVector2						GetRelativeCellLocation(float x, float y);
 	IntVector2						GetRandomSafeArea();
 	IntVector2						GetRandomTeritaryArea();

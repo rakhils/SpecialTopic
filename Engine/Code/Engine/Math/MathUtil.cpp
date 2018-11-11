@@ -76,6 +76,20 @@ Vector3 GetRandomPoint(Vector3 minBounds, Vector3 maxBounds)
 	return Vector3(x, y, z);
 }
 
+double GetRandomDoubleInRange(float minInclusive, float maxExclusive)
+{
+	double random;
+	if (minInclusive < maxExclusive)
+	{
+		random = minInclusive + ((float)rand() / ((float)RAND_MAX / (maxExclusive - minInclusive)));
+	}
+	else
+	{
+		random = maxExclusive + ((float)rand() / ((float)RAND_MAX / (minInclusive - maxExclusive)));
+	}
+	return random;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/15
 *@purpose : Returns a random character from a-z;
