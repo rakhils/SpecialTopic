@@ -187,14 +187,14 @@ bool Packet::WriteMsgHeader(MsgHeader header)
 bool Packet::WriteMsg(NetMessage *msg)
 {
 	size_t msgSize = msg->m_bufferSize + 1;
-	if(msg->m_isReliable)
+	/*if(msg->m_isReliable)
 	{
 		msgSize += 2;
 		m_packet.WriteBytes(2, (void*)&(msgSize));
 		m_packet.WriteBytes(1, (void *)&msg->m_definitionIndex);
 		m_packet.WriteBytes(2, (void*)&msg->m_reliableID);
 	}
-	else
+	else*/
 	{
 		m_packet.WriteBytes(2, (void*)&(msgSize));
 		m_packet.WriteBytes(1, (void *)&msg->m_definitionIndex);

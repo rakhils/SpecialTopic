@@ -33,13 +33,14 @@ public:
 
 	std::vector<uint16_t>       m_reliableIDs;
 	uint16_t					m_highestRealiableID = 0;
+	uint16_t					m_oldestUnconfirmedReliableID = 0;
 	bool						m_isReliable = false;
 	BytePacker					m_packet;
 	PacketHeader				m_header;
 	NetSession *				m_session;
 	double						m_lastHeartbeatReceivedTime = 0;
 	double						m_lastHeartbeatTime  = 0;
-	float						m_heartBeatFrequency = 0.25;
+	float						m_heartBeatFrequency = .25;
 	float						m_sendRate			 = 20;
 	double					    m_startTime;
 
@@ -58,7 +59,7 @@ public:
 	uint16_t					m_AckBitfieldMaxPosition = 15;
 
 	std::map<uint16_t, PacketTracker*> m_trackerMap;
-	uint16_t					m_trackerMaxCount = 16;
+	uint16_t					m_trackerMaxCount = 128;
 	int							m_trackerMinPosition = 0;
 	int							m_trackerMaxPosition = m_trackerMaxCount;
 
@@ -86,17 +87,17 @@ public:
 	bool		 RemoveUnconfirmedReliableMsg(NetMessage *msg);
 	void         DestroyNetMessage(NetMessage *msg);
 
-	void		 ConfirmReceivedReliableID(uint16_t reliableID);
+	void		 AddReceivedRealiableID(uint16_t reliableID);
 	bool		 HasReceivedReliableID(uint16_t reliableID);
 
 	uint16_t	 GetNextRealiableIDToSend();
-	uint16_t	 GetOldestUnconfirmedRealiableID();
+	uint16_t	 GetOldestUnConfirmedRealiableID();
 
 	// SENDING PART
 	uint16_t GetNextPacketAck();
 	bool     ShouldSentUnconfirmedReliableMsg(NetMessage *msg);
 	void ConfirmSentRealiable(uint16_t relID);
-	bool CanSendNewReliableMessage();
+	bool CanSendNewReliableMessage(uint16_t nextReliableID);
 
 
 	// ACK

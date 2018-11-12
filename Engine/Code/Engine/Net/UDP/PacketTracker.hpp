@@ -19,15 +19,18 @@ public:
 	double m_sendTime;
 	uint16_t m_ackID;
 	bool     m_valid = false;
-	uint16_t m_reliableID;
+	//uint16_t m_reliableID;
 	uint16_t m_sentReliableIDs[MAX_RELIALBES_PER_PACKET];
-	unsigned int m_reliablesInPacket = 1;
+	unsigned int m_reliablesInPacket = 0;
 	//Static_Member_Variables
 
 	//Methods
 
 	PacketTracker(uint16_t ack);
 	~PacketTracker();
+
+	void AddReliables(uint16_t reliableID);
+	void SetReliableID(int index ,uint16_t reliableID);
 	
 	//Static_Methods
 

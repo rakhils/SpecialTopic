@@ -41,6 +41,8 @@ void NetSession::Init()
 	RegisterMessage(NETMSG_PING,	  "ping", OnPing, "Pings connection",NETMESSAGE_OPTION_CONNECTIONLESS);
 	RegisterMessage(NETMSG_PONG,	  "pong", OnPong, "Pings connection",NETMESSAGE_OPTION_CONNECTIONLESS);		
 	RegisterMessage(NETMSG_HEARTBEAT, "heartbeat", OnHeartBeatMessage,"Update last heartbeat received",NETMESSAGE_OPTION_CONNECTIONLESS);
+	RegisterMessage(NETMSG_BLANK,     "blank",     OnHeartBeatMessage, "Update last heartbeat received", NETMESSAGE_OPTION_CONNECTIONLESS);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -148,6 +150,8 @@ void NetSession::InitMsgDefinition()
 		NetMessageDefinition netMsgDefinition;
 		m_netMessageCmdDefinition.push_back(netMsgDefinition);
 	}
+	//NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_BLANK, "test_blank", OnBlankMsg,
+		//"TEST AN BLANK MSGS");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -544,12 +548,15 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 		recvdPacket.ReadBytes(&cmdIndex, 1);
 		if(cmdIndex >=0 && cmdIndex < m_netMessageCmdDefinition.size())
 		{
-			DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
+			//DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
 			NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
 			netmsg->m_packetHeader = header;
 			netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
 			recvdPacket.m_currentReadPosition += msgSize - 1;
 			retmsgs.push_back(netmsg);
+			std::string pack = recvdPacket.GetBitString();
+			std::string msgD = netmsg->GetBitString();
+			int a = 1;
 		}
 		else
 		{
@@ -585,10 +592,6 @@ void NetSession::ProcessMsgs(std::vector<NetMessage *> netmsg,NetAddress *fromAd
 		NetAddress *fromAddr = m_laggedMsgs.at(laggedMsgindex)->m_address;
 		NetMessageDefinition * msgdef = GetMsgDefinition(m_laggedMsgs.at(laggedMsgindex)->m_definitionName);
 
-		//if(m_laggedMsgs.at(laggedMsgindex)->RequiresConnection() && GetConnection(fromAddress)!= nullptr)
-		{
-			//(*msgdef->m_callback)(*m_laggedMsgs.at(laggedMsgindex), *fromAddr);
-		}
 		float value1 = -1;
 		float value2 = -1;
 		std::string str = m_laggedMsgs.at(laggedMsgindex)->m_definitionName;
@@ -642,26 +645,30 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 	fromConnection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - fromConnection->m_startTime;
 	PacketHeader header = msg->m_packetHeader;
 	fromConnection->m_lastReceivedAck = header.m_ack;
-
-	if (true)
+	std::string bitString = msg->GetBitString();
+	if (msgdef != nullptr && msgdef->m_options == NETMESSAGE_OPTION_RELIABLE)
 	{
 		if (!fromConnection->HasReceivedReliableID(msg->GetReliableID()))
 		{
-			if (msg->RequiresConnection())
+			//if (msg->RequiresConnection())
 			{
 				(*msgdef->m_callback)(*msg, *fromAddr);
 			}
-			fromConnection->ConfirmReceivedReliableID(msg->m_reliableID);
+			DevConsole::GetInstance()->PushToOutputText("SENDING BLANK MSG BACK " + ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
+			DevConsole::GetInstance()->PushToOutputText("SENDING BLANK MSG BACK " + ToString(static_cast<int>(fromConnection->m_lastReceivedAck)), Rgba::YELLOW);
+
 		}
+		NetMessage *blankMsg = NetMessage::CreateBlankMessage(fromConnection);
+		fromConnection->Append(blankMsg);
+		
 	}
 	else
 	{
-		if (msg->RequiresConnection())
+		if ( msgdef != nullptr && msg->RequiresConnection())
 		{
 				(*msgdef->m_callback)(*msg, *fromAddr);
 		}
 	}
-
 
 	if(header.m_lastReceivedAck != INVALID_PACKET_ACK)
 	{
@@ -965,6 +972,17 @@ bool OnBadMessage(NetMessage &netMsg, NetAddress &netAddress)
 	UNUSED(netMsg)
 	UNUSED(netAddress);
 	DevConsole::GetInstance()->PushToOutputText("RECEIVED BAD MSG FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port), Rgba::YELLOW, true);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/11
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnBlankMessage(NetMessage &netMsg, NetAddress &netAddress)
+{
 	return true;
 }
 

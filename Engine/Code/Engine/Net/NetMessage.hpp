@@ -13,11 +13,13 @@
 */
 class NetConnection;
 class NetAddress;
+class PacketTracker;
 enum eNetCoreMessage : uint8_t
 {
 	NETMSG_PING = 0,    // unreliable, connectionless
 	NETMSG_PONG, 		// unreliable, connectionless
 	NETMSG_HEARTBEAT,	// unreliable
+	NETMSG_BLANK,
 	NETMSG_CORE_COUNT,
 };
 
@@ -62,6 +64,7 @@ public:
 	bool				  m_isReliable = false;
 	uint16_t			  m_reliableID = 0;
 	float				  m_lastSentTime = 0.f;
+	PacketTracker		 *m_tracker = nullptr;
 
 	int					  m_count = 0;
 	//Static_Member_Variables
@@ -84,6 +87,7 @@ public:
 	static NetMessage * CreateHeartBeatMessage(NetConnection *connection);
 	static NetMessage * CreateUnreliableTestMessage(NetConnection *connection,int count,int maxCount);
 	static NetMessage * CreateReliableTestMessage(NetConnection *connection, int count, int maxCount);
+	static NetMessage * CreateBlankMessage(NetConnection *connection);
 protected:
 	//Member_Variables
 

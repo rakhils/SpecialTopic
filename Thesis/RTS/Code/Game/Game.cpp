@@ -29,6 +29,7 @@ void Game::RegisterGameMessage()
 		"TEST AN UNRELIABLE MSGS");
 	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_RELIABLE_TEST,   "reliable_test",   OnReliableTest,
 		"TEST AN RELIABLE MSGS",NETMESSAGE_OPTION_RELIABLE);
+	
 }
 
 // INIT GAME
@@ -214,8 +215,8 @@ void Game::UpdateReliableMsgs(float deltaTime)
 		{
 			m_netMsgSendTime = 0.f;
 			NetMessage *msg = NetMessage::CreateReliableTestMessage(NetSession::GetInstance()->GetConnection(m_netMsgConnectionIndex),
-				m_netMsgCount, m_netMsgMaxUnrealiableMsgCount);
-			NetSession::GetInstance()->m_channel->Append(msg);
+				m_netMsgCount + 1, m_netMsgMaxUnrealiableMsgCount);
+			NetSession::GetInstance()->GetConnection(m_netMsgConnectionIndex)->Append(msg);
 			m_netMsgCount++;
 			if (m_netMsgCount >= m_netMsgMaxUnrealiableMsgCount)
 			{

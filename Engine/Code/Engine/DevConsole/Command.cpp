@@ -291,6 +291,7 @@ void CommandStartup()
 	CommandRegister("add_remote", AddRemote, "ADDS REMOTE CONNECTION TO LOCAL AND REMOTE");
 
 	CommandRegister("listen_udp", ListenUDPPort, "LISTEN NET SESSION IN GIVEN PORT");
+	CommandRegister("erase_queues", EraseAllQueues, "ERASES ALL MSGS IN QUEUES OF GIVEN CONN");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1533,6 +1534,29 @@ void AddRemote(Command &cmd)
 	std::string addConnection0 = "add_connection 1 192.168.0.123:10085";
 	NetSession::GetInstance()->AddConnection(1,"192.168.0.123",10085);
 	RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/11
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EraseAllQueues(Command &cmd)
+{
+	int index = -1;
+	cmd.GetNextInt(&index);
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(index);
+	for(int index = 0;index < connection->m_unsentReliableMsgs.size();index++)
+	{
+		connection->m_unsentReliableMsgs.erase(connection->m_unsentReliableMsgs.begin() + index, connection->m_unsentReliableMsgs.begin() + index + 1);
+		index--;
+	}
+	for (int index = 0; index < connection->m_unconfirmedReliableMessages.size(); index++)
+	{
+		connection->m_unconfirmedReliableMessages.erase(connection->m_unconfirmedReliableMessages.begin() + index, connection->m_unconfirmedReliableMessages.begin() + index + 1);
+		index--;
+	}
 }
 
 /*

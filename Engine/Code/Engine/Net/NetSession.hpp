@@ -69,7 +69,7 @@ public:
 	float											m_lossAmount = 0.f;
 	float											m_minLatency = 0.f;
 	float											m_maxLatency = 0.f;
-	float											m_sendRate   = 0.f;
+	float											m_sendRate   = 60.f;
 	bool											m_sessionInfoVisible = false;
 	//Static_Member_Variables
 	static NetSession *s_netSession;
@@ -153,4 +153,6 @@ bool OnPong(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnAddResponse(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnHeartBeatMessage(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnBadMessage(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnBlankMessage(NetMessage  &netMsg, NetAddress &netAddress);
+
 

@@ -44,7 +44,7 @@ public:
 	int          m_netMsgCount = 0;
 	int		     m_netMsgMaxUnrealiableMsgCount = 0;
 	bool		 m_reliableMsg = false;
-	float        m_netMsgSendDelay   = .05f;
+	float        m_netMsgSendDelay   = 0.01;
 	float        m_netMsgSendTime = 0;
 	std::vector<MainMenuItems> m_mainMenuItems;
 	// STATIC
@@ -77,3 +77,4 @@ public:
 };
 bool OnUnreliableTest(NetMessage &netMsg, NetAddress &netAddress);
 bool OnReliableTest(NetMessage &netMsg, NetAddress &netAddress);
+

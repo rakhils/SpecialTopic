@@ -69,10 +69,10 @@ size_t NetMessage::GetSize()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool NetMessage::RequiresConnection()
 {
-	if(true)
-	{
-		return true;
-	}
+     if(m_definitionIndex < 0)
+	 {
+		 return false;
+	 }
 	if(NetSession::GetInstance()->m_netMessageCmdDefinition.at(m_definitionIndex).m_options == NETMESSAGE_OPTION_CONNECTION)
 	{
 		return true;
@@ -104,8 +104,10 @@ size_t NetMessage::GetHeaderSize()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint16_t NetMessage::GetReliableID()
 {
+	m_currentReadPosition = 3;
 	uint16_t relID = 0;
 	ReadBytes(&relID, 2);
+	m_reliableID = relID;
 	return relID;
 }
 
@@ -172,6 +174,7 @@ NetMessage * NetMessage::CreatePingMessage(std::string msg)
 NetMessage * NetMessage::CreateHeartBeatMessage(NetAddress *netaddress)
 {
 	NetMessage *netMsg = new NetMessage("heartbeat");
+	netMsg->m_isReliable = false;
 	netMsg->m_address = netaddress;
 	size_t msgSize = 0;
 	// write temporarily 
@@ -230,21 +233,48 @@ NetMessage * NetMessage::CreateReliableTestMessage(NetConnection *connection, in
 {
 	NetMessage *msg = new NetMessage("reliable_test");
 	msg->m_count = count;
+	msg->m_isReliable = true;
 	msg->m_address = &connection->m_address;
 	size_t msgSize = 0;
 	// write temporarily 
 	msg->WriteBytes(2, (char*)&msgSize);
 	///////////////
 	msg->WriteCommandIndex();
+	std::string bit = msg->GetBitString();
+	connection->IncrementRealiableID();
 	uint16_t relID = connection->GetNextRealiableIDToSend();
+	bit = msg->GetBitString();
 	msg->WriteBytes(2, (void*)&relID);
-
+	bit = msg->GetBitString();
+	msg->m_reliableID = relID;
 
 	msg->WriteBytes(4, (char*)&count);
 	msg->WriteBytes(4, (char*)&maxCount);
+	bit = msg->GetBitString();
 	msg->m_currentWritePosition = 0;
 	msgSize = msg->m_bufferSize - 2;
 	msg->WriteBytes(2, (char*)&(msgSize));
+	bit = msg->GetBitString();
+	return msg;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/11
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateBlankMessage(NetConnection *connection)
+{
+	NetMessage *msg = new NetMessage("blank");
+	msg->m_isReliable = false;
+	msg->m_address = &connection->m_address;
+	size_t msgSize = 0;
+	// write temporarily 
+	msg->WriteBytes(2, (char*)&msgSize);
+	///////////////
+	msg->WriteCommandIndex();
+
 	return msg;
 }
 
