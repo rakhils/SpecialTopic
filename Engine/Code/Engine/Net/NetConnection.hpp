@@ -30,10 +30,12 @@ public:
 	std::vector<NetMessage*>	m_unsentReliableMsgs;
 	std::vector<NetMessage*>    m_unconfirmedReliableMessages;
 	std::vector<NetMessage*>    m_laggedMsgs;
+	std::vector<NetMessage*>    m_inboundMsgQueue;
 
 	std::vector<uint16_t>       m_reliableIDs;
 	uint16_t					m_highestRealiableID = 0;
 	uint16_t					m_oldestUnconfirmedReliableID = 0;
+	uint16_t					m_oldestOrderedReliableMsgID = 0;
 	bool						m_isReliable = false;
 	BytePacker					m_packet;
 	PacketHeader				m_header;
@@ -139,6 +141,9 @@ public:
 	size_t				Recv(char *data,size_t &maxlength,NetAddress *netAddress);
 	
 	std::string			GetIPPortAsString();
+
+	void				PushToInboundMsgQueue(NetMessage* msg);
+	void				DoProcessInboundMsgQueue();
 	//Static_Methods
 
 protected:

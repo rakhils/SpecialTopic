@@ -650,12 +650,15 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 	{
 		if (!fromConnection->HasReceivedReliableID(msg->GetReliableID()))
 		{
+			msg->m_address = fromAddr;
+			fromConnection->PushToInboundMsgQueue(msg);
+			fromConnection->DoProcessInboundMsgQueue();
 			//if (msg->RequiresConnection())
 			{
-				(*msgdef->m_callback)(*msg, *fromAddr);
+				//(*msgdef->m_callback)(*msg, *fromAddr);
 			}
-			DevConsole::GetInstance()->PushToOutputText("SENDING BLANK MSG BACK " + ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
-			DevConsole::GetInstance()->PushToOutputText("SENDING BLANK MSG BACK " + ToString(static_cast<int>(fromConnection->m_lastReceivedAck)), Rgba::YELLOW);
+			//DevConsole::GetInstance()->PushToOutputText("SENDING BLANK MSG BACK " + ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
+			//DevConsole::GetInstance()->PushToOutputText("SENDING BLANK MSG BACK " + ToString(static_cast<int>(fromConnection->m_lastReceivedAck)), Rgba::YELLOW);
 
 		}
 		NetMessage *blankMsg = NetMessage::CreateBlankMessage(fromConnection);
