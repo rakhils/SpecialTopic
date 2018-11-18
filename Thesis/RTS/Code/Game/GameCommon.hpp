@@ -49,9 +49,28 @@ extern int					g_extraNNInputs;
 extern int					g_hiddenLayerCount;
 extern int				    g_entityMiniMapMaxWidth;
 extern int				    g_entityMiniMapMaxHeight;
-
+extern int					g_mapCounter;
+extern int					g_mapBreakCounter;
 extern float				g_mapXOffset;
 extern float				g_mapYOffset;
+
+extern int					g_minFoodCountToSpawnCivilian;
+extern int					g_minWoodCountToSpawnCivilian;
+
+extern int					g_minStoneCountToBuildArmyCenter;
+extern int					g_minWoodCountToBuildArmyCenter;
+
+extern int					g_minStoneCountToBuildHouse;
+extern int					g_minWoodCountToBuildHouse;
+
+extern int					g_minFoodCountToSpawnShortRangeArmy; 
+extern int					g_minWoodCountToSpawnShortRangeArmy; 
+
+extern int					g_minFoodCountToSpawnLongRangeArmy; 
+extern int					g_minWoodCountToSpawnLongRangeArmy; 
+
+
+
 // NN OUTPUT
 extern int					g_globalMaxScoreTeam1;
 extern int					g_globalMaxScoreTeam2;
@@ -91,6 +110,9 @@ extern float				g_desiredOutputForVeryCriticalPosition;
 extern int					g_minCellDistanceToStartCounting;
 
 // GAME PLAY
+extern int					g_maxCivilianCount;
+extern int					g_maxShortRangeArmyCount;
+extern int					g_maxLongRangeArmyCount;
 extern int					g_maxResourceCountRequired;
 extern int					g_maxHousesBuilt;
 extern int					g_maxArmySpawnerBuilt;
@@ -127,7 +149,8 @@ extern Vector3				g_unitStatHUDTaskInfoPosition;
 extern AABB2				g_unitStatHUDFirstButton;
 extern AABB2				g_unitStatHUDSecondButton;
 
-
+void ResetLocalScores();
+void ResetGlobalScores();
 void InitVariables();
 void QuitApp(Command &cmd);
 

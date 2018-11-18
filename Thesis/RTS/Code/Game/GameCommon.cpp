@@ -22,7 +22,9 @@ bool			    g_isGlobalyCurrentlyTraining = false;
 float				g_lastTrainingStopTime = 0.f;
 bool				g_enableNeuralNet = true;
 bool				g_enableDebugPrints = false;
-int					g_extraNNInputs = 8;
+int					g_extraNNInputs = 10;
+int					g_mapCounter = 0;
+int					g_mapBreakCounter = 0;
 int 				g_entityMiniMapMaxWidth  = 8;
 int 				g_entityMiniMapMaxHeight = 8;
 
@@ -36,10 +38,28 @@ float				g_mainMenuStartY = 800.f;
 
 // GAME PLAY
 
-int				    g_maxResourceCountRequired = 200;
-int				    g_maxHousesBuilt		   = 3;
+int				    g_maxResourceCountRequired = 15;
+int				    g_maxHousesBuilt		   = 2;
 int				    g_maxArmySpawnerBuilt	   = 2;
 int				    g_maxUnits				   = 20;
+int					g_maxCivilianCount		   = 5;
+int					g_maxShortRangeArmyCount   = 5;
+int					g_maxLongRangeArmyCount	   = 5;
+
+int					g_minFoodCountToSpawnCivilian = 10;
+int					g_minWoodCountToSpawnCivilian = 10;
+
+int					g_minStoneCountToBuildArmyCenter = 8;
+int					g_minWoodCountToBuildArmyCenter  = 8;
+
+int					g_minStoneCountToBuildHouse = 5;
+int					g_minWoodCountToBuildHouse  = 5;
+
+int					g_minFoodCountToSpawnShortRangeArmy = 10;
+int					g_minWoodCountToSpawnShortRangeArmy = 10;
+
+int					g_minFoodCountToSpawnLongRangeArmy = 10;
+int					g_minWoodCountToSpawnLongRangeArmy = 10;
 
 // NN 
 int					g_globalMaxScoreTeam1 = -1;
@@ -105,6 +125,38 @@ Vector3				g_unitStatHUDTaskInfoPosition(Vector3::ONE);
 AABB2				g_unitStatHUDFirstButton(Vector2::ONE ,Vector2::ONE);
 AABB2				g_unitStatHUDSecondButton(Vector2::ONE,Vector2::ONE);
 
+
+void ResetLocalScores()
+{
+	g_localMaxScoreTeam1 = -1;
+	g_localMaxScoreTeam2 = -1;
+	g_localMaxScoreArmySpawnerTeam1 = -1;
+	g_localMaxScoreArmySpawnerTeam2 = -1;
+	g_localMaxScoreCivilianTeam1 = -1;
+	g_localMaxScoreCivilianTeam2 = -1;
+	g_localMaxScoreShortRangeArmy1 = -1;
+	g_localMaxScoreShortRangeArmy2 = -1;
+	g_localMaxScoreLongRangeArmy1 = -1;
+	g_localMaxScoreLongRangeArmy2 = -1;
+	g_localMaxScoreTownCenter1 = -1;
+	g_localMaxScoreTownCenter2 = -1;
+}
+
+void ResetGlobalScores()
+{
+	g_globalMaxScoreTeam1 = -1;
+	g_globalMaxScoreTeam2 = -1;
+	g_globalMaxScoreArmySpawnerTeam1 = -1;
+	g_globalMaxScoreArmySpawnerTeam2 = -1;
+	g_globalMaxScoreCivilianTeam1 = -1;
+	g_globalMaxScoreCivilianTeam2 = -1;
+	g_globalMaxScoreShortRangeArmy1 = -1;
+	g_globalMaxScoreShortRangeArmy2 = -1;
+	g_globalMaxScoreLongRangeArmy1 = -1;
+	g_globalMaxScoreLongRangeArmy2 = -1;
+	g_globalMaxScoreTownCenter1 = -1;
+	g_globalMaxScoreTownCenter2 = -1;
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31

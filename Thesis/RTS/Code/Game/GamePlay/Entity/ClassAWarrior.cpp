@@ -134,12 +134,14 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 			EvaluateMoveTask(previousState, cords);
 			break;
 		case TASK_SHORT_ATTACK:
+			cords = GetTaskPositonFromNNOutput(previousState.m_position, 2, 2);
 			EvaluateShortAttackTask(previousState, cords);
 			break;
 		case TASK_IDLE:
 			EvaluateIdleTask(previousState, cords);
 			break;
 	}
+	Entity::EvaluateNN(task, previousState, cords);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -150,6 +152,7 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords)
 {
+	IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
 	if(m_map->GetCordinates(m_previousState.m_position) == cords)
 	{
 		SetDesiredOutputToMoveToNeighbour(previousState,2);
@@ -157,12 +160,11 @@ void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 		return;
 	}
 	
-
-
 	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
 	if (m_entityList.size() > 0)
 	{
 		SetDesiredOutputForTask(TASK_MOVE, 0);
+		SetDesiredOutputForTask(TASK_SHORT_ATTACK,1);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -172,6 +174,12 @@ void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 
 	if(previousState.m_favoredMoveTaskCount.at(index) < m_state.m_favoredMoveTaskCount.at(index))
 	{
+		if (m_map->GetEntityFromPosition(cords) != nullptr && m_map->GetEntityFromPosition(cords) != this)
+		{
+			SetDesiredOutputToMoveToNeighbour(previousState, 2);
+			m_state.m_neuralNetPoints++;
+			return;
+		}
 		SetDesiredOutputForTask(TASK_MOVE, 1);
 		m_state.m_neuralNetPoints++;
 		return;
@@ -194,7 +202,7 @@ void ClassAWarrior::EvaluateShortAttackTask(EntityState previousState, IntVector
 		SetDesiredOutputForTask(TASK_SHORT_ATTACK, 1);
 		m_state.m_neuralNetPoints++;
 		Entity* enemy = m_map->GetEntityFromPosition(cords);
-		if(enemy != nullptr && enemy->m_teamID != m_teamID)
+		if(enemy != nullptr && enemy->m_teamID != m_teamID && enemy->m_teamID != 0)
 		{
 			return;
 		}

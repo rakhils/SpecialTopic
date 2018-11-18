@@ -135,9 +135,11 @@ void Entity::InitNeuralNet()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::InitStates()
 {
-	m_state.m_health = m_health;
+	m_state.m_health   = m_health;
 	m_state.m_position = GetPosition();
-	m_previousState = m_state;
+	m_previousState    = m_state;
+	m_scoreBoard.m_entity = this;
+
 	m_minSafeArea = FindMyTownCenter()->GetCordinates() - IntVector2(3, 3);
 	m_maxSafeArea = FindMyTownCenter()->GetCordinates() + IntVector2(3, 3);
 	m_minSafeArea = m_map->ClampCoordinates(m_minSafeArea);
@@ -382,6 +384,12 @@ void Entity::EvaluateNN(Task * type,EntityState previousState,IntVector2 cords)
 	UNUSED(previousState);
 	UNUSED(cords);
 	UNUSED(type);
+	m_scoreBoard.m_totalSteps++;
+	bool interimScoreSuccess = m_scoreBoard.CalculateInterimScore(false, m_prevScoreBoard.m_interimScore);
+	if(interimScoreSuccess)
+	{
+		m_prevScoreBoard = m_scoreBoard;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -411,13 +419,46 @@ void Entity::UpdateNN(float deltaTime)
 	}
 
 	std::vector<double> m_gameStats;
-	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<double>(townCenter->m_resourceStat.m_food)));
-	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<double>(townCenter->m_resourceStat.m_stone)));
-	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<double>(townCenter->m_resourceStat.m_wood)));
-	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<double>(townCenter->m_resourceStat.m_buildings)));
-	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<double>(townCenter->m_resourceStat.m_units)));
-	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<double>(townCenter->m_resourceStat.m_unitsKilled)));
+	int foodCount  = townCenter->m_resourceStat.m_food;
+	int stoneCount = townCenter->m_resourceStat.m_stone;
+	int woodCount  = townCenter->m_resourceStat.m_wood;
+	float newfoodCount  = RangeMapFloat(static_cast<float>(foodCount) , 0.f, 30.f, 0.f, 1.f);
+	float newstoneCount = RangeMapFloat(static_cast<float>(stoneCount), 0.f, 30.f, 0.f, 1.f);
+	float newwoodCount  = RangeMapFloat(static_cast<float>(woodCount) , 0.f, 30.f, 0.f, 1.f);
+
+	m_gameStats.push_back(static_cast<double>(newfoodCount));
+	m_gameStats.push_back(static_cast<double>(newstoneCount));
+	m_gameStats.push_back(static_cast<double>(newwoodCount));
+	
+	float civilianTeam1		  = RangeMapFloat(m_map->m_gameStats.m_numOfCiviliansTeam1, 0, 5, 0, 1);
+	float shortRangeArmyTeam1 = RangeMapFloat(m_map->m_gameStats.m_numOfShortRangeArmyTeam1, 0, 5, 0, 1);
+	float longRangeArmyTeam1  = RangeMapFloat(m_map->m_gameStats.m_numOfLongRangeArmyTeam1, 0, 5, 0, 1);
+
+	float civilianTeam2		  = RangeMapFloat(m_map->m_gameStats.m_numOfCiviliansTeam2, 0, 5, 0, 1);
+	float shortRangeArmyTeam2 = RangeMapFloat(m_map->m_gameStats.m_numOfShortRangeArmyTeam2, 0, 5, 0, 1);
+	float longRangeArmyTeam2  = RangeMapFloat(m_map->m_gameStats.m_numOfLongRangeArmyTeam2, 0, 5, 0, 1);
+
+
+	if(m_teamID == 1)
+	{
+		m_gameStats.push_back(static_cast<double>(m_map->m_gameStats.m_numOfArmySpawnerTeam1));
+		m_gameStats.push_back(static_cast<double>(civilianTeam1));
+		m_gameStats.push_back(static_cast<double>(shortRangeArmyTeam1));
+		m_gameStats.push_back(static_cast<double>(longRangeArmyTeam1));
+		m_gameStats.push_back(static_cast<double>(m_map->m_gameStats.m_numOfHousesTeam1));
+	}
+	else
+	{
+		m_gameStats.push_back(static_cast<double>(m_map->m_gameStats.m_numOfArmySpawnerTeam2));
+		m_gameStats.push_back(static_cast<double>(civilianTeam2));
+		m_gameStats.push_back(static_cast<double>(shortRangeArmyTeam2));
+		m_gameStats.push_back(static_cast<double>(longRangeArmyTeam2));
+		m_gameStats.push_back(static_cast<double>(m_map->m_gameStats.m_numOfHousesTeam2));
+	}
+	
 	m_gameStats.push_back(m_neuralNet.GetSigmoidValue(static_cast<double>(m_health)));
+
+
 	if (HasResource())
 	{
 		m_gameStats.push_back((static_cast<double>(1)));
@@ -470,10 +511,10 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 		{
 			CreateAndPushMoveTask(taskPosition);
 		}
-		/*else
+	//	else
 		{
-			CreateAndPushIdleTask(taskPosition);
-		}*/
+			//CreateAndPushIdleTask(taskPosition);
+		}
 			
 		}
 		break;
@@ -641,11 +682,8 @@ void Entity::UpdateUnitStatForWoodGathered(int count)
 void Entity::UpdateUnitStatForFoodDropped(int count)
 {
 	m_state.m_resourceFoodDropped += count;
-	if(m_state.m_resourceFoodDropped < g_maxResourceCountRequired)
-	{
-		m_scoreBoard.m_resourceFoodCollected++;
-	}
-	m_map->GetMyScoreBoard(this).m_resourceFoodCollected++;
+	m_scoreBoard.UpdateScoreResourceFoodCollected(count);
+	m_map->GetMyScoreBoard(this).UpdateScoreResourceFoodCollected(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -657,11 +695,8 @@ void Entity::UpdateUnitStatForFoodDropped(int count)
 void Entity::UpdateUnitStatForStoneDropped(int count)
 {
 	m_state.m_resourceStoneDropped += count;
-	m_map->GetMyScoreBoard(this).m_resourceStoneCollected++;
-	if(m_state.m_resourceStoneDropped < g_maxResourceCountRequired)
-	{
-		m_scoreBoard.m_resourceStoneCollected++;
-	}
+	m_scoreBoard.UpdateScoreResourceStoneCollected(count);
+	m_map->GetMyScoreBoard(this).UpdateScoreResourceStoneCollected(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -673,11 +708,8 @@ void Entity::UpdateUnitStatForStoneDropped(int count)
 void Entity::UpdateUnitStatForWoodDropped(int count)
 {
 	m_state.m_resourceWoodDropped += count;
-	m_map->GetMyScoreBoard(this).m_resourceWoodCollected++;
-	if(m_state.m_resourceWoodDropped < g_maxResourceCountRequired)
-	{
-		m_scoreBoard.m_resourceWoodCollected++;
-	}
+	m_scoreBoard.UpdateScoreResourceWoodCollected(count);
+	m_map->GetMyScoreBoard(this).UpdateScoreResourceWoodCollected(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -689,15 +721,8 @@ void Entity::UpdateUnitStatForWoodDropped(int count)
 void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 {
 	m_state.m_numberOfArmySpawnerBuilt += count;
-	m_map->GetMyScoreBoard(this).m_armySpawnersBuilt++;
-	if (m_state.m_numberOfArmySpawnerBuilt < g_maxArmySpawnerBuilt)
-	{
-		m_scoreBoard.m_armySpawnersBuilt++;
-	}
-	else
-	{
-		m_scoreBoard.m_armySpawnersBuilt--;
-	}
+	m_scoreBoard.UpdateScoreArmySpawnersBuilt(count);
+	m_map->GetMyScoreBoard(this).UpdateScoreArmySpawnersBuilt(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -709,15 +734,8 @@ void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 void Entity::UpdateUnitStatForHouseBuilt(int count)
 {
 	m_state.m_numberOfHouseBuilt += count;
-	m_map->GetMyScoreBoard(this).m_housesBuilt++;
-	if(m_state.m_numberOfHouseBuilt < g_maxHousesBuilt)
-	{
-		m_scoreBoard.m_housesBuilt--;
-	}
-	else
-	{
-		m_scoreBoard.m_housesBuilt++;
-	}
+	m_scoreBoard.UpdateScoreHousesBuilt(count);
+	m_map->GetMyScoreBoard(this).UpdateScoreHousesBuilt(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -729,8 +747,8 @@ void Entity::UpdateUnitStatForHouseBuilt(int count)
 void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 {
 	m_state.m_shortRangeArmySpawned += count;
-	m_map->GetMyScoreBoard(this).m_shortRangeArmySpawned++;
-	m_scoreBoard.m_shortRangeArmySpawned++;
+	m_scoreBoard.UpdateScoreShortRangeArmySpawned(count);
+	m_map->GetMyScoreBoard(this).UpdateScoreShortRangeArmySpawned(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -742,8 +760,8 @@ void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
 {
 	m_state.m_longRangeArmySpawned += count;
-	m_map->GetMyScoreBoard(this).m_longRangeArmySpawned++;
-	m_scoreBoard.m_longRangeArmySpawned++;
+	m_scoreBoard.UpdateScoreLongRangeArmySpawned(count);
+	m_map->GetMyScoreBoard(this).UpdateScoreLongRangeArmySpawned(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -758,28 +776,28 @@ void Entity::UpdateUnitStatForEnemiesAttacked(Entity* attackedEntity ,int count)
 	switch (attackedEntity->m_type)
 	{
 	case HOUSE:
-		m_map->GetMyScoreBoard(this).m_housesAttacked++;
-		m_scoreBoard.m_housesAttacked++;
+		m_scoreBoard.UpdateScoreHousesAttacked(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreHousesAttacked(count);
 		break;
 	case ARMY_SPAWNER:
-		m_map->GetMyScoreBoard(this).m_armySpawnerAttacked++;
-		m_scoreBoard.m_armySpawnerAttacked++;
+		m_scoreBoard.UpdateScoreArmySpawnersAttacked(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreArmySpawnersAttacked(count);
 		break;
 	case CIVILIAN:
-		m_map->GetMyScoreBoard(this).m_civiilansAttacked++;
-		m_scoreBoard.m_civiilansAttacked++;
+		m_scoreBoard.UpdateScoreCiviliansAttacked(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreCiviliansAttacked(count);
 		break;
 	case SHORT_RANGE_ARMY:
-		m_map->GetMyScoreBoard(this).m_shortRangeArmyAttacked++;
-		m_scoreBoard.m_shortRangeArmyAttacked++;
+		m_scoreBoard.UpdateScoreShortRangeArmySpawned(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreShortRangeArmySpawned(count);
 		break;
 	case LONG_RANGE_ARMY:
-		m_map->GetMyScoreBoard(this).m_longRangeArmyAttacked++;
-		m_scoreBoard.m_longRangeArmyAttacked++;
+		m_scoreBoard.UpdateScoreLongRangeArmyAttacked(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreLongRangeArmyAttacked(count);
 		break;
 	case TOWN_CENTER:
-		m_map->GetMyScoreBoard(this).m_townCenterAttacked++;
-		m_scoreBoard.m_townCenterAttacked++;
+		m_scoreBoard.UpdateScoreTownCenterAttacked(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreTownCenterAttacked(count);
 		break;
 	default:
 		break;
@@ -798,28 +816,28 @@ void Entity::UpdateUnitStatForEnemiesKilled(Entity* attackedEntity,int count)
 	switch (attackedEntity->m_type)
 	{
 	case HOUSE:
-		m_map->GetMyScoreBoard(this).m_housesDestroyed++;
-		m_scoreBoard.m_housesDestroyed++;
+		m_scoreBoard.UpdateScoreHousesAttacked(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreHousesDestroyed(count);
 		break;
 	case ARMY_SPAWNER:
-		m_map->GetMyScoreBoard(this).m_armySpawnerDestroyed++;
-		m_scoreBoard.m_armySpawnerDestroyed++;
+		m_scoreBoard.UpdateScoreArmySpawnersDestroyed(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreArmySpawnersDestroyed(count);
 		break;
 	case CIVILIAN:
-		m_map->GetMyScoreBoard(this).m_civiliansKilled++;
-		m_scoreBoard.m_civiliansKilled++;
+		m_scoreBoard.UpdateScoreCiviliansKilled(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreCiviliansKilled(count);
 		break;
 	case SHORT_RANGE_ARMY:
-		m_map->GetMyScoreBoard(this).m_shortRangeArmyKilled++;
-		m_scoreBoard.m_shortRangeArmyKilled++;
+		m_scoreBoard.UpdateScoreShortRangeArmyKilled(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreShortRangeArmyKilled(count);
 		break;
 	case LONG_RANGE_ARMY:
-		m_map->GetMyScoreBoard(this).m_longRangeArmyKilled++;
-		m_scoreBoard.m_longRangeArmyKilled++;
+		m_scoreBoard.UpdateScoreLongRangeArmyKilled(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreLongRangeArmyKilled(count);
 		break;
 	case TOWN_CENTER:
-		m_map->GetMyScoreBoard(this).m_townCenterDestroyed++;
-		m_scoreBoard.m_townCenterDestroyed++;
+		m_scoreBoard.UpdateScoreTownCenterDestroyed(count);
+		m_map->GetMyScoreBoard(this).UpdateScoreTownCenterDestroyed(count);
 		break;
 	default:
 		break;
@@ -834,7 +852,7 @@ void Entity::UpdateUnitStatForEnemiesKilled(Entity* attackedEntity,int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForVillagerSpawned(int count)
 {
-	m_state.m_villagerSpawned += count;
+	m_state.m_civilianSpawned += count;
 	m_map->GetMyScoreBoard(this).m_civiliansSpawned++;
 	m_scoreBoard.m_civiliansSpawned++;
 }
@@ -892,8 +910,46 @@ void Entity::UpdateMostFavoredMoveTask(EntityState prevState,IntVector2 cords)
 		float oldPositionSensoryValue = oldSensoryValue.m_entityNearness.at(index);
 		if(m_type == SHORT_RANGE_ARMY && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE) && m_teamID == 2)
 		{
-			oldPositionSensoryValue -= m_map->GetCellDistance(cords,m_map->GetCordinates(prevState.m_position)) / m_map->m_classAWarriors.size();
+			//oldPositionSensoryValue -= m_map->GetCellDistance(cords,m_map->GetCordinates(prevState.m_position)) / m_map->m_classAWarriors.size();
+			continue;
 		}
+		if (m_type == SHORT_RANGE_ARMY && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE) && m_teamID == 1)
+		{
+			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classAWarriors.size();
+			continue;
+		}
+
+		if (m_type == LONG_RANGE_ARMY && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM1_ARMY_LONG_RANGE) && m_teamID == 1)
+		{
+			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classBWarriors.size();
+			continue;
+		}
+		if (m_type == LONG_RANGE_ARMY && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM2_ARMY_LONG_RANGE) && m_teamID == 2)
+		{
+			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classBWarriors.size();
+			continue;
+		}
+
+		if (m_type == CIVILIAN && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM1_CIVILIAN) && m_teamID == 1)
+		{
+			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classBWarriors.size();
+			continue;
+		}
+		if (m_type == CIVILIAN && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM2_CIVILIAN) && m_teamID == 2)
+		{
+			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classBWarriors.size();
+			continue;
+		}
+
+		if(m_type == SHORT_RANGE_ARMY || m_type == LONG_RANGE_ARMY)
+		{
+			if(((FavoredMoveStats)index) == FAVORED_MOVETO_RESOURCE_FOOD || ((FavoredMoveStats)index) == FAVORED_MOVETO_RESOURCE_WOOD || ((FavoredMoveStats)index) == FAVORED_MOVETO_RESOURCE_STONE)
+			{
+				continue;
+			}
+		}
+
+
 
 		if(newPositionSensoryValue < oldPositionSensoryValue)
 		{
@@ -1006,8 +1062,13 @@ void Entity::UpdateMostFavoredMoveTask(EntityState prevState,IntVector2 cords)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int Entity::GetMostFavoredMoveTask(float *max)
 {
+	if(m_state.m_favoredMoveTaskCount.size() == 0)
+	{
+		return 0;
+	}
 	*max = -1;
 	int retIndex = 0;
+	std::vector<int> indices;
 	for(int index = 0;index < m_state.m_favoredMoveTaskCount.size();index++)
 	{
 		if(m_state.m_favoredMoveTaskCount.at(index) > *max)
@@ -1016,7 +1077,21 @@ int Entity::GetMostFavoredMoveTask(float *max)
 			retIndex = index;
 		}
 	}
-	return retIndex;
+	for (int index = 0; index < m_state.m_favoredMoveTaskCount.size(); index++)
+	{
+		if(*max == m_state.m_favoredMoveTaskCount.at(index))
+		{
+			indices.push_back(index);
+		}
+	}
+
+	int randomIndex = GetRandomIntLessThan(indices.size());
+	if(randomIndex < indices.size())
+	{
+		return indices.at(randomIndex);
+	}
+	return m_state.m_favoredMoveTaskCount.at(0);
+	//return retIndex;
 }
 
 
@@ -1259,9 +1334,9 @@ void Entity::SetDesiredOutputToMoveToNeighbour(EntityState prevState,int distanc
 	SetDesiredOutputForTask(TASK_MOVEY, desiredYPosition);
 	if(desiredXPosition > 1 || desiredYPosition > 1 || desiredXPosition < 0 || desiredYPosition < 0)
 	{
-		m_map->CreateExplosions(m_map->GetMapPosition(neighbour),Rgba::WHITE);
+		//m_map->CreateExplosions(m_map->GetMapPosition(neighbour),Rgba::WHITE);
 	}
-	m_map->CreateExplosions(m_map->GetMapPosition(neighbour),Rgba::YELLOW);
+	//m_map->CreateExplosions(m_map->GetMapPosition(neighbour),Rgba::YELLOW);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1659,6 +1734,22 @@ IntVector2 Entity::GetBestNeighbour()
 	return IntVector2::MINUS_ONE;
 }
 
+int Entity::GetMyFoodCount()
+{
+	return ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_food;
+}
+
+int Entity::GetMyStoneCount()
+{
+	return ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_stone;
+
+}
+
+int Entity::GetMyWoodCount()
+{
+	return ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_wood;
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/22
 *@purpose : returns corresponding mini map value 
@@ -1685,13 +1776,13 @@ float Entity::GetMiniMapValue()
 		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.10f;
 		break;
 	case RESOURCE_FOOD:
-		return 0.80f;
+		return 0.8f;
 		break;
 	case RESOURCE_STONE:
 		return 0.85f;
 		break;
 	case RESOURCE_WOOD:
-		return 0.90f;
+		return 0.9f;
 		break;
 	case ARMY_SPAWNER:
 		return (static_cast<float>(m_teamID - 1) * 0.40f) + 0.15f;
@@ -1747,7 +1838,12 @@ double Entity::GetTaskValueFromDesiredOutput(TaskType type)
 TaskType Entity::GetTaskFromNNOutput(double &max)
 {
 	TaskType type = m_taskTypeSupported.at(0);
-	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size() - 2; outputIndex++)
+	int subtractTaskCount = 0;
+	if (m_type == CIVILIAN || m_type == LONG_RANGE_ARMY || m_type == SHORT_RANGE_ARMY)
+	{
+		subtractTaskCount += 2;
+	}
+	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size() - subtractTaskCount; outputIndex++)
 	{
 		if(m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value > max)
 		{
@@ -2147,13 +2243,7 @@ bool Entity::CreateAndPushSpawnVillagerTask(IntVector2 cordinate)
 {
 	UNUSED(cordinate);
 	Task *task = new TaskSpawnVillager(m_map, (TownCenter*)this);
-	if (task->CheckAndReduceResources())
-	{
-		m_taskQueue.push(task);
-		return true;
-	}
-	delete task;
-	CreateAndPushIdleTask(IntVector2::ONE);
+	m_taskQueue.push(task);
 	return false;
 }
 

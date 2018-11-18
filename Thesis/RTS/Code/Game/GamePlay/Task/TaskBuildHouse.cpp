@@ -30,11 +30,6 @@ bool TaskBuildHouse::DoTask(float deltaTime)
 	{
 		return true;
 	}
-	m_buildDelay += deltaTime;
-	if (m_buildDelay < m_buildMaxDelay)
-	{
-		return false;
-	}
 	if(HasStandAloneEntity(m_entity->GetCordinates()))
 	{
 		return true;
@@ -47,7 +42,10 @@ bool TaskBuildHouse::DoTask(float deltaTime)
 			return true;
 		}
 	}
-	m_buildDelay = 0;
+	if (!CheckAndReduceResources())
+	{
+		return true;
+	}
 	m_map->CreateHouse(m_entity->GetPosition(), m_entity->m_teamID);
 	m_entity->UpdateUnitStatForHouseBuilt(1);
 	CheckAndUpdateResourcesUsed();

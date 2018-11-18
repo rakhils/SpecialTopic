@@ -12,6 +12,7 @@ TaskSpawnClassBWarrior::TaskSpawnClassBWarrior(Map *map, Entity *entity)
 	m_resourcesNeeded.m_food = 16;
 	m_resourcesNeeded.m_wood = 16;
 	m_targetPosition = entity->GetPosition();
+	m_taskType = TASK_SPAWN_CLASSB_WARRIOR;
 }
 
 // DESTRUCTOR

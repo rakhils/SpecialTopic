@@ -370,6 +370,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="GamePlay\Utils\ScoreCard.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Main_Win32.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -467,6 +471,10 @@
     <ClInclude Include="GamePlay\Tiles\TileDefinition.hpp" />
     <ClInclude Include="GamePlay\Tiles\Tiles.hpp" />
     <ClInclude Include="GamePlay\Utils\Explosion.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Utils\ScoreCard.hpp">
       <SubType>
       </SubType>
     </ClInclude>

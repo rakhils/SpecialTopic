@@ -33,6 +33,8 @@ public:
 
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
+
+	bool HasMoreResources();
 	
 	void EvaluateNN(Task * task,EntityState previousState,IntVector2 cords);
 	void EvaluateMoveTask(EntityState prevState,IntVector2 location);

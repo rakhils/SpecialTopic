@@ -127,6 +127,9 @@
     <ClCompile Include="GamePlay\Entity\DebugEntity.cpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClCompile>
+    <ClCompile Include="GamePlay\Utils\ScoreCard.cpp">
+      <Filter>General\GamePlay\Utils</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -221,6 +224,9 @@
     </ClInclude>
     <ClInclude Include="GamePlay\Entity\DebugEntity.hpp">
       <Filter>General\GamePlay\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Utils\ScoreCard.hpp">
+      <Filter>General\GamePlay\Utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

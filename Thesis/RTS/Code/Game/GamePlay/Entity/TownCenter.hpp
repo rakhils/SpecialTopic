@@ -31,7 +31,9 @@ public:
 
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
-	void TrainNN();
+	void EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
+	void EvaluateSpawnCivilianTask(EntityState previousState, IntVector2 cords);
+	void EvaluateIdleTask(EntityState previousState, IntVector2 cords);
 	void Render();
 	
 	//Static_Methods

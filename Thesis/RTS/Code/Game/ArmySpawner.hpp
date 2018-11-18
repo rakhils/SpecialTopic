@@ -25,7 +25,11 @@ public:
 	~ArmySpawner();
 
 	void ProcessInput(float deltaTime);
-	void TrainNN();
+	void EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
+	void EvaluateShortRangeArmySpawnTask(EntityState previousState, IntVector2 cords);
+	void EvaluateLongRangeArmySpawnTask(EntityState previousState, IntVector2 cords);
+	void EvaluateIdleTask(EntityState previousState, IntVector2 cords);
+
 	void Update(float deltaTime);
 	void Render();
 	//Static_Methods

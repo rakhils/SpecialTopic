@@ -6,6 +6,7 @@
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Task/TaskSpawnVillager.hpp"
 #include "Game/GamePlay/Task/TaskIdle.hpp"
+#include "Game/GamePlay/Maps/Map.hpp"
 // CONSTRUCTOR
 TownCenter::TownCenter()
 {
@@ -21,6 +22,7 @@ TownCenter::TownCenter(Map *map,Vector2 position, int teamId)
 	m_taskTypeSupported.push_back(TASK_SPAWN_VILLAGER);
 	m_taskTypeSupported.push_back(TASK_IDLE);
 	m_taskQueue.push(new TaskIdle());
+	m_health = 50;
 	InitNeuralNet();
 }
 
@@ -73,14 +75,84 @@ void TownCenter::Update(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/09/30
-*@purpose : Trains NN according to the expected output
+/*DATE    : 2018/11/12
+*@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void TownCenter::TrainNN()
+void TownCenter::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
 {
+	CopyDesiredOutputs();
+	switch (task->m_taskType)
+	{
+	case TASK_SPAWN_VILLAGER:
+		EvaluateSpawnCivilianTask(previousState, cords);
+		break;
+	case TASK_IDLE:
+		EvaluateIdleTask(previousState, cords);
+		break;
+	}
+	Entity::EvaluateNN(task, previousState, cords);
+}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/12
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void TownCenter::EvaluateSpawnCivilianTask(EntityState previousState, IntVector2 cords)
+{
+	m_state.m_neuralNetPoints++;
+	if (m_state.m_civilianSpawned == previousState.m_civilianSpawned)
+	{
+		m_desiredOuputs.at(0) = 0;
+		return;
+	}
+
+	if(m_state.m_civilianSpawned > previousState.m_civilianSpawned)
+	{
+		m_desiredOuputs.at(0) = 1;
+		// should check below values
+	}
+
+	if(m_teamID == 1 && m_map->m_gameStats.m_numOfCiviliansTeam1 > g_maxCivilianCount)
+	{
+		m_desiredOuputs.at(0) = 0;
+		return;
+	}
+	if (m_teamID == 2 && m_map->m_gameStats.m_numOfCiviliansTeam2 > g_maxCivilianCount)
+	{
+		m_desiredOuputs.at(0) = 0;
+		return;
+	}
+	m_desiredOuputs.at(0) = 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/12
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void TownCenter::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
+{
+	m_state.m_neuralNetPoints++;
+	m_desiredOuputs.at(1) = 1;
+	if (m_teamID == 1 && m_map->m_gameStats.m_numOfCiviliansTeam1 > g_maxCivilianCount)
+	{
+		m_desiredOuputs.at(1) = 1;
+		return;
+	}
+	if (m_teamID == 2 && m_map->m_gameStats.m_numOfCiviliansTeam2 > g_maxCivilianCount)
+	{
+		m_desiredOuputs.at(1) = 1;
+		return;
+	}
+	if (m_map->HasEnoughResourceToSpawnCivilian(m_teamID))
+	{
+		m_desiredOuputs.at(1) = 0;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -73,7 +73,10 @@ void Map::Initialize()
 	InitCellSensoryValues();
 	CreateDirectoryForNN();
 	InitAndStoreBestScoreFromFile();
+	m_team1.Reset();
+	m_team2.Reset();
 	m_gameFinished = false;
+	m_isScoreBoardUpdated = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -135,6 +138,8 @@ void Map::CreateDirectoryForNN()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitAndStoreBestScoreFromFile()
 {
+	ResetLocalScores();
+	ResetGlobalScores();
 	std::string fileContentTeam1    = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\TEAM_1_STATS.txt");
 	std::string fileContentTeam2    = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\TEAM_2_STATS.txt");
 	std::string armySpawnerTeam1    = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\ARMY_SPAWNER_1_STATS.txt");
@@ -453,7 +458,7 @@ void Map::InitTrainingForCivilianGatherFood()
 
 	CreateTownCenter(GetMapPosition(6), 1);
 	CreateResources(GetMapPosition(10),  RESOURCE_FOOD);
-
+	//m_townCenters.at(0)->m_resourceStat.m_food = 100;
 	CreateTownCenter(GetMapPosition(61), 2);
 	CreateCivilian(GetMapPosition(42), 2);
 }
@@ -471,13 +476,13 @@ void Map::InitTrainingForCivilianGatherAllResources()
 	m_entitiesHavingTraning.clear();
 	m_entitiesHavingTraning.push_back(CIVILIAN);
 
-	CreateTownCenter(GetMapPosition(7), 1);
+	CreateTownCenter(GetMapPosition(55), 1);
+	CreateTownCenter(GetMapPosition(7), 2);
 	CreateResources(GetMapPosition(9), RESOURCE_FOOD);
 	CreateResources(GetMapPosition(57), RESOURCE_STONE);
 	CreateResources(GetMapPosition(62), RESOURCE_WOOD);
 
 
-	CreateTownCenter(GetMapPosition(35), 2);
 	CreateCivilian(GetMapPosition(17), 2);
 
 
@@ -551,12 +556,12 @@ void Map::InitTrainingForTownCenter()
 {
 	m_maxWidth = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
-
+	m_entitiesHavingTraning.push_back(TOWN_CENTER);
 	CreateTownCenter(GetMapPosition(7), 1);
 	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
 
 	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
+	//CreateCivilian(GetMapPosition(42), 2);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -577,8 +582,8 @@ void Map::InitTrainingForShortRangeArmy()
 	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
 
 	CreateTownCenter(GetMapPosition(62), 2);
-	CreateCivilian(GetMapPosition(14), 1);
-	CreateClassAWarrior(GetMapPosition(20),2);
+	//CreateCivilian(GetMapPosition(14), 1);
+	CreateClassAWarrior(GetMapPosition(20),1);
 
 }
 
@@ -595,12 +600,12 @@ void Map::InitTrainingForLongRangeArmy()
 
 	m_entitiesHavingTraning.clear();
 	m_entitiesHavingTraning.push_back(LONG_RANGE_ARMY);
-	CreateTownCenter(GetMapPosition(7), 1);
+	CreateTownCenter(GetMapPosition(14), 1);
 	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
 
 	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
-	CreateClassBWarrior(GetMapPosition(32), 2);
+	//CreateCivilian(GetMapPosition(42), 2);
+	CreateClassBWarrior(GetMapPosition(32), 1);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -614,12 +619,13 @@ void Map::InitTrainingForArmySpawner()
 	m_maxWidth = g_mapMaxWidth;
 	m_maxHeight = g_mapMaxHeight;
 	m_entitiesHavingTraning.clear();
-
+	m_entitiesHavingTraning.push_back(ARMY_SPAWNER);
 	CreateTownCenter(GetMapPosition(7), 1);
 	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
 
 	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
+
+	//CreateCivilian(GetMapPosition(42), 2);
 	CreateArmySpawner(GetMapPosition(33), 2);
 }
 
@@ -661,10 +667,10 @@ void Map::InitNonTrainingMode()
 	CreateResources(GetMapPosition(402), RESOURCE_FOOD);
 	CreateResources(GetMapPosition(435), RESOURCE_FOOD);
 
-	CreateResources(GetMapPosition(670), RESOURCE_STONE);
+	CreateResources(GetMapPosition(668), RESOURCE_STONE);
 	CreateResources(GetMapPosition(610), RESOURCE_STONE);
 
-	CreateResources(GetMapPosition(105), RESOURCE_WOOD);
+	CreateResources(GetMapPosition(107), RESOURCE_WOOD);
 	CreateResources(GetMapPosition(126), RESOURCE_WOOD);
 
 
@@ -718,14 +724,19 @@ bool Map::HasTrainingEnabled(Entity *entity)
 void Map::CreateCivilian(Vector2 position, int teamID)
 {
 	Civilian *civilian = new Civilian(this,position,teamID);
-
-	/*civilian->m_resourceTypeCarrying = m_resources.at(0);
-	civilian->m_state.m_hasResource = true;*/
-
 	m_civilians.push_back(civilian);
 	m_movableEntities.push_back(civilian);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_civilians++;
+	if(teamID == 1)
+	{
+		m_gameStats.m_numOfCiviliansTeam1++;
+	}
+	if (teamID == 2)
+	{
+		m_gameStats.m_numOfCiviliansTeam2++;
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -741,6 +752,14 @@ void Map::CreateArmySpawner(Vector2 position, int teamID)
 	m_standAloneEntities.push_back(armySpawner);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_armySpawners++;
+	if (teamID == 1)
+	{
+		m_gameStats.m_numOfArmySpawnerTeam1++;
+	}
+	if (teamID == 2)
+	{
+		m_gameStats.m_numOfArmySpawnerTeam2++;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -756,6 +775,14 @@ void Map::CreateClassAWarrior(Vector2 position, int teamID)
 	m_movableEntities.push_back(classAWarrior);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_shortRangeArmies++;
+	if (teamID == 1)
+	{
+		m_gameStats.m_numOfShortRangeArmyTeam1++;
+	}
+	if (teamID == 2)
+	{
+		m_gameStats.m_numOfShortRangeArmyTeam2++;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -771,6 +798,14 @@ void Map::CreateClassBWarrior(Vector2 position, int teamID)
 	m_movableEntities.push_back(classBWarrior);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_units++;
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_longRangeArmies++;
+	if (teamID == 1)
+	{
+		m_gameStats.m_numOfLongRangeArmyTeam1++;
+	}
+	if (teamID == 2)
+	{
+		m_gameStats.m_numOfLongRangeArmyTeam2++;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -785,7 +820,14 @@ void Map::CreateHouse(Vector2 position, int teamID)
 	m_houses.push_back(house);
 	m_standAloneEntities.push_back(house);
 	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
-	m_townCenters.at(teamID - 1)->m_resourceStat.m_buildings++;
+	if (teamID == 1)
+	{
+		m_gameStats.m_numOfHousesTeam1++;
+	}
+	if (teamID == 2)
+	{
+		m_gameStats.m_numOfHousesTeam2++;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -822,7 +864,6 @@ void Map::CreateResources(Vector2 position,EntityType type)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::CreateExplosions(Vector2 position,Rgba color)
 {
-	if (true)return;
 	Explosion *explosion = new Explosion(position);
 	explosion->m_color = color;
 	m_explosions.push_back(explosion);
@@ -1229,7 +1270,7 @@ void Map::UpdateCellSensoryValues()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ScoreBoard & Map::GetMyScoreBoard(Entity *entity)
+ScoreCard & Map::GetMyScoreBoard(Entity *entity)
 {
 	if(entity->m_teamID == 1)
 	{
@@ -1727,6 +1768,56 @@ bool Map::HasAnyEntityInTile(Vector2 mapPosition)
 		return false;
 	}
 	return HasAnyEntityInTile(index);
+}
+
+bool Map::HasEnoughResourceToSpawnCivilian(int teamID)
+{
+	TownCenter *townCenter = m_townCenters.at(teamID - 1);
+	if(townCenter->m_resourceStat.m_food >= g_minFoodCountToSpawnCivilian && townCenter->m_resourceStat.m_wood >= g_minWoodCountToSpawnCivilian)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool Map::HasEnoughResourceToBuildHouse(int teamID)
+{
+	TownCenter *townCenter = m_townCenters.at(teamID - 1);
+	if (townCenter->m_resourceStat.m_stone >= g_minStoneCountToBuildHouse && townCenter->m_resourceStat.m_wood >= g_minWoodCountToBuildHouse)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool Map::HasEnoughResourceToBuildArmySpawnCenter(int teamID)
+{
+	TownCenter *townCenter = m_townCenters.at(teamID - 1);
+	if (townCenter->m_resourceStat.m_stone >= g_minStoneCountToBuildArmyCenter && townCenter->m_resourceStat.m_wood >= g_minWoodCountToBuildArmyCenter)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool Map::HasEnoughResourceToSpawnShortRangeArmy(int teamID)
+{
+	TownCenter *townCenter = m_townCenters.at(teamID - 1);
+	if (townCenter->m_resourceStat.m_food >= g_minFoodCountToSpawnShortRangeArmy && townCenter->m_resourceStat.m_wood >= g_minWoodCountToSpawnShortRangeArmy)
+	{
+		return true;
+	}
+	return false;
+}
+
+bool Map::HasEnoughResourceToSpawnLongRangeArmy(int teamID)
+{
+	TownCenter *townCenter = m_townCenters.at(teamID - 1);
+	if (townCenter->m_resourceStat.m_food >= g_minFoodCountToSpawnLongRangeArmy && townCenter->m_resourceStat.m_wood >= g_minWoodCountToSpawnLongRangeArmy)
+	{
+		return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2326,13 +2417,20 @@ void Map::ProcessInputs(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::CheckAndUpdateOnWinCondition()
+void Map::CheckAndUpdateOnWinCondition(float deltaTime)
 {
+	m_team1.m_totalSteps++;
+	m_team2.m_totalSteps++;
+	
 	if(m_gameFinished)
 	{
-		CheckAndSaveBestStats();
-		
+		m_gameFinishedTime += deltaTime;
 		g_isCurrentlyTraining = false;
+		if(m_gameFinishedTime > 2)
+		{
+			m_gameFinishedTime = 0;
+			CheckAndSaveBestStats();
+		}
 		return;
 	}
 	for(size_t townCenterIndex = 0;townCenterIndex < m_townCenters.size();townCenterIndex++)
@@ -2340,11 +2438,22 @@ void Map::CheckAndUpdateOnWinCondition()
 		if(m_townCenters.at(townCenterIndex)->m_health <= 0)
 		{
 			m_gameFinished = true;
+			g_mapCounter++;
 			if(g_isCurrentlyTraining)
 			{
 				g_isCurrentlyTraining = false;
 			}
 			return;
+		}
+	}
+	if (m_team1.m_totalSteps > 250000 || m_team2.m_totalSteps > 250000)
+	{
+		g_mapCounter++;
+		g_mapBreakCounter++;
+		m_gameFinished = true;
+		if (g_isCurrentlyTraining)
+		{
+			g_isCurrentlyTraining = false;
 		}
 	}
 }
@@ -2640,8 +2749,8 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::SaveEntityBestGlobalScore(Entity *entity)
 {
-	FileWrite(entity->GetGlobalBestStatFilePath(), ToString(entity->m_scoreBoard.m_totalScore));
-
+	//FileWrite(entity->GetGlobalBestStatFilePath(), ToString(entity->m_scoreBoard.m_totalScore));
+	entity->m_scoreBoard.SaveToFile(entity->GetGlobalBestStatFilePath().c_str());
 	std::string filePath = entity->GetGlobalBestFilePath();
 	size_t size = filePath.length();
 	FileRemove(filePath.c_str());
@@ -2656,9 +2765,9 @@ void Map::SaveEntityBestGlobalScore(Entity *entity)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::SaveEntityBestLocalScore(Entity *entity)
 {
-	FileWrite(entity->GetLocalBestStatFilePath(), ToString(entity->m_scoreBoard.m_totalScore));
+	//FileWrite(entity->GetLocalBestStatFilePath(), ToString(entity->m_scoreBoard.m_totalScore));
+	entity->m_scoreBoard.SaveToFile(entity->GetLocalBestStatFilePath().c_str());
 	std::string filePath = entity->GetLocalBestFilePath();
-	remove(filePath.c_str());
 	entity->m_neuralNet.StoreToFile(filePath.c_str());
 }
 
@@ -2749,7 +2858,7 @@ void Map::DeleteFromStandAlonEntityList(Entity *entity)
 
 void Map::Update(float deltaTime)
 {
-	CheckAndUpdateOnWinCondition();
+	CheckAndUpdateOnWinCondition(deltaTime);
 	CheckAndClearEntityOverlap();
 	if(m_gameFinished)
 	{
@@ -2802,6 +2911,14 @@ void Map::UpdateCivilans(float deltaTime)
 		if(m_civilians.at(civiliansIndex)->m_health <= 0)
 		{
 			DeleteFromMovableEntityList(m_civilians.at(civiliansIndex));
+			if (m_civilians.at(civiliansIndex)->m_teamID == 1)
+			{
+				m_gameStats.m_numOfCiviliansTeam1--;
+			}
+			if (m_civilians.at(civiliansIndex)->m_teamID == 2)
+			{
+				m_gameStats.m_numOfCiviliansTeam2--;
+			}
 			delete m_civilians.at(civiliansIndex);
 			m_civilians.erase(m_civilians.begin() + civiliansIndex, m_civilians.begin() + civiliansIndex + 1);
 			civiliansIndex--;
@@ -2823,6 +2940,14 @@ void Map::UpdateArmySpawners(float deltaTime)
 		if (m_armySpawners.at(armySpawnerIndex)->m_health <= 0)
 		{
 			DeleteFromStandAlonEntityList(m_armySpawners.at(armySpawnerIndex));
+			if (m_armySpawners.at(armySpawnerIndex)->m_teamID == 1)
+			{
+				m_gameStats.m_numOfArmySpawnerTeam1--;
+			}
+			if (m_armySpawners.at(armySpawnerIndex)->m_teamID == 2)
+			{
+				m_gameStats.m_numOfArmySpawnerTeam2--;
+			}
 			delete m_armySpawners.at(armySpawnerIndex);
 			m_armySpawners.erase(m_armySpawners.begin() + armySpawnerIndex, m_armySpawners.begin() + armySpawnerIndex + 1);
 			armySpawnerIndex--;
@@ -2844,6 +2969,15 @@ void Map::UpdateClassAWarriors(float deltaTime)
 		if (m_classAWarriors.at(classAWarriorIndex)->m_health <= 0)
 		{
 			DeleteFromMovableEntityList(m_classAWarriors.at(classAWarriorIndex));
+			
+			if (m_classAWarriors.at(classAWarriorIndex)->m_teamID == 1)
+			{
+				m_gameStats.m_numOfShortRangeArmyTeam1--;
+			}
+			if (m_classAWarriors.at(classAWarriorIndex)->m_teamID == 2)
+			{
+				m_gameStats.m_numOfShortRangeArmyTeam2--;
+			}
 			delete m_classAWarriors.at(classAWarriorIndex);
 			m_classAWarriors.erase(m_classAWarriors.begin() + classAWarriorIndex, m_classAWarriors.begin() + classAWarriorIndex + 1);
 			classAWarriorIndex--;
@@ -2864,6 +2998,14 @@ void Map::UpdateClassBWarriors(float deltaTime)
 		m_classBWarriors.at(classBWarriorIndex)->Update(deltaTime);
 		if (m_classBWarriors.at(classBWarriorIndex)->m_health <= 0)
 		{
+			if (m_classBWarriors.at(classBWarriorIndex)->m_teamID == 1)
+			{
+				m_gameStats.m_numOfLongRangeArmyTeam1--;
+			}
+			if (m_classBWarriors.at(classBWarriorIndex)->m_teamID == 2)
+			{
+				m_gameStats.m_numOfLongRangeArmyTeam2--;
+			}
 			DeleteFromMovableEntityList(m_classBWarriors.at(classBWarriorIndex));
 			delete m_classBWarriors.at(classBWarriorIndex);
 			m_classBWarriors.erase(m_classBWarriors.begin() + classBWarriorIndex, m_classBWarriors.begin() + classBWarriorIndex + 1);
@@ -2886,6 +3028,15 @@ void Map::UpdateHouses(float deltaTime)
 		if (m_houses.at(houseIndex)->m_health <= 0)
 		{
 			DeleteFromStandAlonEntityList(m_houses.at(houseIndex));
+		
+			if (m_houses.at(houseIndex)->m_teamID == 1)
+			{
+				m_gameStats.m_numOfHousesTeam1--;
+			}
+			if (m_houses.at(houseIndex)->m_teamID == 2)
+			{
+				m_gameStats.m_numOfHousesTeam2--;
+			}
 			delete m_houses.at(houseIndex);
 			m_houses.erase(m_houses.begin() + houseIndex, m_houses.begin() + houseIndex + 1);
 			houseIndex--;
@@ -2967,7 +3118,7 @@ void Map::Render()
 {
 	Camera::SetCurrentCamera(m_camera);
 	Renderer::GetInstance()->BeginFrame();
-	DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d", App::s_gameCounter);
+	DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d MAP COUNTER %d MAP BREAK COUNTER %d", App::s_gameCounter,g_mapCounter,g_mapBreakCounter);
 
 	if(g_isCurrentlyTraining)
 	{
