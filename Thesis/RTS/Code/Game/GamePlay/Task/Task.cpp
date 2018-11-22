@@ -138,10 +138,16 @@ std::string Task::GetTaskTypeAsString(TaskType type)
 	switch (type)
 	{
 	case TASK_MOVE:
-		return "TASK_MOVE             ";
+		return "TASK_MOVE            ";
 		break;
-	case TASK_GATHER_RESOURCE:
-		return "TASK_GATHER           ";
+	case TASK_GATHER_RESOURCE_FOOD:
+		return "TASK_GATHER_FOOD      ";
+		break;
+	case TASK_GATHER_RESOURCE_STONE:
+		return "TASK_GATHER_STONE     ";
+		break;
+	case TASK_GATHER_RESOURCE_WOOD:
+		return "TASK_GATHER_WOOD      ";
 		break;
 	case TASK_DROP_RESOURCE:
 		return "TASK_DROP             ";
@@ -195,8 +201,14 @@ std::string Task::GetTaskTypeAsShortString(TaskType type)
 	case TASK_MOVE:
 		return "MV";
 		break;
-	case TASK_GATHER_RESOURCE:
-		return "GATHER";
+	case TASK_GATHER_RESOURCE_FOOD:
+		return "GATHER_FOOD";
+		break;
+	case TASK_GATHER_RESOURCE_STONE:
+		return "GATHER_STONE";
+		break;
+	case TASK_GATHER_RESOURCE_WOOD:
+		return "GATHER_WOOD";
 		break;
 	case TASK_DROP_RESOURCE:
 		return "DROP";

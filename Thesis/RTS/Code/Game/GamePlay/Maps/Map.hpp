@@ -34,25 +34,31 @@ enum MapMode
 };
 struct GameStats
 {
-	int m_numOfArmySpawnerTeam1;
-	int m_numOfArmySpawnerTeam2;
-	int m_numOfCiviliansTeam1;
-	int m_numOfCiviliansTeam2;
-	int m_numOfShortRangeArmyTeam1;
-	int m_numOfShortRangeArmyTeam2;
-	int m_numOfLongRangeArmyTeam1;	
-	int m_numOfLongRangeArmyTeam2;
-	int m_numOfHousesTeam1;
-	int m_numOfHousesTeam2;
+	int m_numOfArmySpawnerTeam1			= 0;
+	int m_numOfArmySpawnerTeam2			= 0;
+	int m_numOfCiviliansTeam1			= 0;
+	int m_numOfCiviliansTeam2			= 0;
+	int m_numOfShortRangeArmyTeam1		= 0;
+	int m_numOfShortRangeArmyTeam2		= 0;
+	int m_numOfLongRangeArmyTeam1		= 0;	
+	int m_numOfLongRangeArmyTeam2		= 0;
+	int m_numOfHousesTeam1				= 0;
+	int m_numOfHousesTeam2				= 0;
 	int GetTotalEntityCountTeam1() { return m_numOfCiviliansTeam1 + m_numOfLongRangeArmyTeam1 + m_numOfShortRangeArmyTeam1; }
 	int GetTotalEntityCountTeam2() { return m_numOfCiviliansTeam2 + m_numOfLongRangeArmyTeam2 + m_numOfShortRangeArmyTeam2; }
-
+	void Reset();
 };
 
 struct Tile
 {
 	Entity *m_entity = nullptr;
 	IntVector2 m_position;
+	bool	m_covered = false;
+	int     m_teamID = 0;
+	Tile()
+	{
+
+	}
 	Tile(Entity* entity,IntVector2 position)
 	{
 		m_entity = entity;
@@ -114,8 +120,9 @@ public:
 	std::vector<Entity*>			m_standAloneEntities;
 	std::vector<EntityType>			m_entitiesHavingTraning;
 
-	std::vector<double>				m_minimapValue;
+	std::vector<Entity*>			m_minimapValue;
 	std::vector<CellSensoryValues>  m_cellSensoryValues;
+	std::vector<Tile*>				m_tiles;
 
 	GameStats						m_gameStats;
 	MapMode							m_mapMode = MAP_MODE_TRAINING_NONE;
@@ -137,9 +144,11 @@ public:
 	~Map();
 
 	void							Initialize();
+	void							InitTiles();
 	void							InitCellSensoryValues();
 	void							CreateDirectoryForNN();
 	void							InitAndStoreBestScoreFromFile();
+	void							ResetBestScoreToFile();
 	float							GetHeatMapDistanceFromEntity(IntVector2 cellposition, EntityType type,int teamID);
 	void							InitCamera();
 	void							RestartMap();
@@ -176,8 +185,13 @@ public:
 	//MINIMAP
 	void							InitMiniMap();
 	void							UpdateMiniMap();
-	double							GetMiniMapValueAtPosition(int row, int column);
-	void							SetMiniMapValues(int row, int column, float minimapValue);
+	Entity*							GetMiniMapValueAtPosition(int row, int column);
+	double							GetMiniMapValueAtPositionFromEntityType(int row, int column, int myTeamID,EntityType myType,Entity *entity);
+	double							GetMiniMapValueAtPositionForCivilian(int myTeamID,int row, int column);
+	double							GetMiniMapValueAtPositionForShortRangeArmy(int myTeamID,int row, int column);
+	double							GetMiniMapValueAtPositionForLongRangeArmy(int myTeamID,int row, int column);
+
+	void							SetMiniMapValues(int row, int column, Entity *entity);
 
 	///////////////////////////////////////////////////////////////////////
 
@@ -272,6 +286,7 @@ public:
 	void							RenderTownCenters();
 	void							RenderResources();
 	void							RenderGrids();
+	void							RenderTiles();
 	void							RenderExplosions();
 	void							RenderDebugEntites();
 	void							RenderHUDGameStat();

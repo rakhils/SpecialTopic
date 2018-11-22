@@ -11,6 +11,9 @@ TaskDropResource::TaskDropResource(Entity *entity,Entity* townCenter)
 	m_map		 = m_entity->m_map;
 	m_targetPosition = m_townCenter->GetPosition();
 	m_taskType = TASK_DROP_RESOURCE;
+	Vector2 townCenterPos = m_map->m_townCenters.at(m_entity->m_teamID - 1)->GetPosition();
+	IntVector2 freeCords = m_map->GetFreeNeighbourTile(townCenterPos, 1);
+	m_targetPosition = m_map->GetMapPosition(freeCords);
 }
 
 // DESTRUCTOR
@@ -60,13 +63,33 @@ bool TaskDropResource::DoTask(float deltaTime)
 	{
 		return true;
 	}
+	if (m_targetPosition == Vector2(-1, -1))
+	{
+		return true;
+	}
+	Vector2 currentPosition = m_entity->GetPosition();
+	Vector2 direction = m_targetPosition - currentPosition;
+	direction = direction.GetNormalized();
+	currentPosition += direction * m_speed * deltaTime;
+	m_entity->SetPositionInFloat(currentPosition);
+
+	Vector2 distance = m_entity->GetPosition() - m_targetPosition;
+	if (distance.GetLength() < 1)
+	{
+		UpdateResourceStorageStat(((Civilian*)m_entity)->m_resourceTypeCarrying, 1);
+		CheckAndUpdateResourcesUsed();
+		m_entity->m_state.m_hasResource = false;
+		((Civilian*)m_entity)->m_resourceTypeCarrying = nullptr;
+		return true;
+	}
+	return false;
 	
-	if (m_map->IsNeighbours(m_map->GetCordinates(m_townCenter->GetPosition()), m_map->GetCordinates(m_entity->GetPosition())))
+	/*if (m_map->IsNeighbours(m_map->GetCordinates(m_townCenter->GetPosition()), m_map->GetCordinates(m_entity->GetPosition())))
 	{
 		UpdateResourceStorageStat(((Civilian*)m_entity)->m_resourceTypeCarrying, 1);
 		CheckAndUpdateResourcesUsed();
 		m_entity->m_state.m_hasResource = false;
 		((Civilian*)m_entity)->m_resourceTypeCarrying = nullptr;
 	}
-	return true;
+	return true;*/
 }

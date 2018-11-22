@@ -16,8 +16,9 @@ float				g_unitDistance  = g_radius * 2;
 bool				g_isQuitting	= false;
 int					g_mapMaxWidth	= 8;
 int					g_mapMaxHeight	= 8;
-int					g_hiddenLayerCount = 50;
-bool				g_isCurrentlyTraining = false;
+int					g_hiddenLayerCount = 80;
+bool				g_skipRendering = false;
+bool				g_isCurrentlyTraining = true;
 bool			    g_isGlobalyCurrentlyTraining = false;
 float				g_lastTrainingStopTime = 0.f;
 bool				g_enableNeuralNet = true;
@@ -166,12 +167,10 @@ void ResetGlobalScores()
 *//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void InitVariables()
 {
-	g_mapXOffset					    = 0.f;
-	g_mapYOffset						= 2 * g_radius;
-
-
 	float windowsSizeX					= Windows::GetInstance()->GetDimensions().GetAsVector2().x;
 	float windowsSizeY					= Windows::GetInstance()->GetDimensions().GetAsVector2().y;
+	g_mapXOffset					    = 0.f;
+	g_mapYOffset						= 2 * g_radius;
 
 	g_resourceStatHUD					= AABB2(Vector2(windowsSizeX / 2.f,windowsSizeY - 50), windowsSizeX / 2.f,50);
 

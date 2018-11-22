@@ -38,13 +38,13 @@ public:
 
 	//Methods
 
-	TaskGatherResource(Entity *entity);
+	TaskGatherResource(Entity *entity,TaskType type);
 	~TaskGatherResource();
 
 	void SetResourcePosition(Vector2 position);
 	void SetStoragePosition(Vector2 position);
 	bool WaitAtResource(float deltaTime);
-	void UpdateResourceStorageStat(Entity *entityResourceType,int count);
+	void UpdateResourceStorageStat(Entity* entity,int count);
 	bool DoTask(float deltaTime);
 	
 	//Static_Methods

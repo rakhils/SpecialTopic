@@ -179,7 +179,9 @@ public:
 	double							GetTaskValueFromDesiredOutput(TaskType type);
 	TaskType						GetTaskFromNNOutput(double &max);
 	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition);
+	Vector2							GetPredictedNNOutputFromMapPosition(IntVector2 entityCords,IntVector2 mapCords,int width,int height);
 	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition,int width,int height);
+	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition,Vector2 nnOutput, int width, int height);
 	IntVector2						GetRelativeCellLocation(float x, float y);
 	IntVector2						GetRandomSafeArea();
 	IntVector2						GetRandomTeritaryArea();
@@ -209,7 +211,15 @@ public:
 	void							ProcessInputs(float deltaTime);
 	std::vector<double>				GetMyMiniMap();
 
+	IntVector2						GetMiniMapMins(IntVector2 cords);
+	IntVector2						GetMiniMapMaxs(IntVector2 cords);
+	IntVector2						GetMiniMapMins(IntVector2 cords,int width,int height);
+	IntVector2						GetMiniMapMaxs(IntVector2 cords,int width,int height);
+	IntVector2						GetMyMiniMapMins();
+	IntVector2						GetMyMiniMapMaxs();
+
 	void							Update(float deltaTime);
+	void							UpdateCoveredArea();
 	void							UpdateTask();
 	virtual void					EvaluateNN(Task *task,EntityState previousState,IntVector2 cords);
 	virtual void					TrainNN(Task *task);
@@ -248,6 +258,7 @@ public:
 	void							SetPositionInFloat(Vector2 position);
 
 	void							SetDesiredOutputToMoveToNeighbour(EntityState prevState,int cellDistance);
+	void							SetDesiredOutputToMoveToNeighbour(Vector2 potision);
 	void							SetDesiredOutputToMoveToNeighbourOpposite(int cellDistance,IntVector2 cords);
 	void							SetDesiredOutputToMoveToPrevPosition();
 	void							SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance);
@@ -267,7 +278,7 @@ public:
 	bool							CreateAndPushIdleTask(IntVector2 cordinate);
 	bool							CreateAndPushMoveTask(IntVector2 cordinate);
 	bool							CreateAndPushBuildHouseTask(IntVector2 cordinate);
-	bool							CreateAndPushGatherResourceTask(IntVector2 cordinate);
+	bool							CreateAndPushGatherResourceTask(IntVector2 cordinate,TaskType type);
 	bool							CreateAndPushDropResourceTask(IntVector2 cordinate);
 	bool							CreateAndPushBuildTownCenterTask(IntVector2 cordinate);
 	bool							CreateAndPushBuildArmySpawnerTask(IntVector2 cordinate);

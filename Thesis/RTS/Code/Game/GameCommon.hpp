@@ -1,4 +1,6 @@
 #pragma once
+#include <map>
+
 #include "Engine\Input\InputSystem.hpp"
 #include "Engine\Renderer\Renderer.hpp"
 #include "Engine\TinyXml2\tinyxml2.h"
@@ -41,6 +43,7 @@ extern int					g_mapMaxWidth;
 extern int					g_mapMaxHeight;
 extern bool					g_isQuitting;
 extern bool					g_enableNeuralNet;
+extern bool					g_skipRendering;
 extern bool					g_isCurrentlyTraining;
 extern bool				    g_isGlobalyCurrentlyTraining;
 extern float				g_lastTrainingStopTime;
@@ -148,6 +151,8 @@ extern Vector3				g_unitStatHUDResourceInfoPosition;
 extern Vector3				g_unitStatHUDTaskInfoPosition;
 extern AABB2				g_unitStatHUDFirstButton;
 extern AABB2				g_unitStatHUDSecondButton;
+
+//std::map<EntityType, double> g_minMapValues;
 
 void ResetLocalScores();
 void ResetGlobalScores();

@@ -106,6 +106,7 @@ public:
 		FileAppendString(fp, "TOTAL_KILL_ON_LONG_RANGE_ARMIES     : " + ToString(m_longRangeArmyKilled) + "\n");
 		FileAppendString(fp, "TOTAL_KILL_ON_TOWNCENTERS           : " + ToString(m_townCenterDestroyed) + "\n");
 
+		FileAppendString(fp, "TOTAL_SCORE_RATE                    : " + ToString(m_scoreRate) + "\n");
 		FileAppendString(fp, "TOTAL_NEGATIVE_SCORE                : " + ToString(m_negativeScores) + "\n");
 		FileAppendString(fp, "TOTAL_BONUS_SCORE                   : " + ToString(m_bonusScore) + "\n");
 		FileAppendString(fp, "TOTAL_FRAMES                        : " + ToString(m_totalSteps) + "\n");

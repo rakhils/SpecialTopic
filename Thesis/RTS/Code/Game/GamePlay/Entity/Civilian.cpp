@@ -23,7 +23,9 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_map		  = map;
 	m_teamID	  = teamID;
 	SetPosition(position);
-	m_taskTypeSupported.push_back(TASK_GATHER_RESOURCE);
+	m_taskTypeSupported.push_back(TASK_GATHER_RESOURCE_FOOD);
+	m_taskTypeSupported.push_back(TASK_GATHER_RESOURCE_STONE);
+	m_taskTypeSupported.push_back(TASK_GATHER_RESOURCE_WOOD);
 	m_taskTypeSupported.push_back(TASK_DROP_RESOURCE);
 	m_taskTypeSupported.push_back(TASK_BUILD_ARMY_SPAWNER);
 	m_taskTypeSupported.push_back(TASK_BUILD_HOUSE);
@@ -34,7 +36,7 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_resourceTypeCarrying = m_map->m_resources.at(0);
 	InitNeuralNet();
 	InitStates();
-	m_taskQueue.push(new TaskGatherResource(this));
+	m_taskQueue.push(new TaskIdle());
 }
 
 // DESTRUCTOR
@@ -100,9 +102,9 @@ void Civilian::ProcessInputs(float deltaTime)
 			}
 			else if(entity != nullptr && (entity->m_type == RESOURCE_FOOD || entity->m_type == RESOURCE_STONE|| entity->m_type == RESOURCE_WOOD))
 			{
-				ClearTaskQueue();
-				Task *task = new TaskGatherResource(this);
-				m_taskQueue.push(task);
+				/*ClearTaskQueue();
+				Task *task = new TaskGatherResource(this,entity->m_type);
+				m_taskQueue.push(task);*/
 			}
 			else if(entity != nullptr && (entity->m_type == TOWN_CENTER))
 			{
@@ -158,8 +160,12 @@ bool Civilian::HasMoreResources()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords)
 {
+	if(!g_isCurrentlyTraining)
+	{
+		return;
+	}
+
 	UNUSED(task);
-	//ClearDesiredOutputs();
 	CopyDesiredOutputs();
 
 	if(m_state.m_health < previousState.m_health)
@@ -168,25 +174,24 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 		m_state.m_neuralNetPoints++;
 		return;
 	}
-	/*if(m_map->GetCordinates(previousState.m_position) == cords)
-	{
-		SetDesiredOutputToMoveToNeighbour(previousState, 3);
-		m_state.m_neuralNetPoints++;
-	}*/
-
 	
 	TrainOnBuildHouseTask(previousState, cords);
 	TrainOnBuildArmySpawnerTask(previousState, cords);
-
-
+	TrainToGatherAndDropResource(previousState, cords);
 
 	switch (task->m_taskType)
 	{
 	case TASK_MOVE:
 		EvaluateMoveTask(previousState,cords);
 		break;
-	case TASK_GATHER_RESOURCE:
-		EvaluateGatherResourceTask(previousState,cords);
+	case TASK_GATHER_RESOURCE_FOOD:
+		EvaluateGatherResourceFoodTask(previousState,cords);
+		break;
+	case TASK_GATHER_RESOURCE_STONE:
+		EvaluateGatherResourceStoneTask(previousState, cords);
+		break;;
+	case TASK_GATHER_RESOURCE_WOOD:
+		EvaluateGatherResourceWoodTask(previousState, cords);
 		break;
 	case TASK_DROP_RESOURCE:
 		EvaluateDropResourceTask(previousState,cords);
@@ -215,20 +220,34 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::EvaluateMoveTask(EntityState previousState,IntVector2 cords)
 {
-	//Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
-	/*if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
+	if(m_map->GetCordinates(previousState.m_position) == cords)
 	{
 		m_state.m_neuralNetPoints++;
-		SetDesiredOutputToMoveToNeighbour(2);
+		SetDesiredOutputToMoveToNeighbour(previousState, 1);
 		return;
-	}*/
+	}
+
+	Entity *targetPlaceEntity = m_map->GetEntityFromPosition(cords);
+	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputToMoveToNeighbour(previousState,1);
+		return;
+	}
+	//SetDesiredOutputForTask(TASK_MOVE, 0);
+	//m_state.m_neuralNetPoints++;
+
+	/*if(true)
+	{
+		return;
+	}
 	if (m_resourceTypeCarrying != nullptr)
 	{
 		EvaluateMoveTaskToTownCenter(previousState, cords);
 		return;
 	}
 	EvaluateMoveTaskToResource(previousState, cords);
-	return;
+	return;*/
 }
 
 
@@ -251,19 +270,132 @@ void Civilian::EvaluateIdleTask(EntityState prevState)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Civilian::EvaluateGatherResourceTask(EntityState prevState,IntVector2 cords)
+void Civilian::EvaluateGatherResourceFoodTask(EntityState prevState,IntVector2 cords)
 {
 	UNUSED(cords);
-	if(m_state.m_resourceFoodGathered > prevState.m_resourceFoodGathered 
-		|| m_state.m_resourceStoneGathered > prevState.m_resourceStoneGathered
-			|| m_state.m_resourceWoodGathered > prevState.m_resourceWoodGathered)
+	if (m_state.m_resourceFoodGathered == prevState.m_resourceFoodGathered)
 	{
-		SetDesiredOutputForTask(TASK_GATHER_RESOURCE, 1.f);
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
+		return;
+	}
+	Resources resourceStat = ((TownCenter*)FindMyTownCenter())->m_resourceStat;
+	if (resourceStat.m_food > g_maxResourceCountRequired
+		&& resourceStat.m_stone > g_maxResourceCountRequired
+		&& resourceStat.m_wood > g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
+	if (resourceStat.m_food > g_maxResourceCountRequired)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
+		if (resourceStat.m_wood < g_maxResourceCountRequired)
+		{
+			SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
+		}
+		if (resourceStat.m_stone < g_maxResourceCountRequired)
+		{
+			SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+		}
+		return;
+	}
 	m_state.m_neuralNetPoints++;
-	SetDesiredOutputForTask(TASK_GATHER_RESOURCE, 0);
+	SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1);
+	return;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::EvaluateGatherResourceStoneTask(EntityState prevState, IntVector2 cords)
+{
+	UNUSED(cords);
+	if (m_state.m_resourceStoneGathered == prevState.m_resourceStoneGathered)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
+		return;
+	}
+	Resources resourceStat = ((TownCenter*)FindMyTownCenter())->m_resourceStat;
+	if (resourceStat.m_food > g_maxResourceCountRequired
+		&& resourceStat.m_stone > g_maxResourceCountRequired
+		&& resourceStat.m_wood > g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+	if (resourceStat.m_stone > g_maxResourceCountRequired)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
+		if (resourceStat.m_food < g_maxResourceCountRequired)
+		{
+			SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+		}
+		if (resourceStat.m_wood < g_maxResourceCountRequired)
+		{
+			SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
+		}
+		return;
+	}
+	m_state.m_neuralNetPoints++;
+	SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1);
+	return;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::EvaluateGatherResourceWoodTask(EntityState prevState, IntVector2 cords)
+{
+	UNUSED(cords);
+	if (m_state.m_resourceWoodGathered == prevState.m_resourceWoodGathered)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
+		return;
+	}
+	Resources resourceStat = ((TownCenter*)FindMyTownCenter())->m_resourceStat;
+	if (resourceStat.m_food     > g_maxResourceCountRequired
+		&& resourceStat.m_stone > g_maxResourceCountRequired
+		&& resourceStat.m_wood  > g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+	if (resourceStat.m_wood > g_maxResourceCountRequired)
+	{
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
+		if (resourceStat.m_food < g_maxResourceCountRequired)
+		{
+			SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+		}
+		if (resourceStat.m_stone < g_maxResourceCountRequired)
+		{
+			SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+		}
+		return;
+	}
+	m_state.m_neuralNetPoints++;
+	SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1);
 	return;
 }
 
@@ -276,11 +408,12 @@ void Civilian::EvaluateGatherResourceTask(EntityState prevState,IntVector2 cords
 void Civilian::EvaluateDropResourceTask(EntityState prevState, IntVector2 cords)
 {
 	UNUSED(cords);
-	if (m_state.m_resourceFoodDropped > prevState.m_resourceFoodDropped
-		|| m_state.m_resourceStoneDropped > prevState.m_resourceStoneDropped
-			|| m_state.m_resourceWoodDropped > prevState.m_resourceWoodDropped)
+	if (HasResource())
 	{
 		SetDesiredOutputForTask(TASK_DROP_RESOURCE, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -302,6 +435,7 @@ void Civilian::EvaluateBuildHouseTask(EntityState prevState, IntVector2 location
 	{
 		m_state.m_neuralNetPoints++;
 		SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.0f);
+		SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 		return;
 	}
 
@@ -312,11 +446,13 @@ void Civilian::EvaluateBuildHouseTask(EntityState prevState, IntVector2 location
 		{
 			m_state.m_neuralNetPoints++;
 			SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.0f);
+			SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 			return;
 		}
 	}
 	m_state.m_neuralNetPoints++;
 	SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.0f);
+	SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -332,6 +468,7 @@ void Civilian::EvaluateBuildArmySpawnerTask(EntityState prevState, IntVector2 lo
 	{
 		m_state.m_neuralNetPoints++;
 		SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.0f);
+		SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 		return;
 	}
 	int numArmySpawners = ((TownCenter*)FindMyTownCenter())->m_resourceStat.m_armySpawners;
@@ -341,11 +478,13 @@ void Civilian::EvaluateBuildArmySpawnerTask(EntityState prevState, IntVector2 lo
 		{
 			m_state.m_neuralNetPoints++;
 			SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.0f);
+			SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 			return;
 		}
 	}
 	m_state.m_neuralNetPoints++;
 	SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.0f);
+	SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -358,29 +497,61 @@ void Civilian::TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords
 {
 	TownCenter* townCenter = (TownCenter*)FindMyTownCenter();
 	UNUSED(cords);
-
-	if(townCenter->m_resourceStat.m_houses < g_maxHousesBuilt)
+	if (townCenter->m_resourceStat.m_houses >= g_maxHousesBuilt)
 	{
-		if(townCenter->m_resourceStat.m_food > g_maxResourceCountRequired && 
-			townCenter->m_resourceStat.m_stone > g_maxResourceCountRequired &&
-				townCenter->m_resourceStat.m_wood > g_maxResourceCountRequired && townCenter->m_resourceStat.m_houses < 3)
-		{
-
-			std::vector<Entity*> neighbourEntities = m_map->GetAllEntitiesNearLocation(previousState.m_position, 1);
-			for (int index = 0; index < neighbourEntities.size(); index++)
-			{
-				if (neighbourEntities.at(index)->IsStationaryEntity())
-				{
-					SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.f);
-					return;
-				}
-			}
-			SetDesiredOutputForTask(TASK_BUILD_HOUSE, 1.0f);
-		}
+		return;
 	}
-	else
+	
+	if (townCenter->m_resourceStat.m_food > g_maxResourceCountRequired &&
+		 townCenter->m_resourceStat.m_stone > g_maxResourceCountRequired &&
+		  townCenter->m_resourceStat.m_wood > g_maxResourceCountRequired   && 
+		   townCenter->m_resourceStat.m_houses < g_maxHousesBuilt)
 	{
-		SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.f);
+
+		std::vector<Entity*> neighbourEntities = m_map->GetAllEntitiesNearLocation(previousState.m_position, 1);
+		for (int index = 0; index < neighbourEntities.size(); index++)
+		{
+			if (neighbourEntities.at(index)->IsStationaryEntity())
+			{
+				SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.f);
+				SetDesiredOutputForTask(TASK_MOVE, 1.0f);
+				return;
+			}
+		}
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_BUILD_HOUSE, 1.0f);
+		SetDesiredOutputForTask(TASK_MOVE, 1.0f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
+		return;
+	}
+	
+	m_state.m_neuralNetPoints++;
+	SetDesiredOutputForTask(TASK_MOVE, 0.0f);
+	SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.f);
+	Resources resourceStat = ((TownCenter*)FindMyTownCenter())->m_resourceStat;
+	if (resourceStat.m_food > g_maxResourceCountRequired
+		&& resourceStat.m_stone > g_maxResourceCountRequired
+		&& resourceStat.m_wood > g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+	if (resourceStat.m_food <= g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+	}
+	if (resourceStat.m_stone <= g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+	}
+	if (resourceStat.m_wood <= g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
 	}
 }
 
@@ -394,27 +565,100 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 {
 	UNUSED(cords);
 	TownCenter* townCenter = (TownCenter*)FindMyTownCenter();
-
-	if (townCenter->m_resourceStat.m_armySpawners < 2)
+	if(townCenter->m_resourceStat.m_armySpawners >= g_maxArmySpawnerBuilt)
 	{
-		if(m_map->HasEnoughResourceToBuildArmySpawnCenter(m_teamID))
+		return;
+	}
+	if(m_map->HasEnoughResourceToBuildArmySpawnCenter(m_teamID) && townCenter->m_resourceStat.m_armySpawners < g_maxArmySpawnerBuilt)
+	{
+		std::vector<Entity*> neighbourEntities = m_map->GetAllEntitiesNearLocation(previousState.m_position, 1);
+		for (int index = 0; index < neighbourEntities.size(); index++)
 		{
-			std::vector<Entity*> neighbourEntities = m_map->GetAllEntitiesNearLocation(previousState.m_position, 1);
-			for (int index = 0; index < neighbourEntities.size(); index++)
+			if (neighbourEntities.at(index)->IsStationaryEntity())
 			{
-				if (neighbourEntities.at(index)->IsStationaryEntity())
-				{
-					SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.f);
-					return;
-				}
+				SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.f);
+				SetDesiredOutputForTask(TASK_MOVE, 1.0f);
+				return;
 			}
-			SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 1.0f);
 		}
+		m_state.m_neuralNetPoints++;
+		SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 1.0f);
+		SetDesiredOutputForTask(TASK_MOVE, 1.0f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
+		return;
 	}
-	else
+	m_state.m_neuralNetPoints++;
+	SetDesiredOutputForTask(TASK_MOVE, 0.0f);
+	SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.f);
+	Resources resourceStat = ((TownCenter*)FindMyTownCenter())->m_resourceStat;
+	if (resourceStat.m_food > g_maxResourceCountRequired
+		&& resourceStat.m_stone > g_maxResourceCountRequired
+		&& resourceStat.m_wood > g_maxResourceCountRequired)
 	{
-		SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
+		m_state.m_neuralNetPoints++;
+		return;
 	}
+	if (resourceStat.m_food <= g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+	}
+	if (resourceStat.m_stone <= g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+	}
+	if (resourceStat.m_wood <= g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::TrainToGatherAndDropResource(EntityState previousState, IntVector2 cords)
+{
+	m_state.m_neuralNetPoints++;
+	if(HasResource())
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD,  0);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD,  0);
+		SetDesiredOutputForTask(TASK_DROP_RESOURCE, 1);
+		return;
+	}
+	Resources resourceStat = ((TownCenter*)FindMyTownCenter())->m_resourceStat;
+
+	if(resourceStat.m_food > g_maxResourceCountRequired &&
+		resourceStat.m_stone > g_maxResourceCountRequired &&
+		 resourceStat.m_wood > g_maxResourceCountRequired)
+		 {
+			SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+			SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+			SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+			return;
+		 }
+
+	if (resourceStat.m_food <= g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+	}
+	if (resourceStat.m_stone <= g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
+	}
+	if (resourceStat.m_wood <= g_maxResourceCountRequired)
+	{
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
+	}
+	SetDesiredOutputForTask(TASK_DROP_RESOURCE, 0);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -673,7 +917,7 @@ void Civilian::EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords
 	oldResourceNearness		+= GetMaxOf2(oldResourceNearnessForStone,0);
 	oldResourceNearness		+= GetMaxOf2(oldResourceNearnessForWood,0);
 
-	float max = g_maxResourceCountRequired;
+	float max = static_cast<float>(g_maxResourceCountRequired);
 	float foodWeight  = (max - myTownCenter->m_resourceStat.m_food) / max;
 	float stoneWeight = (max - myTownCenter->m_resourceStat.m_stone)/ max;
 	float woodWeight  = (max - myTownCenter->m_resourceStat.m_wood) / max;

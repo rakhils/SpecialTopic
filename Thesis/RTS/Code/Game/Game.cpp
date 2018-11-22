@@ -125,13 +125,10 @@ void Game::UpdateMap(float deltaTime)
 	{
 		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_E))
 		{
-			g_isCurrentlyTraining        = g_isCurrentlyTraining ? false : true;
+			g_skipRendering        = g_skipRendering ? false : true;
 			g_isGlobalyCurrentlyTraining = g_isGlobalyCurrentlyTraining ? false : true;
 		}
-		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_T))
-		{
-			g_enableNeuralNet = g_enableNeuralNet ? false : true;
-		}
+		
 		if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_ESCAPE))
 		{
 			isQuitTriggered = true;
@@ -143,7 +140,7 @@ void Game::UpdateMap(float deltaTime)
 			{
 				if(g_isGlobalyCurrentlyTraining)
 				{
-					g_isCurrentlyTraining = true;
+					g_skipRendering = true;
 				}
 				g_lastTrainingStopTime = 0.f;
 				m_map->RestartMap();

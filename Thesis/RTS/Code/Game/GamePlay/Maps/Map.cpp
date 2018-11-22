@@ -70,13 +70,34 @@ void Map::Initialize()
 		break;
 	}
 	InitMiniMap();
+	InitTiles();
 	InitCellSensoryValues();
 	CreateDirectoryForNN();
 	InitAndStoreBestScoreFromFile();
 	m_team1.Reset();
 	m_team2.Reset();
+	m_gameStats.Reset();
 	m_gameFinished = false;
 	m_isScoreBoardUpdated = false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/21
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitTiles()
+{
+	if(m_tiles.size() > 0)
+	{
+		return;
+	}
+	for(int index = 0;index < m_maxHeight * m_maxWidth;index++)
+	{
+		Tile *tile = new Tile();
+		m_tiles.push_back(tile);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,6 +186,8 @@ void Map::InitAndStoreBestScoreFromFile()
 	ToInt(longRangeArmyTeam2.substr(0,  longRangeArmyTeam2.find('\n')),		&g_globalMaxScoreLongRangeArmy2);
 	ToInt(townCenterTeam1.substr(0,		townCenterTeam1.find('\n')),		&g_globalMaxScoreTownCenter1);
 	ToInt(townCenterTeam2.substr(0,		townCenterTeam2.find('\n')),		&g_globalMaxScoreTownCenter2);
+	g_globalMaxScoreShortRangeArmy1 = 0;
+	g_globalMaxScoreShortRangeArmy2 = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -583,7 +606,12 @@ void Map::InitTrainingForShortRangeArmy()
 
 	CreateTownCenter(GetMapPosition(62), 2);
 	//CreateCivilian(GetMapPosition(14), 1);
-	CreateClassAWarrior(GetMapPosition(20),1);
+	CreateClassAWarrior(GetMapPosition(20), 2);
+	CreateClassBWarrior(GetMapPosition(20), 1);
+	//CreateClassAWarrior(GetMapPosition(20), 1);
+	//CreateClassAWarrior(GetMapPosition(20), 2);
+	//CreateClassAWarrior(GetMapPosition(20), 1);
+
 
 }
 
@@ -606,6 +634,10 @@ void Map::InitTrainingForLongRangeArmy()
 	CreateTownCenter(GetMapPosition(61), 2);
 	//CreateCivilian(GetMapPosition(42), 2);
 	CreateClassBWarrior(GetMapPosition(32), 1);
+	CreateClassBWarrior(GetMapPosition(32), 1);
+	CreateClassBWarrior(GetMapPosition(32), 2);
+	CreateClassBWarrior(GetMapPosition(32), 2);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -679,7 +711,13 @@ void Map::InitNonTrainingMode()
 	CreateCivilian      (GetMapPosition(76), 2);
 	CreateCivilian      (GetMapPosition(723), 1);
 	//CreateArmySpawner   (GetMapPosition(733), 1);
-	//CreateClassAWarrior(GetMapPosition(42), 2);
+	//CreateClassAWarrior(GetMapPosition(723), 1);
+	//CreateClassAWarrior(GetMapPosition(723), 1);
+	//CreateClassAWarrior(GetMapPosition(723), 1);
+	//CreateClassAWarrior(GetMapPosition(76), 2);
+	//CreateClassAWarrior(GetMapPosition(76), 2);
+	//CreateClassAWarrior(GetMapPosition(76), 2);
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -864,6 +902,10 @@ void Map::CreateResources(Vector2 position,EntityType type)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::CreateExplosions(Vector2 position,Rgba color)
 {
+	if(g_skipRendering)
+	{
+		return;
+	}
 	Explosion *explosion = new Explosion(position);
 	explosion->m_color = color;
 	m_explosions.push_back(explosion);
@@ -984,7 +1026,7 @@ void Map::InitMiniMap()
 	{
 		for(int indexX = 0;indexX < m_maxWidth;indexX++)
 		{
-			m_minimapValue.push_back(0);
+			m_minimapValue.push_back(nullptr);
 		}
 	}
 }
@@ -1007,11 +1049,20 @@ void Map::UpdateMiniMap()
 			if (entity != nullptr)
 			{
 				count++;
-				SetMiniMapValues(indexX, indexY, entity->GetMiniMapValue());
+				SetMiniMapValues(indexX, indexY, entity);
 				continue;
 			}
-			SetMiniMapValues(indexX, indexY, 0.f);
+			SetMiniMapValues(indexX, indexY, nullptr);
 		}
+	}
+	if(g_skipRendering)
+	{
+		return;
+	}
+	for(int index = 0;index < m_maxHeight*m_maxWidth;index++)
+	{
+		m_tiles.at(index)->m_covered = false;
+		m_tiles.at(index)->m_teamID = 0;
 	}
 }
 
@@ -1021,14 +1072,243 @@ void Map::UpdateMiniMap()
 *@param   : Row and column index
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-double Map::GetMiniMapValueAtPosition(int x, int y)
+Entity* Map::GetMiniMapValueAtPosition(int x, int y)
 {
 	int tileIndex = y * m_maxWidth + x;
 	if (tileIndex >= 0 && tileIndex < m_maxHeight * m_maxWidth)
 	{
 		return m_minimapValue.at(tileIndex);
 	}
-	return 0;
+	return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/18
+*@purpose : Retrieves minimap value by entity type
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double Map::GetMiniMapValueAtPositionFromEntityType(int row, int column,int myTeamID,EntityType myType,Entity *entity)
+{
+	if(entity->GetCordinates() == IntVector2(row,column))
+	{
+		return 0.25;
+	}
+	switch (myType)
+	{
+	case CIVILIAN:
+		return GetMiniMapValueAtPositionForCivilian(myTeamID, row, column);
+		break;
+	case SHORT_RANGE_ARMY:
+		return GetMiniMapValueAtPositionForShortRangeArmy(myTeamID,row, column);
+		break;
+	case LONG_RANGE_ARMY:
+		return GetMiniMapValueAtPositionForLongRangeArmy(myTeamID, row, column);
+		break;
+	}
+	return 0.f;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double Map::GetMiniMapValueAtPositionForCivilian(int myTeamID,int row, int column)
+{
+	Entity * entity = GetMiniMapValueAtPosition(row, column);
+	if(entity == nullptr)
+	{
+		return 0.5;
+	}
+
+	// FOR SAME TEAM
+	if(entity->m_teamID == myTeamID)
+	{
+		switch (entity->m_type)
+		{
+		case TOWN_CENTER:
+			return 0.75;
+			break;
+		case CIVILIAN:
+			return 0.5;
+			break;
+		case SHORT_RANGE_ARMY:
+			return 1;
+			break;
+		case LONG_RANGE_ARMY:
+			return 1;
+			break;
+		default:
+			break;
+		}
+		return 0.5;
+	}
+	// FOR DIFFERENT TEAM
+	if (entity->m_teamID  != myTeamID)
+	{
+		switch (entity->m_type)
+		{
+		case CIVILIAN:
+			return 0.5;
+			break;
+		case SHORT_RANGE_ARMY:
+			return 0;
+			break;
+		case LONG_RANGE_ARMY:
+			return 0;
+			break;
+		default:
+			break;
+		}
+		return 0.5;
+	}
+	return 0.5;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double Map::GetMiniMapValueAtPositionForShortRangeArmy(int myTeamID, int row, int column)
+{
+	Entity * entity = GetMiniMapValueAtPosition(row, column);
+	if (entity == nullptr)
+	{
+		return 0.5;
+	}
+	// FOR SAME TEAM
+	if (entity->m_teamID == myTeamID)
+	{
+		switch (entity->m_type)
+		{
+		case CIVILIAN:
+			return 0.5;
+			break;
+		case SHORT_RANGE_ARMY:
+			return 0.5;
+			break;
+		case HOUSE:
+			return 0.5;
+			break;
+		case ARMY_SPAWNER:
+			return 0.5;
+			break;
+		case TOWN_CENTER:
+			return 0.5;
+			break;
+		case LONG_RANGE_ARMY:
+			return 0.5;
+			break;
+		default:
+			break;
+		}
+		return 0.5;
+	}
+	// DIFFERENT TEAM
+	if (entity->m_teamID != myTeamID)
+	{
+		switch (entity->m_type)
+		{
+		case CIVILIAN:
+			return 1;
+			break;
+		case SHORT_RANGE_ARMY:
+			return 1;
+			break;
+		case HOUSE:
+			return 1;
+			break;
+		case ARMY_SPAWNER:
+			return 1;
+			break;
+		case TOWN_CENTER:
+			return 1;
+			break;
+		case LONG_RANGE_ARMY:
+			return 1;
+			break;
+		default:
+			break;
+		}
+		return 0.5;
+	}
+	return 0.5;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double Map::GetMiniMapValueAtPositionForLongRangeArmy(int myTeamID, int row, int column)
+{
+	Entity * entity = GetMiniMapValueAtPosition(row, column);
+	if (entity == nullptr)
+	{
+		return 0.5;
+	}
+	// FOR SAME TEAM
+	if (entity->m_teamID == myTeamID)
+	{
+		switch (entity->m_type)
+		{
+		case CIVILIAN:
+			return 0.5;
+			break;
+		case SHORT_RANGE_ARMY:
+			return 0.5;
+			break;
+		case HOUSE:
+			return 0.5;
+			break;
+		case ARMY_SPAWNER:
+			return 0.5;
+			break;
+		case TOWN_CENTER:
+			return 0.5;
+			break;
+		case LONG_RANGE_ARMY:
+			return 0.5;
+			break;
+		default:
+			break;
+		}
+		return 0.5;
+	}
+	// DIFFERENT TEAM
+	if (entity->m_teamID != myTeamID)
+	{
+		switch (entity->m_type)
+		{
+		case CIVILIAN:
+			return 1;
+			break;
+		case SHORT_RANGE_ARMY:
+			return 1;
+			break;
+		case HOUSE:
+			return 1;
+			break;
+		case ARMY_SPAWNER:
+			return 1;
+			break;
+		case TOWN_CENTER:
+			return 1;
+			break;
+		case LONG_RANGE_ARMY:
+			return 1;
+			break;
+		default:
+			break;
+		}
+		return 0.5;
+	}
+	return 0.5;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1037,12 +1317,12 @@ double Map::GetMiniMapValueAtPosition(int x, int y)
 *@param   : Row,column and minimap value
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::SetMiniMapValues(int x, int y, float minimapValue)
+void Map::SetMiniMapValues(int x, int y, Entity* entity)
 {
 	int tileIndex = y * m_maxWidth + x;
 	if(tileIndex >= 0 && tileIndex < m_maxHeight * m_maxWidth)
 	{
-		m_minimapValue.at(tileIndex) = static_cast<double>(minimapValue);
+		m_minimapValue.at(tileIndex) = entity;
 	}
 }
 
@@ -2288,7 +2568,10 @@ void Map::ProcessInputs(float deltaTime)
 		m_displaySensoryWoodValue = m_displaySensoryWoodValue == true ? false : true;
 		Renderer::GetInstance()->TakeScreenShotAndSave("Data\\NN\\BestGame\\");
 	}
-
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_T))
+	{
+		g_isCurrentlyTraining = g_isCurrentlyTraining == true ? false : true;
+	}
 
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_Z))
 	{
@@ -2419,41 +2702,40 @@ void Map::ProcessInputs(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::CheckAndUpdateOnWinCondition(float deltaTime)
 {
-	m_team1.m_totalSteps++;
-	m_team2.m_totalSteps++;
-	
 	if(m_gameFinished)
 	{
 		m_gameFinishedTime += deltaTime;
-		g_isCurrentlyTraining = false;
-		if(m_gameFinishedTime > 2)
+		g_skipRendering = false;
+		if(m_gameFinishedTime > 1)
 		{
 			m_gameFinishedTime = 0;
 			CheckAndSaveBestStats();
 		}
 		return;
 	}
+	m_team1.m_totalSteps++;
+	m_team2.m_totalSteps++;
 	for(size_t townCenterIndex = 0;townCenterIndex < m_townCenters.size();townCenterIndex++)
 	{
 		if(m_townCenters.at(townCenterIndex)->m_health <= 0)
 		{
 			m_gameFinished = true;
 			g_mapCounter++;
-			if(g_isCurrentlyTraining)
+			if(g_skipRendering)
 			{
-				g_isCurrentlyTraining = false;
+				g_skipRendering = false;
 			}
 			return;
 		}
 	}
-	if (m_team1.m_totalSteps > 250000 || m_team2.m_totalSteps > 250000)
+	if (m_team1.m_totalSteps > 75000 || m_team2.m_totalSteps > 75000)
 	{
 		g_mapCounter++;
 		g_mapBreakCounter++;
 		m_gameFinished = true;
-		if (g_isCurrentlyTraining)
+		if (g_skipRendering)
 		{
-			g_isCurrentlyTraining = false;
+			g_skipRendering = false;
 		}
 	}
 }
@@ -2609,7 +2891,7 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if(g_localMaxScoreCivilianTeam1 < m_civilians.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreCivilianTeam1 = m_civilians.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 			if (teamID == m_civilians.at(index)->m_teamID && teamID == 2)
@@ -2618,13 +2900,13 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if (g_localMaxScoreCivilianTeam2 < m_civilians.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreCivilianTeam2 = m_civilians.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 		}
 		if(returnIndex >= 0)
 		{
-			return m_civilians.at(returnIndex);
+			return m_civilians.at(static_cast<size_t>(returnIndex));
 		}
 		break;
 	case SHORT_RANGE_ARMY:
@@ -2636,7 +2918,7 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if (g_localMaxScoreShortRangeArmy1 < m_classAWarriors.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreShortRangeArmy1 = m_classAWarriors.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 			if (teamID == m_classAWarriors.at(index)->m_teamID && teamID == 2)
@@ -2645,13 +2927,13 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if (g_localMaxScoreShortRangeArmy2 < m_classAWarriors.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreShortRangeArmy2 = m_classAWarriors.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 		}
 		if (returnIndex >= 0)
 		{
-			return m_classAWarriors.at(returnIndex);
+			return m_classAWarriors.at(static_cast<size_t>(returnIndex));
 		}
 		break;
 	case LONG_RANGE_ARMY:
@@ -2663,7 +2945,7 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if (g_localMaxScoreLongRangeArmy1 < m_classBWarriors.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreLongRangeArmy1 = m_classBWarriors.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 			if (teamID == m_classBWarriors.at(index)->m_teamID && teamID == 2)
@@ -2672,13 +2954,13 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if (g_localMaxScoreLongRangeArmy2 < m_classBWarriors.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreLongRangeArmy2 = m_classBWarriors.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 		}
 		if (returnIndex >= 0)
 		{
-			return m_classBWarriors.at(returnIndex);
+			return m_classBWarriors.at(static_cast<size_t>(returnIndex));
 		}
 		break;
 	case TOWN_CENTER:
@@ -2690,7 +2972,7 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if (g_localMaxScoreTownCenter1 < m_townCenters.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreTownCenter1 = m_townCenters.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 			if (teamID == m_townCenters.at(index)->m_teamID && teamID == 2)
@@ -2699,13 +2981,13 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if (g_localMaxScoreTownCenter2 < m_townCenters.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreTownCenter2 = m_townCenters.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 		}
 		if (returnIndex >= 0)
 		{
-			return m_townCenters.at(returnIndex);
+			return m_townCenters.at(static_cast<size_t>(returnIndex));
 		}
 		break;
 	case ARMY_SPAWNER:
@@ -2717,7 +2999,7 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if (g_localMaxScoreArmySpawnerTeam1 < m_armySpawners.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreArmySpawnerTeam1 = m_armySpawners.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 			if (teamID == m_armySpawners.at(index)->m_teamID && teamID == 2)
@@ -2726,13 +3008,13 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 				if (g_localMaxScoreArmySpawnerTeam2 < m_armySpawners.at(index)->m_scoreBoard.m_totalScore)
 				{
 					g_localMaxScoreArmySpawnerTeam2 = m_armySpawners.at(index)->m_scoreBoard.m_totalScore;
-					returnIndex = index;
+					returnIndex = static_cast<int>(index);
 				}
 			}
 		}
 		if (returnIndex >= 0)
 		{
-			return m_armySpawners.at(returnIndex);
+			return m_armySpawners.at(static_cast<size_t>(returnIndex));
 		}
 		break;
 	default:
@@ -2752,7 +3034,6 @@ void Map::SaveEntityBestGlobalScore(Entity *entity)
 	//FileWrite(entity->GetGlobalBestStatFilePath(), ToString(entity->m_scoreBoard.m_totalScore));
 	entity->m_scoreBoard.SaveToFile(entity->GetGlobalBestStatFilePath().c_str());
 	std::string filePath = entity->GetGlobalBestFilePath();
-	size_t size = filePath.length();
 	FileRemove(filePath.c_str());
 	entity->m_neuralNet.StoreToFile(filePath.c_str());
 }
@@ -3120,7 +3401,7 @@ void Map::Render()
 	Renderer::GetInstance()->BeginFrame();
 	DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d MAP COUNTER %d MAP BREAK COUNTER %d", App::s_gameCounter,g_mapCounter,g_mapBreakCounter);
 
-	if(g_isCurrentlyTraining)
+	if(g_skipRendering)
 	{
 		Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 		Renderer::GetInstance()->BindMaterial(textMaterial);
@@ -3128,6 +3409,7 @@ void Map::Render()
 		delete textMaterial;
 	}
 
+	RenderTiles();
 	RenderCivilians();
 	RenderClassAWarriors();
 	RenderClassBWarriors();
@@ -3267,6 +3549,41 @@ void Map::RenderGrids()
 	for (float y = 0; y < (static_cast<float>(m_maxHeight) + 2)* g_unitDistance; y += g_unitDistance)
 	{
 		g_theRenderer->DrawLine(Vector3(0.f, y, 0.f), Vector3((m_maxWidth + 1.f)* g_unitDistance,y,0.f));
+	}
+	delete defaultMaterial;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/21
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderTiles()
+{
+	Rgba lightRed;
+	lightRed.SetAsFloats(0.5f, 0.f, 0.f, 1.f);
+	Rgba lightGreen;
+	lightGreen.SetAsFloats( 0.f, 0.5f,0.f, 1.f);
+	Material *defaultMaterial = Material::AquireResource("default");
+	Renderer::GetInstance()->BindMaterial(defaultMaterial);
+	for(int index = 0;index < m_maxWidth*m_maxHeight;index++)
+	{
+		if(m_tiles.at(index)->m_covered == true )
+		{
+			Vector2 mapPosition = GetMapPosition(index);
+			AABB2 aabb(mapPosition, g_radius, g_radius);
+			if(m_tiles.at(index)->m_teamID == 1)
+			{
+				g_theRenderer->DrawAABB(aabb, lightGreen);
+
+			}
+			if (m_tiles.at(index)->m_teamID == 2)
+			{
+				g_theRenderer->DrawAABB(aabb, lightRed);
+
+			}
+		}
 	}
 	delete defaultMaterial;
 }
@@ -3668,3 +3985,22 @@ std::string Map::GetMapModeAsString(MapMode mode)
 	return "INVALID";
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/19
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void GameStats::Reset()
+{
+	m_numOfArmySpawnerTeam1 = 0;
+	m_numOfArmySpawnerTeam2 = 0;
+	m_numOfCiviliansTeam1 = 0;
+	m_numOfCiviliansTeam2 = 0;
+	m_numOfShortRangeArmyTeam1 = 0;
+	m_numOfShortRangeArmyTeam2 = 0;
+	m_numOfLongRangeArmyTeam1 = 0;
+	m_numOfLongRangeArmyTeam2 = 0;
+	m_numOfHousesTeam1 = 0;
+	m_numOfHousesTeam2 = 0;
+}

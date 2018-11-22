@@ -97,7 +97,6 @@ void ScoreCard::CalculateTotalScore()
 	{
 		return;
 	}
-	m_totalSteps = static_cast<float>(GetCurrentTimeSeconds()) - m_createdTime;
 	m_scoreCalculated = true;
 	m_totalScore =
 			(m_resourceFoodCollected  *		 m_resourceFoodCollectedPoints  +
@@ -122,7 +121,7 @@ void ScoreCard::CalculateTotalScore()
 			m_townCenterDestroyed	  *		 m_townCenterDestroyedPoints);
 	if (m_entity != nullptr)
 	{
-		m_totalScore += m_entity->m_health* m_healthPoints;
+		m_totalScore += static_cast<int>(m_entity->m_health) * m_healthPoints;
 		if (m_entity->m_health > 0)
 		{
 			m_alive = 1;
@@ -133,12 +132,13 @@ void ScoreCard::CalculateTotalScore()
 			m_alive = 0;
 		}
 	}
-	int totalFrameEquivalent = RangeMapInt(m_totalSteps, 0, 1000, 1000, 0);
-	m_bonusScore = totalFrameEquivalent;
+	int totalFrameEquivalent = static_cast<int>(RangeMapInt(m_totalSteps, 0, 1000, 1000, 0));
+	totalFrameEquivalent = ClampInt(totalFrameEquivalent,0, 1000);
+	m_bonusScore += totalFrameEquivalent;
 	//m_scoreCalculated += m_bonusScore;
-	m_scoreCalculated += totalFrameEquivalent;
-	m_scoreCalculated += m_scoreRate;
-	m_scoreCalculated -= m_negativeScores;
+	m_totalScore += m_bonusScore;
+	m_totalScore += static_cast<int>(m_scoreRate);
+	m_totalScore -= m_negativeScores;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -190,11 +190,11 @@ bool ScoreCard::CalculateInterimScore(bool forced,int prevInterimScore)
 		int currentInterimScore     = m_interimScore - prevInterimScore;
 		if(m_scoreRate == 0)
 		{
-			m_scoreRate = currentInterimScore;
+			m_scoreRate = static_cast<float>(currentInterimScore);
 		}
 		else
 		{
-			m_scoreRate = (m_scoreRate + currentInterimScore) / 2.f;
+			m_scoreRate = (m_scoreRate + static_cast<float>(currentInterimScore)) / 2.f;
 		}
 		return true;
 	}
@@ -210,7 +210,7 @@ void ScoreCard::UpdateScoreResourceFoodCollected(int count)
 		int totalStoneCount = m_entity->GetMyStoneCount();
 		if(totalFoodCount <= 30)
 		{
-			count = RangeMapInt(totalFoodCount, 0, 30, 4, 1);
+			count = static_cast<int>(RangeMapInt(totalFoodCount, 0, 30, 4, 1));
 		}
 		else
 		{
@@ -232,7 +232,7 @@ void ScoreCard::UpdateScoreResourceWoodCollected(int count)
 		int totalStoneCount = m_entity->GetMyStoneCount();
 		if (totalWoodCount <= 30)
 		{
-			count = RangeMapInt(totalWoodCount, 0, 30, 3, 1);
+			count = static_cast<int>(RangeMapInt(totalWoodCount, 0, 30, 3, 1));
 		}
 		else
 		{
@@ -254,7 +254,7 @@ void ScoreCard::UpdateScoreResourceStoneCollected(int count)
 		int totalStoneCount = m_entity->GetMyStoneCount();
 		if (totalStoneCount <= 30)
 		{
-			count = RangeMapInt(totalStoneCount, 0, 30, 3, 1);
+			count = static_cast<int>(RangeMapInt(totalStoneCount, 0, 30, 3, 1));
 		}
 		else
 		{

@@ -106,6 +106,7 @@ void ArmySpawner::EvaluateNN(Task *task, EntityState previousState, IntVector2 c
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ArmySpawner::EvaluateShortRangeArmySpawnTask(EntityState previousState, IntVector2 cords)
 {
+	UNUSED(cords);
 	m_state.m_neuralNetPoints++;
 	if (previousState.m_shortRangeArmySpawned == m_state.m_shortRangeArmySpawned)
 	{
@@ -147,6 +148,7 @@ void ArmySpawner::EvaluateShortRangeArmySpawnTask(EntityState previousState, Int
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ArmySpawner::EvaluateLongRangeArmySpawnTask(EntityState previousState, IntVector2 cords)
 {
+	UNUSED(cords);
 	m_state.m_neuralNetPoints++;
 	if (previousState.m_longRangeArmySpawned == m_state.m_longRangeArmySpawned)
 	{
@@ -188,6 +190,7 @@ void ArmySpawner::EvaluateLongRangeArmySpawnTask(EntityState previousState, IntV
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ArmySpawner::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
 {
+	UNUSED(cords);
 	m_state.m_neuralNetPoints++;
 	if (m_teamID == 1 && m_map->m_gameStats.m_numOfLongRangeArmyTeam1 >= g_maxLongRangeArmyCount && m_map->m_gameStats.m_numOfShortRangeArmyTeam1 >= g_maxShortRangeArmyCount)
 	{

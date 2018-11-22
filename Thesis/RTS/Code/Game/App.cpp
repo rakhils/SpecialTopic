@@ -81,7 +81,7 @@ void App::Update(float deltaTime)
 		s_gameCounter++;
 		g_theGame->Update(deltaTime);
 		g_theInput->EndFrame();
-		if(once && g_isCurrentlyTraining)
+		if(once && g_skipRendering)
 		{
 			Renderer::GetInstance()->BeginFrame();
 			Render();
@@ -89,7 +89,7 @@ void App::Update(float deltaTime)
 			once = false;
 		}
 
-	} while (g_isCurrentlyTraining);
+	} while (g_skipRendering);
 
 	m_netSession->Update(deltaTime);
 	ProfilerManager::PoPProfiler();

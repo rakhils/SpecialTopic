@@ -26,7 +26,8 @@ TaskBuildHouse::~TaskBuildHouse()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool TaskBuildHouse::DoTask(float deltaTime)
 {
-	if(!HasEnoughResources())
+	UNUSED(deltaTime);
+	if (!HasEnoughResources())
 	{
 		return true;
 	}

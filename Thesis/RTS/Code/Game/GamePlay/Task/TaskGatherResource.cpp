@@ -5,14 +5,47 @@
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Entity/TownCenter.hpp"
 // CONSTRUCTOR
-TaskGatherResource::TaskGatherResource(Entity *entity)
+TaskGatherResource::TaskGatherResource(Entity *entity,TaskType type)
 {
 	m_entity     = entity;
 	//m_resource   = resource;
 	m_townCenter = (TownCenter*)entity->FindMyTownCenter();
 	m_map        = entity->m_map;
 	SetStoragePosition(m_townCenter->GetPosition());
-	m_taskType = TASK_GATHER_RESOURCE;
+	m_taskType = type;
+	int cellDistance = 100;
+	m_targetPosition = Vector2(-1, -1);
+	EntityType entityType;
+	if(type == TASK_GATHER_RESOURCE_FOOD)
+	{
+		entityType = RESOURCE_FOOD;
+	}
+	if(type == TASK_GATHER_RESOURCE_STONE)
+	{
+		entityType = RESOURCE_STONE;
+	}
+	if (type == TASK_GATHER_RESOURCE_WOOD)
+	{
+		entityType = RESOURCE_WOOD;
+	}
+	for(int index = 0;index < m_map->m_resources.size();index++)
+	{
+		if(m_map->m_resources.at(index)->m_type == entityType)
+		{
+			int cellDistanceNew = m_map->GetCellDistance(m_entity->GetCordinates(), m_map->m_resources.at(index)->GetCordinates());
+			if(cellDistanceNew < cellDistance)
+			{
+				Vector2 resourcePosition = m_map->m_resources.at(index)->GetPosition();
+				IntVector2 resourceCords = m_map->GetFreeNeighbourTile(resourcePosition,1);
+				if(resourceCords != IntVector2(-1,-1))
+				{
+					m_resource = m_map->m_resources.at(index);
+					m_targetPosition = m_map->GetMapPosition(resourceCords);
+					cellDistance = cellDistanceNew;
+				}
+			}
+		}
+	}
 }
 
 // DESTRUCTOR
@@ -66,18 +99,18 @@ bool TaskGatherResource::WaitAtResource(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void TaskGatherResource::UpdateResourceStorageStat(Entity *entityResourceType,int count)
+void TaskGatherResource::UpdateResourceStorageStat(Entity* entity,int count)
 {
-	switch (entityResourceType->m_type)
+	switch (entity->m_type)
 	{
 	case RESOURCE_FOOD:
-		m_entity->UpdateUnitStatForFoodGathered(count);
+		entity->UpdateUnitStatForFoodGathered(count);
 		break;
 	case RESOURCE_STONE:
-		m_entity->UpdateUnitStatForStoneGathered(count);
+		entity->UpdateUnitStatForStoneGathered(count);
 		break;
 	case RESOURCE_WOOD:
-		m_entity->UpdateUnitStatForWoodGathered(count);
+		entity->UpdateUnitStatForWoodGathered(count);
 		break;
 	default:
 		break;
@@ -97,14 +130,35 @@ bool TaskGatherResource::DoTask(float deltaTime)
 	{
 		return true;
 	}
-	std::vector<Entity*> resourceList = m_map->GetAllResourcesNearLocation(m_entity->GetPosition(), 1);
+	if(m_targetPosition == Vector2(-1,-1))
+	{
+		return true;
+	}
+	Vector2 currentPosition = m_entity->GetPosition();
+	Vector2 direction = m_targetPosition - currentPosition;
+	direction = direction.GetNormalized();
+	currentPosition += direction * m_speed * deltaTime;
+	m_entity->SetPositionInFloat(currentPosition);
+
+	Vector2 distance = m_entity->GetPosition() - m_targetPosition;
+	if (distance.GetLength() < 1)
+	{
+		UpdateResourceStorageStat(m_entity, 1);
+		((Civilian*)m_entity)->m_resourceTypeCarrying = m_resource;
+		CheckAndUpdateResourcesUsed();
+		return true;
+	}
+	return false;
+
+
+	/*std::vector<Entity*> resourceList = m_map->GetAllResourcesNearLocation(m_entity->GetPosition(), 1);
 	if(resourceList.size() > 0)
 	{
 		UpdateResourceStorageStat(resourceList.at(0), 1);
 		((Civilian*)m_entity)->m_resourceTypeCarrying = resourceList.at(0);
 		CheckAndUpdateResourcesUsed();
 	}
-	return true;
+	return true;*/
 
 	/*Vector2 targetPosition;
 	switch (m_subTask)

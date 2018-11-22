@@ -113,6 +113,10 @@ void ClassBWarrior::TrainNN(Task *task)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
 {
+	if (!g_isCurrentlyTraining)
+	{
+		return;
+	}
 	CopyDesiredOutputs();
 	/*Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
 	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
@@ -146,6 +150,7 @@ void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords)
 {
 	UNUSED(cords);
+
 	IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
 	if (m_map->GetCordinates(m_previousState.m_position) == cords)
 	{

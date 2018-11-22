@@ -16,7 +16,7 @@ class ClassAWarrior : public Entity
 
 public:
 	//Member_Variables
-	
+	float m_lastAttackTime = 0.f;
 	//Static_Member_Variables
 
 	//Methods

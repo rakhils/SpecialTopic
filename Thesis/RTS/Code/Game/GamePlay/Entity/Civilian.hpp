@@ -39,13 +39,16 @@ public:
 	void EvaluateNN(Task * task,EntityState previousState,IntVector2 cords);
 	void EvaluateMoveTask(EntityState prevState,IntVector2 location);
 	void EvaluateIdleTask(EntityState prevState);
-	void EvaluateGatherResourceTask(EntityState prevState,IntVector2 location);
+	void EvaluateGatherResourceFoodTask(EntityState prevState,IntVector2 cords);
+	void EvaluateGatherResourceStoneTask(EntityState prevState, IntVector2 cords);
+	void EvaluateGatherResourceWoodTask(EntityState prevState, IntVector2 cords);
 	void EvaluateDropResourceTask(EntityState prevState,IntVector2 location);
 	void EvaluateBuildHouseTask(EntityState prevState,IntVector2 location);
 	void EvaluateBuildArmySpawnerTask(EntityState prevState,IntVector2 location);
 
 	void TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords);
 	void TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2 cords);
+	void TrainToGatherAndDropResource(EntityState previousState, IntVector2 cords);
 
 	IntVector2 GetBestNeighbour();
 
