@@ -43,6 +43,14 @@ void NetSession::Init()
 	RegisterMessage(NETMSG_HEARTBEAT, "heartbeat", OnHeartBeatMessage,"Update last heartbeat received",NETMESSAGE_OPTION_CONNECTIONLESS);
 	RegisterMessage(NETMSG_BLANK,     "blank",     OnHeartBeatMessage, "Update last heartbeat received", NETMESSAGE_OPTION_CONNECTIONLESS);
 
+	RegisterMessage(NETMSG_JOIN_REQUEST,		"join_request",		 OnJoinRequest,     "UPDATE RECV STATE",			    NETMESSAGE_OPTION_UNRELIABLE);
+	RegisterMessage(NETMSG_JOIN_DENY,			"join_deny",		 OnJoinDeny   ,     "UPDATE STATE TO DROP", 			NETMESSAGE_OPTION_UNRELIABLE);
+	RegisterMessage(NETMSG_JOIN_ACCEPT,			"join_accept",		 OnJoinAccept ,     "UPDATE STATE TO ACCEPT",			NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
+	RegisterMessage(NETMSG_NEW_CONNECTION,		"new_connection",	 OnNewConnection,   "UPDATE STATE TO NEW CON", 	     	NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
+	RegisterMessage(NETMSG_JOIN_FINISHED,		"join_finished",	 OnJoinFinished,    "UPDATE STATE TO FINISHED JOIN",	NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
+	RegisterMessage(NETMSG_UPDATE_CONN_STATE,	"update_conn_state", OnUpdateConnState, "UPDATE CONN STATE",				NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
+
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,6 +71,46 @@ void NetSession::Update(float deltaTime)
 	UpdateConnections(deltaTime);
 	ProcessIncomingMessage();
 	ProcessOutgoingMessage();
+	UpdateSessionState();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::UpdateSessionState()
+{
+	switch(m_sessionState)
+	{
+		case SESSION_CONNECTING:
+			if(m_myConnection->IsConnected())
+			{
+				m_sessionState = SESSION_JOINING;
+			}
+			else if(m_myConnection->m_lastJoinReqstSentTime + m_myConnection->m_joinInterval > GetCurrentTimeSeconds())
+			{
+				if(m_myConnection->m_firstJoinReqstTime == 0)
+				{
+					m_myConnection->m_firstJoinReqstTime = GetCurrentTimeSeconds();
+				}
+				if(m_myConnection->m_firstJoinReqstTime + 10 < GetCurrentTimeSeconds())
+				{
+					//
+				}
+				NetMessage *msg = NetMessage::CreateJoinRequestMsg(&m_myConnection->m_address);
+				m_myConnection->Append(msg);
+				m_myConnection->m_lastJoinReqstSentTime = GetCurrentTimeSeconds();
+			}
+			break;
+		case SESSION_JOINING:
+			if(m_myConnection->IsReady())
+			{
+				m_sessionState = SESSION_CONNECTED;
+			}
+
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,10 +141,54 @@ void NetSession::UpdateConnections(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::RestartInPort(int index,int port)
 {
-	delete m_channel;
-	m_channel = new NetConnection(port);
-	m_remoteConnections[index] = m_channel;
-	m_channel->m_session = this;
+	delete m_hostConnection;
+	m_hostConnection = new NetConnection(port);
+	m_boundConnections[index] = m_hostConnection;
+	m_hostConnection->m_session = this;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::Host(char const *id, uint16_t port)
+{
+	if (m_sessionError != SESSION_DISCONNECTED || m_hostConnection != nullptr)
+	{
+		m_sessionError = SESSION_ERROR_USER;
+		return;
+	}
+	s_defaultPort = static_cast<int>(port);
+	m_hostConnection = new NetConnection(s_defaultPort);
+	m_hostConnection->BindConnection();
+	m_myConnection = m_hostConnection;
+	m_hostConnection->m_id = id;
+
+	int wsaError = WSAGetLastError();
+	if (wsaError != 0)
+	{
+		m_sessionError = SESSION_ERROR_INTERNAL;
+		delete m_hostConnection;
+		m_hostConnection = nullptr;
+		m_myConnection = nullptr;
+		return;
+	}
+	m_sessionError = SESSION_OK;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::Join(char const *id, NetConnectionInfo &hostInfo)
+{
+	NetConnection *connection = CreateConnection(hostInfo);
+	m_myConnection = connection;
+	m_sessionState = SESSION_CONNECTING;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,7 +200,7 @@ void NetSession::RestartInPort(int index,int port)
 void NetSession::SetHeartBeatFrequency(float freq)
 {
 	std::map<int, NetConnection*>::iterator it;
-	for(it = m_remoteConnections.begin();it != m_remoteConnections.end();it++)
+	for(it = m_boundConnections.begin();it != m_boundConnections.end();it++)
 	{
 		it->second->SetHeartBeatFrequency(freq);
 	}
@@ -135,6 +227,47 @@ void NetSession::SetSimulateLatency(float minLatency, float maxLatency)
 {
 	m_minLatency = minLatency;
 	m_maxLatency = maxLatency;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+ESessionError NetSession::GetLastSessionError()
+{
+	ESessionError tempError = m_sessionError;
+	m_sessionError = SESSION_OK;
+	return tempError;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int NetSession::GetAndIncrementConnectionIndex()
+{
+	int temp = m_highestIndex;
+	m_highestIndex++;
+	return temp;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : Checks if this is a host session
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool NetSession::IsHost()
+{
+	if(m_hostConnection == nullptr)
+	{
+		return false;
+	}
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -290,9 +423,9 @@ void NetSession::ProcessIncomingMessage()
 	size_t maxsize = PACKET_MTU;
 	NetAddress netAddr;
 
-	if(m_channel != nullptr)
+	if(m_hostConnection != nullptr)
 	{
-		size_t recvd = m_channel->Recv(data, maxsize,&netAddr);
+		size_t recvd = m_hostConnection->Recv(data, maxsize,&netAddr);
 		std::vector<NetMessage*> netMsgs = ConstructMsgFromData(netAddr, recvd, data);
 		ProcessMsgs(netMsgs,&netAddr);
 	}
@@ -316,7 +449,7 @@ void NetSession::ProcessOutgoingMessage()
 	m_channel->Update(deltaTime);*/
 
 	std::map<int, NetConnection*>::iterator it;
-	for (it = m_remoteConnections.begin(); it != m_remoteConnections.end(); it++)
+	for (it = m_boundConnections.begin(); it != m_boundConnections.end(); it++)
 	{
 		it->second->SendHeartBeat(&it->second->m_address);
 		it->second->FlushMsgs();
@@ -331,7 +464,7 @@ void NetSession::ProcessOutgoingMessage()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t NetSession::SendPacket(Packet packet)
 {
-	return m_channel->m_udpSocket->SendTo(*packet.m_address, packet.m_packet.m_buffer, packet.m_packet.m_bufferSize);
+	return m_hostConnection->m_udpSocket->SendTo(*packet.m_address, packet.m_packet.m_buffer, packet.m_packet.m_bufferSize);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -347,6 +480,67 @@ void NetSession::AddBinding(int port)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetConnection* NetSession::CreateConnection(NetConnectionInfo &connectionInfo)
+{
+	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(connectionInfo.m_sessionIndex);
+	if (it != m_boundConnections.end())
+	{
+		return nullptr;
+	}
+	if (connectionInfo.m_isHost == true && s_netSession != nullptr)
+	{
+		return nullptr;
+	}
+	NetConnection *connection = nullptr;
+	if(connectionInfo.m_isHost)
+	{
+		connection = new NetConnection(connectionInfo.m_address.m_port);
+	}
+	else
+	{
+		connection = new NetConnection(connectionInfo.m_sessionIndex, connectionInfo.m_address);
+	}
+
+	connection->m_session = this;
+	if(connectionInfo.m_isHost == true)
+	{
+		m_hostConnection = connection;
+		m_hostConnection->BindConnection();
+		return connection;
+	}
+	m_allConnections.push_back(connection);
+	//m_boundConnections[connectionInfo.m_sessionIndex] = connection;
+	return connection;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::DestroyConnection(NetConnection *connection)
+{
+	if(m_hostConnection == connection)
+	{
+
+		return;
+	}
+	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(connection->m_index);
+	if(it == m_boundConnections.end())
+	{
+		return;
+	}
+	delete m_boundConnections[connection->m_index];
+	m_boundConnections.erase(connection->m_index);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/23
 *@purpose : Adds new connection 
 *@param   : NIL
@@ -354,20 +548,22 @@ void NetSession::AddBinding(int port)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 NetConnection* NetSession::AddConnection(int index, NetAddress *netaddress)
 {
-	std::map<int, NetConnection*>::iterator it = m_remoteConnections.find(index);
-	if(it == m_remoteConnections.end())
+	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(index);
+	if(it == m_boundConnections.end())
 	{
 		NetConnection *connection = nullptr;
 		if(netaddress->m_port == s_defaultPort)
 		{
 			connection  = new NetConnection(s_defaultPort);
+			connection->BindConnection();
+			m_hostConnection = connection;
 		}
 		else
 		{
 			connection = new NetConnection(index, *netaddress);
 		}
 		connection->m_session = this;
-		m_remoteConnections[index] = connection;
+		m_boundConnections[index] = connection;
 		return connection;
 	}
 	return nullptr;
@@ -383,9 +579,9 @@ NetConnection* NetSession::AddConnection(int index,std::string ip, int port)
 {
 	if (ip == Net::GetIP() && port == s_defaultPort)
 	{
-		if(m_channel != nullptr)
+		if(m_hostConnection != nullptr)
 		{
-			return m_channel;
+			return m_hostConnection;
 		}
 	}
 
@@ -396,10 +592,6 @@ NetConnection* NetSession::AddConnection(int index,std::string ip, int port)
 	NetConnection *connection = AddConnection(index, address);
 	connection->m_index = static_cast<uint8_t>(index);
 	connection->m_session = this;
-	if(ip == Net::GetIP() && port == s_defaultPort)
-	{
-		m_channel = connection;
-	}
 	return connection;
 }
 
@@ -411,8 +603,8 @@ NetConnection* NetSession::AddConnection(int index,std::string ip, int port)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 NetConnection* NetSession::GetConnection(int index)
 {
-	std::map<int, NetConnection*>::iterator it = m_remoteConnections.find(index);
-	if(it != m_remoteConnections.end())
+	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(index);
+	if(it != m_boundConnections.end())
 	{
 		return it->second;
 	}
@@ -428,18 +620,70 @@ NetConnection* NetSession::GetConnection(int index)
 NetConnection* NetSession::GetConnection(NetAddress *netAddress)
 {
 	std::map<int, NetConnection*>::iterator it;
-	for(it = m_remoteConnections.begin();it != m_remoteConnections.end();it++)
+	for(it = m_boundConnections.begin();it != m_boundConnections.end();it++)
 	{
 		if(it->second->m_address == *netAddress)
 		{
 			return it->second;
 		}
 	}
-	if(m_channel->m_address == *netAddress)
+	if(m_hostConnection->m_address == *netAddress)
 	{
-		return m_channel;
+		return m_hostConnection;
 	}
 	return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetConnection* NetSession::GetConnectionFromAllConnections(NetAddress *address)
+{
+	for(size_t index = 0;index < m_allConnections.size();index++)
+	{
+		if(m_allConnections.at(index)->m_address == *address)
+		{
+			return m_allConnections.at(index);
+		}
+	}
+	return nullptr;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool NetSession::RemoveFromAllConnections(NetConnection *connection)
+{
+	for (size_t index = 0; index < m_allConnections.size(); index++)
+	{
+		if (m_allConnections.at(index) == connection)
+		{
+			m_allConnections.erase(m_allConnections.begin()+index, m_allConnections.begin()+ index + 1);
+			return true;
+		}
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::PushConnectionToBoundedConnection(int index,NetConnection *connection)
+{
+	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(index);
+	if(it == m_boundConnections.end())
+	{
+		m_boundConnections[index] = connection;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -450,7 +694,7 @@ NetConnection* NetSession::GetConnection(NetAddress *netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 NetConnection* NetSession::GetMyConnection()
 {
-	return m_channel;
+	return m_hostConnection;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -461,7 +705,7 @@ NetConnection* NetSession::GetMyConnection()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 int NetSession::GetMySessionIndex()
 {
-	return m_channel->m_index;
+	return m_hostConnection->m_index;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -507,7 +751,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 	if(connection != nullptr)
 	{
 		std::map<int, NetConnection*>::iterator it;
-		for (it = m_remoteConnections.begin(); it != m_remoteConnections.end(); it++)
+		for (it = m_boundConnections.begin(); it != m_boundConnections.end(); it++)
 		{
 			if (it->second->m_address == netAddress)
 			{
@@ -518,7 +762,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 	else
 	{
 		DevConsole::GetInstance()->PushToOutputText("BAD CONNECTION INDEX FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port) + " SIZE " + ToString(static_cast<int>(size))+ "DATA "+str, Rgba::RED);
-		return retmsgs;
+		//return retmsgs;
 
 	}
 
@@ -634,20 +878,25 @@ void NetSession::ProcessMsgs(std::vector<NetMessage *> netmsg,NetAddress *fromAd
 void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 {
 	NetConnection *fromConnection = GetConnection(fromAddr);
-	if (fromConnection == nullptr)
+	NetMessageDefinition * msgdef = GetMsgDefinition(msg->m_definitionName);
+	PacketHeader header = msg->m_packetHeader;
+	/*if (fromConnection == nullptr)
 	{
 		return;
+	}*/
+	if(fromConnection != nullptr)
+	{
+		fromConnection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - fromConnection->m_startTime;
+		fromConnection->m_lastReceivedAck = header.m_ack;
 	}
 
-	NetMessageDefinition * msgdef = GetMsgDefinition(msg->m_definitionName);
 	
-
-	fromConnection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - fromConnection->m_startTime;
-	PacketHeader header = msg->m_packetHeader;
-	fromConnection->m_lastReceivedAck = header.m_ack;
-	std::string bitString = msg->GetBitString();
 	if (msgdef != nullptr && msgdef->m_options == NETMESSAGE_OPTION_RELIABLE)
 	{
+		
+		std::string bitString = msg->GetBitString();
+
+
 		if (!fromConnection->HasReceivedReliableID(msg->GetReliableID()))
 		{
 			msg->m_address = fromAddr;
@@ -667,7 +916,7 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 	}
 	else
 	{
-		if ( msgdef != nullptr && msg->RequiresConnection())
+		if ( msgdef != nullptr)
 		{
 				(*msgdef->m_callback)(*msg, *fromAddr);
 		}
@@ -711,15 +960,15 @@ void NetSession::Render()
 	RenderSessionDetails();
 	Vector2 startPosition(100, 800);
 	RenderConnectionColumnDetails(startPosition);
-	if (m_channel != nullptr)
+	if (m_hostConnection != nullptr)
 	{
 		startPosition.y += -50;
-		RenderConnectionDetails(m_channel,startPosition,false);
+		RenderConnectionDetails(m_hostConnection,startPosition,false);
 	}
-	std::map<int, NetConnection*>::iterator it = m_remoteConnections.begin();
-	for(;it != m_remoteConnections.end();it++)
+	std::map<int, NetConnection*>::iterator it = m_boundConnections.begin();
+	for(;it != m_boundConnections.end();it++)
 	{
-		if (it->second == m_channel)
+		if (it->second == m_hostConnection)
 		{
 			continue;
 		}
@@ -816,7 +1065,7 @@ void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 start
 	//std::string entryString1;
 	Renderer::GetInstance()->BindMaterial(textMaterial);
 	std::string connectionDetailsStr;
-	if (connection == m_channel)
+	if (connection == m_hostConnection)
 	{
 		connectionDetailsStr = Stringf("%*s%-*s %s   %-22s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
 			(3 * indent), "L", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(), ToString(lsnt,2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
@@ -985,6 +1234,113 @@ bool OnBadMessage(NetMessage &netMsg, NetAddress &netAddress)
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnBlankMessage(NetMessage &netMsg, NetAddress &netAddress)
+{
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : When recevied join request
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnJoinRequest(NetMessage &netMsg, NetAddress &netAddress)
+{
+	DevConsole::GetInstance()->PushToOutputText("ON JOIN REQUEST ");
+	if(!NetSession::GetInstance()->IsHost())
+	{
+		NetMessage *joinDeny = NetMessage::CreateJoinDeny(&netAddress);
+		NetSession::GetInstance()->m_hostConnection->Append(joinDeny);
+		return false;
+	}
+	if(NetSession::GetInstance()->m_highestIndex > MAX_CONN_ID_LENGTH)
+	{
+		NetMessage *joinDeny = NetMessage::CreateJoinDeny(&netAddress);
+		NetSession::GetInstance()->m_hostConnection->Append(joinDeny);
+		return false;
+	}
+
+	NetConnectionInfo connectionInfo;
+	connectionInfo.m_address = netAddress;
+	connectionInfo.m_sessionIndex = NetSession::GetInstance()->GetAndIncrementConnectionIndex();
+	connectionInfo.m_isHost = false;
+
+	NetSession::GetInstance()->Join("", connectionInfo);
+
+	NetMessage *joinAccept = NetMessage::CreateJoinAcceptMsg(&netAddress,connectionInfo.m_sessionIndex);
+	NetSession::GetInstance()->m_hostConnection->Append(joinAccept);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnJoinDeny(NetMessage &netMsg, NetAddress &netAddress)
+{
+	DevConsole::GetInstance()->PushToOutputText("ON JOIN DENY ");
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnJoinAccept(NetMessage &netMsg, NetAddress &netAddress)
+{
+	DevConsole::GetInstance()->PushToOutputText("ON JOIN ACCEPT ");
+	netMsg.m_currentReadPosition = 3;
+	uint8_t index = 0;
+	netMsg.ReadBytes(&index, 1);
+
+	NetConnection *connection	= NetSession::GetInstance()->GetConnectionFromAllConnections(&netAddress);
+	NetSession::GetInstance()->RemoveFromAllConnections(connection);
+
+	NetSession::GetInstance()->PushConnectionToBoundedConnection(index, connection);
+	connection->m_connectionState = CONNECTION_CONNECTING;
+	connection->m_index = index;
+
+	NetMessage *joinFinished = NetMessage::CreateJoinFinished(connection);
+	connection->Append(joinFinished);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnNewConnection(NetMessage &netMsg, NetAddress &netAddress)
+{
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnJoinFinished(NetMessage &netMsg, NetAddress &netAddress)
+{
+	DevConsole::GetInstance()->PushToOutputText("ON JOIN FINISHED ");
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(&netAddress);
+	connection->m_connectionState = CONNECTION_READY;
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnUpdateConnState(NetMessage &netMsg, NetAddress &netAddress)
 {
 	return true;
 }

@@ -17,16 +17,15 @@ NetConnection::NetConnection(int index, NetAddress netAddress)
 	m_index     = static_cast<uint8_t>(index);
 	m_address   = netAddress;
 	m_udpSocket = new UDPSocket(netAddress);
-	m_udpSocket->SetBlocking(false);
+	
 	InitTracker();
 }
 
 NetConnection::NetConnection(int listenPort)
 {
-	m_startTime = Clock::GetMasterClock()->total.m_seconds;
-	m_udpSocket = new UDPSocket(listenPort);
-	m_address.m_port = listenPort;
-	m_address.m_address = (m_udpSocket->m_address.m_address);
+	m_startTime				= Clock::GetMasterClock()->total.m_seconds;
+	//m_udpSocket				= new UDPSocket(listenPort);
+	m_address.m_port		= listenPort;
 	m_index = 0;
 	InitTracker();
 }
@@ -52,6 +51,18 @@ void NetConnection::InitTracker()
 	{
 		//m_trackerMap[index] = nullptr;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::BindConnection()
+{
+	m_udpSocket = new UDPSocket(m_address.m_port);
+	m_udpSocket->SetBlocking(false);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -151,7 +162,7 @@ size_t NetConnection::SendImmediately(int connectionIndex, std::vector<NetMessag
 	WriteHeader();
 
 	size_t length = m_packet.m_bufferSize;
-	size_t sendCount = m_session->m_channel->m_udpSocket->SendTo(m_address, (char *)m_packet.m_buffer, length);
+	size_t sendCount = m_session->m_hostConnection->m_udpSocket->SendTo(m_address, (char *)m_packet.m_buffer, length);
 	m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
 	AddTracker(m_nextSentAck);
 	IncrementSendAck();
@@ -221,7 +232,7 @@ PacketTracker * NetConnection::GetTracker(uint16_t ack)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t NetConnection::FlushMsgs()
 {
-	if(m_session->m_channel == nullptr)
+	if(m_session->m_hostConnection == nullptr)
 	{
 		return 0;
 	}
@@ -488,6 +499,29 @@ void NetConnection::SetUnrealiableMsgCount(int count)
 void NetConnection::SetSendRate(float sendRate)
 {
 	m_sendRate = sendRate;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/23
+*@purpose : Sets state and sends accroos all connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::SetState(EConnectionState state)
+{
+	if(NetSession::GetInstance()->m_hostConnection == this && m_connectionState == CONNECTION_CONNECTED)
+	{
+		std::map<int, NetConnection*>::iterator it = m_session->m_boundConnections.begin();
+		for(;it != m_session->m_boundConnections.end();it++)
+		{
+			if(it->first == 0)
+			{
+				continue;
+			}
+			//NetMessage *msg = NetMessage::CreateUpdateConnState(it->second,state);
+			//it->second->Append(msg);
+		}
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1056,6 +1090,17 @@ void NetConnection::Update(float deltaTime)
 {
 	UNUSED(deltaTime);
 	FlushMsgs();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+size_t NetConnection::SendDirect(NetAddress *address, void *data, size_t size)
+{
+	return m_udpSocket->SendTo(*address, data, size);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

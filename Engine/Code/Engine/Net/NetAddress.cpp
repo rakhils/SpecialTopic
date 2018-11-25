@@ -9,7 +9,7 @@ NetAddress::NetAddress()
 
 NetAddress::NetAddress(const NetAddress& copyFrom)
 {
-	m_address = copyFrom.m_address;
+	m_addressInt = copyFrom.m_addressInt;
 	m_port    = copyFrom.m_port;
 }
 
@@ -21,7 +21,7 @@ NetAddress::NetAddress(const NetAddress& copyFrom)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool NetAddress::operator==(NetAddress &netaddress)
 {
-	if(m_address == netaddress.m_address && m_port == netaddress.m_port)
+	if(m_addressInt == netaddress.m_addressInt && m_port == netaddress.m_port)
 	{
 		return true;
 	}
@@ -36,7 +36,7 @@ bool NetAddress::operator==(NetAddress &netaddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetAddress::operator=(const NetAddress &address)
 {
-	m_address = address.m_address;
+	m_addressInt = address.m_addressInt;
 	m_port = address.m_port;
 }
 
@@ -110,7 +110,7 @@ bool NetAddress::FromSockAddr(sockaddr const *addr)
 	int ip   = ipv4->sin_addr.S_un.S_addr;
 	int port = ::ntohs(ipv4->sin_port);
 
-	m_address = ip;
+	m_addressInt = ip;
 	m_port	  = port;
 	return true;
 }
@@ -129,7 +129,7 @@ bool NetAddress::ToSockAddr(sockaddr *addr, size_t *out_size)
 	memset(ipv4, 0, sizeof(sockaddr_in));
 
 	ipv4->sin_family		   = AF_INET;
-	ipv4->sin_addr.S_un.S_addr = m_address;
+	ipv4->sin_addr.S_un.S_addr = m_addressInt;
 	ipv4->sin_port			   = static_cast<USHORT>(::htons(m_port));
 	return true;
 
@@ -153,6 +153,6 @@ bool NetAddress::ToSockAddr(sockaddr *addr, size_t *out_size)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetAddress::DoDeepCopy(NetAddress *address)
 {
-	m_address = address->m_address;
+	m_addressInt = address->m_addressInt;
 	m_port    = address->m_port;
 }

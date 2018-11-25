@@ -17,14 +17,34 @@ class UDPSocket;
 class NetSession;
 class PacketTracker;
 constexpr uint16_t RELIABLE_WINDOW = 4;
+#define MAX_ID_LENGTH 10
+#define INVALID_SESSION_INDEX 255
+enum EConnectionState
+{
+	CONNECTION_DISCONNECTED = 0,  // Session can be modified     
+	CONNECTION_BOUND,             // Bound to a socket - can send and receive connectionless messages.  No connections exist
+	CONNECTION_CONNECTING,        // Attempting to connecting - waiting for response from the host
+	CONNECTION_JOINING,           // Has established a connection, waiting final setup information/join completion
+	CONNECTION_READY,
+	CONNECTION_CONNECTED
+};
+struct NetConnectionInfo
+{
+	uint8_t		m_sessionIndex = INVALID_SESSION_INDEX;
+	NetAddress  m_address;
+	char		m_id[MAX_ID_LENGTH];
+	bool		m_isHost = false;
+};
 class NetConnection
 {
 
 public:
 	//Member_Variables
+	std::string					m_id;
 	UDPSocket *					m_udpSocket;
 	NetAddress					m_address;
 	uint8_t						m_index;
+	EConnectionState			m_connectionState;
 
 	std::vector<NetMessage*>	m_unsentUnreliableMsgs;
 	std::vector<NetMessage*>	m_unsentReliableMsgs;
@@ -45,6 +65,10 @@ public:
 	float						m_heartBeatFrequency = .25;
 	float						m_sendRate			 = 20;
 	double					    m_startTime;
+
+	double						m_joinInterval = .1;
+	double						m_lastJoinReqstSentTime = 0;
+	double						m_firstJoinReqstTime = 0;
 
 	uint16_t					m_nextSentAck = 0U;
 
@@ -70,20 +94,28 @@ public:
 	//Methods
 
 	NetConnection(int index,NetAddress netAddress); // As Client
-	NetConnection(int listenPort);					// As Server
+	NetConnection(int listenPort);		
+	NetConnection() {}					// As Server
 	~NetConnection();
 
-	void InitTracker();
+	void		 InitTracker();
+	void		 BindConnection();
 
+	void		 SetLastHeartBeatReceivedTime(float time);
+	void		 SetHeartBeatFrequency(float freq);
+	void		 SetConnectionIndex(int index);
+	void		 SetUnrealiableMsgCount(int count);
+	void		 SetSendRate(float sendRate);
+	void		 SetState(EConnectionState state);
 
-	void  SetLastHeartBeatReceivedTime(float time);
-	void  SetHeartBeatFrequency(float freq);
-	void  SetConnectionIndex(int index);
-	void  SetUnrealiableMsgCount(int count);
-	void  SetSendRate(float sendRate);
+	bool		 IsConnected()     { return m_connectionState >= CONNECTION_CONNECTED;}
+	bool         IsDisconnected()  { return m_connectionState == CONNECTION_DISCONNECTED;}
+	bool		 IsReady()		   { return m_connectionState == CONNECTION_READY;}
+	bool         IsHost();
+	bool		 IsMe();
 
-	void IncrementSendAck();
-	void IncrementRealiableID();
+	void		 IncrementSendAck();
+	void		 IncrementRealiableID();
 	// RELIABLE
 	NetMessage * GetUnconfirmedReliableMsg(uint16_t reliableID);
 	bool		 RemoveUnconfirmedReliableMsg(NetMessage *msg);
@@ -96,39 +128,40 @@ public:
 	uint16_t	 GetOldestUnConfirmedRealiableID();
 
 	// SENDING PART
-	uint16_t GetNextPacketAck();
-	bool     ShouldSentUnconfirmedReliableMsg(NetMessage *msg);
-	void ConfirmSentRealiable(uint16_t relID);
-	bool CanSendNewReliableMessage(uint16_t nextReliableID);
+	uint16_t	 GetNextPacketAck();
+	bool		 ShouldSentUnconfirmedReliableMsg(NetMessage *msg);
+	void		 ConfirmSentRealiable(uint16_t relID);
+	bool		 CanSendNewReliableMessage(uint16_t nextReliableID);
 
 
 	// ACK
-	void  ConfirmPacketReceived(uint16_t ack);
-	void  CalculateLoss();
-	void  PushToAckBitField(NetAddress *netaddress,uint16_t ack);
-	void  UpdateAckStatus(NetAddress *netConnection,uint16_t ackReceived);
+	void		 ConfirmPacketReceived(uint16_t ack);
+	void		 CalculateLoss();
+	void		 PushToAckBitField(NetAddress *netaddress,uint16_t ack);
+	void		 UpdateAckStatus(NetAddress *netConnection,uint16_t ackReceived);
 	///////////////////////////////////////////////////////////////////
 	//HEADER
 	PacketHeader GetHeaderFromPacket(void *data);
-	int       GetCommandIndex(void *data,int size);
-	int    GetHeaderSize();
+	int			 GetCommandIndex(void *data,int size);
+	int			 GetHeaderSize();
 	
-	void   WriteConnectionIndex();
-	void   WriteReliableID();
-	void   WriteUnrealiableMsgCount();
-	void   WriteNextSentAck();
-	void   WriteLastReceivedAck();
-	void   WritePreviousReceviedAckBitField();
-	void   WriteHeader();
+	void		 WriteConnectionIndex();
+	void		 WriteReliableID();
+	void		 WriteUnrealiableMsgCount();
+	void		 WriteNextSentAck();
+	void		 WriteLastReceivedAck();
+	void		 WritePreviousReceviedAckBitField();
+	void		 WriteHeader();
 	///////////////////////////////////////////////////////////////////
 
 	//PAYLOAD
-	bool   WritePayload(NetMessage *msg,NetAddress *address);
+	bool		 WritePayload(NetMessage *msg,NetAddress *address);
 	///////////////////////////////////////////////////////////////////
-	void   SendHeartBeat(NetAddress *address);
+	void		 SendHeartBeat(NetAddress *address);
 
-	void   Update(float deltaTime);
+	void		 Update(float deltaTime);
 
+	size_t				SendDirect(NetAddress *address, void *data, size_t size);
 	size_t				SendImmediately(int connectionIndex, std::vector<NetMessage*> &msgs);
 	size_t				SendImmediately(NetMessage msg);
 	void				Append(NetMessage *msg);

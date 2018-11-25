@@ -53,24 +53,52 @@ struct NetMessageDefinition
 	eNetCoreMessage m_coreMsg;
 	eNetMessageOption m_options;
 };
+enum ESessionError
+{
+	SESSION_OK,
+	SESSION_ERROR_USER,                 // user disconnected
+	SESSION_ERROR_INTERNAL,             // socket error; 
+
+	SESSION_ERROR_JOIN_DENIED,          // generic deny error (release)
+	SESSION_ERROR_JOIN_DENIED_NOT_HOST, // debug - tried to join someone who isn't hosting
+	SESSION_ERROR_JOIN_DENIED_CLOSED,   // debug - not in a listen state
+	SESSION_ERROR_JOIN_DENIED_FULL,     // debug - session was full 
+};
+enum ESessionState
+{
+	SESSION_DISCONNECTED = 0,  // Session can be modified     
+	SESSION_BOUND,             // Bound to a socket - can send and receive connectionless messages.  No connections exist
+	SESSION_CONNECTING,        // Attempting to connecting - waiting for response from the host
+	SESSION_JOINING,           // Has established a connection, waiting final setup information/join completion
+	SESSION_READY,
+	SESSION_CONNECTED
+};
+#define MAX_CONN_ID_LENGTH 16
 class NetSession
 {
 
 public:
 	//Member_Variables
-	std::map<int, NetConnection*>					m_remoteConnections;
-	NetConnection *									m_channel      = nullptr;
-												
-	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;
-	bool											m_initMsgDefinition = false;
 
+	std::vector<NetConnection*>						m_allConnections;
+	std::map<int, NetConnection*>					m_boundConnections;
+	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;
 	std::vector<NetMessage*>						m_laggedMsgs;
-	int												m_minHeaderSize = 2;
-	float											m_lossAmount = 0.f;
-	float											m_minLatency = 0.f;
-	float											m_maxLatency = 0.f;
-	float											m_sendRate   = 60.f;
-	bool											m_sessionInfoVisible = false;
+
+	ESessionError									m_sessionError;
+	ESessionState									m_sessionState;
+	
+	NetConnection *									m_hostConnection				= nullptr;
+	NetConnection *									m_myConnection					= nullptr;
+
+	int												m_highestIndex					= 1;											
+	bool											m_initMsgDefinition				= false;
+	int												m_minHeaderSize					= 2;
+	float											m_lossAmount					= 0.f;
+	float											m_minLatency					= 0.f;
+	float											m_maxLatency					= 0.f;
+	float											m_sendRate						= 60.f;
+	bool											m_sessionInfoVisible			= false;
 	//Static_Member_Variables
 	static NetSession *s_netSession;
 	static int		   s_defaultPort;
@@ -81,13 +109,23 @@ public:
 
 	void					  Init();
 	void					  Update(float deltaTime);
+	void					  UpdateSessionState();
 	void					  UpdateConnections(float deltaTime);
 
 	void					  RestartInPort(int index,int port);
 
+	void					  Host(char const *id, uint16_t port);
+	void					  Join(char const *id, NetConnectionInfo &host_info);
+
 	void					  SetHeartBeatFrequency(float time);
 	void					  SetSimulateLoss(float lossAmount);
 	void					  SetSimulateLatency(float m_minLatency, float m_maxLatency);
+	void					  SetError(ESessionError error) { m_sessionError = error; }
+	void					  ClearSessionError()			{ m_sessionError = SESSION_OK; }
+	ESessionError			  GetLastSessionError();
+	int						  GetAndIncrementConnectionIndex();
+
+	bool					  IsHost();
 
 	void					  InitMsgDefinition();
 	void					  RegisterMessage(std::string id, NetMessageCB netMsgCB,std::string description);
@@ -104,10 +142,16 @@ public:
 	size_t					  SendPacket(Packet packet);
 	//virtual void			   Send(uint16_t idx, char *data, size_t length);
 	void					  AddBinding(int port);
+	NetConnection*			  CreateConnection(NetConnectionInfo &connectionInfo);
+	void					  DestroyConnection(NetConnection *connection);
+
 	NetConnection*			  AddConnection(int index,std::string ip, int port);
 	NetConnection*			  AddConnection(int index,NetAddress *netaddress);
 	NetConnection*			  GetConnection(int index);
 	NetConnection*			  GetConnection(NetAddress *netAddress);
+	NetConnection*			  GetConnectionFromAllConnections(NetAddress *address);
+	bool					  RemoveFromAllConnections(NetConnection *connection);
+	void					  PushConnectionToBoundedConnection(int index,NetConnection *connection);
 							  
 	NetConnection*			  GetMyConnection();
 	int						  GetMySessionIndex();
@@ -147,12 +191,20 @@ private:
 
 };
 
-bool OnPing(NetMessage &netMsg, NetAddress &netAddress);
-bool OnAdd(NetMessage  &netMsg, NetAddress &netAddress);
-bool OnPong(NetMessage  &netMsg, NetAddress &netAddress);
-bool OnAddResponse(NetMessage  &netMsg, NetAddress &netAddress);
-bool OnHeartBeatMessage(NetMessage  &netMsg, NetAddress &netAddress);
-bool OnBadMessage(NetMessage  &netMsg, NetAddress &netAddress);
-bool OnBlankMessage(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnPing				(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnAdd				(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnPong				(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnAddResponse		(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnHeartBeatMessage (NetMessage  &netMsg, NetAddress &netAddress);
+bool OnBadMessage		(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnBlankMessage		(NetMessage  &netMsg, NetAddress &netAddress);
+
+// A07
+bool OnJoinRequest		(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnJoinDeny			(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnJoinAccept		(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnNewConnection	(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnJoinFinished		(NetMessage  &netMsg, NetAddress &netAddress);
+bool OnUpdateConnState  (NetMessage  &netMsg, NetAddress &netAddress);
 
 

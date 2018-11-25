@@ -15,6 +15,7 @@
 #include "Engine/Net/RCS.hpp"
 #include "Engine/Net/UDP/UDPTest.hpp"
 #include "Engine/Net/NetSession.hpp"
+//#include "Engine/Net/UDP/UDPSocket.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Command::Command()
@@ -292,6 +293,8 @@ void CommandStartup()
 
 	CommandRegister("listen_udp", ListenUDPPort, "LISTEN NET SESSION IN GIVEN PORT");
 	CommandRegister("erase_queues", EraseAllQueues, "ERASES ALL MSGS IN QUEUES OF GIVEN CONN");
+
+	CommandRegister("send_join", SendJoinRequest, "SENDS JOIN REQUEST");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1516,10 +1519,13 @@ void SetupUDPConnectionWithoutPortChangeInRemote(Command &cmd)
 void AddLocal(Command &cmd)
 {
 	UNUSED(cmd);
+	int port = 0;
+	cmd.GetNextInt(&port);
+	NetSession::s_defaultPort = port;
 	std::string myIp = Net::GetIP();
-	std::string addConnection0 = "add_connection 0 "+myIp+":"+ToString(NetSession::GetInstance()->s_defaultPort);
-	NetSession::GetInstance()->AddConnection(0, myIp,NetSession::GetInstance()->s_defaultPort);
-	RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
+	std::string addConnection0 = "add_connection 0 "+myIp+":"+ToString(port);
+	NetSession::GetInstance()->AddConnection(0, myIp,port);
+	//RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1557,6 +1563,29 @@ void EraseAllQueues(Command &cmd)
 		connection->m_unconfirmedReliableMessages.erase(connection->m_unconfirmedReliableMessages.begin() + index, connection->m_unconfirmedReliableMessages.begin() + index + 1);
 		index--;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : Sends a join request
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendJoinRequest(Command &cmd)
+{
+	std::string ipaddress = cmd.GetNextString();
+	std::string ip = ipaddress.substr(0, ipaddress.find(':'));
+	std::string portStr = ipaddress.substr(ipaddress.find(':') + 1, ipaddress.length());
+
+	NetAddress *address = new NetAddress();
+	sockaddr_storage out;
+	int out_addrlen;
+	NetAddress::GetRemoteAddress(address, (sockaddr*)&out, &out_addrlen, ip.c_str(), portStr.c_str());
+	
+	NetConnectionInfo connectionInfo;
+	connectionInfo.m_address = *address;
+
+	NetSession::GetInstance()->Join("", connectionInfo);
 }
 
 /*

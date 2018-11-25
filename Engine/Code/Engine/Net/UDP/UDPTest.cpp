@@ -128,7 +128,6 @@ size_t UDPSend(const char *ip, int port, const char* msg)
 	sockaddr_storage out;
 	int out_addrlen;
 
-	port = 10088;
 	NetAddress::GetRemoteAddress(addr, (sockaddr*)&out, &out_addrlen, ip, ToString(port).c_str());
 	std::string str = msg;
 

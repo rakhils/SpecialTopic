@@ -20,7 +20,7 @@ class NetAddress
 
 public:
 	//Member_Variables
-	int m_address;
+	int m_addressInt;
 	int m_port;
 	//Static_Member_Variables
 

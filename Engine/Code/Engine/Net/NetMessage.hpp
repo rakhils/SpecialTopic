@@ -20,6 +20,12 @@ enum eNetCoreMessage : uint8_t
 	NETMSG_PONG, 		// unreliable, connectionless
 	NETMSG_HEARTBEAT,	// unreliable
 	NETMSG_BLANK,
+	NETMSG_JOIN_REQUEST,
+	NETMSG_JOIN_DENY,
+	NETMSG_JOIN_ACCEPT,
+	NETMSG_NEW_CONNECTION,
+	NETMSG_JOIN_FINISHED,
+	NETMSG_UPDATE_CONN_STATE,
 	NETMSG_CORE_COUNT,
 };
 
@@ -29,6 +35,7 @@ enum eNetMessageOption
 	NETMESSAGE_OPTION_CONNECTIONLESS = BIT_FLAG(0),
 	NETMESSAGE_OPTION_RELIABLE = BIT_FLAG(1),
 	NETMESSAGE_OPTION_IN_ORDER = BIT_FLAG(2),
+	NETMESSAGE_OPTION_UNRELIABLE, 
 	NETMESSAGE_OPTION_RELIALBE_IN_ORDER = NETMESSAGE_OPTION_RELIABLE | NETMESSAGE_OPTION_IN_ORDER,
 };
 #define INVALID_PACKET_ACK (0xffff)
@@ -74,6 +81,7 @@ public:
 	NetMessage(std::string cmd);
 	~NetMessage();
 
+	void				SetAddress(NetAddress *address);
 	void				WriteCommandIndex();
 	size_t				GetSize();
 	bool				RequiresConnection();
@@ -81,6 +89,15 @@ public:
 	uint16_t			GetReliableID();
 	void				ResetAge();
 	//Static_Methods
+
+/*
+	NETMSG_JOIN_REQUEST`, unreliable
+		[] `NETMSG_JOIN_DENY`, unreliable
+		[] `NETMSG_JOIN_ACCEPT`, reliable in - order
+		[] `NETMSG_NEW_CONNECTION`, reliable in - order
+		[] `NETMSG_JOIN_FINISHED`, relibale in - order
+		[] `NETMSG_UPDATE_CONN_STATE`, reliable in - order*/
+
 	static NetMessage * CreateAddMessage(float value1, float value2);
 	static NetMessage * CreatePingMessage(std::string msg);
 	static NetMessage * CreateHeartBeatMessage(NetAddress  *netaddress);
@@ -88,6 +105,12 @@ public:
 	static NetMessage * CreateUnreliableTestMessage(NetConnection *connection,int count,int maxCount);
 	static NetMessage * CreateReliableTestMessage(NetConnection *connection, int count, int maxCount);
 	static NetMessage * CreateBlankMessage(NetConnection *connection);
+	static NetMessage * CreateJoinRequestMsg(NetAddress *address);
+	static NetMessage * CreateJoinDeny(NetAddress *address);
+	static NetMessage * CreateJoinAcceptMsg(NetAddress *address,int index);
+	static NetMessage * CreateNewConnection(NetConnection *connection);
+	static NetMessage * CreateJoinFinished(NetConnection *connection);
+	//static NetMessage * CreateUpdateConnState(NetConnection *connection,EConnectionState state);
 protected:
 	//Member_Variables
 
