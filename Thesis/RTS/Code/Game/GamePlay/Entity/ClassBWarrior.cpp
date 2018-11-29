@@ -118,13 +118,6 @@ void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 		return;
 	}
 	CopyDesiredOutputs();
-	/*Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
-	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
-	{
-	m_state.m_neuralNetPoints++;
-	SetDesiredOutputToMoveToNeighbour(previousState,2);
-	return;
-	}*/
 	switch (task->m_taskType)
 	{
 	case TASK_MOVE:
@@ -137,6 +130,58 @@ void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 	case TASK_IDLE:
 		EvaluateIdleTask(previousState, cords);
 		break;
+	}
+	std::vector<Entity*> neighbourEnemies = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
+	if (neighbourEnemies.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_MOVE, 0);
+		SetDesiredOutputForTask(TASK_SHORT_ATTACK, 1);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+	neighbourEnemies.clear();
+	neighbourEnemies = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 2);
+	if (neighbourEnemies.size() > 0)
+	{
+		SetDesiredOutputForTask(TASK_MOVE, 0);
+		SetDesiredOutputForTask(TASK_SHORT_ATTACK, 1);
+		m_state.m_neuralNetPoints++;
+		return;
+	}
+	bool found = false;
+	std::vector<double> entityMiniMapInput = GetMyMiniMap();
+	for (int index = 0; index < entityMiniMapInput.size(); index++)
+	{
+		if (entityMiniMapInput.at(index) == 1)
+		{
+			IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
+			IntVector2 minimapMins = GetMiniMapMins(m_map->GetCordinates(previousState.m_position));
+			int xPos = index % 8;
+			int yPos = index / 8;
+
+			float xPosition = RangeMapInt(xPos, 0, 8, 0, 1);
+			float yPosition = RangeMapInt(yPos, 0, 8, 0, 1);
+			xPosition += GetRandomFloatInRange(-0.15, 0.15);
+			yPosition += GetRandomFloatInRange(-0.15, 0.15);
+			SetDesiredOutputToMoveToNeighbour(Vector2(xPosition, yPosition));
+			m_state.m_neuralNetPoints++;
+
+			IntVector2 actualCords = minimapMins + IntVector2(xPos, yPos);
+			Entity *entity = m_map->GetEntityFromPosition(actualCords);
+			float currentTime = static_cast<float>(GetCurrentTimeSeconds());
+			m_scoreBoard.m_bonusScore++;
+			if (currentTime - m_lastAttackTime > 2)
+			{
+				//m_map->CreateExplosions(m_map->GetMapPosition(actualCords), Rgba::YELLOW);
+				m_lastAttackTime = currentTime;
+			}
+			found = true;
+		}
+	}
+	if (!found)
+	{
+		SetDesiredOutputToChooseRandomNeighbourLocation(8);
+		m_state.m_neuralNetPoints++;
 	}
 	Entity::EvaluateNN(task, previousState, cords);
 }

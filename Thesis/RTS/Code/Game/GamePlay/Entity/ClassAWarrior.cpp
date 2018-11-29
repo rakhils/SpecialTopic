@@ -125,8 +125,6 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 		return;
 	}
 
-
-	
 	CopyDesiredOutputs();
 	/*Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
 	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
@@ -154,16 +152,7 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 			EvaluateIdleTask(previousState, cords);
 			break;
 	}
-	/*if(true)
-	{
-		return;
-	}*/
 
-	if (task->m_taskType == TASK_MOVE)
-	{
-		//IntVector2 cordss = GetTaskPositonFromNNOutput(previousState.m_position);
-		//m_map->CreateExplosions(m_map->GetMapPosition(cordss), Rgba::YELLOW);
-	}
 	std::vector<Entity*> neighbourEnemies = m_map->GetAllEnemiesNearLocation(m_teamID,previousState.m_position, 1);
 	if (neighbourEnemies.size() > 0)
 	{
@@ -198,7 +187,7 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 			m_scoreBoard.m_bonusScore++;
 			if (currentTime - m_lastAttackTime > 2)
 			{
-				m_map->CreateExplosions(m_map->GetMapPosition(actualCords), Rgba::YELLOW);
+				//m_map->CreateExplosions(m_map->GetMapPosition(actualCords), Rgba::YELLOW);
 				m_lastAttackTime = currentTime;
 			}
 			found = true;

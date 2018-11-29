@@ -267,6 +267,7 @@ public:
 	void							CopyDesiredOutputs();
 	void							ClearDesiredOutputs();
 	void							SetDesiredOutputForTask(TaskType type,float value);
+	double							GetDesiredOutputForTask(TaskType type);
 
 	void							TakeDamage(float hitPoint);
 

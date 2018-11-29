@@ -161,33 +161,37 @@ void Map::InitAndStoreBestScoreFromFile()
 {
 	ResetLocalScores();
 	ResetGlobalScores();
-	std::string fileContentTeam1    = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\TEAM_1_STATS.txt");
-	std::string fileContentTeam2    = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\TEAM_2_STATS.txt");
-	std::string armySpawnerTeam1    = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\ARMY_SPAWNER_1_STATS.txt");
-	std::string armySpawnerTeam2    = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\ARMY_SPAWNER_2_STATS.txt");
-	std::string civilianTeam1       = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\CIVILIAN_1_STATS.txt");
-	std::string civilianTeam2       = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\CIVILIAN_2_STATS.txt");
+	std::string fileContentTeam1 = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\TEAM_1_STATS.txt");
+	std::string fileContentTeam2 = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\TEAM_2_STATS.txt");
+	std::string armySpawnerTeam1 = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\ARMY_SPAWNER_1_STATS.txt");
+	std::string armySpawnerTeam2 = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\ARMY_SPAWNER_2_STATS.txt");
+	std::string civilianTeam1 = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\CIVILIAN_1_STATS.txt");
+	std::string civilianTeam2 = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\CIVILIAN_2_STATS.txt");
 	std::string shortRangeArmyTeam1 = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\SHORT_RANGE_ARMY_1_STATS.txt");
 	std::string shortRangeArmyTeam2 = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\SHORT_RANGE_ARMY_2_STATS.txt");
-	std::string longRangeArmyTeam1  = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\LONG_RANGE_ARMY_1_STATS.txt");
-	std::string longRangeArmyTeam2  = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\LONG_RANGE_ARMY_2_STATS.txt");
-	std::string townCenterTeam1     = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\TOWN_CENTER_1_STATS.txt");
-	std::string townCenterTeam2     = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\TOWN_CENTER_2_STATS.txt");
-	
-	ToInt(fileContentTeam1.substr(0,	fileContentTeam1.find('\n')),       &g_globalMaxScoreTeam1);
-	ToInt(fileContentTeam2.substr(0,	fileContentTeam2.find('\n')),       &g_globalMaxScoreTeam2);
-	ToInt(armySpawnerTeam1.substr(0,	armySpawnerTeam1.find('\n')),		&g_globalMaxScoreArmySpawnerTeam1);
-	ToInt(armySpawnerTeam2.substr(0,	armySpawnerTeam2.find('\n')),		&g_globalMaxScoreArmySpawnerTeam2);
-	ToInt(civilianTeam1.substr(0,		civilianTeam1.find('\n')),			&g_globalMaxScoreCivilianTeam1);
-	ToInt(civilianTeam2.substr(0,		civilianTeam2.find('\n')),			&g_globalMaxScoreCivilianTeam2);
-	ToInt(shortRangeArmyTeam1.substr(0, shortRangeArmyTeam1.find('\n')),	&g_globalMaxScoreShortRangeArmy1);
-	ToInt(shortRangeArmyTeam2.substr(0, shortRangeArmyTeam2.find('\n')),	&g_globalMaxScoreShortRangeArmy2);
-	ToInt(longRangeArmyTeam1.substr(0,  longRangeArmyTeam1.find('\n')),		&g_globalMaxScoreLongRangeArmy1);
-	ToInt(longRangeArmyTeam2.substr(0,  longRangeArmyTeam2.find('\n')),		&g_globalMaxScoreLongRangeArmy2);
-	ToInt(townCenterTeam1.substr(0,		townCenterTeam1.find('\n')),		&g_globalMaxScoreTownCenter1);
-	ToInt(townCenterTeam2.substr(0,		townCenterTeam2.find('\n')),		&g_globalMaxScoreTownCenter2);
-	g_globalMaxScoreShortRangeArmy1 = 0;
-	g_globalMaxScoreShortRangeArmy2 = 0;
+	std::string longRangeArmyTeam1 = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\LONG_RANGE_ARMY_1_STATS.txt");
+	std::string longRangeArmyTeam2 = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\LONG_RANGE_ARMY_2_STATS.txt");
+	std::string townCenterTeam1 = GetFileContentAsString("Data\\NN\\BestGame\\1\\BestStats\\TOWN_CENTER_1_STATS.txt");
+	std::string townCenterTeam2 = GetFileContentAsString("Data\\NN\\BestGame\\2\\BestStats\\TOWN_CENTER_2_STATS.txt");
+
+	ToInt(fileContentTeam1.substr(0, fileContentTeam1.find('\n')), &g_globalMaxScoreTeam1);
+	ToInt(fileContentTeam2.substr(0, fileContentTeam2.find('\n')), &g_globalMaxScoreTeam2);
+	ToInt(armySpawnerTeam1.substr(0, armySpawnerTeam1.find('\n')), &g_globalMaxScoreArmySpawnerTeam1);
+	ToInt(armySpawnerTeam2.substr(0, armySpawnerTeam2.find('\n')), &g_globalMaxScoreArmySpawnerTeam2);
+	ToInt(civilianTeam1.substr(0, civilianTeam1.find('\n')), &g_globalMaxScoreCivilianTeam1);
+	ToInt(civilianTeam2.substr(0, civilianTeam2.find('\n')), &g_globalMaxScoreCivilianTeam2);
+	ToInt(shortRangeArmyTeam1.substr(0, shortRangeArmyTeam1.find('\n')), &g_globalMaxScoreShortRangeArmy1);
+	ToInt(shortRangeArmyTeam2.substr(0, shortRangeArmyTeam2.find('\n')), &g_globalMaxScoreShortRangeArmy2);
+	ToInt(longRangeArmyTeam1.substr(0, longRangeArmyTeam1.find('\n')), &g_globalMaxScoreLongRangeArmy1);
+	ToInt(longRangeArmyTeam2.substr(0, longRangeArmyTeam2.find('\n')), &g_globalMaxScoreLongRangeArmy2);
+	ToInt(townCenterTeam1.substr(0, townCenterTeam1.find('\n')), &g_globalMaxScoreTownCenter1);
+	ToInt(townCenterTeam2.substr(0, townCenterTeam2.find('\n')), &g_globalMaxScoreTownCenter2);
+	//g_globalMaxScoreShortRangeArmy1 = 0;
+	//g_globalMaxScoreShortRangeArmy2 = 0;
+	//g_globalMaxScoreLongRangeArmy1 = 0;
+	//g_globalMaxScoreLongRangeArmy2 = 0;
+	//g_globalMaxScoreCivilianTeam1  = 0;
+	//g_globalMaxScoreCivilianTeam2  = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -711,12 +715,43 @@ void Map::InitNonTrainingMode()
 	CreateCivilian      (GetMapPosition(76), 2);
 	CreateCivilian      (GetMapPosition(723), 1);
 	//CreateArmySpawner   (GetMapPosition(733), 1);
-	//CreateClassAWarrior(GetMapPosition(723), 1);
-	//CreateClassAWarrior(GetMapPosition(723), 1);
+	//CreateClassBWarrior(GetMapPosition(723), 1);
+	//CreateClassBWarrior(GetMapPosition(723), 1);
 	//CreateClassAWarrior(GetMapPosition(723), 1);
 	//CreateClassAWarrior(GetMapPosition(76), 2);
-	//CreateClassAWarrior(GetMapPosition(76), 2);
-	//CreateClassAWarrior(GetMapPosition(76), 2);
+	//CreateClassBWarrior(GetMapPosition(76), 2);
+	//CreateClassBWarrior(GetMapPosition(76), 2);
+	// 
+
+
+	TOTAL_RESOURCE_FOOD_COLLECTED		: 95
+	TOTAL_RESOURCE_STONE_COLLECTED		: 50
+	TOTAL_RESOURCE_WOOD_COLLECTED		: 121
+	TOTAL_HOUSES_BUILT					: 2
+	TOTAL_ARMY_CENTRE_SPAWNED			: 3
+	TOTAL_CIVILIANS_SPAWNED				: 6
+	TOTAL_SHORT_RANGE_ARMY_SPAWNED		: 1
+	TOTAL_LONG_RANGE_ARMY_SPAWNED		: 0
+	TOTAL_ATTACK_ON_HOUSES				: 0
+	TOTAL_ATTACK_ON_ARMY_SPAWNERS		: 0
+	TOTAL_ATTACK_ON_CIVILIANS			: 42
+	TOTAL_ATTACK_ON_SHORT_RANGE_ARMIES  : 0
+	TOTAL_ATTACK_ON_LONG_RANGE_ARMIES	: 0
+	TOTAL_ATTACK_ON_TOWNCENTERS			: 50
+	TOTAL_KILL_ON_HOUSES				: 0
+	TOTAL_KILL_ON_ARMY_SPAWNERS			: 0
+	TOTAL_KILL_ON_CIVILIANS				: 1
+	TOTAL_KILL_ON_SHORT_RANGE_ARMIES	: 0
+	TOTAL_KILL_ON_LONG_RANGE_ARMIES		: 0
+	TOTAL_KILL_ON_TOWNCENTERS			: 1
+	TOTAL_SCORE_RATE					: 0.000000
+	TOTAL_NEGATIVE_SCORE				: 0
+	TOTAL_BONUS_SCORE					: 0
+	TOTAL_FRAMES						: 58280
+	ALIVE								: 0
+	TOTAL_SCORE							: 2260
+
+
 
 }
 
@@ -1061,7 +1096,7 @@ void Map::UpdateMiniMap()
 	}
 	for(int index = 0;index < m_maxHeight*m_maxWidth;index++)
 	{
-		m_tiles.at(index)->m_covered = false;
+		m_tiles.at(index)->m_covered = 0;
 		m_tiles.at(index)->m_teamID = 0;
 	}
 }
@@ -2073,7 +2108,7 @@ bool Map::HasEnoughResourceToBuildHouse(int teamID)
 bool Map::HasEnoughResourceToBuildArmySpawnCenter(int teamID)
 {
 	TownCenter *townCenter = m_townCenters.at(teamID - 1);
-	if (townCenter->m_resourceStat.m_stone >= g_minStoneCountToBuildArmyCenter && townCenter->m_resourceStat.m_wood >= g_minWoodCountToBuildArmyCenter)
+	if (townCenter->m_resourceStat.m_stone > g_minStoneCountToBuildArmyCenter && townCenter->m_resourceStat.m_wood > g_minWoodCountToBuildArmyCenter)
 	{
 		return true;
 	}
@@ -2542,6 +2577,10 @@ IntVector2 Map::GetCordinates(Vector2 mapPosition)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::ProcessInputs(float deltaTime)
 {
+	if (g_skipRendering)
+	{
+		return;
+	}
 	UNUSED(deltaTime);
 	m_mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
 	m_mousePosition.y = Windows::GetInstance()->GetDimensions().y - m_mousePosition.y;
@@ -3175,6 +3214,10 @@ void Map::Update(float deltaTime)
 void Map::UpdateCamera(float deltaTime)
 {
 	UNUSED(deltaTime);
+	if (g_skipRendering)
+	{
+		return;
+	}
 	m_camera->SetOrthoProjection();
 }
 
@@ -3565,23 +3608,31 @@ void Map::RenderTiles()
 	lightRed.SetAsFloats(0.5f, 0.f, 0.f, 1.f);
 	Rgba lightGreen;
 	lightGreen.SetAsFloats( 0.f, 0.5f,0.f, 1.f);
+
+	Rgba lightBlue;
+	lightBlue.SetAsFloats(0.f, 0.f, 0.5f, 1.f);
+
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	for(int index = 0;index < m_maxWidth*m_maxHeight;index++)
 	{
-		if(m_tiles.at(index)->m_covered == true )
+		Vector2 mapPosition = GetMapPosition(index);
+		AABB2 aabb(mapPosition, g_radius, g_radius);
+		if(m_tiles.at(index)->m_covered > 0 )
 		{
-			Vector2 mapPosition = GetMapPosition(index);
-			AABB2 aabb(mapPosition, g_radius, g_radius);
-			if(m_tiles.at(index)->m_teamID == 1)
+			if(m_tiles.at(index)->m_covered == 1)
 			{
 				g_theRenderer->DrawAABB(aabb, lightGreen);
 
 			}
-			if (m_tiles.at(index)->m_teamID == 2)
+			if (m_tiles.at(index)->m_covered == 2)
 			{
 				g_theRenderer->DrawAABB(aabb, lightRed);
 
+			}
+			if (m_tiles.at(index)->m_covered == 3)
+			{
+				g_theRenderer->DrawAABB(aabb, lightBlue);
 			}
 		}
 	}

@@ -440,7 +440,7 @@ void Entity::TrainNN(Task *task)
 
 	if (m_state.m_neuralNetPoints > m_previousState.m_neuralNetPoints)
 	{
-		for (int index = 0; index < 20; index++)
+		for (int index = 0; index < 10; index++)
 		{
 			m_neuralNet.DoBackPropogation(m_desiredOuputs);
 		}
@@ -498,8 +498,15 @@ void Entity::UpdateCoveredArea()
 				int index = indexY * m_map->m_maxWidth + indexX;
 				if(m_map->m_tiles.size() > index)
 				{
-					m_map->m_tiles.at(index)->m_covered = true;
-					m_map->m_tiles.at(index)->m_teamID  = m_teamID;
+					if(m_teamID == 1)
+					{
+						m_map->m_tiles.at(index)->SetCovered(1);
+					}
+					else
+					{
+						m_map->m_tiles.at(index)->SetCovered(2);
+					}
+					m_map->m_tiles.at(index)->m_teamID = m_teamID;
 				}
 			}
 		}
@@ -1662,6 +1669,22 @@ void Entity::SetDesiredOutputForTask(TaskType type,float value)
 	{
 		m_desiredOuputs.at(taskIndex) = value;
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/26
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double Entity::GetDesiredOutputForTask(TaskType type)
+{
+	int taskIndex = GetIndexOfTaskInNN(type);
+	if (taskIndex >= 0 && taskIndex < m_taskTypeSupported.size())
+	{
+		return m_desiredOuputs.at(taskIndex);
+	}
+	return 0;
 }
 
 /*void Entity::SetOuputsToTrainToMoveToPosition(IntVector2 cords)

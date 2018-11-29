@@ -53,7 +53,7 @@ struct Tile
 {
 	Entity *m_entity = nullptr;
 	IntVector2 m_position;
-	bool	m_covered = false;
+	int 	m_covered = 0;
 	int     m_teamID = 0;
 	Tile()
 	{
@@ -63,6 +63,18 @@ struct Tile
 	{
 		m_entity = entity;
 		position = m_position;
+	}
+	void SetCovered(int coveredValue )
+	{
+		if(m_covered == 0)
+		{
+			m_covered = coveredValue;
+			return;
+		}
+		if(m_covered != 0 && m_covered != coveredValue)
+		{
+			m_covered = 3;
+		}
 	}
 };
 struct CellSensoryValues

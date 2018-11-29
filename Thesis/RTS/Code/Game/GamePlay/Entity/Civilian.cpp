@@ -33,7 +33,7 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_IDLE);
 	m_taskTypeSupported.push_back(TASK_MOVEX);
 	m_taskTypeSupported.push_back(TASK_MOVEY);
-	m_resourceTypeCarrying = m_map->m_resources.at(0);
+	//m_resourceTypeCarrying = m_map->m_resources.at(0);
 	InitNeuralNet();
 	InitStates();
 	m_taskQueue.push(new TaskIdle());
@@ -564,6 +564,7 @@ void Civilian::TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords
 void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2 cords)
 {
 	UNUSED(cords);
+	IntVector2 cordsNew = m_map->GetCordinates(previousState.m_position);
 	TownCenter* townCenter = (TownCenter*)FindMyTownCenter();
 	if(townCenter->m_resourceStat.m_armySpawners >= g_maxArmySpawnerBuilt)
 	{
@@ -571,19 +572,20 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 	}
 	if(m_map->HasEnoughResourceToBuildArmySpawnCenter(m_teamID) && townCenter->m_resourceStat.m_armySpawners < g_maxArmySpawnerBuilt)
 	{
-		std::vector<Entity*> neighbourEntities = m_map->GetAllEntitiesNearLocation(previousState.m_position, 1);
+		std::vector<Entity*> neighbourEntities = m_map->GetAllEntitiesNearLocation(GetPosition(), 1);
 		for (int index = 0; index < neighbourEntities.size(); index++)
 		{
 			if (neighbourEntities.at(index)->IsStationaryEntity())
 			{
 				SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.f);
-				SetDesiredOutputForTask(TASK_MOVE, 1.0f);
+				SetDesiredOutputForTask(TASK_MOVE, 1.f);
 				return;
 			}
 		}
 		m_state.m_neuralNetPoints++;
 		SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 1.0f);
-		SetDesiredOutputForTask(TASK_MOVE, 1.0f);
+		SetDesiredOutputForTask(TASK_MOVE, 0.f);
+		
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
@@ -631,7 +633,11 @@ void Civilian::TrainToGatherAndDropResource(EntityState previousState, IntVector
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD,  0);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD,  0);
-		SetDesiredOutputForTask(TASK_DROP_RESOURCE, 1);
+		if(!(GetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER) > 0 || GetDesiredOutputForTask(TASK_BUILD_HOUSE) > 0))
+		{
+			SetDesiredOutputForTask(TASK_DROP_RESOURCE, 1);
+
+		}
 		return;
 	}
 	Resources resourceStat = ((TownCenter*)FindMyTownCenter())->m_resourceStat;
