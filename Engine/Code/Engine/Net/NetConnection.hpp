@@ -67,7 +67,7 @@ public:
 	double					    m_startTime;
 
 	double						m_joinInterval = .1;
-	double						m_lastJoinReqstSentTime = 0;
+	double						m_lastJoinReqstSentTime = 1;
 	double						m_firstJoinReqstTime = 0;
 
 	uint16_t					m_nextSentAck = 0U;

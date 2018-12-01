@@ -335,6 +335,7 @@ NetMessage * NetMessage::CreateJoinAcceptMsg(NetAddress *address,int indexInt)
 	msg->WriteBytes(2, (char*)&msgSize);
 	
 	msg->WriteCommandIndex();
+
 	uint8_t index = static_cast<uint8_t>(indexInt);
 	msg->WriteBytes(1, (char*)&index);
 

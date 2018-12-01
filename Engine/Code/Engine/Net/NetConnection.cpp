@@ -16,7 +16,7 @@ NetConnection::NetConnection(int index, NetAddress netAddress)
 	m_startTime = Clock::GetMasterClock()->total.m_seconds;
 	m_index     = static_cast<uint8_t>(index);
 	m_address   = netAddress;
-	m_udpSocket = new UDPSocket(netAddress);
+	//m_udpSocket = new UDPSocket(netAddress);
 	
 	InitTracker();
 }
@@ -24,10 +24,11 @@ NetConnection::NetConnection(int index, NetAddress netAddress)
 NetConnection::NetConnection(int listenPort)
 {
 	m_startTime				= Clock::GetMasterClock()->total.m_seconds;
-	//m_udpSocket				= new UDPSocket(listenPort);
+	m_udpSocket				= new UDPSocket(listenPort);
 	m_address.m_port		= listenPort;
 	m_index = 0;
 	InitTracker();
+	m_connectionState = CONNECTION_READY;
 }
 
 // DESTRUCTOR
@@ -61,8 +62,9 @@ void NetConnection::InitTracker()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::BindConnection()
 {
-	m_udpSocket = new UDPSocket(m_address.m_port);
+	m_udpSocket = new UDPSocket(m_address);
 	m_udpSocket->SetBlocking(false);
+	m_connectionState = CONNECTION_BOUND;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

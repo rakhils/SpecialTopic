@@ -115,8 +115,9 @@ public:
 	void					  RestartInPort(int index,int port);
 
 	void					  Host(char const *id, uint16_t port);
-	void					  Join(char const *id, NetConnectionInfo &host_info);
+	NetConnection*			  Join(char const *id, NetConnectionInfo &host_info);
 
+	void					  AddIntoAllConnection(char const *id, NetConnectionInfo connectionInfo);
 	void					  SetHeartBeatFrequency(float time);
 	void					  SetSimulateLoss(float lossAmount);
 	void					  SetSimulateLatency(float m_minLatency, float m_maxLatency);
@@ -141,7 +142,10 @@ public:
 
 	size_t					  SendPacket(Packet packet);
 	//virtual void			   Send(uint16_t idx, char *data, size_t length);
+	bool					  DoesConnectionExist(NetAddress address);
 	void					  AddBinding(int port);
+	NetConnection*			  CreateAndPushIntoAllConnection(NetConnectionInfo &connectionInfo);
+	NetConnection*			  CreateHostConnection(NetConnectionInfo &connectioninfo,int port);
 	NetConnection*			  CreateConnection(NetConnectionInfo &connectionInfo);
 	void					  DestroyConnection(NetConnection *connection);
 
@@ -150,7 +154,7 @@ public:
 	NetConnection*			  GetConnection(int index);
 	NetConnection*			  GetConnection(NetAddress *netAddress);
 	NetConnection*			  GetConnectionFromAllConnections(NetAddress *address);
-	bool					  RemoveFromAllConnections(NetConnection *connection);
+	bool					  RemoveFromAllConnections(NetAddress  m_address);
 	void					  PushConnectionToBoundedConnection(int index,NetConnection *connection);
 							  
 	NetConnection*			  GetMyConnection();

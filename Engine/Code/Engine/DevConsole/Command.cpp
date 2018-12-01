@@ -1524,7 +1524,7 @@ void AddLocal(Command &cmd)
 	NetSession::s_defaultPort = port;
 	std::string myIp = Net::GetIP();
 	std::string addConnection0 = "add_connection 0 "+myIp+":"+ToString(port);
-	NetSession::GetInstance()->AddConnection(0, myIp,port);
+	NetSession::GetInstance()->Host("", port);
 	//RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
 }
 
@@ -1586,6 +1586,22 @@ void SendJoinRequest(Command &cmd)
 	connectionInfo.m_address = *address;
 
 	NetSession::GetInstance()->Join("", connectionInfo);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DoHost(Command &cmd)
+{
+	int port = 0;
+	cmd.GetNextInt(&port);
+	NetSession::s_defaultPort = port;
+
+	std::string myIp = Net::GetIP();
+	NetSession::GetInstance()->Host("", port);
 }
 
 /*

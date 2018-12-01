@@ -85,23 +85,28 @@ void NetSession::UpdateSessionState()
 	switch(m_sessionState)
 	{
 		case SESSION_CONNECTING:
-			if(m_myConnection->IsConnected())
+			if(m_hostConnection->IsConnected())
 			{
 				m_sessionState = SESSION_JOINING;
 			}
-			else if(m_myConnection->m_lastJoinReqstSentTime + m_myConnection->m_joinInterval > GetCurrentTimeSeconds())
+			else if(GetCurrentTimeSeconds() > m_hostConnection->m_lastJoinReqstSentTime + m_hostConnection->m_joinInterval)
 			{
-				if(m_myConnection->m_firstJoinReqstTime == 0)
+				if(m_hostConnection->m_firstJoinReqstTime == 0)
 				{
-					m_myConnection->m_firstJoinReqstTime = GetCurrentTimeSeconds();
+					m_hostConnection->m_firstJoinReqstTime = GetCurrentTimeSeconds();
 				}
-				if(m_myConnection->m_firstJoinReqstTime + 10 < GetCurrentTimeSeconds())
+				if(m_hostConnection->m_firstJoinReqstTime + 10 < GetCurrentTimeSeconds())
 				{
 					//
 				}
-				NetMessage *msg = NetMessage::CreateJoinRequestMsg(&m_myConnection->m_address);
-				m_myConnection->Append(msg);
-				m_myConnection->m_lastJoinReqstSentTime = GetCurrentTimeSeconds();
+				NetMessage *msg = NetMessage::CreateJoinRequestMsg(&m_hostConnection->m_address);
+				m_hostConnection->Append(msg);
+				m_hostConnection->m_lastJoinReqstSentTime = GetCurrentTimeSeconds();
+			}
+			break;
+		case SESSION_READY:
+			{
+				m_sessionState = SESSION_JOINING;
 			}
 			break;
 		case SESSION_JOINING:
@@ -109,7 +114,7 @@ void NetSession::UpdateSessionState()
 			{
 				m_sessionState = SESSION_CONNECTED;
 			}
-
+			break;
 	}
 }
 
@@ -155,14 +160,17 @@ void NetSession::RestartInPort(int index,int port)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::Host(char const *id, uint16_t port)
 {
-	if (m_sessionError != SESSION_DISCONNECTED || m_hostConnection != nullptr)
+	if (m_sessionState != SESSION_DISCONNECTED || m_hostConnection != nullptr)
 	{
 		m_sessionError = SESSION_ERROR_USER;
 		return;
 	}
+
 	s_defaultPort = static_cast<int>(port);
 	m_hostConnection = new NetConnection(s_defaultPort);
-	m_hostConnection->BindConnection();
+	//m_hostConnection->BindConnection();
+	m_hostConnection->m_index = 0;
+	m_hostConnection->m_session = this;
 	m_myConnection = m_hostConnection;
 	m_hostConnection->m_id = id;
 
@@ -175,6 +183,7 @@ void NetSession::Host(char const *id, uint16_t port)
 		m_myConnection = nullptr;
 		return;
 	}
+	m_sessionState = SESSION_READY;
 	m_sessionError = SESSION_OK;
 }
 
@@ -184,11 +193,42 @@ void NetSession::Host(char const *id, uint16_t port)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetSession::Join(char const *id, NetConnectionInfo &hostInfo)
+NetConnection* NetSession::Join(char const *id, NetConnectionInfo &connectionInfo)
 {
-	NetConnection *connection = CreateConnection(hostInfo);
-	m_myConnection = connection;
+	NetConnection *connection = CreateConnection(connectionInfo);
+	connection->BindConnection();
+	connection->m_connectionState = CONNECTION_CONNECTING;
+	connection->m_index = connectionInfo.m_sessionIndex;
+	m_allConnections.push_back(connection);
+
 	m_sessionState = SESSION_CONNECTING;
+	m_hostConnection = connection;
+
+	NetAddress *address = new NetAddress();
+	sockaddr_storage out;
+	int out_addrlen;
+	std::string port = "10085";
+	int portInt = 10085;
+	NetAddress::GetRemoteAddress(address, (sockaddr*)&out, &out_addrlen, Net::GetIP().c_str(), port.c_str());
+
+	NetConnectionInfo ownConnectionInfo;
+	ownConnectionInfo.m_sessionIndex = INVALID_SESSION_INDEX;
+	ownConnectionInfo.m_address		 = *address;
+	ownConnectionInfo.m_isHost		 = true;
+	m_myConnection					 = CreateHostConnection(ownConnectionInfo,portInt);
+	m_myConnection->m_connectionState = CONNECTION_READY;
+	return connection;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::AddIntoAllConnection(char const *id, NetConnectionInfo connectionInfo)
+{
+	NetConnection *connection = CreateConnection(connectionInfo);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -264,6 +304,10 @@ int NetSession::GetAndIncrementConnectionIndex()
 bool NetSession::IsHost()
 {
 	if(m_hostConnection == nullptr)
+	{
+		return false;
+	}
+	if(m_sessionState < SESSION_READY)
 	{
 		return false;
 	}
@@ -423,9 +467,9 @@ void NetSession::ProcessIncomingMessage()
 	size_t maxsize = PACKET_MTU;
 	NetAddress netAddr;
 
-	if(m_hostConnection != nullptr)
+	if(m_myConnection != nullptr)
 	{
-		size_t recvd = m_hostConnection->Recv(data, maxsize,&netAddr);
+		size_t recvd = m_myConnection->Recv(data, maxsize,&netAddr);
 		std::vector<NetMessage*> netMsgs = ConstructMsgFromData(netAddr, recvd, data);
 		ProcessMsgs(netMsgs,&netAddr);
 	}
@@ -464,7 +508,25 @@ void NetSession::ProcessOutgoingMessage()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t NetSession::SendPacket(Packet packet)
 {
-	return m_hostConnection->m_udpSocket->SendTo(*packet.m_address, packet.m_packet.m_buffer, packet.m_packet.m_bufferSize);
+	return m_myConnection->m_udpSocket->SendTo(*packet.m_address, packet.m_packet.m_buffer, packet.m_packet.m_bufferSize);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/29
+*@purpose : Check if connecection exist for an address
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool NetSession::DoesConnectionExist(NetAddress address)
+{
+	for (size_t index = 0; index < m_allConnections.size(); index++)
+	{
+		if(m_allConnections.at(index)->m_address == address)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -480,6 +542,56 @@ void NetSession::AddBinding(int port)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetConnection* NetSession::CreateAndPushIntoAllConnection(NetConnectionInfo &connectionInfo)
+{
+	std::map<int, NetConnection*>::iterator it = m_boundConnections.begin();
+	for(;it != m_boundConnections.end();it++)
+	{
+		if(it->second->m_address == connectionInfo.m_address)
+		{
+			return nullptr;
+		}
+	}
+	// NOT EXIST IN ALREADY BOUNDED LIST
+	for(size_t index = 0;index < m_allConnections.size();index++)
+	{
+		if(m_allConnections.at(index)->m_address == connectionInfo.m_address)
+		{
+			// EXIST ALREADY
+			return nullptr;
+		}
+	}
+
+	NetConnection *connection = new NetConnection(connectionInfo.m_address.m_port);
+	connection->m_index       = connectionInfo.m_sessionIndex;
+	connection->m_address     = connectionInfo.m_address;
+
+	m_allConnections.push_back(connection);
+	return connection;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetConnection* NetSession::CreateHostConnection(NetConnectionInfo &connectionInfo,int port)
+{
+	s_defaultPort = port;
+	NetConnection *connection = new NetConnection(port);
+	connection->m_index = connectionInfo.m_sessionIndex;
+	connection->m_address = connectionInfo.m_address;
+	connection->m_session = this;
+	return connection;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/11/22
 *@purpose : NIL
 *@param   : NIL
@@ -487,34 +599,9 @@ void NetSession::AddBinding(int port)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 NetConnection* NetSession::CreateConnection(NetConnectionInfo &connectionInfo)
 {
-	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(connectionInfo.m_sessionIndex);
-	if (it != m_boundConnections.end())
-	{
-		return nullptr;
-	}
-	if (connectionInfo.m_isHost == true && s_netSession != nullptr)
-	{
-		return nullptr;
-	}
-	NetConnection *connection = nullptr;
-	if(connectionInfo.m_isHost)
-	{
-		connection = new NetConnection(connectionInfo.m_address.m_port);
-	}
-	else
-	{
-		connection = new NetConnection(connectionInfo.m_sessionIndex, connectionInfo.m_address);
-	}
-
-	connection->m_session = this;
-	if(connectionInfo.m_isHost == true)
-	{
-		m_hostConnection = connection;
-		m_hostConnection->BindConnection();
-		return connection;
-	}
-	m_allConnections.push_back(connection);
-	//m_boundConnections[connectionInfo.m_sessionIndex] = connection;
+	NetConnection *connection   = new NetConnection(connectionInfo.m_sessionIndex, connectionInfo.m_address);
+	connection->m_index			= connectionInfo.m_sessionIndex;
+	connection->m_session		= this;
 	return connection;
 }
 
@@ -658,11 +745,11 @@ NetConnection* NetSession::GetConnectionFromAllConnections(NetAddress *address)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool NetSession::RemoveFromAllConnections(NetConnection *connection)
+bool NetSession::RemoveFromAllConnections(NetAddress  address)
 {
 	for (size_t index = 0; index < m_allConnections.size(); index++)
 	{
-		if (m_allConnections.at(index) == connection)
+		if (m_allConnections.at(index)->m_address == address)
 		{
 			m_allConnections.erase(m_allConnections.begin()+index, m_allConnections.begin()+ index + 1);
 			return true;
@@ -792,7 +879,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 		recvdPacket.ReadBytes(&cmdIndex, 1);
 		if(cmdIndex >=0 && cmdIndex < m_netMessageCmdDefinition.size())
 		{
-			//DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
+			DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
 			NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
 			netmsg->m_packetHeader = header;
 			netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
@@ -1259,16 +1346,35 @@ bool OnJoinRequest(NetMessage &netMsg, NetAddress &netAddress)
 		NetSession::GetInstance()->m_hostConnection->Append(joinDeny);
 		return false;
 	}
+	// CHECK ONLY IN ALL CONNECTION , CONNECTIONS EXISTING IN ALL CANNOT JOIN WITHOUT DISCONNECT 
+	// MAY BE A BUG
+	if (NetSession::GetInstance()->DoesConnectionExist(netAddress))
+	{
+		return false;
+	}
 
 	NetConnectionInfo connectionInfo;
 	connectionInfo.m_address = netAddress;
 	connectionInfo.m_sessionIndex = NetSession::GetInstance()->GetAndIncrementConnectionIndex();
 	connectionInfo.m_isHost = false;
 
-	NetSession::GetInstance()->Join("", connectionInfo);
+	//NetSession::GetInstance()->AddIntoAllConnection("", connectionInfo);
+
+	NetConnection *connection =  NetSession::GetInstance()->CreateConnection(connectionInfo);
+	connection->BindConnection();
+	connection->m_connectionState = CONNECTION_CONNECTING;
+	connection->m_index = connectionInfo.m_sessionIndex;
+	NetSession::GetInstance()->m_allConnections.push_back(connection);
+	NetSession::GetInstance()->m_boundConnections[connectionInfo.m_sessionIndex] = connection;
+
+	NetSession::GetInstance()->m_sessionState = SESSION_CONNECTING;
 
 	NetMessage *joinAccept = NetMessage::CreateJoinAcceptMsg(&netAddress,connectionInfo.m_sessionIndex);
-	NetSession::GetInstance()->m_hostConnection->Append(joinAccept);
+	connection->Append(joinAccept);
+
+	NetMessage *joinFinished = NetMessage::CreateJoinFinished(connection);
+	connection->Append(joinFinished);
+
 	return true;
 }
 
@@ -1298,8 +1404,6 @@ bool OnJoinAccept(NetMessage &netMsg, NetAddress &netAddress)
 	netMsg.ReadBytes(&index, 1);
 
 	NetConnection *connection	= NetSession::GetInstance()->GetConnectionFromAllConnections(&netAddress);
-	NetSession::GetInstance()->RemoveFromAllConnections(connection);
-
 	NetSession::GetInstance()->PushConnectionToBoundedConnection(index, connection);
 	connection->m_connectionState = CONNECTION_CONNECTING;
 	connection->m_index = index;
@@ -1331,6 +1435,7 @@ bool OnJoinFinished(NetMessage &netMsg, NetAddress &netAddress)
 	DevConsole::GetInstance()->PushToOutputText("ON JOIN FINISHED ");
 	NetConnection *connection = NetSession::GetInstance()->GetConnection(&netAddress);
 	connection->m_connectionState = CONNECTION_READY;
+	NetSession::GetInstance()->m_sessionState = SESSION_READY;
 	return true;
 }
 

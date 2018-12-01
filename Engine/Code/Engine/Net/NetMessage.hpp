@@ -105,6 +105,7 @@ public:
 	static NetMessage * CreateUnreliableTestMessage(NetConnection *connection,int count,int maxCount);
 	static NetMessage * CreateReliableTestMessage(NetConnection *connection, int count, int maxCount);
 	static NetMessage * CreateBlankMessage(NetConnection *connection);
+
 	static NetMessage * CreateJoinRequestMsg(NetAddress *address);
 	static NetMessage * CreateJoinDeny(NetAddress *address);
 	static NetMessage * CreateJoinAcceptMsg(NetAddress *address,int index);
