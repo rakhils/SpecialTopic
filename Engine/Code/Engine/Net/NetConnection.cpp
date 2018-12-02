@@ -76,29 +76,27 @@ void NetConnection::BindConnection()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::Disconnect()
 {
-	m_udpSocket->Close();
-	m_connectionState = CONNECTION_DISCONNECTED;
+	
 	if(this == NetSession::GetInstance()->m_myConnection && IsHost())
 	{
 		std::map<int, NetConnection*>::iterator it;
-		for (it = NetSession::GetInstance()->m_boundConnections.begin(); it != NetSession::GetInstance()->m_boundConnections.end(); it++)
+		for (it = NetSession::GetInstance()->m_boundConnections.begin(); it != NetSession::GetInstance()->m_boundConnections.end();it++)
 		{
 			NetMessage *msg = NetMessage::CreateHangUpMsg(this);
+			msg->m_address = &it->second->m_address;
 			it->second->Append(msg);
 			it->second->FlushUnrealiables();
 		}
-
-		for (it = NetSession::GetInstance()->m_boundConnections.begin(); it != NetSession::GetInstance()->m_boundConnections.end(); it++)
-		{
-			it->second->Disconnect();
-		}
 		NetSession::GetInstance()->m_boundConnections.clear();
+		m_udpSocket->Close();
+		m_connectionState = CONNECTION_DISCONNECTED;
 		return;
 	}
+	m_udpSocket->Close();
+	m_connectionState = CONNECTION_DISCONNECTED;
 	NetMessage *msg = NetMessage::CreateHangUpMsg(this);
 	Append(msg);
 	FlushUnrealiables();
-	NetSession::GetInstance()->RemoveConnections(this);
 	//Disconnect();
 }
 
@@ -580,9 +578,12 @@ void NetConnection::SetLastRecvTime(float time)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool NetConnection::IsHost()
 {
-	if(this == m_session->m_myConnection && m_session->m_myConnection->IsHost())
+	if(m_session->m_myConnection != nullptr && m_session->m_hostConnection != nullptr)
 	{
-		return true;
+		if(m_session->m_myConnection == m_session->m_hostConnection)
+		{
+			return true;
+		}
 	}
 	return false;
 }

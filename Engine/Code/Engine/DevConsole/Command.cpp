@@ -290,7 +290,7 @@ void CommandStartup()
 	CommandRegister("setup_udp", SetupUDPConnections, "SETS UP CONNECTION FOR UDP");
 	CommandRegister("add_local",  AddLocal, "ADDS LOCAL CONNECTION TO LCOAL AND REMOTE");
 	CommandRegister("add_remote", AddRemote, "ADDS REMOTE CONNECTION TO LOCAL AND REMOTE");
-	CommandRegister("disconnect", Disconnect, "DISCONNECTS A MESSAGE");
+	CommandRegister("disconnect", Disconnect, "DISCONNECTS A CONNECTION");
 
 	CommandRegister("listen_udp", ListenUDPPort, "LISTEN NET SESSION IN GIVEN PORT");
 	CommandRegister("erase_queues", EraseAllQueues, "ERASES ALL MSGS IN QUEUES OF GIVEN CONN");

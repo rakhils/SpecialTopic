@@ -134,6 +134,7 @@ void NetSession::UpdateConnections(float deltaTime)
 		if(static_cast<float>(GetCurrentTimeSeconds()) > (it->second->m_lastReceivedTime + DEFAULT_CONNECTION_TIMEOUT))
 		{
 			it->second->Disconnect();
+			RemoveConnections(it->second);
 			break;
 		}
 	}
@@ -722,6 +723,10 @@ NetConnection* NetSession::GetConnection(int index)
 	if(it != m_boundConnections.end())
 	{
 		return it->second;
+	}
+	if(index == 0)
+	{
+		return m_myConnection;
 	}
 	return nullptr;
 }
