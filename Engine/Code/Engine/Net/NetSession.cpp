@@ -126,6 +126,17 @@ void NetSession::UpdateSessionState()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::UpdateConnections(float deltaTime)
 {
+	std::map<int, NetConnection*>::iterator it;
+	for (it = m_boundConnections.begin(); it != m_boundConnections.end(); it++)
+	{
+		float time = static_cast<float>(GetCurrentTimeSeconds());
+		if(static_cast<float>(GetCurrentTimeSeconds()) > (it->second->m_lastReceivedTime + DEFAULT_CONNECTION_TIMEOUT))
+		{
+			it->second->Disconnect();
+			break;
+		}
+	}
+
 	/*if(m_channel != nullptr)
 	{
 		m_channel->SendHeartBeat(&m_channel->m_address);
@@ -200,6 +211,7 @@ NetConnection* NetSession::Join(char const *id, NetConnectionInfo &connectionInf
 	connection->m_connectionState = CONNECTION_CONNECTING;
 	connection->m_index = connectionInfo.m_sessionIndex;
 	m_allConnections.push_back(connection);
+	m_boundConnections[connectionInfo.m_sessionIndex] = connection;
 
 	m_sessionState = SESSION_CONNECTING;
 	m_hostConnection = connection;
@@ -293,6 +305,21 @@ int NetSession::GetAndIncrementConnectionIndex()
 	int temp = m_highestIndex;
 	m_highestIndex++;
 	return temp;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/01
+*@purpose : Removes connections from bounded connections
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetSession::RemoveConnections(NetConnection *connection)
+{
+	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(connection->m_index);
+	if(it != m_boundConnections.end())
+	{
+		m_boundConnections.erase(it);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -764,12 +791,14 @@ bool NetSession::RemoveFromAllConnections(NetAddress  address)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetSession::PushConnectionToBoundedConnection(int index,NetConnection *connection)
+void NetSession::ReplaceConnectionWithNewIndex(int index,NetConnection *connection)
 {
-	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(index);
-	if(it == m_boundConnections.end())
+	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(connection->m_index);
+	if (it != m_boundConnections.end())
 	{
+		m_boundConnections.erase(it);
 		m_boundConnections[index] = connection;
+		connection->m_index = index;
 	}
 }
 
@@ -837,6 +866,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 	int index = -1;
 	if(connection != nullptr)
 	{
+		connection->SetLastRecvTime(static_cast<float>(GetCurrentTimeSeconds()));
 		std::map<int, NetConnection*>::iterator it;
 		for (it = m_boundConnections.begin(); it != m_boundConnections.end(); it++)
 		{
@@ -1404,12 +1434,12 @@ bool OnJoinAccept(NetMessage &netMsg, NetAddress &netAddress)
 	netMsg.ReadBytes(&index, 1);
 
 	NetConnection *connection	= NetSession::GetInstance()->GetConnectionFromAllConnections(&netAddress);
-	NetSession::GetInstance()->PushConnectionToBoundedConnection(index, connection);
+	NetSession::GetInstance()->ReplaceConnectionWithNewIndex(index, connection);
 	connection->m_connectionState = CONNECTION_CONNECTING;
 	connection->m_index = index;
 
-	NetMessage *joinFinished = NetMessage::CreateJoinFinished(connection);
-	connection->Append(joinFinished);
+	/*NetMessage *joinFinished = NetMessage::CreateJoinFinished(connection);
+	connection->Append(joinFinished);*/
 	return true;
 }
 
@@ -1447,6 +1477,24 @@ bool OnJoinFinished(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnUpdateConnState(NetMessage &netMsg, NetAddress &netAddress)
 {
+	DevConsole::GetInstance()->PushToOutputText("ON CONN UPDATE ");
+	netMsg.m_currentReadPosition = 3;
+	uint8_t index = 0;
+	netMsg.ReadBytes(&index, 1);
+
+	uint8_t code = 0;
+	netMsg.ReadBytes(&code, 1);
+
+	NetConnection *connection = NetSession::GetInstance()->GetConnectionFromAllConnections(&netAddress);
+	if(connection == nullptr)
+	{
+		return true;
+	}
+	if(code == 1)
+	{
+		DevConsole::GetInstance()->PushToOutputText("REMOVED CONNECTION TO "+netAddress.GetIP()+":"+ToString(netAddress.m_port));
+		NetSession::GetInstance()->RemoveConnections(connection);
+	}
 	return true;
 }
 

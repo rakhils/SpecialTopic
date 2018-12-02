@@ -111,6 +111,7 @@ public:
 	static NetMessage * CreateJoinAcceptMsg(NetAddress *address,int index);
 	static NetMessage * CreateNewConnection(NetConnection *connection);
 	static NetMessage * CreateJoinFinished(NetConnection *connection);
+	static NetMessage * CreateDisconnectUpdateMsg(NetConnection *connection);
 	//static NetMessage * CreateUpdateConnState(NetConnection *connection,EConnectionState state);
 protected:
 	//Member_Variables

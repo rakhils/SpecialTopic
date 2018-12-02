@@ -74,6 +74,7 @@ enum ESessionState
 	SESSION_CONNECTED
 };
 #define MAX_CONN_ID_LENGTH 16
+#define DEFAULT_CONNECTION_TIMEOUT 60
 class NetSession
 {
 
@@ -125,7 +126,7 @@ public:
 	void					  ClearSessionError()			{ m_sessionError = SESSION_OK; }
 	ESessionError			  GetLastSessionError();
 	int						  GetAndIncrementConnectionIndex();
-
+	void					  RemoveConnections(NetConnection *connection);
 	bool					  IsHost();
 
 	void					  InitMsgDefinition();
@@ -155,7 +156,7 @@ public:
 	NetConnection*			  GetConnection(NetAddress *netAddress);
 	NetConnection*			  GetConnectionFromAllConnections(NetAddress *address);
 	bool					  RemoveFromAllConnections(NetAddress  m_address);
-	void					  PushConnectionToBoundedConnection(int index,NetConnection *connection);
+	void					  ReplaceConnectionWithNewIndex(int index,NetConnection *connection);
 							  
 	NetConnection*			  GetMyConnection();
 	int						  GetMySessionIndex();

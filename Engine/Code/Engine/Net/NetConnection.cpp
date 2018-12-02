@@ -17,7 +17,7 @@ NetConnection::NetConnection(int index, NetAddress netAddress)
 	m_index     = static_cast<uint8_t>(index);
 	m_address   = netAddress;
 	//m_udpSocket = new UDPSocket(netAddress);
-	
+	m_lastReceivedTime = static_cast<float>(GetCurrentTimeSeconds());
 	InitTracker();
 }
 
@@ -27,6 +27,7 @@ NetConnection::NetConnection(int listenPort)
 	m_udpSocket				= new UDPSocket(listenPort);
 	m_address.m_port		= listenPort;
 	m_index = 0;
+	m_lastReceivedTime = static_cast<float>(GetCurrentTimeSeconds());
 	InitTracker();
 	m_connectionState = CONNECTION_READY;
 }
@@ -65,6 +66,40 @@ void NetConnection::BindConnection()
 	m_udpSocket = new UDPSocket(m_address);
 	m_udpSocket->SetBlocking(false);
 	m_connectionState = CONNECTION_BOUND;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/30
+*@purpose : Disconnects the connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::Disconnect()
+{
+	m_udpSocket->Close();
+	m_connectionState = CONNECTION_DISCONNECTED;
+	if(this == NetSession::GetInstance()->m_myConnection && IsHost())
+	{
+		std::map<int, NetConnection*>::iterator it;
+		for (it = NetSession::GetInstance()->m_boundConnections.begin(); it != NetSession::GetInstance()->m_boundConnections.end(); it++)
+		{
+			NetMessage *msg = NetMessage::CreateDisconnectUpdateMsg(this);
+			it->second->Append(msg);
+			it->second->FlushUnrealiables();
+		}
+
+		for (it = NetSession::GetInstance()->m_boundConnections.begin(); it != NetSession::GetInstance()->m_boundConnections.end(); it++)
+		{
+			it->second->Disconnect();
+		}
+		NetSession::GetInstance()->m_boundConnections.clear();
+		return;
+	}
+	NetMessage *msg = NetMessage::CreateDisconnectUpdateMsg(this);
+	Append(msg);
+	FlushUnrealiables();
+	NetSession::GetInstance()->RemoveConnections(this);
+	//Disconnect();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -524,6 +559,32 @@ void NetConnection::SetState(EConnectionState state)
 			//it->second->Append(msg);
 		}
 	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/30
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::SetLastRecvTime(float time)
+{
+	m_lastReceivedTime = time;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool NetConnection::IsHost()
+{
+	if(this == m_session->m_myConnection && m_session->m_myConnection->IsHost())
+	{
+		return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -157,6 +157,7 @@ void SetupUDPConnections(Command &cmd);
 void SetupUDPConnectionWithoutPortChangeInRemote(Command &cmd);
 void AddLocal(Command &cmd);
 void AddRemote(Command &cmd);
+void Disconnect(Command &cmd);
 void EraseAllQueues(Command &cmd);
 
 void SendJoinRequest(Command &cmd);

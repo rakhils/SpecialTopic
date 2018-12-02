@@ -382,6 +382,32 @@ NetMessage * NetMessage::CreateJoinFinished(NetConnection *connection)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/30
+*@purpose : Creates an update conn stats msg with disconnect code
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateDisconnectUpdateMsg(NetConnection *connection)
+{
+	NetMessage *msg = new NetMessage("update_conn_state");
+	msg->m_address = &connection->m_address;
+
+	size_t msgSize = 0;
+	msg->WriteBytes(2, (char*)&msgSize);
+	msg->WriteCommandIndex();
+
+	uint8_t index = static_cast<uint8_t>(connection->m_index);
+	msg->WriteBytes(1, (char*)&index);
+	uint8_t code = static_cast<uint8_t>(1);
+	msg->WriteBytes(1, (char*)&code);
+
+	msgSize = msg->m_bufferSize - 2;
+	msg->WriteBytes(2, (char*)&msgSize);
+	return msg;
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/11/22
 *@purpose : NIL
 *@param   : NIL

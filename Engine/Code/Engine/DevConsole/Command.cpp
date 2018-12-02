@@ -290,6 +290,7 @@ void CommandStartup()
 	CommandRegister("setup_udp", SetupUDPConnections, "SETS UP CONNECTION FOR UDP");
 	CommandRegister("add_local",  AddLocal, "ADDS LOCAL CONNECTION TO LCOAL AND REMOTE");
 	CommandRegister("add_remote", AddRemote, "ADDS REMOTE CONNECTION TO LOCAL AND REMOTE");
+	CommandRegister("disconnect", Disconnect, "DISCONNECTS A MESSAGE");
 
 	CommandRegister("listen_udp", ListenUDPPort, "LISTEN NET SESSION IN GIVEN PORT");
 	CommandRegister("erase_queues", EraseAllQueues, "ERASES ALL MSGS IN QUEUES OF GIVEN CONN");
@@ -1540,6 +1541,24 @@ void AddRemote(Command &cmd)
 	std::string addConnection0 = "add_connection 1 192.168.0.123:10085";
 	NetSession::GetInstance()->AddConnection(1,"192.168.0.123",10085);
 	RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Disconnect(Command &cmd)
+{
+	int index = -1;
+	cmd.GetNextInt(&index);
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(index);
+	if(connection == nullptr)
+	{
+		return;
+	}
+	connection->Disconnect();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

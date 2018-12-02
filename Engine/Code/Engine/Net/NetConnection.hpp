@@ -100,6 +100,7 @@ public:
 
 	void		 InitTracker();
 	void		 BindConnection();
+	void		 Disconnect();
 
 	void		 SetLastHeartBeatReceivedTime(float time);
 	void		 SetHeartBeatFrequency(float freq);
@@ -107,6 +108,7 @@ public:
 	void		 SetUnrealiableMsgCount(int count);
 	void		 SetSendRate(float sendRate);
 	void		 SetState(EConnectionState state);
+	void		 SetLastRecvTime(float time);
 
 	bool		 IsConnected()     { return m_connectionState >= CONNECTION_CONNECTED;}
 	bool         IsDisconnected()  { return m_connectionState == CONNECTION_DISCONNECTED;}
