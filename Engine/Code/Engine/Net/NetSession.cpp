@@ -7,6 +7,7 @@
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/Time/Clock.hpp"
+#include "Engine/Debug/DebugDraw.hpp"
 NetSession *NetSession::s_netSession = nullptr;
 int			NetSession::s_defaultPort = 10084;
 // CONSTRUCTOR
@@ -67,8 +68,26 @@ void NetSession::Update(float deltaTime)
 	{
 		m_sessionInfoVisible = m_sessionInfoVisible ? false : true;
 	}
-
-
+	uint64_t localDeltams = Clock::GetMasterClock()->frame.m_milliSeconds;
+	uint64_t localNetworkDelta = 0;
+	if(m_hostConnection != nullptr && !m_hostConnection->IsHost() && m_currentClientTimems > 0)
+	{
+		if(m_currentClientTimems + localDeltams > m_desiredClientTimems)
+		{
+			localNetworkDelta =  static_cast<uint64_t>((1 - MAX_NET_TIME_DILATION) * static_cast<float>(localDeltams));
+			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,"NEGATIVE");
+		}
+		if (m_currentClientTimems + localDeltams < m_desiredClientTimems)
+		{
+			localNetworkDelta =  static_cast<uint64_t>((1 + MAX_NET_TIME_DILATION) * static_cast<float>(localDeltams));
+			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,"POSITIVE");
+		}
+		m_currentClientTimems += localNetworkDelta;
+	}
+	if(m_hostConnection != nullptr && m_hostConnection->IsHost())
+	{
+		m_currentClientTimems += Clock::GetMasterClock()->frame.m_milliSeconds;
+	}
 	UpdateConnections(deltaTime);
 	ProcessIncomingMessage();
 	ProcessOutgoingMessage();
@@ -599,6 +618,7 @@ NetConnection* NetSession::CreateAndPushIntoAllConnection(NetConnectionInfo &con
 	NetConnection *connection = new NetConnection(connectionInfo.m_address.m_port);
 	connection->m_index       = connectionInfo.m_sessionIndex;
 	connection->m_address     = connectionInfo.m_address;
+	connection->m_session = this;
 
 	m_allConnections.push_back(connection);
 	return connection;
@@ -1108,7 +1128,6 @@ void NetSession::Render()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::RenderSessionDetails()
 {
-	
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	//Material *defaultMaterial = Material::AquireResource("default");
 
@@ -1125,6 +1144,9 @@ void NetSession::RenderSessionDetails()
 	Renderer::GetInstance()->DrawTextOnPoint("sim loss:", startPosition + Vector2(900, 0), fontSize, Rgba::WHITE);
 	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_lossAmount) + "%", startPosition + Vector2(1100, 0), fontSize, Rgba::WHITE);
 
+	Renderer::GetInstance()->DrawTextOnPoint("Time :", startPosition + Vector2(1300, 0), fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_currentClientTimems), startPosition + Vector2(1500, 0), fontSize, Rgba::WHITE);
+	
 	startPosition -= Vector2(0, 2 * fontSizeBig);
 	Renderer::GetInstance()->DrawTextOnPoint("Socket Address(es)...", startPosition + Vector2(100, 0), fontSize, Rgba::WHITE);
 	startPosition -= Vector2(0, 2 * fontSizeBig);
@@ -1328,10 +1350,28 @@ bool OnHeartBeatMessage(NetMessage &netMsg, NetAddress &netAddress)
 {
 	UNUSED(netMsg);
 	NetConnection *netConnection = NetSession::GetInstance()->GetConnection(&netAddress);
+	netMsg.m_currentReadPosition = 3;
 	if(netConnection != nullptr)
 	{
 		netConnection->SetLastHeartBeatReceivedTime(static_cast<float>(GetCurrentTimeSeconds()));
 		//DevConsole::GetInstance()->PushToOutputText("RECEVIED HEART BEAT " + netAddress.GetIP() + ":" + ToString(netAddress.m_port));
+	}
+
+	uint64_t recvdTime = 0;
+	netMsg.ReadBytes(&recvdTime, 8);
+
+	if(netConnection!=nullptr && !netConnection->IsHost())
+	{
+		if(NetSession::GetInstance()->m_lastRecvdHostTimems < recvdTime)
+		{
+			NetSession::GetInstance()->m_lastRecvdHostTimems = recvdTime + netConnection->m_rtt / 2.f;
+
+			NetSession::GetInstance()->m_desiredClientTimems = recvdTime;
+			if(NetSession::GetInstance()->m_currentClientTimems == 0)
+			{
+				NetSession::GetInstance()->m_currentClientTimems = NetSession::GetInstance()->m_desiredClientTimems;
+			}
+		}
 	}
 	return true;
 }

@@ -89,6 +89,8 @@ public:
 	int							m_trackerMinPosition = 0;
 	int							m_trackerMaxPosition = m_trackerMaxCount;
 
+	bool						m_isFirstHeartBeat;
+
 	//Static_Member_Variables
 
 	//Methods

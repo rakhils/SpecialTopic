@@ -75,6 +75,7 @@ enum ESessionState
 };
 #define MAX_CONN_ID_LENGTH 16
 #define DEFAULT_CONNECTION_TIMEOUT 50
+#define MAX_NET_TIME_DILATION (0.1f)
 class NetSession
 {
 
@@ -100,6 +101,10 @@ public:
 	float											m_maxLatency					= 0.f;
 	float											m_sendRate						= 60.f;
 	bool											m_sessionInfoVisible			= false;
+	uint64_t m_lastRecvdHostTimems = 0;				// this is the time we received from the host + (RTT / 2)
+	uint64_t m_desiredClientTimems = 0;				// Time we want the the client to eventually be
+	uint64_t m_currentClientTimems = 0;				// what the client will actually report return
+	float   m_dtp				   = 0;
 	//Static_Member_Variables
 	static NetSession *s_netSession;
 	static int		   s_defaultPort;
@@ -128,6 +133,7 @@ public:
 	int						  GetAndIncrementConnectionIndex();
 	void					  RemoveConnections(NetConnection *connection);
 	bool					  IsHost();
+	float					  GetNetTimems() { return m_currentClientTimems;}
 
 	void					  InitMsgDefinition();
 	void					  RegisterMessage(std::string id, NetMessageCB netMsgCB,std::string description);

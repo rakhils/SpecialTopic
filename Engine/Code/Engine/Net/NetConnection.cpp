@@ -1131,7 +1131,7 @@ void NetConnection::SendHeartBeat(NetAddress *address)
 {
 	if(true)
 	{
-		return;
+		//return;
 	}
 	double lastHearBeatHPC = m_lastHeartbeatTime;
 	double heartBeatFreq   = m_heartBeatFrequency;

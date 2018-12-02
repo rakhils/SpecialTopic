@@ -3,6 +3,7 @@
 #include "Engine/Net/NetAddress.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/Time.hpp"
+#include "Engine/Time/Clock.hpp"
 // CONSTRUCTOR
 // 0 -> add
 // 1 -> add_response
@@ -187,11 +188,19 @@ NetMessage * NetMessage::CreateHeartBeatMessage(NetAddress *netaddress)
 	NetMessage *netMsg = new NetMessage("heartbeat");
 	netMsg->m_isReliable = false;
 	netMsg->m_address = netaddress;
+
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(netaddress);
+	
+
 	size_t msgSize = 0;
 	// write temporarily 
 	netMsg->WriteBytes(2, (char*)&msgSize);
 	///////////////
 	netMsg->WriteCommandIndex();
+
+	uint64_t time = Clock::GetMasterClock()->total.m_milliSeconds;
+	netMsg->WriteBytes(8,(void*)&time);
+	
 	netMsg->m_currentWritePosition = 0;
 	msgSize = netMsg->m_bufferSize - 2;
 	netMsg->WriteBytes(2, (char*)&(msgSize));
