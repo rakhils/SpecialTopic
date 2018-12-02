@@ -25,6 +25,7 @@ enum eNetCoreMessage : uint8_t
 	NETMSG_JOIN_ACCEPT,
 	NETMSG_NEW_CONNECTION,
 	NETMSG_JOIN_FINISHED,
+	NETMSG_HANGUP,
 	NETMSG_UPDATE_CONN_STATE,
 	NETMSG_CORE_COUNT,
 };
@@ -112,6 +113,8 @@ public:
 	static NetMessage * CreateNewConnection(NetConnection *connection);
 	static NetMessage * CreateJoinFinished(NetConnection *connection);
 	static NetMessage * CreateDisconnectUpdateMsg(NetConnection *connection);
+	static NetMessage * CreateHangUpMsg(NetConnection *connection);
+
 	//static NetMessage * CreateUpdateConnState(NetConnection *connection,EConnectionState state);
 protected:
 	//Member_Variables

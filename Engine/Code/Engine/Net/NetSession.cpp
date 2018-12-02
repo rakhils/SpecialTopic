@@ -48,6 +48,7 @@ void NetSession::Init()
 	RegisterMessage(NETMSG_JOIN_ACCEPT,			"join_accept",		 OnJoinAccept ,     "UPDATE STATE TO ACCEPT",			NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
 	RegisterMessage(NETMSG_NEW_CONNECTION,		"new_connection",	 OnNewConnection,   "UPDATE STATE TO NEW CON", 	     	NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
 	RegisterMessage(NETMSG_JOIN_FINISHED,		"join_finished",	 OnJoinFinished,    "UPDATE STATE TO FINISHED JOIN",	NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
+	RegisterMessage(NETMSG_HANGUP,				"msg_hangup",		 OnHangUp,			"HANGS UP THE CONNECTION",			NETMESSAGE_OPTION_UNRELIABLE);
 	RegisterMessage(NETMSG_UPDATE_CONN_STATE,	"update_conn_state", OnUpdateConnState, "UPDATE CONN STATE",				NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
 
 
@@ -1495,6 +1496,29 @@ bool OnUpdateConnState(NetMessage &netMsg, NetAddress &netAddress)
 		DevConsole::GetInstance()->PushToOutputText("REMOVED CONNECTION TO "+netAddress.GetIP()+":"+ToString(netAddress.m_port));
 		NetSession::GetInstance()->RemoveConnections(connection);
 	}
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnHangUp(NetMessage &netMsg, NetAddress &netAddress)
+{
+	DevConsole::GetInstance()->PushToOutputText("ON HANG UP ");
+	netMsg.m_currentReadPosition = 3;
+	uint8_t index = 0;
+	netMsg.ReadBytes(&index, 1);
+
+	NetConnection *connection = NetSession::GetInstance()->GetConnectionFromAllConnections(&netAddress);
+	if (connection == nullptr)
+	{
+		return true;
+	}
+	DevConsole::GetInstance()->PushToOutputText("REMOVED CONNECTION TO " + netAddress.GetIP() + ":" + ToString(netAddress.m_port));
+	NetSession::GetInstance()->RemoveConnections(connection);
 	return true;
 }
 

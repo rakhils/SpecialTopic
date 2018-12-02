@@ -101,6 +101,8 @@ public:
 	void		 InitTracker();
 	void		 BindConnection();
 	void		 Disconnect();
+	void		 HangUp();
+
 
 	void		 SetLastHeartBeatReceivedTime(float time);
 	void		 SetHeartBeatFrequency(float freq);

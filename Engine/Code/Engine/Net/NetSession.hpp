@@ -74,7 +74,7 @@ enum ESessionState
 	SESSION_CONNECTED
 };
 #define MAX_CONN_ID_LENGTH 16
-#define DEFAULT_CONNECTION_TIMEOUT 60
+#define DEFAULT_CONNECTION_TIMEOUT 50
 class NetSession
 {
 
@@ -211,5 +211,6 @@ bool OnJoinAccept		(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnNewConnection	(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnJoinFinished		(NetMessage  &netMsg, NetAddress &netAddress);
 bool OnUpdateConnState  (NetMessage  &netMsg, NetAddress &netAddress);
+bool OnHangUp			(NetMessage  &netMsg, NetAddress &netAddress);
 
 

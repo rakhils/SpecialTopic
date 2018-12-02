@@ -83,7 +83,7 @@ void NetConnection::Disconnect()
 		std::map<int, NetConnection*>::iterator it;
 		for (it = NetSession::GetInstance()->m_boundConnections.begin(); it != NetSession::GetInstance()->m_boundConnections.end(); it++)
 		{
-			NetMessage *msg = NetMessage::CreateDisconnectUpdateMsg(this);
+			NetMessage *msg = NetMessage::CreateHangUpMsg(this);
 			it->second->Append(msg);
 			it->second->FlushUnrealiables();
 		}
@@ -95,7 +95,7 @@ void NetConnection::Disconnect()
 		NetSession::GetInstance()->m_boundConnections.clear();
 		return;
 	}
-	NetMessage *msg = NetMessage::CreateDisconnectUpdateMsg(this);
+	NetMessage *msg = NetMessage::CreateHangUpMsg(this);
 	Append(msg);
 	FlushUnrealiables();
 	NetSession::GetInstance()->RemoveConnections(this);
