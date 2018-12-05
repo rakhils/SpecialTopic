@@ -26,7 +26,10 @@ bool AppMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t lParam)
 	switch (wmMessageCode)
 	{
 		// App close requested via "X" button, or right-click "Close Window" on task bar, or "Close" from system menu, or Alt-F4
-		// 
+		
+		// TO UPDATE AND RENDER EVEN IF NOT IN FOCUS
+	case WM_NCACTIVATE:
+		return 0;
 	case WM_CLOSE:
 		//case WM_DESTROY:
 	case WM_QUIT:

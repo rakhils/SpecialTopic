@@ -169,11 +169,11 @@ void Game::RegisterGameMessage()
 		"TEST AN RELIABLE MSGS",NETMESSAGE_OPTION_RELIABLE);
 
 	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_OBJECT_CREATE, "creates_game_object", OnObjectCreated,
-		"TEST AN RELIABLE MSGS", NETMESSAGE_OPTION_RELIABLE);
+		"TEST AN RELIABLE MSGS", NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
 	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_OBJECT_UPDATE, "updates_game_object", OnObjectUpdate,
-		"TEST AN RELIABLE MSGS", NETMESSAGE_OPTION_RELIABLE);
+		"TEST AN RELIABLE MSGS", NETMESSAGE_OPTION_UNRELIABLE);
 	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_OBJECT_DESTROY, "destroys_game_object", OnObjectDestroyed,
-		"TEST AN RELIABLE MSGS", NETMESSAGE_OPTION_RELIABLE);
+		"TEST AN RELIABLE MSGS", NETMESSAGE_OPTION_RELIALBE_IN_ORDER);
 	SetupNetwork();
 }
 
@@ -398,6 +398,7 @@ void Game::UpdateMap(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Game::UpdateMainMenu(float deltaTime)
 {
+	UNUSED(deltaTime);
 	m_camera->SetOrthoProjection();
 	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_UP_ARROW))
 	{
@@ -641,6 +642,7 @@ void Game::InitSampleNN()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnUnreliableTest(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netAddress);
 	std::string str = netMsg.GetBitString();
 	int value1 = 0;
 	int value2 = 0;
@@ -665,6 +667,7 @@ bool OnUnreliableTest(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnReliableTest(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netAddress);
 	int value1 = 0;
 	int value2 = 0;
 	netMsg.ReadBytes(&value1, 4);
@@ -687,6 +690,7 @@ bool OnReliableTest(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnObjectCreated(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netAddress);
 	DevConsole::GetInstance()->PushToOutputText("ON OBJECT CREATED ");
 	uint8_t objectType;
 	uint8_t objectID;
@@ -698,7 +702,7 @@ bool OnObjectCreated(NetMessage &netMsg, NetAddress &netAddress)
 		Rgba color;
 		netMsg.ReadColor(&color);
 		DevConsole::GetInstance()->PushToOutputText("CREATED PLAYER FOR CONN "+ToString(objectID));
-		Player *player = Game::GetInstance()->CreatePlayer(objectID, "", color);
+		Game::GetInstance()->CreatePlayer(objectID, "", color);
 	}
 
 	if (objectType == NETOBJ_BULLET)
@@ -710,7 +714,7 @@ bool OnObjectCreated(NetMessage &netMsg, NetAddress &netAddress)
 		netMsg.ReadBytes((void*)&position.y, 4);
 		netMsg.ReadBytes((void*)&angle,    4);
 
-		Bullets *bullet = Game::GetInstance()->CreateBullet(objectID, position,angle);
+		Game::GetInstance()->CreateBullet(objectID, position,angle);
 	}
 	return true;
 }
@@ -723,6 +727,7 @@ bool OnObjectCreated(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnObjectUpdate(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netAddress);
 	//DevConsole::GetInstance()->PushToOutputText("ON OBJECT UPDATE ");
 	uint8_t objectType;
 	uint8_t objectID;
@@ -751,7 +756,7 @@ bool OnObjectUpdate(NetMessage &netMsg, NetAddress &netAddress)
 			NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot = malloc(16);
 		}
 		netMsg.ReadBytes(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
-		std::string bit = ToBitString(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
+		//std::string bit = ToBitString(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
 		
 		if(NetSession::GetInstance()->m_hostConnection->IsHost())
 		{
@@ -767,7 +772,7 @@ bool OnObjectUpdate(NetMessage &netMsg, NetAddress &netAddress)
 			NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot = malloc(16);
 		}
 		netMsg.ReadBytes(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
-		std::string bit = ToBitString(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
+		//std::string bit = ToBitString(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
 	}
 	return true;
 }
@@ -780,6 +785,7 @@ bool OnObjectUpdate(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnObjectDestroyed(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netAddress);
 	uint8_t objectType;
 	uint8_t objectID;
 	netMsg.m_currentReadPosition = 3;
@@ -806,7 +812,7 @@ bool OnObjectDestroyed(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void OnConnectionJoin(NetConnection *cp)
 {
-	Player *player = Game::GetInstance()->CreatePlayer(cp->m_index, "", Rgba::GREEN);
+	Game::GetInstance()->CreatePlayer(cp->m_index, "", Rgba::GREEN);
 
 	NetMessage *msg = NetMessage::CreateObjectCreateMsg(NETOBJ_PLAYER, cp->m_index);
 	msg->SetAddress(&NetSession::GetInstance()->m_hostConnection->m_address);
@@ -822,7 +828,7 @@ void OnConnectionJoin(NetConnection *cp)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void OnConnectionLeave(NetConnection *cp)
 {
-
+	UNUSED(cp);
 }
 
 void SendPlayerCreate(NetMessage *msg, void *objPtr)
@@ -851,32 +857,39 @@ void RecvPlayerCreate(NetMessage *msg, void *objPtr)
 
 void SendPlayerDestroy(NetMessage *msg, void *objPtr) 
 {
-
+	UNUSED(msg);
+	UNUSED(objPtr);
 }
 
 void RecvPlayerDestroy(NetMessage *msg, void *objPtr) 
 {
-	Player *player = (Player*)objPtr;
-	Game *game = Game::GetInstance();
+	UNUSED(msg);
+	UNUSED(objPtr); 
+	//Player *player = (Player*)objPtr;
+	//Game *game = Game::GetInstance();
 	//game->DestroyPlayer(player);
 }
 
 void PlayerGetSnapshot(NetMessage *msg, void *Obj) 
 {
-	
+	UNUSED(msg);
+	UNUSED(Obj);
 }
 
 void PlayerSendSnapshot(NetMessage *msg, void *snapshotPtr)
 {
-
+	UNUSED(msg);
+	UNUSED(snapshotPtr);
 }
 
 void PlayerRecvSnapshot(NetMessage *msg, void *snapshotPtr)
 {
-
+	UNUSED(msg);
+	UNUSED(snapshotPtr);
 }
 
 void PlayerApplySnapshot(NetMessage *msg, void *snapshotPtr) 
 {
-
+	UNUSED(msg);
+	UNUSED(snapshotPtr);
 }

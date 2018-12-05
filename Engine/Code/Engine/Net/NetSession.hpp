@@ -113,7 +113,7 @@ public:
 	NetConnection *									m_myConnection					= nullptr;
 	NetObjectSystem	*								m_netObjectSystem				= nullptr;
 
-	int												m_highestIndex					= 1;											
+	uint8_t											m_highestIndex					= 1;											
 	bool											m_initMsgDefinition				= false;
 	int												m_minHeaderSize					= 2;
 	float											m_lossAmount					= 0.f;
@@ -154,10 +154,10 @@ public:
 	void					  SetError(ESessionError error) { m_sessionError = error; }
 	void					  ClearSessionError()			{ m_sessionError = SESSION_OK; }
 	ESessionError			  GetLastSessionError();
-	int						  GetAndIncrementConnectionIndex();
+	uint8_t					  GetAndIncrementConnectionIndex();
 	void					  RemoveConnections(NetConnection *connection);
 	bool					  IsHost();
-	float					  GetNetTimems() { return m_currentClientTimems;}
+	uint64_t				  GetNetTimems() { return m_currentClientTimems;}
 
 	void					  InitMsgDefinition();
 	void					  RegisterMessage(std::string id, NetMessageCB netMsgCB,std::string description);
@@ -188,7 +188,7 @@ public:
 	NetConnection*			  GetConnection(NetAddress *netAddress);
 	NetConnection*			  GetConnectionFromAllConnections(NetAddress *address);
 	bool					  RemoveFromAllConnections(NetAddress  m_address);
-	void					  ReplaceConnectionWithNewIndex(int index,NetConnection *connection);
+	void					  ReplaceConnectionWithNewIndex(uint8_t index,NetConnection *connection);
 							  
 	NetConnection*			  GetMyConnection();
 	int						  GetMySessionIndex();

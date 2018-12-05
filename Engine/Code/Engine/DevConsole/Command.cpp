@@ -1523,7 +1523,7 @@ void Host(Command &cmd)
 	int port = 0;
 	cmd.GetNextInt(&port);
 	NetSession::s_defaultPort = port;
-	NetSession::GetInstance()->Host("", port);
+	NetSession::GetInstance()->Host("", static_cast<uint16_t>(port));
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1566,9 +1566,9 @@ void Disconnect(Command &cmd)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EraseAllQueues(Command &cmd)
 {
-	int index = -1;
-	cmd.GetNextInt(&index);
-	NetConnection *connection = NetSession::GetInstance()->GetConnection(index);
+	int connectionIndex = -1;
+	cmd.GetNextInt(&connectionIndex);
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(connectionIndex);
 	for(int index = 0;index < connection->m_unsentReliableMsgs.size();index++)
 	{
 		connection->m_unsentReliableMsgs.erase(connection->m_unsentReliableMsgs.begin() + index, connection->m_unsentReliableMsgs.begin() + index + 1);
@@ -1617,7 +1617,7 @@ void DoHost(Command &cmd)
 	NetSession::s_defaultPort = port;
 
 	std::string myIp = Net::GetIP();
-	NetSession::GetInstance()->Host("", port);
+	NetSession::GetInstance()->Host("", static_cast<uint16_t>(port));
 }
 
 /*

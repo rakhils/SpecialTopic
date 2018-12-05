@@ -45,13 +45,13 @@ public:
 	Camera *					m_camera						= nullptr;
 	int							m_currentIndex					= 0;
 	bool						m_init							= false;
-	float						positionX						= 0;
+	float						positionX						= 0.f;
 	int							m_netMsgConnectionIndex			= 0;
 	int							m_netMsgCount					= 0;
 	int							m_netMsgMaxUnrealiableMsgCount  = 0;
 	bool						m_reliableMsg					= false;
-	float						m_netMsgSendDelay				= 0.01;
-	float						m_netMsgSendTime				= 0;
+	float						m_netMsgSendDelay				= 0.01f;
+	float						m_netMsgSendTime				= 0.f;
 	std::vector<MainMenuItems>  m_mainMenuItems;
 
 	std::map<uint8_t, Player*>  m_playerMap;

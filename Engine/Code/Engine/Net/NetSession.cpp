@@ -150,6 +150,7 @@ void NetSession::UpdateSessionState()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::UpdateConnections(float deltaTime)
 {
+	UNUSED(deltaTime);
 	if(true)
 	{
 		return;
@@ -157,7 +158,7 @@ void NetSession::UpdateConnections(float deltaTime)
 	std::map<int, NetConnection*>::iterator it;
 	for (it = m_boundConnections.begin(); it != m_boundConnections.end(); it++)
 	{
-		float time = static_cast<float>(GetCurrentTimeSeconds());
+		//float time = static_cast<float>(GetCurrentTimeSeconds());
 		if(static_cast<float>(GetCurrentTimeSeconds()) > (it->second->m_lastReceivedTime + DEFAULT_CONNECTION_TIMEOUT))
 		{
 			it->second->Disconnect();
@@ -222,8 +223,9 @@ void NetSession::Host(char const *id, uint16_t port)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetConnection* NetSession::Join(char const *id, NetConnectionInfo &connectionInfo)
+NetConnection* NetSession::Join(char const *name, NetConnectionInfo &connectionInfo)
 {
+	UNUSED(name);
 	NetConnection *connection		= CreateConnection(connectionInfo);
 	connection->BindConnection();
 	connection->m_connectionState   = CONNECTION_CONNECTING;
@@ -238,8 +240,8 @@ NetConnection* NetSession::Join(char const *id, NetConnectionInfo &connectionInf
 	sockaddr_storage out;
 	int out_addrlen;
 	std::string port = "10085";
-	int portInt = 10085;
-	NetAddress::GetRemoteAddress(address, (sockaddr*)&out, &out_addrlen, Net::GetIP().c_str(), port.c_str());
+//	int portInt = 10085;
+	NetAddress::GetRemoteAddress(address, (sockaddr*)&out, &out_addrlen, Net::GetIP().c_str(), ToString(s_defaultPort).c_str());
 
 	NetConnectionInfo ownConnectionInfo;
 	ownConnectionInfo.m_sessionIndex = INVALID_SESSION_INDEX;
@@ -248,17 +250,6 @@ NetConnection* NetSession::Join(char const *id, NetConnectionInfo &connectionInf
 	m_myConnection					 = CreateHostConnection(ownConnectionInfo,s_defaultPort);
 	m_myConnection->m_connectionState = CONNECTION_READY;
 	return connection;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/29
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetSession::AddIntoAllConnection(char const *id, NetConnectionInfo connectionInfo)
-{
-	NetConnection *connection = CreateConnection(connectionInfo);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -318,11 +309,9 @@ ESessionError NetSession::GetLastSessionError()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int NetSession::GetAndIncrementConnectionIndex()
+uint8_t NetSession::GetAndIncrementConnectionIndex()
 {
-	int temp = m_highestIndex;
-	m_highestIndex++;
-	return temp;
+	return m_highestIndex++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -668,6 +657,7 @@ NetConnection* NetSession::CreateHostConnection(NetConnectionInfo &connectionInf
 	for(int index = port;index < port + 10;index++)
 	{
 		int error = WSAGetLastError();
+		UNUSED(error);
 		s_defaultPort = index;
 		NetConnection *connection = new NetConnection(s_defaultPort);
 		int error1 = WSAGetLastError();
@@ -862,7 +852,7 @@ bool NetSession::RemoveFromAllConnections(NetAddress  address)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NetSession::ReplaceConnectionWithNewIndex(int index,NetConnection *connection)
+void NetSession::ReplaceConnectionWithNewIndex(uint8_t index,NetConnection *connection)
 {
 	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(connection->m_index);
 	if (it != m_boundConnections.end())
@@ -988,7 +978,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 			retmsgs.push_back(netmsg);
 			std::string pack = recvdPacket.GetBitString();
 			std::string msgD = netmsg->GetBitString();
-			int a = 1;
+			//int a = 1;
 		}
 		else
 		{
@@ -1022,7 +1012,7 @@ void NetSession::ProcessMsgs(std::vector<NetMessage *> netmsg,NetAddress *fromAd
 			continue;
 		}
 		NetAddress *fromAddr = m_laggedMsgs.at(laggedMsgindex)->m_address;
-		NetMessageDefinition * msgdef = GetMsgDefinition(m_laggedMsgs.at(laggedMsgindex)->m_definitionName);
+		//NetMessageDefinition * msgdef = GetMsgDefinition(m_laggedMsgs.at(laggedMsgindex)->m_definitionName);
 
 		float value1 = -1;
 		float value2 = -1;
@@ -1075,7 +1065,7 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 		fromConnection->m_lastReceivedAck = header.m_ack;
 	}
 
-	if (msgdef != nullptr && msgdef->m_options == NETMESSAGE_OPTION_RELIABLE)
+	if (msgdef != nullptr && msgdef->m_options == NETMESSAGE_OPTION_RELIABLE || msgdef->m_options == NETMESSAGE_OPTION_RELIALBE_IN_ORDER)
 	{
 		std::string bitString = msg->GetBitString();
 		if (!fromConnection->HasReceivedReliableID(msg->GetReliableID()))
@@ -1220,6 +1210,7 @@ void NetSession::RenderConnectionColumnDetails(Vector2 startPosition)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 startPosition,bool skipHeading)
 {
+	UNUSED(skipHeading);
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	
 	float fontSize = 10;
@@ -1245,12 +1236,12 @@ void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 start
 	if (connection == m_hostConnection)
 	{
 		connectionDetailsStr = Stringf("%*s%-*s %s   %-22s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
-			(3 * indent), "L", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(), ToString(lsnt,2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
+			(3 * indent), "L", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2.f).c_str(), ToString(loss, 2.f).c_str(), ToString(lrcv, 2.f).c_str(), ToString(lsnt,2.f).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
 	}
 	else
 	{
 		connectionDetailsStr = Stringf("%*s%-*s %s   %-22s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
-			(3 * indent), "", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2).c_str(), ToString(loss, 2).c_str(), ToString(lrcv, 2).c_str(), ToString(lsnt,2).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
+			(3 * indent), "", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2.f).c_str(), ToString(loss, 2.f).c_str(), ToString(lrcv, 2.f).c_str(), ToString(lsnt,2.f).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
 	}
 	Renderer::GetInstance()->DrawTextOnPoint(connectionDetailsStr, startPosition, fontSize, Rgba::WHITE);
 	delete textMaterial;
@@ -1396,7 +1387,7 @@ bool OnHeartBeatMessage(NetMessage &netMsg, NetAddress &netAddress)
 	{
 		if(NetSession::GetInstance()->m_lastRecvdHostTimems < recvdTime)
 		{
-			NetSession::GetInstance()->m_lastRecvdHostTimems = recvdTime + netConnection->m_rtt / 2.f;
+			NetSession::GetInstance()->m_lastRecvdHostTimems = recvdTime + static_cast<uint64_t>(netConnection->m_rtt / 2.f);
 
 			NetSession::GetInstance()->m_desiredClientTimems = recvdTime;
 			if(NetSession::GetInstance()->m_currentClientTimems == 0)
@@ -1430,6 +1421,8 @@ bool OnBadMessage(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnBlankMessage(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netMsg);
+	UNUSED(netAddress);
 	return true;
 }
 
@@ -1441,6 +1434,8 @@ bool OnBlankMessage(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnJoinRequest(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netMsg);
+	UNUSED(netAddress);
 	DevConsole::GetInstance()->PushToOutputText("ON JOIN REQUEST ");
 	if(!NetSession::GetInstance()->IsHost())
 	{
@@ -1494,6 +1489,8 @@ bool OnJoinRequest(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnJoinDeny(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netMsg);
+	UNUSED(netAddress);
 	DevConsole::GetInstance()->PushToOutputText("ON JOIN DENY ");
 	return true;
 }
@@ -1529,6 +1526,8 @@ bool OnJoinAccept(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnNewConnection(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netMsg);
+	UNUSED(netAddress);
 	return true;
 }
 
@@ -1540,6 +1539,7 @@ bool OnNewConnection(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnJoinFinished(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netMsg);
 	DevConsole::GetInstance()->PushToOutputText("ON JOIN FINISHED ");
 	NetConnection *connection = NetSession::GetInstance()->GetConnection(&netAddress);
 	connection->m_connectionState = CONNECTION_READY;
@@ -1558,6 +1558,7 @@ bool OnJoinFinished(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnUpdateConnState(NetMessage &netMsg, NetAddress &netAddress)
 {
+	UNUSED(netMsg);
 	DevConsole::GetInstance()->PushToOutputText("ON CONN UPDATE ");
 
 	NetConnection *connection = NetSession::GetInstance()->GetConnectionFromAllConnections(&netAddress);

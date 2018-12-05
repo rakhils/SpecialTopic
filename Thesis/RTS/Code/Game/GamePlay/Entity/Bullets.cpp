@@ -86,6 +86,7 @@ void Bullets::SetNetObject(NetObject *netObject)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Bullets::ApplySnapshot(BulletSnapShot_t *snapShot)
 {
+	UNUSED(snapShot);
 	if (m_bulletSnapshot == nullptr)
 	{
 		return;

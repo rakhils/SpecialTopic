@@ -210,7 +210,7 @@ NetMessage * NetMessage::CreateHeartBeatMessage(NetAddress *netaddress)
 	netMsg->m_isReliable = false;
 	netMsg->m_address = netaddress;
 
-	NetConnection *connection = NetSession::GetInstance()->GetConnection(netaddress);
+	//NetConnection *connection = NetSession::GetInstance()->GetConnection(netaddress);
 	
 
 	size_t msgSize = 0;

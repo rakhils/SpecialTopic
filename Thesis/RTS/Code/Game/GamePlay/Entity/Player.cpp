@@ -91,12 +91,11 @@ void Player::Update(float deltaTime)
 		m_localPlayerSnapshot.m_primary++;
 		keyUpdate = true;
 	}
-
 	if(keyUpdate)
 	{
+		//m_localPlayerSnapshot.m_primary++;
 		SendLocalSnapshot();
 	}
-	//m_localPlayerSnapshot.m_primary = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -199,12 +198,14 @@ void Player::ApplySnapshot(PlayerSnapShot_t *playerSnapshot)
 	if(NetSession::GetInstance()->m_hostConnection->IsHost())
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf("HOST IDX %d - POSITION X = %f , Y = %f ", m_index, m_position.x, m_position.y);
-		DebugDraw::GetInstance()->DebugRenderLogf("HOST IDX %d - ANGLE = %f", m_index, m_angle);
+		DebugDraw::GetInstance()->DebugRenderLogf("HOST IDX %d - ANGLE = %f", m_index, m_angle);\
+		DebugDraw::GetInstance()->DebugRenderLogf("HOST IDX %d - FIRE COUNT = %f", m_index, m_primary);
 	}
 	else
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - POSITION X = %f , Y = %f ",m_index,m_position.x, m_position.y);
 		DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - ANGLE = %f", m_index,m_angle);
+		DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - FIRE COUNT = %f", m_index, m_localPlayerSnapshot.m_primary);
 	}
 }
 

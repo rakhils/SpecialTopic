@@ -123,7 +123,7 @@ size_t UDP1Socket::send_to(NetAddress &addr, void const *data, size_t const byte
 	SOCKET sock = (SOCKET)m_handle;
 	//int error = WSAGetLastError();
 	int sent = ::sendto(sock, (char const *)&data, static_cast<int>(byte_count), 0, (sockaddr*)&sockaddrr, static_cast<int>(addr_len));
-	int error1 = WSAGetLastError();
+	//int error1 = WSAGetLastError();
 	if(sent > 0)
 	{
 		return (size_t)sent;

@@ -11,6 +11,7 @@
 #include "Engine/Net/Packet.hpp"
 #include "Engine/Net/NetObjectConnectionView.hpp"
 #include "Engine/Net/NetObjectView.hpp"
+#include "Engine/Core/EngineCommon.hpp"
 // CONSTRUCTOR
 
 NetConnection::NetConnection(int index, NetAddress netAddress)
@@ -287,7 +288,7 @@ size_t NetConnection::FlushMsgs()
 	{
 		return 0;
 	}
-	float min = GetMinOf2(m_sendRate, m_session->m_sendRate);
+	//float min = GetMinOf2(m_sendRate, m_session->m_sendRate);
 	//if (Clock::GetMasterClock()->total.m_seconds > (m_lastSendTime + 1/min))
 	{
 		size_t sendCount = 0;
@@ -305,7 +306,7 @@ size_t NetConnection::FlushMsgs()
 		}
 		return sendCount;
 	}
-	return 0;
+	//return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -427,7 +428,7 @@ size_t NetConnection::FlushUnrealiables()
 			sendCount += m_session->SendPacket(packet);
 			if(msg->m_definitionIndex != NETMSG_BLANK)
 			{
-				PacketTracker *tracker = AddTracker(m_nextSentAck);
+				AddTracker(m_nextSentAck);
 				IncrementSendAck();
 			}
 		}
@@ -560,6 +561,7 @@ void NetConnection::SetSendRate(float sendRate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::SetState(EConnectionState state)
 {
+	UNUSED(state);
 	if(NetSession::GetInstance()->m_hostConnection == this && m_connectionState == CONNECTION_CONNECTED)
 	{
 		std::map<int, NetConnection*>::iterator it = m_session->m_boundConnections.begin();

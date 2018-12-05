@@ -1157,7 +1157,7 @@ void Renderer::DrawTextOnPoint(std::string str, int start, int length, Vector2 p
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Renderer::DrawTextOnPoint(std::string str, Vector2 pos, float height, Rgba rgba)
 {
-	DrawTextOnPoint(str, 0, str.length(), pos, height, rgba);
+	DrawTextOnPoint(str, 0, static_cast<int>(str.length()), pos, height, rgba);
 }
 
 //////////////////////////////////////////////////////////////
