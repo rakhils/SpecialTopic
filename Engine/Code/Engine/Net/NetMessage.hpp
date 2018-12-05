@@ -65,6 +65,7 @@ public:
 	PacketHeader		  m_packetHeader;
 	MsgHeader			  m_msgHeader;
 	uint8_t				  m_definitionIndex;
+	uint8_t				  m_netObjectIndex;
 	std::string			  m_definitionName;
 	int					  m_connectionIndex;
 	NetAddress			  *m_address = nullptr;

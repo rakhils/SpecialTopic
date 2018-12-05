@@ -40,7 +40,8 @@ public:
 	NetMessage *			 GetObjectDestroyMessage(uint8_t id);
 	NetObjectType			 FindByID(uint8_t id);
 	NetObject *				 CreateNetObject(uint8_t type, uint8_t idx);
-
+	void					 CreateAndPushNetObjectViews(NetObject *netObject);
+	void					 RemoveNetObjectViews(NetObject *netObject);
 	void					 DestroyNetObject(NetObject *netObject);
 	
 	//Static_Methods

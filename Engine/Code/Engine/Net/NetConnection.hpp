@@ -3,6 +3,7 @@
 #include <map>
 #include "Engine/Net/NetAddress.hpp"
 #include "Engine/Net/NetMessage.hpp"
+
 /*\class  : NetConnection		   
 * \group  : <GroupName>		   
 * \brief  :		   
@@ -35,6 +36,8 @@ struct NetConnectionInfo
 	char		m_id[MAX_ID_LENGTH];
 	bool		m_isHost = false;
 };
+class NetObjectConnectionView;
+class NetObjectView;
 class NetConnection
 {
 
@@ -51,6 +54,8 @@ public:
 	std::vector<NetMessage*>    m_unconfirmedReliableMessages;
 	std::vector<NetMessage*>    m_laggedMsgs;
 	std::vector<NetMessage*>    m_inboundMsgQueue;
+
+	std::vector<NetObjectView*> m_netObjectViews;
 
 	std::vector<uint16_t>       m_reliableIDs;
 	uint16_t					m_highestRealiableID = 0;
@@ -90,7 +95,7 @@ public:
 	int							m_trackerMaxPosition = m_trackerMaxCount;
 
 	bool						m_isFirstHeartBeat;
-
+	NetObjectConnectionView *   m_netObjectConnectionView = nullptr;
 	//Static_Member_Variables
 
 	//Methods
@@ -104,6 +109,7 @@ public:
 	void		 BindConnection();
 	void		 Disconnect();
 	void		 HangUp();
+	void		 CreateNetObjectConectionView();
 
 
 	void		 SetLastHeartBeatReceivedTime(float time);
@@ -166,7 +172,8 @@ public:
 	void		 SendHeartBeat(NetAddress *address);
 
 	void		 Update(float deltaTime);
-
+	void		 SortAndPushIntoNetObjectViews(NetObjectView *netObjectView);
+	void         PushNetMsgFromNetObjectViews();
 	size_t				SendDirect(NetAddress *address, void *data, size_t size);
 	size_t				SendImmediately(int connectionIndex, std::vector<NetMessage*> &msgs);
 	size_t				SendImmediately(NetMessage msg);

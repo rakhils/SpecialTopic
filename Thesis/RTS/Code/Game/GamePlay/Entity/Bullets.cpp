@@ -5,6 +5,7 @@
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Net/NetSession.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/Net/NetObjectSystem.hpp"
 
 #include "Game/GameCommon.hpp"
 
@@ -114,6 +115,8 @@ void Bullets::SendLocalSnapshot()
 	size_t msgSize = msg->m_bufferSize - 2;
 	msg->m_currentWritePosition = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
+
+	NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[m_index]->UpdateAgeInAllNetObjectViews();
 
 	msg->m_address = &NetSession::GetInstance()->m_hostConnection->m_address;
 	std::string bit = msg->GetBitString();

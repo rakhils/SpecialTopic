@@ -1,5 +1,8 @@
 #include "Engine/Net/NetObjectSystem.hpp"
 #include "Engine/Net/NetObject.hpp"
+#include "Engine/Net/NetObjectView.hpp"
+#include "Engine/Net/NetSession.hpp"
+#include "Engine/Net/NetObjectConnectionView.hpp"
 // CONSTRUCTOR
 NetObjectSystem::NetObjectSystem()
 {
@@ -100,11 +103,46 @@ NetObject * NetObjectSystem::CreateNetObject(uint8_t objType, uint8_t idx)
 	NetObject *netObject				= new NetObject();
 	netObject->m_networkID				= idx;
 	netObject->m_netObjectType			= type;
+	
+	CreateAndPushNetObjectViews(netObject);
 
 	m_netObjectMap[idx] = netObject;
 	m_netObjects.push_back(netObject);
 
 	return netObject;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetObjectSystem::CreateAndPushNetObjectViews(NetObject *netObject)
+{
+	std::map<int, NetConnection*>::iterator it = NetSession::GetInstance()->m_boundConnections.begin();
+	for(;it != NetSession::GetInstance()->m_boundConnections.end();it++)
+	{
+		NetObjectView *netObjectView = new NetObjectView(netObject->m_objectID,netObject->m_networkID);
+		it->second->m_netObjectConnectionView->PushNetObjectView(netObjectView);
+		netObjectView->m_netObject = netObject;
+	}
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetObjectSystem::RemoveNetObjectViews(NetObject *netObject)
+{
+	std::map<int, NetConnection*>::iterator it = NetSession::GetInstance()->m_boundConnections.begin();
+	for (; it != NetSession::GetInstance()->m_boundConnections.end(); it++)
+	{
+		it->second->m_netObjectConnectionView->RemoveNetObjectView(netObject->m_objectID);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -123,6 +161,7 @@ void NetObjectSystem::DestroyNetObject(NetObject *netObject)
 			break;
 		}
 	}
+	RemoveNetObjectViews(netObject);
 	std::map<uint8_t, NetObject*>::iterator it = m_netObjectMap.find(netObject->m_networkID);
 	m_netObjectMap.erase(it);
 	delete netObject;

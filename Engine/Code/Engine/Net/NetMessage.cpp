@@ -512,7 +512,7 @@ NetMessage * NetMessage::CreateObjectCreateMsg(uint8_t objectID,uint8_t networkI
 NetMessage * NetMessage::CreateObjectUpdateMsg(uint8_t objectType,uint8_t objectID)
 {
 	NetMessage *msg = new NetMessage("updates_game_object");
-
+	msg->m_netObjectIndex = objectID;
 	size_t msgSize = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();

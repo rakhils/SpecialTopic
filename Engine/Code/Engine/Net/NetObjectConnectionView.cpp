@@ -1,5 +1,6 @@
 #include "Engine/Net/NetObjectConnectionView.hpp"
-
+#include "Engine/Net/NetObjectView.hpp"
+#include "Engine/Core/Time.hpp"
 // CONSTRUCTOR
 NetObjectConnectionView::NetObjectConnectionView()
 {
@@ -10,4 +11,70 @@ NetObjectConnectionView::NetObjectConnectionView()
 NetObjectConnectionView::~NetObjectConnectionView()
 {
 
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetObjectConnectionView::PushNetObjectView(NetObjectView *netObjView)
+{
+	m_netObjectViews.push_back(netObjView);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetObjectConnectionView::RemoveNetObjectView(uint8_t objectID)
+{
+	for(int index = 0;index < m_netObjectViews.size();index++)
+	{
+		if(m_netObjectViews.at(index)->m_id == objectID)
+		{
+			NetObjectView * netObjectView = m_netObjectViews.at(index);
+			m_netObjectViews.erase(m_netObjectViews.begin() + index, m_netObjectViews.begin() + index + 1);
+			delete netObjectView;
+			break;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetObjectConnectionView::UpdateAge(uint8_t objectID)
+{
+	for (int index = 0; index < m_netObjectViews.size(); index++)
+	{
+		if (m_netObjectViews.at(index)->m_id == objectID)
+		{
+			m_netObjectViews.at(index)->m_age = static_cast<float>(GetCurrentTimeSeconds());
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetObjectView * NetObjectConnectionView::GetNetObjectView(uint8_t objectID)
+{
+	for (int index = 0; index < m_netObjectViews.size(); index++)
+	{
+		if(m_netObjectViews.at(index)->m_id == objectID)
+		{
+			return m_netObjectViews.at(index);
+		}
+	}
+	return nullptr;
 }

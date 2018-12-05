@@ -42,7 +42,7 @@ void Socket::Stop()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Socket::SetBlocking(bool blocking)
 {
-	u_long non_blocking = blocking ? 1 : 0;
+	u_long non_blocking = blocking ? 0 : 1;
 	::ioctlsocket((SOCKET)m_handle, FIONBIO, &non_blocking);
 }
 

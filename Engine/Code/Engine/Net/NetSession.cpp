@@ -695,6 +695,7 @@ NetConnection* NetSession::CreateConnection(NetConnectionInfo &connectionInfo)
 	NetConnection *connection   = new NetConnection(connectionInfo.m_sessionIndex, connectionInfo.m_address);
 	connection->m_index			= connectionInfo.m_sessionIndex;
 	connection->m_session		= this;
+	connection->CreateNetObjectConectionView();
 	return connection;
 }
 
@@ -1084,6 +1085,7 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 			fromConnection->DoProcessInboundMsgQueue();
 		}
 		(*msgdef->m_callback)(*msg, *fromAddr);
+
 		NetMessage *blankMsg = NetMessage::CreateBlankMessage(fromConnection);
 		fromConnection->Append(blankMsg);
 	}

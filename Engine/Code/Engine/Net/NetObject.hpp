@@ -11,16 +11,18 @@
 * \date   : 12/2/2018 7:08:16 PM
 * \contact: srsrakhil@gmail.com
 */
- 
+class NetMessage;
 class NetObject
 {
 
 public:
 	//Member_Variables
-	uint8_t		  m_networkID = 0;
-	NetObjectType m_netObjectType;
-	void *		  m_localSnapShotPointer   = nullptr; // pointer to player
-	void *		  m_latestReceivedSnapshot = nullptr; //pointer to latest recvd snapshot of player
+	uint8_t		    m_objectID;
+	uint8_t		    m_networkID = 0;
+	NetObjectType   m_netObjectType;
+	//NetMessage *    m_netMsg				 = nullptr;
+	void *		    m_localSnapShotPointer   = nullptr; // pointer to player
+	void *		    m_latestReceivedSnapshot = nullptr; //pointer to latest recvd snapshot of player
 	//Static_Member_Variables
 
 	//Methods
@@ -31,10 +33,8 @@ public:
 	
 	void *		GetMyLocalSnapShot();		 // host side
 	void *		GetLatestReceivedSnapshot(); // client side
+	void		UpdateAgeInAllNetObjectViews();
 
-	void		SetPosition(Vector2 position);
-	void		SetAngle(float angle);
-	void		SetPrimaryInput(float input);
 	//void		UpdatePlayerSnapshot(void *)
 	//Static_Methods
 

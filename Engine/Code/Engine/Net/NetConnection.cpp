@@ -9,6 +9,8 @@
 #include "Engine/DevConsole/DevConsole.hpp"
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Net/Packet.hpp"
+#include "Engine/Net/NetObjectConnectionView.hpp"
+#include "Engine/Net/NetObjectView.hpp"
 // CONSTRUCTOR
 
 NetConnection::NetConnection(int index, NetAddress netAddress)
@@ -18,6 +20,7 @@ NetConnection::NetConnection(int index, NetAddress netAddress)
 	m_address   = netAddress;
 	//m_udpSocket = new UDPSocket(netAddress);
 	m_lastReceivedTime = static_cast<float>(GetCurrentTimeSeconds());
+	m_netObjectConnectionView = new NetObjectConnectionView();
 	InitTracker();
 }
 
@@ -28,6 +31,7 @@ NetConnection::NetConnection(int listenPort)
 	m_address.m_port		= listenPort;
 	m_index = 0;
 	m_lastReceivedTime = static_cast<float>(GetCurrentTimeSeconds());
+	m_netObjectConnectionView = new NetObjectConnectionView();
 	InitTracker();
 	m_connectionState = CONNECTION_READY;
 }
@@ -98,6 +102,17 @@ void NetConnection::Disconnect()
 	Append(msg);
 	FlushUnrealiables();
 	//Disconnect();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::CreateNetObjectConectionView()
+{
+	m_netObjectConnectionView = new NetObjectConnectionView();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -267,6 +282,7 @@ PacketTracker * NetConnection::GetTracker(uint16_t ack)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 size_t NetConnection::FlushMsgs()
 {
+	PushNetMsgFromNetObjectViews();
 	if(m_session->m_hostConnection == nullptr)
 	{
 		return 0;
@@ -1154,6 +1170,50 @@ void NetConnection::Update(float deltaTime)
 {
 	UNUSED(deltaTime);
 	FlushMsgs();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::SortAndPushIntoNetObjectViews(NetObjectView *netObjectView)
+{
+	if(m_netObjectViews.size() == 0)
+	{
+		m_netObjectViews.push_back(netObjectView);
+		return;
+	}
+	bool insertSuccess = false;
+	for(int index = 0;index < m_netObjectViews.size();index++)
+	{
+		if(m_netObjectViews.at(index)->m_age < netObjectView->m_age)
+		{
+			insertSuccess = true;
+			m_netObjectViews.insert(m_netObjectViews.begin()+index,netObjectView);
+		}
+	}
+	if(!insertSuccess)
+	{
+		m_netObjectViews.push_back(netObjectView);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetConnection::PushNetMsgFromNetObjectViews()
+{
+	for(int index = 0;index < m_netObjectViews.size();index++)
+	{
+		NetMessage *msg = m_netObjectViews.at(index)->m_netMsg;
+		Append(msg);
+	}
+	m_netObjectViews.clear();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

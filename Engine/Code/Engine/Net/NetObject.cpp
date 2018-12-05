@@ -1,5 +1,7 @@
 #include "Engine/Net/NetObject.hpp"
-
+#include "Engine/Net/NetConnection.hpp"
+#include "Engine/Net/NetSession.hpp"
+#include "Engine/Net/NetObjectConnectionView.hpp"
 // CONSTRUCTOR
 
 NetObject::NetObject()
@@ -22,4 +24,19 @@ NetObject::~NetObject()
 void * NetObject::GetLatestReceivedSnapshot()
 {
 	return m_latestReceivedSnapshot;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void NetObject::UpdateAgeInAllNetObjectViews()
+{
+	std::map<int, NetConnection*>::iterator it = NetSession::GetInstance()->m_boundConnections.begin();
+	for (; it != NetSession::GetInstance()->m_boundConnections.end(); it++)
+	{
+		it->second->m_netObjectConnectionView->UpdateAge(m_networkID);
+	}
 }

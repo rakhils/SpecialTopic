@@ -40,6 +40,7 @@ Player* Game::CreatePlayer(uint8_t idx, char const *name, Rgba color)
 	NetObject* netObject = NetSession::GetInstance()->GetNetObjectSystem()->CreateNetObject(NETOBJ_PLAYER, idx);
 	player->m_netObject = netObject;
 
+	
 	return player;
 }
 

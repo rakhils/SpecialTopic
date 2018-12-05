@@ -7,6 +7,9 @@
 #include "Engine/Net/NetSession.hpp"
 #include "Engine/Net/NetConnection.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/Net/NetObjectSystem.hpp"
+#include "Engine/Net/NetObjectConnectionView.hpp"
+#include "Engine/Net/NetObjectView.hpp"
 
 #include "Game/GameCommon.hpp"
 #include "Game/Game.hpp"
@@ -58,24 +61,26 @@ void Player::Update(float deltaTime)
 	}
 	
 	bool keyUpdate = false;
-
+	bool isTurning = false;
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_LEFT_ARROW))
 	{
 		m_localPlayerSnapshot.m_angle += deltaTime * 150;
+		isTurning = true;
 		keyUpdate = true;
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_RIGHT_ARROW))
 	{
 		m_localPlayerSnapshot.m_angle -= deltaTime * 150;
+		isTurning = true;
 		keyUpdate = true;
 	}
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_UP_ARROW))
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_UP_ARROW) && !isTurning)
 	{
 		Vector2 direction(CosDegrees(m_angle), SinDegrees(m_angle));
 		m_localPlayerSnapshot.m_position += deltaTime * direction * 150;
 		keyUpdate = true;
 	}
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_DOWN_ARROW))
+	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_DOWN_ARROW) && !isTurning)
 	{
 		Vector2 direction(CosDegrees(m_angle), SinDegrees(m_angle));
 		m_localPlayerSnapshot.m_position -= deltaTime * direction * 150;
@@ -154,10 +159,20 @@ void Player::SendLocalSnapshot()
 	size_t msgSize = msg->m_bufferSize - 2;
 	msg->m_currentWritePosition = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
-
 	msg->m_address = &NetSession::GetInstance()->m_hostConnection->m_address;
+
+	NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[m_index]->UpdateAgeInAllNetObjectViews();
+	NetObjectView *netObjectView = NetSession::GetInstance()->m_hostConnection->m_netObjectConnectionView->GetNetObjectView(m_index);
+	/*if(netObjectView->m_netMsg != nullptr)
+	{
+		delete netObjectView->m_netMsg;
+		netObjectView->m_netMsg = nullptr;
+	}*/
+	netObjectView->m_netMsg = msg;
+	NetSession::GetInstance()->m_hostConnection->SortAndPushIntoNetObjectViews(netObjectView);
 	std::string bit = msg->GetBitString();
-	NetSession::GetInstance()->m_hostConnection->Append(msg);
+
+	//NetSession::GetInstance()->m_hostConnection->Append(msg);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
