@@ -35,24 +35,28 @@ enum eNetGameMessage : uint8_t
 };
 
 class Player;
+class Bullets;
 class Game
 {
 public:
-	bool		 isQuitTriggered = false;
-	GameMode     m_gameMode;
-	Map *		 m_map			 = nullptr;
-	Camera *     m_camera		 = nullptr;
-	int			 m_currentIndex = 0;
-	bool		 m_init			= false;
-	float		 positionX = 0;
-	int          m_netMsgConnectionIndex = 0;
-	int          m_netMsgCount = 0;
-	int		     m_netMsgMaxUnrealiableMsgCount = 0;
-	bool		 m_reliableMsg = false;
-	float        m_netMsgSendDelay   = 0.01;
-	float        m_netMsgSendTime = 0;
-	std::vector<MainMenuItems> m_mainMenuItems;
-	std::map<uint8_t, Player*> m_playerMap;
+	bool						isQuitTriggered					= false;
+	GameMode					m_gameMode;
+	Map *						m_map							= nullptr;
+	Camera *					m_camera						= nullptr;
+	int							m_currentIndex					= 0;
+	bool						m_init							= false;
+	float						positionX						= 0;
+	int							m_netMsgConnectionIndex			= 0;
+	int							m_netMsgCount					= 0;
+	int							m_netMsgMaxUnrealiableMsgCount  = 0;
+	bool						m_reliableMsg					= false;
+	float						m_netMsgSendDelay				= 0.01;
+	float						m_netMsgSendTime				= 0;
+	std::vector<MainMenuItems>  m_mainMenuItems;
+
+	std::map<uint8_t, Player*>  m_playerMap;
+	std::map<uint8_t, Bullets*> m_bulletMap;
+	uint8_t						m_largetstBulletID				= 10;
 	// STATIC
 	static Game *s_game;
 
@@ -60,36 +64,42 @@ public:
 	Game();
 	~Game();
 
-	Player* CreatePlayer(uint8_t idx, char const *name, Rgba color);
-	void    DestroyPlayer(Player *player);
-	void    SetupCamera();
-	void SetupNetwork();
+	Player*  CreatePlayer(uint8_t idx, char const *name, Rgba color);
+	Bullets* CreateBullet(uint8_t idx,Vector2 position,float angle);
+	uint8_t  GetUniqueBulletID();
+	void     DestroyPlayer(uint8_t playerID);
+	void     DestroyBullet(uint8_t bulletID);
+	void	 SetupNetwork();
 	
-	void RegisterGameMessage();
-
-	void Initialize();
-	void InitMainMenuItems();
-	void InitCamera();
-
-	void UpdateGame(float deltaTime);
-	void UpdatePlayer(float deltaTime);
-	void Update(float deltaTime);
-
-	void Render();
-
-	void UpdateMap(float deltaTime);
-	void UpdateMainMenu(float deltaTime);
-
-	void UpdateUnreliableMsgs(float deltaTime);
-	void UpdateReliableMsgs(float deltaTime);
-
-	void RenderMap();
-	void RenderMainMenu();
-
-	void RenderGame();
-	void RenderPlayers();
-
-	void InitSampleNN();
+	void	 RegisterGameMessage();
+			 
+	void	 Initialize();
+	void	 InitMainMenuItems();
+	void	 InitCamera();
+			 
+	void	 UpdateGame(float deltaTime);
+	void	 UpdatePlayer(float deltaTime);
+	void	 UpdateBullet(float deltaTime);
+	void	 UpdatePlayerBulletCollision();
+			 
+	void	 Update(float deltaTime);
+			 
+	void	 Render();
+			 
+	void	 UpdateMap(float deltaTime);
+	void	 UpdateMainMenu(float deltaTime);
+			 
+	void	 UpdateUnreliableMsgs(float deltaTime);
+	void	 UpdateReliableMsgs(float deltaTime);
+			 
+	void	 RenderMap();
+	void	 RenderMainMenu();
+			 
+	void	 RenderGame();
+	void	 RenderPlayers();
+	void	 RenderBullets();
+			 
+	void	 InitSampleNN();
 	static Game* GetInstance();
 
 };

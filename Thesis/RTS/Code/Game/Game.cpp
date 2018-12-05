@@ -8,6 +8,7 @@
 #include "Engine/Net/NetObjectSystem.hpp"
 #include "Engine/Net/NetObject.hpp"
 #include "Game/GamePlay/Entity/Player.hpp"
+#include "Game/GamePlay/Entity/Bullets.hpp"
 
 Game *Game::s_game = nullptr;
 
@@ -43,17 +44,84 @@ Player* Game::CreatePlayer(uint8_t idx, char const *name, Rgba color)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Bullets* Game::CreateBullet(uint8_t idx,Vector2 position,float angle)
+{
+	Bullets *bullet  = new Bullets();
+	bullet->m_index  = idx;
+	position = position + Vector2(CosDegrees(angle), SinDegrees(angle)) * 90;
+	bullet->m_position = position;
+	bullet->m_angle = angle;
+	m_bulletMap[idx] = bullet;
+
+
+	NetObject* netObject = NetSession::GetInstance()->GetNetObjectSystem()->CreateNetObject(NETOBJ_BULLET, idx);
+	bullet->m_netObject = netObject;
+
+	if(NetSession::GetInstance()->m_hostConnection->IsHost())
+	{
+		NetMessage *msg = NetMessage::CreateObjectCreateMsg(NETOBJ_BULLET, idx);
+		msg->WriteBytes(4, (void*)&position.x);
+		msg->WriteBytes(4, (void*)&position.y);
+		msg->WriteBytes(4, (void*)&angle);
+
+		NetSession::GetInstance()->BroadcastMsg(msg,CONNECTION_READY);
+		DevConsole::GetInstance()->PushToOutputText("BULLET CREATED AT HOST IDX " + ToString(idx));
+		return bullet;
+	}
+	DevConsole::GetInstance()->PushToOutputText("BULLET CREATED AT CLIENT IDX " + ToString(idx));
+	return bullet;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+uint8_t Game::GetUniqueBulletID()
+{
+	return m_largetstBulletID++;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/12/03
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Game::DestroyPlayer(Player *player)
+void Game::DestroyPlayer(uint8_t playerID)
 {
-	std::map<uint8_t, Player*>::iterator it = m_playerMap.find(player->m_index);
-	NetSession::GetInstance()->GetNetObjectSystem()->DestroyNetObject(player->m_netObject);
-	delete player;
+	std::map<uint8_t, Player*>::iterator it = m_playerMap.find(playerID);
+	if(it == m_playerMap.end())
+	{
+		return;
+	}
+	NetSession::GetInstance()->GetNetObjectSystem()->DestroyNetObject(it->second->m_netObject);
+	delete it->second;
 	m_playerMap.erase(it);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::DestroyBullet(uint8_t bulletID)
+{
+	std::map<uint8_t, Bullets*>::iterator it = m_bulletMap.find(bulletID);
+	if(it == m_bulletMap.end())
+	{
+		return;
+	}
+	NetSession::GetInstance()->GetNetObjectSystem()->DestroyNetObject(it->second->m_netObject);
+	delete it->second;
+	m_bulletMap.erase(it);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -163,6 +231,8 @@ void Game::InitCamera()
 void Game::UpdateGame(float deltaTime)
 {
 	UpdatePlayer(deltaTime);
+	UpdateBullet(deltaTime);
+	UpdatePlayerBulletCollision();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -177,6 +247,77 @@ void Game::UpdatePlayer(float deltaTime)
 	for (; it != m_playerMap.end(); it++)
 	{
 		it->second->Update(deltaTime);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::UpdateBullet(float deltaTime)
+{
+	std::map<uint8_t, Bullets*>::iterator it = m_bulletMap.begin();
+	for (; it != m_bulletMap.end(); it++)
+	{
+		it->second->Update(deltaTime);
+		if (NetSession::GetInstance()->m_hostConnection->IsHost())
+		{
+			if (it->second->m_spawnTime + it->second->m_lifeTime < static_cast<float>(GetCurrentTimeSeconds()))
+			{
+				it->second->m_markAsDead = true;
+				NetMessage *msg = NetMessage::CreateObjectDestroyMsg(NETOBJ_BULLET, it->second->m_index);
+				NetSession::GetInstance()->BroadcastMsg(msg, CONNECTION_READY);
+				delete it->second;
+				m_bulletMap.erase(it);
+				break;
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::UpdatePlayerBulletCollision()
+{
+	if(NetSession::GetInstance()->m_hostConnection != nullptr && !NetSession::GetInstance()->m_hostConnection->IsHost())
+	{
+		return;
+	}
+	std::map<uint8_t, Player*>::iterator itPlayerMap  = m_playerMap.begin();
+	std::map<uint8_t, Bullets*>::iterator itBulletMap = m_bulletMap.begin();
+	bool doBreak = false;
+	for (; itPlayerMap != m_playerMap.end(); itPlayerMap++)
+	{
+		for (itBulletMap = m_bulletMap.begin(); itBulletMap != m_bulletMap.end(); itBulletMap++)
+		{
+			Disc2 playerDisc(itPlayerMap->second->m_position, 50);
+			Disc2 bulletDisc(itBulletMap->second->m_position, 20);
+
+			if(DoDiscsOverlap(playerDisc,bulletDisc))
+			{
+				NetMessage *playerDestroyMsg = NetMessage::CreateObjectDestroyMsg(NETOBJ_PLAYER, itPlayerMap->second->m_index);
+				NetMessage *bulletDestroyMsg = NetMessage::CreateObjectDestroyMsg(NETOBJ_BULLET, itBulletMap->second->m_index);
+
+				NetSession::GetInstance()->BroadcastMsg(playerDestroyMsg, CONNECTION_READY);
+				NetSession::GetInstance()->BroadcastMsg(bulletDestroyMsg, CONNECTION_READY);
+
+				DestroyBullet(itBulletMap->second->m_index);
+				DestroyPlayer(itPlayerMap->second->m_index);
+
+				doBreak = true;
+				break;
+			}
+		}
+		if(doBreak)
+		{
+			break;
+		}
 	}
 }
 
@@ -392,6 +533,7 @@ void Game::RenderGame()
 	Camera::SetCurrentCamera(m_camera);
 	Renderer::GetInstance()->BeginFrame();
 	RenderPlayers();
+	RenderBullets();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -412,6 +554,21 @@ void Game::RenderPlayers()
 	//Disc2 disc(Vector2(250, 250), 100);
 	//g_theRenderer->DrawCircle(disc, Rgba::RED);
 	//delete defaultMaterial;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::RenderBullets()
+{
+	std::map<uint8_t, Bullets*>::iterator it = m_bulletMap.begin();
+	for (; it != m_bulletMap.end(); it++)
+	{
+		it->second->Render();
+	}
 }
 
 Game* Game::GetInstance()
@@ -533,14 +690,26 @@ bool OnObjectCreated(NetMessage &netMsg, NetAddress &netAddress)
 	uint8_t objectType;
 	uint8_t objectID;
 	netMsg.m_currentReadPosition = 3;
-	netMsg.ReadBytes((void*)&objectType,1);
-	netMsg.ReadBytes((void*)&objectID,1);
-	Rgba color;
-	netMsg.ReadColor(&color);
+	netMsg.ReadBytes((void*)&objectType, 1);
 	if (objectType == NETOBJ_PLAYER)
 	{
+		netMsg.ReadBytes((void*)&objectID, 1);
+		Rgba color;
+		netMsg.ReadColor(&color);
 		DevConsole::GetInstance()->PushToOutputText("CREATED PLAYER FOR CONN "+ToString(objectID));
 		Player *player = Game::GetInstance()->CreatePlayer(objectID, "", color);
+	}
+
+	if (objectType == NETOBJ_BULLET)
+	{
+		netMsg.ReadBytes((void*)&objectID, 1);
+		Vector2 position;
+		float   angle;
+		netMsg.ReadBytes((void*)&position.x, 4);
+		netMsg.ReadBytes((void*)&position.y, 4);
+		netMsg.ReadBytes((void*)&angle,    4);
+
+		Bullets *bullet = Game::GetInstance()->CreateBullet(objectID, position,angle);
 	}
 	return true;
 }
@@ -572,12 +741,8 @@ bool OnObjectUpdate(NetMessage &netMsg, NetAddress &netAddress)
 	netMsg.ReadBytes((void*)&angle		,4);
 	netMsg.ReadBytes((void*)&primary    ,4);
 
-	if(position.x < Game::GetInstance()->positionX)
-	{
-		int a = 1;
-	}
-	Game::GetInstance()->positionX = position.x;
 	netMsg.m_currentReadPosition = readPosition;
+
 	if (objectType == NETOBJ_PLAYER)
 	{
 		if(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot == nullptr)
@@ -593,6 +758,16 @@ bool OnObjectUpdate(NetMessage &netMsg, NetAddress &netAddress)
 		}
 		//DevConsole::GetInstance()->PushToOutputText("CREATED PLAYER FOR CONN " + ToString(objectID));
 	}
+
+	if (objectType == NETOBJ_BULLET)
+	{
+		if (NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot == nullptr)
+		{
+			NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot = malloc(16);
+		}
+		netMsg.ReadBytes(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
+		std::string bit = ToBitString(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
+	}
 	return true;
 }
 
@@ -604,6 +779,21 @@ bool OnObjectUpdate(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnObjectDestroyed(NetMessage &netMsg, NetAddress &netAddress)
 {
+	uint8_t objectType;
+	uint8_t objectID;
+	netMsg.m_currentReadPosition = 3;
+
+	netMsg.ReadBytes((void*)&objectType, 1);
+	netMsg.ReadBytes((void*)&objectID, 1);
+
+	if (objectType == NETOBJ_PLAYER)
+	{
+		Game::GetInstance()->DestroyPlayer(objectID);
+	}
+	if (objectType == NETOBJ_BULLET)
+	{
+		Game::GetInstance()->DestroyBullet(objectID);
+	}
 	return true;
 }
 
@@ -667,7 +857,7 @@ void RecvPlayerDestroy(NetMessage *msg, void *objPtr)
 {
 	Player *player = (Player*)objPtr;
 	Game *game = Game::GetInstance();
-	game->DestroyPlayer(player);
+	//game->DestroyPlayer(player);
 }
 
 void PlayerGetSnapshot(NetMessage *msg, void *Obj) 

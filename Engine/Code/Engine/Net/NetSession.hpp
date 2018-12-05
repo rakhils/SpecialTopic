@@ -92,6 +92,8 @@ enum ESessionState
 #define MAX_NET_TIME_DILATION (0.1f)
 
 #define NETOBJ_PLAYER 	(10)
+#define NETOBJ_BULLET 	(11)
+
 class NetObjectSystem;
 class NetSession
 {

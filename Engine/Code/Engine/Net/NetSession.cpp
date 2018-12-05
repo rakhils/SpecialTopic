@@ -519,16 +519,20 @@ bool NetSession::VerifyMessage(std::string cmd,std::string msg)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::ProcessIncomingMessage()
 {
-	char data[PACKET_MTU];
-	size_t maxsize = PACKET_MTU;
-	NetAddress netAddr;
-
+	size_t recvd = 0;
+	
 	if(m_myConnection != nullptr)
 	{
-		size_t recvd = m_myConnection->Recv(data, maxsize,&netAddr);
+		do
+		{
+			char data[PACKET_MTU];
+			size_t maxsize = PACKET_MTU;
+			NetAddress netAddr;
+			recvd = m_myConnection->Recv(data, maxsize, &netAddr);
 
-		std::vector<NetMessage*> netMsgs = ConstructMsgFromData(netAddr, recvd, data);
-		ProcessMsgs(netMsgs,&netAddr);
+			std::vector<NetMessage*> netMsgs = ConstructMsgFromData(netAddr, recvd, data);
+			ProcessMsgs(netMsgs, &netAddr);
+		} while (recvd > 0);
 	}
 
 }
@@ -1033,19 +1037,15 @@ void NetSession::ProcessMsgs(std::vector<NetMessage *> netmsg,NetAddress *fromAd
 
 	for(int msgIndex = 0; msgIndex < netmsg.size(); msgIndex++)
 	{
-		if(netmsg.at(msgIndex)->m_lag > static_cast<float>(GetCurrentTimeSeconds()))
+		/*if(netmsg.at(msgIndex)->m_lag > static_cast<float>(GetCurrentTimeSeconds()))
 		{
 			m_laggedMsgs.push_back(netmsg.at(msgIndex));
 			//netmsg.erase(netmsg.begin() + msgIndex, netmsg.begin() + msgIndex + 1);
 			//msgIndex --;
 			continue;
-		}
+		}*/
 		std::string bitString = netmsg.at(0)->GetBitString();
 		std::string name = netmsg.at(msgIndex)->m_definitionName;
-		if(name == "creates_game_object")
-		{
-			int a = 1;
-		}
 		netmsg.at(msgIndex)->m_currentReadPosition = 3;
 		ProcessMsg(netmsg.at(msgIndex), fromAddress);
 	}
@@ -1063,7 +1063,7 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 {
 	NetConnection *fromConnection = GetConnection(fromAddr);
 	NetMessageDefinition * msgdef = GetMsgDefinition(msg->m_definitionName);
-	PacketHeader header = msg->m_packetHeader;
+	PacketHeader header			  = msg->m_packetHeader;
 	/*if (fromConnection == nullptr)
 	{
 		return;
@@ -1074,29 +1074,18 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 		fromConnection->m_lastReceivedAck = header.m_ack;
 	}
 
-	
 	if (msgdef != nullptr && msgdef->m_options == NETMESSAGE_OPTION_RELIABLE)
 	{
-		
 		std::string bitString = msg->GetBitString();
-
-
 		if (!fromConnection->HasReceivedReliableID(msg->GetReliableID()))
 		{
 			msg->m_address = fromAddr;
 			fromConnection->PushToInboundMsgQueue(msg);
 			fromConnection->DoProcessInboundMsgQueue();
-			//if (msg->RequiresConnection())
-			{
-				//(*msgdef->m_callback)(*msg, *fromAddr);
-			}
-			//DevConsole::GetInstance()->PushToOutputText("SENDING BLANK MSG BACK " + ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
-			//DevConsole::GetInstance()->PushToOutputText("SENDING BLANK MSG BACK " + ToString(static_cast<int>(fromConnection->m_lastReceivedAck)), Rgba::YELLOW);
 		}
 		(*msgdef->m_callback)(*msg, *fromAddr);
 		NetMessage *blankMsg = NetMessage::CreateBlankMessage(fromConnection);
 		fromConnection->Append(blankMsg);
-		
 	}
 	else
 	{

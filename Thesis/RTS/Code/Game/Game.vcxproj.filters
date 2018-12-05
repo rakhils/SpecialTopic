@@ -127,6 +127,9 @@
     <ClCompile Include="GamePlay\Entity\Player.cpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClCompile>
+    <ClCompile Include="GamePlay\Entity\Bullets.cpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -220,6 +223,9 @@
       <Filter>General\GamePlay\Entity</Filter>
     </ClInclude>
     <ClInclude Include="GamePlay\Entity\Player.hpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\Bullets.hpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClInclude>
   </ItemGroup>

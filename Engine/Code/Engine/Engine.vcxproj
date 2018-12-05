@@ -452,11 +452,19 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Net\NetObjectConnectionView.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Net\NetObjectSystem.cpp">
       <SubType>
       </SubType>
     </ClCompile>
     <ClCompile Include="Net\NetObjectType.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\NetObjectView.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -911,11 +919,19 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="Net\NetObjectConnectionView.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="Net\NetObjectSystem.hpp">
       <SubType>
       </SubType>
     </ClInclude>
     <ClInclude Include="Net\NetObjectType.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\NetObjectView.hpp">
       <SubType>
       </SubType>
     </ClInclude>

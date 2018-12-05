@@ -56,11 +56,11 @@ void NetObjectSystem::RegisterType(NetObjectType const &type)
 std::vector<NetMessage*> NetObjectSystem::GetCreateObjectMsgForAllObjects()
 {
 	std::vector<NetMessage*> netMsgs;
-	for(size_t index = 0;index < m_netObjects.size();index++)
+	/*for(size_t index = 0;index < m_netObjects.size();index++)
 	{
 		NetMessage *msg = NetMessage::CreateObjectCreateMsg(NETOBJ_PLAYER, m_netObjects.at(index)->m_networkID);
 		netMsgs.push_back(msg);
-	}
+	}*/
 	return netMsgs;
 }
 

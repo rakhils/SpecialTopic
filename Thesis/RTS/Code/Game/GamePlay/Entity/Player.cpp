@@ -9,6 +9,7 @@
 #include "Engine/Debug/DebugDraw.hpp"
 
 #include "Game/GameCommon.hpp"
+#include "Game/Game.hpp"
 // CONSTRUCTOR
 Player::Player()
 {
@@ -46,6 +47,7 @@ void Player::Update(float deltaTime)
 	{
 		m_playerSnapshot = (PlayerSnapShot_t*)m_netObject->GetLatestReceivedSnapshot();
 		ApplySnapshot(m_playerSnapshot);
+		
 		return;
 	}
 	m_playerSnapshot = (PlayerSnapShot_t*)m_netObject->GetLatestReceivedSnapshot();
@@ -79,8 +81,9 @@ void Player::Update(float deltaTime)
 		m_localPlayerSnapshot.m_position -= deltaTime * direction * 150;
 		keyUpdate = true;
 	}
-	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_SPACE))
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_SPACE))
 	{
+		m_localPlayerSnapshot.m_primary++;
 		keyUpdate = true;
 	}
 
@@ -88,6 +91,7 @@ void Player::Update(float deltaTime)
 	{
 		SendLocalSnapshot();
 	}
+	//m_localPlayerSnapshot.m_primary = 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -100,8 +104,11 @@ void Player::Render()
 {
 	Material *defaultMaterial = Material::AquireResource("default");
 	g_theRenderer->BindMaterial(defaultMaterial);
+
 	Disc2 disc2D(m_position,50);
-	g_theRenderer->DrawCircle(disc2D,m_color);
+	g_theRenderer->DrawCircle(disc2D,Rgba::RED);
+	g_theRenderer->DrawLine(m_position, m_position + Vector2(CosDegrees(m_angle + 10), SinDegrees(m_angle + 10)) * 50);
+	g_theRenderer->DrawLine(m_position, m_position + Vector2(CosDegrees(m_angle - 10), SinDegrees(m_angle - 10)) * 50);
 	delete defaultMaterial;
 }
 
@@ -165,10 +172,15 @@ void Player::ApplySnapshot(PlayerSnapShot_t *playerSnapshot)
 	{
 		return;
 	}
+	float temp  = m_primary;
 	m_position  = playerSnapshot->m_position;
 	m_angle     = playerSnapshot->m_angle;
 	m_primary   = playerSnapshot->m_primary;
 
+	if (m_playerSnapshot->m_primary > temp)
+	{
+		Game::GetInstance()->CreateBullet(Game::GetInstance()->GetUniqueBulletID(), m_position, m_angle);
+	}
 	if(NetSession::GetInstance()->m_hostConnection->IsHost())
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf("HOST IDX %d - POSITION X = %f , Y = %f ", m_index, m_position.x, m_position.y);

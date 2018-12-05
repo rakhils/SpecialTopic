@@ -538,16 +538,16 @@ NetMessage * NetMessage::CreateObjectUpdateMsg(uint8_t objectType,uint8_t object
 NetMessage * NetMessage::CreateObjectDestroyMsg(uint8_t objectType, uint8_t objectID)
 {
 	NetMessage *msg = new NetMessage("destroys_game_object");
+	size_t msgSize = 0;
+	msg->WriteBytes(2, (char*)&msgSize);
+	msg->WriteCommandIndex();
 
 	msg->WriteBytes(1, (void *)&objectType);
 	msg->WriteBytes(1, (void *)&objectID);
 
-	size_t msgSize = 0;
+	msg->m_currentWritePosition = 0;
 	msgSize = msg->m_bufferSize - 2;
 	msg->WriteBytes(2, (char*)&msgSize);
-
-	msg->WriteCommandIndex();
-	msg->m_currentWritePosition = msg->m_bufferSize;
 	return msg;
 }
 

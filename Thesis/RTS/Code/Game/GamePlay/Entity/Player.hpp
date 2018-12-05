@@ -25,7 +25,6 @@ class Player
 
 public:
 	//Member_Variables
-	bool		m_isLastSent0 = false;
 	std::string m_name;
 	Rgba		m_color;
 	uint8_t		m_ownerConnectionIndex;
@@ -37,7 +36,6 @@ public:
 	Vector2		m_position;
 	float 		m_angle;
 	float		m_primary;
-	float		m_secondary;
 
 	PlayerSnapShot_t  m_localPlayerSnapshot;
 	PlayerSnapShot_t *m_playerSnapshot  = nullptr;
@@ -49,6 +47,7 @@ public:
 
 	Player();
 	~Player();
+
 	void    SetNetObject(NetObject *netObject);
 
 	void	Update(float deltaTime);

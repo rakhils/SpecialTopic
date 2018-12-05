@@ -272,16 +272,16 @@ size_t NetConnection::FlushMsgs()
 		return 0;
 	}
 	float min = GetMinOf2(m_sendRate, m_session->m_sendRate);
-	if (Clock::GetMasterClock()->total.m_seconds > (m_lastSendTime + 1/min))
+	//if (Clock::GetMasterClock()->total.m_seconds > (m_lastSendTime + 1/min))
 	{
 		size_t sendCount = 0;
 		sendCount += FlushUnConfirmedReliables();
 		sendCount += FlushUnSentRealiables();
-		if (sendCount > 0)
+		/*if (sendCount > 0)
 		{
 			m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
 			return sendCount;
-		}
+		}*/
 		sendCount += FlushUnrealiables();
 		if(sendCount > 0)
 		{
@@ -323,7 +323,7 @@ size_t NetConnection::FlushUnConfirmedReliables()
 				msg->ResetAge();
 				//PacketTracker *tracker = msg->m_tracker;
 				PacketTracker *newTracker = AddTracker(m_nextSentAck);
-				DevConsole::GetInstance()->PushToOutputText("SENDING UNCONFIRMED RELIABLE " + ToString(msg->m_count) + " TRACKER "+ToString(static_cast<int>(m_nextSentAck)));
+				//DevConsole::GetInstance()->PushToOutputText("SENDING UNCONFIRMED RELIABLE " + ToString(msg->m_count) + " TRACKER "+ToString(static_cast<int>(m_nextSentAck)));
 				//DevConsole::GetInstance()->PushToOutputText("SENDING UNCONFIRMED OLD " + ToString(msg->m_count) + " TRACKER " +
 					//ToString(static_cast<int>(tracker->m_ackID)));
 				
@@ -373,7 +373,7 @@ size_t NetConnection::FlushUnSentRealiables()
 				m_unsentReliableMsgs.erase(m_unsentReliableMsgs.begin() + unsentReliableIndex, m_unsentReliableMsgs.begin() + unsentReliableIndex + 1);
 				m_unconfirmedReliableMessages.push_back(msg);
 				unsentReliableIndex--;
-				DevConsole::GetInstance()->PushToOutputText("SENDING UNSENT RELIABLE " + ToString(msg->m_reliableID) + " TRACKER "+ToString(static_cast<int>(m_nextSentAck)));
+				//DevConsole::GetInstance()->PushToOutputText("SENDING UNSENT RELIABLE " + ToString(msg->m_reliableID) + " TRACKER "+ToString(static_cast<int>(m_nextSentAck)));
 				std::string bit = msg->GetBitString();
 				IncrementSendAck();
 				//IncrementRealiableID();

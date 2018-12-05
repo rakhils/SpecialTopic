@@ -499,6 +499,12 @@
     <ClCompile Include="System\EventSystem.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Net\NetObjectConnectionView.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\NetObjectView.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -815,6 +821,8 @@
     <ClInclude Include="Net\NetObject.hpp" />
     <ClInclude Include="Net\NetObjectType.hpp" />
     <ClInclude Include="System\EventSystem.hpp" />
+    <ClInclude Include="Net\NetObjectConnectionView.hpp" />
+    <ClInclude Include="Net\NetObjectView.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

@@ -639,6 +639,10 @@ void BytePacker::ReallocateWithNewSize(size_t extraSize)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::string BytePacker::GetBitString()
 {
+	if(true)
+	{
+		return "";
+	}
 	size_t size			  = m_bufferSize;
 	std::string fullString = "";
 
@@ -666,6 +670,10 @@ std::string BytePacker::GetBitString()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 std::string BytePacker::GetAsString()
 {
+	if(true)
+	{
+		return ""; 
+	}
 	if(m_bufferSize <= 3)
 	{
 		return "";
