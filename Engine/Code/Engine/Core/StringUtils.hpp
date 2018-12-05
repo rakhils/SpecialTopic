@@ -39,6 +39,7 @@ std::string				 ToString(uint8_t value);
 std::string				 ToBitString(size_t value);
 std::string				 ToBitString(char value);
 std::string				 ToBitString(uint16_t value);
+std::string				 ToBitString(void *ptr, size_t size);
 
 std::string				 Reverse(std::string str);
 std::string				 TrimString(std::string);

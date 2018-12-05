@@ -62,7 +62,7 @@ public:
 	NetSession *				m_session;
 	double						m_lastHeartbeatReceivedTime = 0;
 	double						m_lastHeartbeatTime  = 0;
-	float						m_heartBeatFrequency = .25;
+	float						m_heartBeatFrequency = .05;
 	float						m_sendRate			 = 20;
 	double					    m_startTime;
 

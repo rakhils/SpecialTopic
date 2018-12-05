@@ -4,6 +4,10 @@
 #include "Engine/Core/StringUtils.hpp"
 #include "Engine/Renderer/Camera/OrthographicCamera.hpp"
 #include "Engine/Net/NetSession.hpp"
+#include "Engine/Net/NetObjectType.hpp"
+#include "Engine/Net/NetObjectSystem.hpp"
+#include "Engine/Net/NetObject.hpp"
+#include "Game/GamePlay/Entity/Player.hpp"
 
 Game *Game::s_game = nullptr;
 
@@ -18,6 +22,71 @@ Game::~Game()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : Creates player
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Player* Game::CreatePlayer(uint8_t idx, char const *name, Rgba color)
+{
+	DevConsole::GetInstance()->PushToOutputText("CREATING PLAYER ID " + ToString(idx));
+	Player *player   = new Player();
+	player->m_name   = name;
+	player->m_index  = idx;
+	player->m_color  = color;
+	m_playerMap[idx] = player;
+
+	NetObject* netObject = NetSession::GetInstance()->GetNetObjectSystem()->CreateNetObject(NETOBJ_PLAYER, idx);
+	player->m_netObject = netObject;
+
+	return player;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/03
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::DestroyPlayer(Player *player)
+{
+	std::map<uint8_t, Player*>::iterator it = m_playerMap.find(player->m_index);
+	NetSession::GetInstance()->GetNetObjectSystem()->DestroyNetObject(player->m_netObject);
+	delete player;
+	m_playerMap.erase(it);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : Setups network
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::SetupNetwork()
+{
+	NetObjectType playerType;
+	playerType.m_id = NETOBJ_PLAYER;
+	playerType.m_sendCreate		= SendPlayerCreate;
+	playerType.m_recvCreate		= RecvPlayerCreate;
+	playerType.m_sendDestroy	= SendPlayerDestroy;
+	playerType.m_recvDestroy	= RecvPlayerDestroy;
+
+	// snapshotm_snapshotSize;
+	playerType.m_snapshotSize	= sizeof(PlayerSnapShot_t);
+	playerType.m_getSnapshot	= PlayerGetSnapshot;
+	playerType.m_sendSnapshot	= PlayerSendSnapshot;
+	playerType.m_recvSnapshot	= PlayerRecvSnapshot;
+	playerType.m_applySnapshot	= PlayerApplySnapshot;
+
+	NetObjectSystem *nos = NetSession::GetInstance()->GetNetObjectSystem();
+	nos->RegisterType(playerType);
+
+
+	NetSession::GetInstance()->m_join.Subscibe (OnConnectionJoin);
+	NetSession::GetInstance()->m_leave.Subscibe(OnConnectionLeave);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/11/04
 *@purpose : Registers game net message
 *@param   : NIL
@@ -29,7 +98,14 @@ void Game::RegisterGameMessage()
 		"TEST AN UNRELIABLE MSGS");
 	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_RELIABLE_TEST,   "reliable_test",   OnReliableTest,
 		"TEST AN RELIABLE MSGS",NETMESSAGE_OPTION_RELIABLE);
-	
+
+	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_OBJECT_CREATE, "creates_game_object", OnObjectCreated,
+		"TEST AN RELIABLE MSGS", NETMESSAGE_OPTION_RELIABLE);
+	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_OBJECT_UPDATE, "updates_game_object", OnObjectUpdate,
+		"TEST AN RELIABLE MSGS", NETMESSAGE_OPTION_RELIABLE);
+	NetSession::GetInstance()->RegisterMessage((eNetCoreMessage)NETMSG_OBJECT_DESTROY, "destroys_game_object", OnObjectDestroyed,
+		"TEST AN RELIABLE MSGS", NETMESSAGE_OPTION_RELIABLE);
+	SetupNetwork();
 }
 
 // INIT GAME
@@ -77,6 +153,33 @@ void Game::InitCamera()
 	Camera::SetCurrentCamera(m_camera);
 }
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::UpdateGame(float deltaTime)
+{
+	UpdatePlayer(deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::UpdatePlayer(float deltaTime)
+{
+	std::map<uint8_t, Player*>::iterator it = m_playerMap.begin();
+	for (; it != m_playerMap.end(); it++)
+	{
+		it->second->Update(deltaTime);
+	}
+}
+
 void Game::Update(float deltaTime)
 {
 	if(!m_init)
@@ -84,7 +187,9 @@ void Game::Update(float deltaTime)
 		Initialize();
 		m_init = true;
 	}
-	switch (m_gameMode)
+	m_camera->SetOrthoProjection();
+	UpdateGame(deltaTime);
+	/*switch (m_gameMode)
 	{
 	case MAIN_MENU:
 		UpdateMainMenu(deltaTime);
@@ -94,15 +199,15 @@ void Game::Update(float deltaTime)
 		break;
 	default:
 		break;
-	}
+	}*/
 	//UpdateUnreliableMsgs(deltaTime);
-	UpdateReliableMsgs(deltaTime);
+	//UpdateReliableMsgs(deltaTime);
 }
 
 
 void Game::Render()
 {
-	switch (m_gameMode)
+	/*switch (m_gameMode)
 	{
 	case MAIN_MENU:
 		RenderMainMenu();
@@ -112,7 +217,8 @@ void Game::Render()
 		break;
 	default:
 		break;
-	}
+	}*/
+	RenderGame();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,6 +381,39 @@ void Game::RenderMainMenu()
 	delete textMaterial;
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::RenderGame()
+{
+	Camera::SetCurrentCamera(m_camera);
+	Renderer::GetInstance()->BeginFrame();
+	RenderPlayers();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::RenderPlayers()
+{
+	std::map<uint8_t, Player*>::iterator it = m_playerMap.begin();
+	for (; it != m_playerMap.end(); it++)
+	{
+		it->second->Render();
+	}
+	//Material *defaultMaterial = Material::AquireResource("default");
+	//Renderer::GetInstance()->BindMaterial(defaultMaterial);
+	//Disc2 disc(Vector2(250, 250), 100);
+	//g_theRenderer->DrawCircle(disc, Rgba::RED);
+	//delete defaultMaterial;
+}
+
 Game* Game::GetInstance()
 {
 	if (s_game == nullptr)
@@ -380,4 +519,173 @@ bool OnReliableTest(NetMessage &netMsg, NetAddress &netAddress)
 		g_counter = 0;
 	}
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnObjectCreated(NetMessage &netMsg, NetAddress &netAddress)
+{
+	DevConsole::GetInstance()->PushToOutputText("ON OBJECT CREATED ");
+	uint8_t objectType;
+	uint8_t objectID;
+	netMsg.m_currentReadPosition = 3;
+	netMsg.ReadBytes((void*)&objectType,1);
+	netMsg.ReadBytes((void*)&objectID,1);
+	Rgba color;
+	netMsg.ReadColor(&color);
+	if (objectType == NETOBJ_PLAYER)
+	{
+		DevConsole::GetInstance()->PushToOutputText("CREATED PLAYER FOR CONN "+ToString(objectID));
+		Player *player = Game::GetInstance()->CreatePlayer(objectID, "", color);
+	}
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnObjectUpdate(NetMessage &netMsg, NetAddress &netAddress)
+{
+	//DevConsole::GetInstance()->PushToOutputText("ON OBJECT UPDATE ");
+	uint8_t objectType;
+	uint8_t objectID;
+	netMsg.m_currentReadPosition = 3;
+
+	Vector2 position;
+	float angle;
+	float primary;
+
+	netMsg.ReadBytes((void*)&objectType, 1);
+	netMsg.ReadBytes((void*)&objectID,   1);
+
+	size_t readPosition = netMsg.m_currentReadPosition;
+	std::string bit = netMsg.GetBitString();
+	netMsg.ReadBytes((void*)&position.x ,4);
+	netMsg.ReadBytes((void*)&position.y ,4);
+	netMsg.ReadBytes((void*)&angle		,4);
+	netMsg.ReadBytes((void*)&primary    ,4);
+
+	if(position.x < Game::GetInstance()->positionX)
+	{
+		int a = 1;
+	}
+	Game::GetInstance()->positionX = position.x;
+	netMsg.m_currentReadPosition = readPosition;
+	if (objectType == NETOBJ_PLAYER)
+	{
+		if(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot == nullptr)
+		{
+			NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot = malloc(16);
+		}
+		netMsg.ReadBytes(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
+		std::string bit = ToBitString(NetSession::GetInstance()->m_netObjectSystem->m_netObjectMap[objectID]->m_latestReceivedSnapshot, 16);
+		
+		if(NetSession::GetInstance()->m_hostConnection->IsHost())
+		{
+			NetSession::GetInstance()->BroadcastMsg(&netMsg,CONNECTION_READY);
+		}
+		//DevConsole::GetInstance()->PushToOutputText("CREATED PLAYER FOR CONN " + ToString(objectID));
+	}
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool OnObjectDestroyed(NetMessage &netMsg, NetAddress &netAddress)
+{
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/03
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void OnConnectionJoin(NetConnection *cp)
+{
+	Player *player = Game::GetInstance()->CreatePlayer(cp->m_index, "", Rgba::GREEN);
+
+	NetMessage *msg = NetMessage::CreateObjectCreateMsg(NETOBJ_PLAYER, cp->m_index);
+	msg->SetAddress(&NetSession::GetInstance()->m_hostConnection->m_address);
+	DevConsole::GetInstance()->PushToOutputText("BROADCASTS PLAYER CREATE MSG ");
+	NetSession::GetInstance()->BroadcastMsg(msg,CONNECTION_READY);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/03
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void OnConnectionLeave(NetConnection *cp)
+{
+
+}
+
+void SendPlayerCreate(NetMessage *msg, void *objPtr)
+{
+	Player *player = (Player*)objPtr;
+	msg->WriteBytes (1, (void*)&player->m_ownerConnectionIndex);
+	msg->WriteString(player->m_name.c_str());
+	msg->WriteColor (player->m_color);
+}
+
+void RecvPlayerCreate(NetMessage *msg, void *objPtr)
+{
+	uint8_t		index;
+	std::string name;
+	Rgba		color;
+
+	msg->ReadBytes((void*)&index,1);
+	msg->ReadString((char*)&name, 5);
+	msg->ReadColor(&color);
+
+	Game *game		= Game::GetInstance();
+	Player *player  = game->CreatePlayer(index, name.c_str(), color);
+
+	objPtr = (void *)player;
+}
+
+void SendPlayerDestroy(NetMessage *msg, void *objPtr) 
+{
+
+}
+
+void RecvPlayerDestroy(NetMessage *msg, void *objPtr) 
+{
+	Player *player = (Player*)objPtr;
+	Game *game = Game::GetInstance();
+	game->DestroyPlayer(player);
+}
+
+void PlayerGetSnapshot(NetMessage *msg, void *Obj) 
+{
+	
+}
+
+void PlayerSendSnapshot(NetMessage *msg, void *snapshotPtr)
+{
+
+}
+
+void PlayerRecvSnapshot(NetMessage *msg, void *snapshotPtr)
+{
+
+}
+
+void PlayerApplySnapshot(NetMessage *msg, void *snapshotPtr) 
+{
+
 }

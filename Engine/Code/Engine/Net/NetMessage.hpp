@@ -80,6 +80,7 @@ public:
 	//Methods
 
 	NetMessage(std::string cmd);
+	NetMessage(NetMessage *msg);
 	~NetMessage();
 
 	void				SetAddress(NetAddress *address);
@@ -112,8 +113,13 @@ public:
 	static NetMessage * CreateJoinAcceptMsg(NetAddress *address,int index);
 	static NetMessage * CreateNewConnection(NetConnection *connection);
 	static NetMessage * CreateJoinFinished(NetConnection *connection);
+	static NetMessage * CreateConnUpdate(NetConnection *connection);
 	static NetMessage * CreateDisconnectUpdateMsg(NetConnection *connection);
 	static NetMessage * CreateHangUpMsg(NetConnection *connection);
+	static NetMessage * CreateObjectCreateMsg (uint8_t objectType, uint8_t objectID);
+	static NetMessage * CreateObjectUpdateMsg (uint8_t objectType, uint8_t objectID);
+	static NetMessage * CreateObjectDestroyMsg(uint8_t objectType, uint8_t objectID);
+
 
 	//static NetMessage * CreateUpdateConnState(NetConnection *connection,EConnectionState state);
 protected:

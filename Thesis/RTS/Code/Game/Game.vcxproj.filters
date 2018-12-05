@@ -124,7 +124,7 @@
     <ClCompile Include="GamePlay\Task\TaskIdle.cpp">
       <Filter>General\GamePlay\Task</Filter>
     </ClCompile>
-    <ClCompile Include="GamePlay\Entity\EntityState.cpp">
+    <ClCompile Include="GamePlay\Entity\Player.cpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClCompile>
   </ItemGroup>
@@ -217,6 +217,9 @@
       <Filter>General\GamePlay\Task</Filter>
     </ClInclude>
     <ClInclude Include="GamePlay\Entity\EntityState.hpp">
+      <Filter>General\GamePlay\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\Player.hpp">
       <Filter>General\GamePlay\Entity</Filter>
     </ClInclude>
   </ItemGroup>

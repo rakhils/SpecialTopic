@@ -27,9 +27,14 @@ struct MainMenuItems
 enum eNetGameMessage : uint8_t
 {
 	NETMSG_TEST_GAME_MESSAGE = NETMSG_CORE_COUNT,
+	NETMSG_OBJECT_CREATE,  
+	NETMSG_OBJECT_DESTROY, 
+	NETMSG_OBJECT_UPDATE,
 	NETMSG_UNRELIABLE_TEST   = 127,
 	NETMSG_RELIABLE_TEST     = 128,
 };
+
+class Player;
 class Game
 {
 public:
@@ -39,7 +44,7 @@ public:
 	Camera *     m_camera		 = nullptr;
 	int			 m_currentIndex = 0;
 	bool		 m_init			= false;
-
+	float		 positionX = 0;
 	int          m_netMsgConnectionIndex = 0;
 	int          m_netMsgCount = 0;
 	int		     m_netMsgMaxUnrealiableMsgCount = 0;
@@ -47,19 +52,29 @@ public:
 	float        m_netMsgSendDelay   = 0.01;
 	float        m_netMsgSendTime = 0;
 	std::vector<MainMenuItems> m_mainMenuItems;
+	std::map<uint8_t, Player*> m_playerMap;
 	// STATIC
 	static Game *s_game;
 
 	// FUNCIONS
 	Game();
 	~Game();
+
+	Player* CreatePlayer(uint8_t idx, char const *name, Rgba color);
+	void    DestroyPlayer(Player *player);
+	void    SetupCamera();
+	void SetupNetwork();
 	
 	void RegisterGameMessage();
 
 	void Initialize();
 	void InitMainMenuItems();
 	void InitCamera();
+
+	void UpdateGame(float deltaTime);
+	void UpdatePlayer(float deltaTime);
 	void Update(float deltaTime);
+
 	void Render();
 
 	void UpdateMap(float deltaTime);
@@ -71,10 +86,31 @@ public:
 	void RenderMap();
 	void RenderMainMenu();
 
+	void RenderGame();
+	void RenderPlayers();
+
 	void InitSampleNN();
 	static Game* GetInstance();
 
 };
-bool OnUnreliableTest(NetMessage &netMsg, NetAddress &netAddress);
-bool OnReliableTest(NetMessage &netMsg, NetAddress &netAddress);
+bool OnUnreliableTest		(NetMessage &netMsg, NetAddress &netAddress);
+bool OnReliableTest			(NetMessage &netMsg, NetAddress &netAddress);
+
+bool OnObjectCreated		(NetMessage &netMsg, NetAddress &netAddress);
+bool OnObjectUpdate			(NetMessage &netMsg, NetAddress &netAddress);
+bool OnObjectDestroyed		(NetMessage &netMsg, NetAddress &netAddress);
+
+void OnConnectionJoin		(NetConnection *cp);
+void OnConnectionLeave		(NetConnection *cp);
+
+void SendPlayerCreate		(NetMessage *msg, void *objPtr);
+void RecvPlayerCreate		(NetMessage *msg, void *objPtr);
+void SendPlayerDestroy		(NetMessage *msg, void *objPtr);
+void RecvPlayerDestroy		(NetMessage *msg, void *objPtr);
+void PlayerGetSnapshot		(NetMessage *msg, void *objPtr);
+
+void PlayerSendSnapshot		(NetMessage *msg, void *snapshotPtr);
+void PlayerRecvSnapshot		(NetMessage *msg, void *snapshotPtr);
+void PlayerApplySnapshot	(NetMessage *msg, void *snapshotPtr);
+
 

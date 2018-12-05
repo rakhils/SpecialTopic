@@ -304,6 +304,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="GamePlay\Entity\Player.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="GamePlay\Entity\Resource.cpp">
       <SubType>
       </SubType>
@@ -394,6 +398,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="GamePlay\Entity\House.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\Player.hpp">
       <SubType>
       </SubType>
     </ClInclude>

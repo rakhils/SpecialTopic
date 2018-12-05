@@ -534,6 +534,33 @@ std::string ToBitString(uint16_t value)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+std::string ToBitString(void *ptr, size_t size)
+{
+	std::string fullString = "";
+
+	for (int index = 0; index < size; index++)
+	{
+		char *ptrChar = (char*)&ptr;
+		char bb		  = *(ptrChar + index);
+		std::string byteString = ToBitString(bb);
+		if (index == size - 1)
+		{
+			fullString += (byteString);
+		}
+		else
+		{
+			fullString += (byteString + " ");
+		}
+	}
+	return (fullString);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/02
 *@purpose : Reverses string
 *@param   : original string

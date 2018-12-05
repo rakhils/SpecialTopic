@@ -16,6 +16,20 @@
 */
 
 typedef bool (*NetMessageCB)(NetMessage &msg, NetAddress &from);
+typedef void (*NetEventCB)(NetConnection *connection);
+struct NetEvents 
+{
+	NetEventCB m_eventCB;
+	void Subscibe(NetEventCB eventCB)
+	{
+		m_eventCB = eventCB;
+	}
+
+	void Trigger(NetConnection *connection)
+	{
+		(*m_eventCB)(connection);
+	}
+};
 struct NetMessageDefinition
 {
 	NetMessageDefinition()
@@ -76,6 +90,9 @@ enum ESessionState
 #define MAX_CONN_ID_LENGTH 16
 #define DEFAULT_CONNECTION_TIMEOUT 50
 #define MAX_NET_TIME_DILATION (0.1f)
+
+#define NETOBJ_PLAYER 	(10)
+class NetObjectSystem;
 class NetSession
 {
 
@@ -92,6 +109,7 @@ public:
 	
 	NetConnection *									m_hostConnection				= nullptr;
 	NetConnection *									m_myConnection					= nullptr;
+	NetObjectSystem	*								m_netObjectSystem				= nullptr;
 
 	int												m_highestIndex					= 1;											
 	bool											m_initMsgDefinition				= false;
@@ -101,10 +119,14 @@ public:
 	float											m_maxLatency					= 0.f;
 	float											m_sendRate						= 60.f;
 	bool											m_sessionInfoVisible			= false;
-	uint64_t m_lastRecvdHostTimems = 0;				// this is the time we received from the host + (RTT / 2)
-	uint64_t m_desiredClientTimems = 0;				// Time we want the the client to eventually be
-	uint64_t m_currentClientTimems = 0;				// what the client will actually report return
-	float   m_dtp				   = 0;
+	uint64_t										m_lastRecvdHostTimems = 0;				// this is the time we received from the host + (RTT / 2)
+	uint64_t										m_desiredClientTimems = 0;				// Time we want the the client to eventually be
+	uint64_t										m_currentClientTimems = 0;				// what the client will actually report return
+	float											m_dtp				   = 0;
+
+	NetEvents										m_join;
+	NetEvents										m_leave;
+
 	//Static_Member_Variables
 	static NetSession *s_netSession;
 	static int		   s_defaultPort;
@@ -142,12 +164,14 @@ public:
 	NetMessageDefinition *    GetMsgDefinition(int index);
 	int						  GetMsgIndex(std::string cmdname);
 	std::string				  GetMsgName(int index);
+	NetObjectSystem *		  GetNetObjectSystem();
 	bool					  VerifyMessage(std::string cmd,std::string msg);
 							  
 	void					  ProcessIncomingMessage();
 	void					  ProcessOutgoingMessage();
 
 	size_t					  SendPacket(Packet packet);
+	void					  BroadcastMsg(NetMessage *msg,EConnectionState state);
 	//virtual void			   Send(uint16_t idx, char *data, size_t length);
 	bool					  DoesConnectionExist(NetAddress address);
 	void					  AddBinding(int port);
@@ -178,6 +202,8 @@ public:
 	void					  RenderSessionDetails();
 	void					  RenderConnectionColumnDetails(Vector2 startPosition);
 	void					  RenderConnectionDetails(NetConnection *connection,Vector2 startPOsitino,bool skipHeading);
+
+
 	//Static_Methods
 
 	static NetSession*		  GetInstance();

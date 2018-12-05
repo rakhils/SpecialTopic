@@ -288,7 +288,7 @@ void CommandStartup()
 
 
 	CommandRegister("setup_udp", SetupUDPConnections, "SETS UP CONNECTION FOR UDP");
-	CommandRegister("add_local",  AddLocal, "ADDS LOCAL CONNECTION TO LCOAL AND REMOTE");
+	CommandRegister("add_host",  Host, "ADDS LOCAL CONNECTION TO LCOAL AND REMOTE");
 	CommandRegister("add_remote", AddRemote, "ADDS REMOTE CONNECTION TO LOCAL AND REMOTE");
 	CommandRegister("disconnect", Disconnect, "DISCONNECTS A CONNECTION");
 
@@ -1517,16 +1517,13 @@ void SetupUDPConnectionWithoutPortChangeInRemote(Command &cmd)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void AddLocal(Command &cmd)
+void Host(Command &cmd)
 {
 	UNUSED(cmd);
 	int port = 0;
 	cmd.GetNextInt(&port);
 	NetSession::s_defaultPort = port;
-	std::string myIp = Net::GetIP();
-	std::string addConnection0 = "add_connection 0 "+myIp+":"+ToString(port);
 	NetSession::GetInstance()->Host("", port);
-	//RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

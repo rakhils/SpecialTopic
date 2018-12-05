@@ -1,5 +1,6 @@
 #pragma once
 #include "Engine/Core/Endianness.hpp"
+#include "Engine/Core/Rgba.hpp"
 #include <string>
 /*\class  : BytePacker		   
 * \group  : <GroupName>		   
@@ -37,6 +38,9 @@ public:
 	BytePacker( eEndianness byteOrder = LITTLE_ENDIAN );
 	BytePacker( size_t bufferSize, eEndianness byteOrder = LITTLE_ENDIAN );
 	BytePacker( size_t bufferSize, void *buffer, eEndianness = LITTLE_ENDIAN );
+
+	void operator=(const BytePacker& bytePacker);
+
 	~BytePacker();
 
 
@@ -57,6 +61,9 @@ public:
 
 	bool         WriteBool(bool value);
 	size_t		 ReadBool(bool *out_value);
+
+	bool		 WriteColor(Rgba rgba);
+	size_t		 ReadColor(Rgba *rgba);
 				 
 	void		 ResetWrite();
 	void		 ResetRead();

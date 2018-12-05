@@ -27,6 +27,24 @@ BytePacker::BytePacker(size_t bufferSize, void *buffer, eEndianness byteOrder/*=
 	memcpy(m_buffer, buffer, bufferSize);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void BytePacker::operator=(const BytePacker &bytePacker)
+{
+	m_buffer = malloc(bytePacker.m_bufferSize);
+	memcpy(m_buffer, bytePacker.m_buffer, bytePacker.m_bufferSize);
+
+	m_byteOrder				= bytePacker.m_byteOrder;
+	m_currentReadPosition   = bytePacker.m_currentReadPosition;
+	m_currentWritePosition  = bytePacker.m_currentWritePosition;
+	m_bufferSize			= bytePacker.m_bufferSize;
+	m_bytepackerType		= bytePacker.m_bytepackerType;
+}
+
 // DESTRUCTOR
 BytePacker::~BytePacker()
 {
@@ -328,6 +346,40 @@ size_t BytePacker::ReadBool(bool *out_value)
 		*out_value = true;
 	}
 	return 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/03
+*@purpose : Writes color
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool BytePacker::WriteColor(Rgba rgba)
+{
+	WriteBytes(1, (void*)&rgba.r);
+	WriteBytes(1, (void*)&rgba.g);
+	WriteBytes(1, (void*)&rgba.b);
+	WriteBytes(1, (void*)&rgba.a);
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/03
+*@purpose : Reads color
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+size_t BytePacker::ReadColor(Rgba *rgba)
+{
+	if(m_currentReadPosition + 4 <= m_bufferSize)
+	{
+		ReadBytes((void *)&rgba->r, 1);
+		ReadBytes((void *)&rgba->g, 1);
+		ReadBytes((void *)&rgba->b, 1);
+		ReadBytes((void *)&rgba->a, 1);
+		return 4;
+	}
+	return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

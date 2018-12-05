@@ -487,6 +487,18 @@
     <ClCompile Include="Net\Packet.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="Net\NetObjectSystem.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\NetObject.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\NetObjectType.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="System\EventSystem.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -799,6 +811,10 @@
     <ClInclude Include="Net\NetPacket.hpp" />
     <ClInclude Include="Net\UDP\PacketTracker.hpp" />
     <ClInclude Include="Net\Packet.hpp" />
+    <ClInclude Include="Net\NetObjectSystem.hpp" />
+    <ClInclude Include="Net\NetObject.hpp" />
+    <ClInclude Include="Net\NetObjectType.hpp" />
+    <ClInclude Include="System\EventSystem.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

@@ -49,10 +49,10 @@ NetConnection::~NetConnection()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::InitTracker()
 {
-	for(uint16_t index = 0;index < m_trackerMaxCount;index++)
+	/*for(uint16_t index = 0;index < m_trackerMaxCount;index++)
 	{
 		//m_trackerMap[index] = nullptr;
-	}
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -845,14 +845,14 @@ void NetConnection::ConfirmPacketReceived(uint16_t ack)
 	{
 		return;
 	}
-	DevConsole::GetInstance()->PushToOutputText("TRACKER RECV " + ToString(static_cast<int>(tracker->m_sentReliableIDs[0])));
+	//DevConsole::GetInstance()->PushToOutputText("TRACKER RECV " + ToString(static_cast<int>(tracker->m_sentReliableIDs[0])));
 	for(unsigned int reliableIndexInPacket = 0;reliableIndexInPacket < tracker->m_reliablesInPacket;reliableIndexInPacket++)
 	{
-		DevConsole::GetInstance()->PushToOutputText("REL IDX " + ToString(static_cast<int>(tracker->m_sentReliableIDs[reliableIndexInPacket])), Rgba::YELLOW);
+		//DevConsole::GetInstance()->PushToOutputText("REL IDX " + ToString(static_cast<int>(tracker->m_sentReliableIDs[reliableIndexInPacket])), Rgba::YELLOW);
 		NetMessage *msg = GetUnconfirmedReliableMsg(tracker->m_sentReliableIDs[reliableIndexInPacket]);
 		if(msg != nullptr)
 		{
-			DevConsole::GetInstance()->PushToOutputText("MSG NOT NULL " + ToString(static_cast<int>(tracker->m_sentReliableIDs[reliableIndexInPacket]))+ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
+			//DevConsole::GetInstance()->PushToOutputText("MSG NOT NULL " + ToString(static_cast<int>(tracker->m_sentReliableIDs[reliableIndexInPacket]))+ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
 			RemoveUnconfirmedReliableMsg(msg);
 			DestroyNetMessage(msg);
 		}

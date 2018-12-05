@@ -448,6 +448,18 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="Net\NetObject.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\NetObjectSystem.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="Net\NetObjectType.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="Net\NetPacket.cpp">
       <SubType>
       </SubType>
@@ -681,6 +693,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="System\EventSystem.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="System\Thread\Thread.cpp">
       <SubType>
       </SubType>
@@ -888,6 +904,18 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="Net\NetMessage.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\NetObject.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\NetObjectSystem.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="Net\NetObjectType.hpp">
       <SubType>
       </SubType>
     </ClInclude>
@@ -1123,6 +1151,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="SceneManagement\SceneManager.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="System\EventSystem.hpp">
       <SubType>
       </SubType>
     </ClInclude>

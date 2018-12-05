@@ -34,6 +34,27 @@ NetMessage::NetMessage(std::string msg)
 	m_definitionIndex			= static_cast<uint8_t>(NetSession::GetInstance()->GetMsgIndex(msg));
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage::NetMessage(NetMessage *msg)
+{
+	m_definitionName  = msg->m_definitionName;
+	m_definitionIndex = msg->m_definitionIndex;
+
+	m_buffer = malloc(msg->m_bufferSize);
+	memcpy(m_buffer, msg->m_buffer, msg->m_bufferSize);
+
+	m_byteOrder				= msg->m_byteOrder;
+	m_currentReadPosition   = msg->m_currentReadPosition;
+	m_currentWritePosition  = msg->m_currentWritePosition;
+	m_bufferSize			= msg->m_bufferSize;
+	m_bytepackerType		= msg->m_bytepackerType;
+}
+
 // DESTRUCTOR
 NetMessage::~NetMessage()
 {
@@ -391,6 +412,23 @@ NetMessage * NetMessage::CreateJoinFinished(NetConnection *connection)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/03
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateConnUpdate(NetConnection *connection)
+{
+	NetMessage *msg = new NetMessage("update_conn_state");
+	msg->m_address = &connection->m_address;
+	size_t msgSize = 0;
+
+	msg->WriteBytes(2, (char*)&msgSize);
+	msg->WriteCommandIndex();
+	return msg;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/11/30
 *@purpose : Creates an update conn stats msg with disconnect code
 *@param   : NIL
@@ -411,6 +449,7 @@ NetMessage * NetMessage::CreateDisconnectUpdateMsg(NetConnection *connection)
 	msg->WriteBytes(1, (char*)&code);
 
 	msgSize = msg->m_bufferSize - 2;
+	msg->m_currentWritePosition = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
 	return msg;
 
@@ -430,6 +469,85 @@ NetMessage * NetMessage::CreateHangUpMsg(NetConnection *connection)
 	size_t msgSize = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();
+	return msg;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/02
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateObjectCreateMsg(uint8_t objectID,uint8_t networkID)
+{
+	NetMessage *msg = new NetMessage("creates_game_object");
+
+	size_t msgSize = 0;
+	msg->WriteBytes(2, (char*)&msgSize);
+	msg->WriteCommandIndex();
+
+	msg->WriteBytes(1, (void *)&objectID);
+	msg->WriteBytes(1, (void *)&networkID);
+	Rgba color = Rgba::GetRandomColor();
+	msg->WriteColor(color);
+	size_t writePostiion = msg->m_currentWritePosition;
+
+	msg->m_currentWritePosition = 0;
+
+	msgSize = msg->m_bufferSize - 2;
+	msg->WriteBytes(2, (char*)&msgSize);
+
+	msg->m_currentWritePosition = writePostiion;
+
+	std::string bit = msg->GetBitString();
+	return msg;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/03
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateObjectUpdateMsg(uint8_t objectType,uint8_t objectID)
+{
+	NetMessage *msg = new NetMessage("updates_game_object");
+
+	size_t msgSize = 0;
+	msg->WriteBytes(2, (char*)&msgSize);
+	msg->WriteCommandIndex();
+
+	msg->WriteBytes(1, (void *)&objectType);
+	msg->WriteBytes(1, (void *)&objectID);
+	size_t writePostiion = msg->m_currentWritePosition;
+
+	msg->m_currentWritePosition = 0;
+	msgSize = msg->m_bufferSize - 2;
+	msg->WriteBytes(2, (char*)&msgSize);
+
+	msg->m_currentWritePosition = writePostiion;
+	return msg;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/03
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+NetMessage * NetMessage::CreateObjectDestroyMsg(uint8_t objectType, uint8_t objectID)
+{
+	NetMessage *msg = new NetMessage("destroys_game_object");
+
+	msg->WriteBytes(1, (void *)&objectType);
+	msg->WriteBytes(1, (void *)&objectID);
+
+	size_t msgSize = 0;
+	msgSize = msg->m_bufferSize - 2;
+	msg->WriteBytes(2, (char*)&msgSize);
+
+	msg->WriteCommandIndex();
+	msg->m_currentWritePosition = msg->m_bufferSize;
 	return msg;
 }
 
