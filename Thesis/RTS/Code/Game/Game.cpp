@@ -329,6 +329,7 @@ void Game::Update(float deltaTime)
 		Initialize();
 		m_init = true;
 	}
+	
 	m_camera->SetOrthoProjection();
 	UpdateGame(deltaTime);
 	/*switch (m_gameMode)
@@ -342,8 +343,8 @@ void Game::Update(float deltaTime)
 	default:
 		break;
 	}*/
-	//UpdateUnreliableMsgs(deltaTime);
-	//UpdateReliableMsgs(deltaTime);
+	UpdateUnreliableMsgs(deltaTime);
+	UpdateReliableMsgs(deltaTime);
 }
 
 
@@ -429,6 +430,10 @@ void Game::UpdateMainMenu(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Game::UpdateUnreliableMsgs(float deltaTime)
 {
+	if(true)
+	{
+		return;
+	}
 	if(m_netMsgCount <  m_netMsgMaxUnrealiableMsgCount)
 	{
 		m_netMsgSendTime += deltaTime;
@@ -694,7 +699,7 @@ bool OnObjectCreated(NetMessage &netMsg, NetAddress &netAddress)
 	DevConsole::GetInstance()->PushToOutputText("ON OBJECT CREATED ");
 	uint8_t objectType;
 	uint8_t objectID;
-	netMsg.m_currentReadPosition = 3;
+	netMsg.m_currentReadPosition = 5;
 	netMsg.ReadBytes((void*)&objectType, 1);
 	if (objectType == NETOBJ_PLAYER)
 	{
@@ -748,6 +753,11 @@ bool OnObjectUpdate(NetMessage &netMsg, NetAddress &netAddress)
 	netMsg.ReadBytes((void*)&primary    ,4);
 
 	netMsg.m_currentReadPosition = readPosition;
+
+	if(!NetSession::GetInstance()->m_netObjectSystem->DoesObjectExist(objectID))
+	{
+		return true;
+	}
 
 	if (objectType == NETOBJ_PLAYER)
 	{
@@ -828,7 +838,11 @@ void OnConnectionJoin(NetConnection *cp)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void OnConnectionLeave(NetConnection *cp)
 {
-	UNUSED(cp);
+	Game::GetInstance()->DestroyPlayer(cp->m_index);
+	if(cp == NetSession::GetInstance()->m_hostConnection) // client connections
+	{
+		g_isQuitting = true;
+	}
 }
 
 void SendPlayerCreate(NetMessage *msg, void *objPtr)

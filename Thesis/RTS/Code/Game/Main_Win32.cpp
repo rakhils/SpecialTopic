@@ -110,7 +110,8 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 	UNUSED(lParam);
 	switch (wmMessageCode)
 	{
-
+	case WM_NCACTIVATE:
+		return 0;
 	case WM_CHAR:
 	{
 		unsigned char asKey = (unsigned char)wParam;
