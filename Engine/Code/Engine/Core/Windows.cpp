@@ -57,7 +57,7 @@ Windows::Windows( char const *app_name, float clientAspect )
 	// #SD1ToDo: Add support for fullscreen mode (requires different window style flags than windowed mode)
    //const DWORD windowStyleFlags = WS_CAPTION | WS_THICKFRAME | WS_SYSMENU | WS_OVERLAPPED;// | WS_POPUP;
 
-   if(true)
+   if(false)
    {
 	   const DWORD windowStyleFlags = WS_CAPTION | WS_BORDER | WS_THICKFRAME | WS_SYSMENU | WS_OVERLAPPED;
 	   const DWORD windowStyleExFlags = WS_EX_APPWINDOW;
@@ -138,7 +138,7 @@ Windows::Windows( char const *app_name, float clientAspect )
 	float desktopAspect =  desktopWidth / desktopHeight;
 
 	// Calculate maximum client size (as some % of desktop size)
-	constexpr float maxClientFractionOfDesktop = 1;// 0.90f;
+	constexpr float maxClientFractionOfDesktop = 0.90f;
 	float clientWidth = desktopWidth * maxClientFractionOfDesktop;
 	float clientHeight = desktopHeight * maxClientFractionOfDesktop;
 	if( clientAspect > desktopAspect )
@@ -153,8 +153,8 @@ Windows::Windows( char const *app_name, float clientAspect )
 	}
 
 	// Calculate client rect bounds by centering the client area
-	float clientMarginX = 0;// 0.5f * (desktopWidth - clientWidth);
-	float clientMarginY = 0;// 0.5f * (desktopHeight - clientHeight);
+	float clientMarginX = 0.2f * (desktopWidth - clientWidth);
+	float clientMarginY = 0.2f * (desktopHeight - clientHeight);
 	//float clientMarginX = 0.5f * (desktopWidth - clientWidth);
 	//float clientMarginY = 0.5f * (desktopHeight - clientHeight);
 	RECT clientRect;

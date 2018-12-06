@@ -71,6 +71,8 @@ public:
 	uint8_t  GetUniqueBulletID();
 	void     DestroyPlayer(uint8_t playerID);
 	void     DestroyBullet(uint8_t bulletID);
+	void     DestroyAllPlayers();
+	void     DestroyAllBullets();
 	void	 SetupNetwork();
 	
 	void	 RegisterGameMessage();

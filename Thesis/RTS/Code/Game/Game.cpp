@@ -132,6 +132,40 @@ void Game::DestroyBullet(uint8_t bulletID)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::DestroyAllPlayers()
+{
+	std::map<uint8_t, Player*>::iterator it = m_playerMap.begin();
+	for(;it!= m_playerMap.end();it++)
+	{
+		NetSession::GetInstance()->GetNetObjectSystem()->DestroyNetObject(it->second->m_netObject);
+		//delete it->second;
+	}
+	m_playerMap.clear();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/06
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Game::DestroyAllBullets()
+{
+	std::map<uint8_t, Bullets*>::iterator it = m_bulletMap.begin();
+	for (; it != m_bulletMap.end(); it++)
+	{
+		NetSession::GetInstance()->GetNetObjectSystem()->DestroyNetObject(it->second->m_netObject);
+		//delete it->second;
+	}
+	m_bulletMap.clear();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/12/02
 *@purpose : Setups network
 *@param   : NIL
@@ -894,7 +928,13 @@ void OnConnectionLeave(NetConnection *cp)
 	Game::GetInstance()->DestroyPlayer(cp->m_index);
 	if(cp == NetSession::GetInstance()->m_hostConnection) // client connections
 	{
-		g_isQuitting = true;
+		DevConsole::GetInstance()->PushToOutputText("HOST LEFT ",Rgba::RED);
+		NetSession::GetInstance()->m_hostConnection = nullptr;
+		NetSession::GetInstance()->m_sessionState = SESSION_DISCONNECTED;
+
+		Game::GetInstance()->DestroyAllBullets();
+		Game::GetInstance()->DestroyAllPlayers();
+		//g_isQuitting = true;
 	}
 }
 

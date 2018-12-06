@@ -21,6 +21,7 @@ NetConnection::NetConnection(int index, NetAddress netAddress)
 	m_address   = netAddress;
 	//m_udpSocket = new UDPSocket(netAddress);
 	m_lastReceivedTime = static_cast<float>(GetCurrentTimeSeconds());
+	m_lastSendTime     = static_cast<float>(GetCurrentTimeSeconds());
 	m_netObjectConnectionView = new NetObjectConnectionView();
 	InitTracker();
 }
@@ -32,6 +33,8 @@ NetConnection::NetConnection(int listenPort)
 	m_address.m_port		= listenPort;
 	m_index = 0;
 	m_lastReceivedTime = static_cast<float>(GetCurrentTimeSeconds());
+	m_lastSendTime = static_cast<float>(GetCurrentTimeSeconds());
+
 	m_netObjectConnectionView = new NetObjectConnectionView();
 	InitTracker();
 	m_connectionState = CONNECTION_READY;
@@ -40,6 +43,8 @@ NetConnection::NetConnection(int listenPort)
 NetConnection::NetConnection()
 {
 	m_lastReceivedTime = static_cast<float>(GetCurrentTimeSeconds());
+	m_lastSendTime = static_cast<float>(GetCurrentTimeSeconds());
+
 }
 
 // DESTRUCTOR
@@ -351,10 +356,12 @@ size_t NetConnection::FlushUnConfirmedReliables()
 				newTracker->AddReliables(msg->m_reliableID);
 				msg->m_tracker = newTracker;
 				IncrementSendAck();
+				//break;
 				return sendCount;
 			}
 		}
 	}
+	
 	return sendCount;
 }
 
@@ -439,7 +446,12 @@ size_t NetConnection::FlushUnrealiables()
 		delete m_unsentUnreliableMsgs.at(unsentUnreliableIndex);
 		m_unsentUnreliableMsgs.erase(m_unsentUnreliableMsgs.begin() + unsentUnreliableIndex, m_unsentUnreliableMsgs.begin() + unsentUnreliableIndex + 1);
 		unsentUnreliableIndex--;
-		return sendCount;
+		break;
+		//return sendCount;
+	}
+	if(m_unsentUnreliableMsgs.size() > 0)
+	{
+		FlushUnrealiables();
 	}
 	return sendCount;
 }
@@ -499,6 +511,10 @@ std::string NetConnection::GetIPPortAsString()
 void NetConnection::PushToInboundMsgQueue(NetMessage* msg)
 {
 	m_inboundMsgQueue.push_back(msg);
+	if(m_inboundMsgQueue.size()  > 10)
+	{
+		int a = 1;
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -519,6 +535,10 @@ void NetConnection::DoProcessInboundMsgQueue()
 				NetMessageDefinition * msgdef = NetSession::GetInstance()->GetMsgDefinition(msg->m_definitionName);
 				(*msgdef->m_callback)(*msg, *msg->m_address);
 				m_oldestOrderedReliableMsgID++;
+
+				m_inboundMsgQueue.erase(m_inboundMsgQueue.begin() + index1, m_inboundMsgQueue.begin() + index1 + 1);
+				index1--;
+				index--;
 			}
 		}
 	}
@@ -863,10 +883,12 @@ void NetConnection::ConfirmPacketReceived(uint16_t ack)
 		return;
 	}
 	PacketTracker *tracker = it->second;
-	if(tracker == nullptr)
+	if (tracker == nullptr)
 	{
 		return;
 	}
+	
+
 	//DevConsole::GetInstance()->PushToOutputText("TRACKER RECV " + ToString(static_cast<int>(tracker->m_sentReliableIDs[0])));
 	for(unsigned int reliableIndexInPacket = 0;reliableIndexInPacket < tracker->m_reliablesInPacket;reliableIndexInPacket++)
 	{
@@ -874,8 +896,14 @@ void NetConnection::ConfirmPacketReceived(uint16_t ack)
 		NetMessage *msg = GetUnconfirmedReliableMsg(tracker->m_sentReliableIDs[reliableIndexInPacket]);
 		if(msg != nullptr)
 		{
-			//DevConsole::GetInstance()->PushToOutputText("MSG NOT NULL " + ToString(static_cast<int>(tracker->m_sentReliableIDs[reliableIndexInPacket]))+
+			if (msg->m_definitionName == "join_accept")
+			{
+				int	a = 1;
+			}
+			//DevConsole::GetInstance()->PushToOutputText("MSG CONFIRMED " + ToString(static_cast<int>(tracker->m_sentReliableIDs[reliableIndexInPacket]))+
 				//ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
+
+			DevConsole::GetInstance()->PushToOutputText("MSG CONFIRMED " + msg->m_definitionName +ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
 			RemoveUnconfirmedReliableMsg(msg);
 			DestroyNetMessage(msg);
 		}
@@ -1152,10 +1180,10 @@ bool NetConnection::WritePayload(NetMessage *msg,NetAddress *address)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::SendHeartBeat(NetAddress *address)
 {
-	if(true)
+	/*if(true)
 	{
 		return;
-	}
+	}*/
 	double lastHearBeatHPC = m_lastHeartbeatTime;
 	double heartBeatFreq   = m_heartBeatFrequency;
 

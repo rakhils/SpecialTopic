@@ -68,23 +68,29 @@ void NetSession::Update(float deltaTime)
 	}
 	uint64_t localDeltams = Clock::GetMasterClock()->frame.m_milliSeconds;
 	uint64_t localNetworkDelta = 0;
+
+	m_desiredClientTimems += localDeltams;
+
 	if(m_hostConnection != nullptr && !m_hostConnection->IsHost() && m_currentClientTimems > 0)
 	{
+		Rgba color = Rgba::GREEN;
+		Rgba color1 = Rgba::RED;
+		
 		if(m_currentClientTimems + localDeltams > m_desiredClientTimems)
 		{
-			localNetworkDelta =  static_cast<uint64_t>((1 - MAX_NET_TIME_DILATION) * static_cast<float>(localDeltams));
-			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,"NEGATIVE");
+			localNetworkDelta =  static_cast<uint64_t>( static_cast<float>((1.f - MAX_NET_TIME_DILATION) * static_cast<float>(localDeltams)));
+			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,color,"NEGATIVE");
 		}
-		if (m_currentClientTimems + localDeltams < m_desiredClientTimems)
+		else if (m_currentClientTimems + localDeltams < m_desiredClientTimems)
 		{
-			localNetworkDelta =  static_cast<uint64_t>((1 + MAX_NET_TIME_DILATION) * static_cast<float>(localDeltams));
-			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,"POSITIVE");
+			localNetworkDelta =  static_cast<uint64_t>( static_cast<float>((1.f + MAX_NET_TIME_DILATION) * static_cast<float>(localDeltams)));
+			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,color1,"POSITIVE");
 		}
 		m_currentClientTimems += localNetworkDelta;
 	}
 	if(m_hostConnection != nullptr && m_hostConnection->IsHost())
 	{
-		m_currentClientTimems += Clock::GetMasterClock()->frame.m_milliSeconds;
+		m_currentClientTimems = Clock::GetMasterClock()->total.m_milliSeconds;
 	}
 	UpdateConnections(deltaTime);
 	ProcessIncomingMessage();
@@ -703,12 +709,28 @@ void NetSession::DestroyConnection(NetConnection *connection)
 	}*/
 
 	uint8_t connectionIndex = connection->m_index;
-	NetMessage *msg = NetMessage::CreateObjectDestroyMsg(NETOBJ_PLAYER, connectionIndex,connectionIndex);
+
+
+
+	
 	m_leave.Trigger(connection);
-	if (m_hostConnection->IsHost())
+
+
+
+
+
+	if (m_hostConnection != nullptr && m_hostConnection->IsHost())
 	{
+		std::map<int, NetConnection*>::iterator it;
+		for (it = NetSession::GetInstance()->m_boundConnections.begin(); it != NetSession::GetInstance()->m_boundConnections.end(); it++)
+		{
+			NetMessage *msg = NetMessage::CreateObjectDestroyMsg(NETOBJ_PLAYER, connectionIndex,it->second->m_index);
+			msg->SetAddress(&it->second->m_address);
+			it->second->Append(msg);
+		}
+
 		//m_leave.Trigger(connection);
-		BroadcastMsg(msg, CONNECTION_READY);
+		//BroadcastMsg(msg, CONNECTION_READY);
 	}
 
 	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(connection->m_index);
@@ -1023,15 +1045,6 @@ void NetSession::ProcessMsgs(std::vector<NetMessage *> netmsg,NetAddress *fromAd
 			continue;
 		}
 		NetAddress *fromAddr = m_laggedMsgs.at(laggedMsgindex)->m_address;
-		//NetMessageDefinition * msgdef = GetMsgDefinition(m_laggedMsgs.at(laggedMsgindex)->m_definitionName);
-
-		float value1 = -1;
-		float value2 = -1;
-		std::string str = m_laggedMsgs.at(laggedMsgindex)->m_definitionName;
-		m_laggedMsgs.at(laggedMsgindex)->m_currentReadPosition = 3;
-		m_laggedMsgs.at(laggedMsgindex)->ReadBytes(&value1, 4);
-		m_laggedMsgs.at(laggedMsgindex)->ReadBytes(&value2, 4);
-
 		ProcessMsg(m_laggedMsgs.at(laggedMsgindex), fromAddr);
 		m_laggedMsgs.erase(m_laggedMsgs.begin() + laggedMsgindex, m_laggedMsgs.begin() + laggedMsgindex + 1);
 		laggedMsgindex--;
@@ -1039,13 +1052,13 @@ void NetSession::ProcessMsgs(std::vector<NetMessage *> netmsg,NetAddress *fromAd
 
 	for(int msgIndex = 0; msgIndex < netmsg.size(); msgIndex++)
 	{
-		/*if(netmsg.at(msgIndex)->m_lag > static_cast<float>(GetCurrentTimeSeconds()))
+		if(netmsg.at(msgIndex)->m_lag > static_cast<float>(GetCurrentTimeSeconds()))
 		{
 			m_laggedMsgs.push_back(netmsg.at(msgIndex));
-			//netmsg.erase(netmsg.begin() + msgIndex, netmsg.begin() + msgIndex + 1);
-			//msgIndex --;
+			netmsg.erase(netmsg.begin() + msgIndex, netmsg.begin() + msgIndex + 1);
+			msgIndex --;
 			continue;
-		}*/
+		}
 		std::string bitString = netmsg.at(0)->GetBitString();
 		std::string name = netmsg.at(msgIndex)->m_definitionName;
 		netmsg.at(msgIndex)->m_currentReadPosition = 3;
@@ -1075,7 +1088,10 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 		fromConnection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds;// -fromConnection->m_startTime;
 		fromConnection->m_lastReceivedAck = header.m_ack;
 	}
-	
+	if(msg->m_definitionName == "join_accept")
+	{
+		int a = 1;
+	}
 	if (fromConnection != nullptr && msgdef != nullptr && (msgdef->m_options == NETMESSAGE_OPTION_RELIABLE || msgdef->m_options == NETMESSAGE_OPTION_RELIALBE_IN_ORDER))
 	{
 		//std::string bitString = msg->GetBitString();
@@ -1135,7 +1151,7 @@ void NetSession::Render()
 	}
 	
 	RenderSessionDetails();
-	Vector2 startPosition(100, 800);
+	Vector2 startPosition(100, 700);
 	RenderConnectionColumnDetails(startPosition);
 	if (m_hostConnection != nullptr)
 	{
@@ -1167,13 +1183,13 @@ void NetSession::RenderSessionDetails()
 
 	float fontSizeBig = 15;
 	float fontSize = 10;
-	Vector2 startPosition(100, 1000);
+	Vector2 startPosition(100, 900);
 	Renderer::GetInstance()->BindMaterial(textMaterial);
 	Renderer::GetInstance()->DrawTextOnPoint("SESSION INFO", startPosition, fontSizeBig, Rgba::WHITE);
 	startPosition -= Vector2(0, 2 * fontSizeBig);
 	Renderer::GetInstance()->DrawTextOnPoint("sim lag:", startPosition + Vector2(50, 0), fontSize, Rgba::WHITE);
 
-	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_minLatency) + " ms  " + ToString(m_maxLatency) + " ms", startPosition + Vector2(250, 0), fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_minLatency) + " S  " + ToString(m_maxLatency) + " S", startPosition + Vector2(250, 0), fontSize, Rgba::WHITE);
 
 	Renderer::GetInstance()->DrawTextOnPoint("sim loss:", startPosition + Vector2(900, 0), fontSize, Rgba::WHITE);
 	Renderer::GetInstance()->DrawTextOnPoint(ToString(m_lossAmount) + "%", startPosition + Vector2(1100, 0), fontSize, Rgba::WHITE);
@@ -1235,10 +1251,13 @@ void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 start
 	std::string ip = connection->GetIPPortAsString();
 	float rtt = connection->m_rtt;
 	float loss = connection->m_loss;
+
 	double lrcv = connection->m_lastReceivedTime;
-	lrcv = Clock::GetMasterClock()->total.m_seconds - connection->m_startTime - lrcv;
+	lrcv = Clock::GetMasterClock()->total.m_seconds - lrcv;
+	
 	double lsnt = connection->m_lastSendTime;
-	lsnt = Clock::GetMasterClock()->total.m_seconds - connection->m_startTime - lsnt;
+	lsnt = Clock::GetMasterClock()->total.m_seconds - lsnt;
+	
 	uint16_t sntack = connection->m_nextSentAck;
 	uint16_t rcvack = connection->m_lastReceivedAck;
 	uint16_t prevRcvBit = connection->m_previousReceivedAckBitField;
@@ -1395,13 +1414,19 @@ bool OnHeartBeatMessage(NetMessage &netMsg, NetAddress &netAddress)
 	uint64_t recvdTime = 0;
 	netMsg.ReadBytes(&recvdTime, 8);
 
-	if(netConnection!=nullptr && !netConnection->IsHost())
+	//if(m_hostConnection != nullptr && !NetSession::GetInstance()->IsHost() && m_currentClientTimems > 0)
+
+	if(NetSession::GetInstance()->m_hostConnection != nullptr && !NetSession::GetInstance()->m_hostConnection->IsHost())
 	{
 		if(NetSession::GetInstance()->m_lastRecvdHostTimems < recvdTime)
 		{
-			NetSession::GetInstance()->m_lastRecvdHostTimems = recvdTime + static_cast<uint64_t>(netConnection->m_rtt / 2.f);
+			uint64_t temp = recvdTime + (static_cast<uint64_t>((netConnection->m_rtt / 2.f) * 1000));  
+			NetSession::GetInstance()->m_lastRecvdHostTimems = temp;
 
-			NetSession::GetInstance()->m_desiredClientTimems = recvdTime;
+			NetSession::GetInstance()->m_desiredClientTimems = temp;// NetSession::GetInstance()->m_lastRecvdHostTimems;
+		//	DebugDraw::GetInstance()->DebugRenderLogf(Clock::GetMasterClock()->frame.m_seconds * 25,Rgba::YELLOW ,"HEART BEAT RECV VALUE %d" , (static_cast<int>(recvdTime)));
+			//DebugDraw::GetInstance()->DebugRenderLogf(deltaTime, color1, "POSITIVE");
+
 			if(NetSession::GetInstance()->m_currentClientTimems == 0)
 			{
 				NetSession::GetInstance()->m_currentClientTimems = NetSession::GetInstance()->m_desiredClientTimems;
@@ -1463,7 +1488,7 @@ bool OnJoinRequest(NetMessage &netMsg, NetAddress &netAddress)
 	}
 	// CHECK ONLY IN ALL CONNECTION , CONNECTIONS EXISTING IN ALL CANNOT JOIN WITHOUT DISCONNECT 
 	// MAY BE A BUG
-	if (NetSession::GetInstance()->DoesConnectionExist(netAddress) && !(netMsg.m_definitionName == "join_request"))
+	if (NetSession::GetInstance()->DoesConnectionExist(netAddress))
 	{
 		return false;
 	}
@@ -1630,7 +1655,10 @@ bool OnHangUp(NetMessage &netMsg, NetAddress &netAddress)
 	{
 		return true;
 	}
-	
+	if(true)
+	{
+		return true;
+	}
 	NetSession::GetInstance()->DestroyConnection(connection);
 	//NetSession::GetInstance()->RemoveConnections(connection);
 

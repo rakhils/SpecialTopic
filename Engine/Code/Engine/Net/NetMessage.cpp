@@ -4,6 +4,7 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/Core/Time.hpp"
 #include "Engine/Time/Clock.hpp"
+#include "Engine/Debug/DebugDraw.hpp"
 // CONSTRUCTOR
 // 0 -> add
 // 1 -> add_response
@@ -223,7 +224,8 @@ NetMessage * NetMessage::CreateHeartBeatMessage(NetAddress *netaddress)
 
 	uint64_t time = Clock::GetMasterClock()->total.m_milliSeconds;
 	netMsg->WriteBytes(8,(void*)&time);
-	
+	//DebugDraw::GetInstance()->DebugRenderLogf(Clock::GetMasterClock()->frame.m_seconds * 25, Rgba::YELLOW, "HEART BEAT SENT VALUE %d", (static_cast<int>(time)));
+
 	netMsg->m_currentWritePosition = 0;
 	msgSize = netMsg->m_bufferSize - 2;
 	netMsg->WriteBytes(2, (char*)&(msgSize));
@@ -438,6 +440,7 @@ NetMessage * NetMessage::CreateConnUpdate(NetConnection *connection)
 
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();
+
 	connection->IncrementRealiableID();
 	uint16_t relID = connection->GetNextRealiableIDToSend();
 	msg->WriteBytes(2, (void*)&relID);

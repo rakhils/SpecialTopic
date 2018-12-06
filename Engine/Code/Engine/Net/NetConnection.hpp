@@ -70,7 +70,7 @@ public:
 	NetSession *				m_session;
 	double						m_lastHeartbeatReceivedTime = 0;
 	double						m_lastHeartbeatTime  = 0;
-	float						m_heartBeatFrequency = .25f;
+	float						m_heartBeatFrequency = 1.f;
 	float						m_sendRate = 20;
 	double					    m_startTime;
 
@@ -113,6 +113,7 @@ public:
 	void		 Disconnect();
 	void		 HangUp();
 	void		 CreateNetObjectConectionView();
+
 
 
 	void		 SetLastHeartBeatReceivedTime(float time);
