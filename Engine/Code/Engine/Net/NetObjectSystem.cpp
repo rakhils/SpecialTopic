@@ -166,3 +166,19 @@ void NetObjectSystem::DestroyNetObject(NetObject *netObject)
 	m_netObjectMap.erase(it);
 	delete netObject;
 }
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/05
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool NetObjectSystem::DoesObjectExist(uint8_t id)
+{
+	std::map<uint8_t, NetObject*>::iterator it = m_netObjectMap.find(id);
+	if(it == m_netObjectMap.end())
+	{
+		return false;
+	}
+	return true;
+}

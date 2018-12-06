@@ -37,6 +37,11 @@ NetConnection::NetConnection(int listenPort)
 	m_connectionState = CONNECTION_READY;
 }
 
+NetConnection::NetConnection()
+{
+	m_lastReceivedTime = static_cast<float>(GetCurrentTimeSeconds());
+}
+
 // DESTRUCTOR
 NetConnection::~NetConnection()
 {
@@ -81,7 +86,6 @@ void NetConnection::BindConnection()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::Disconnect()
 {
-	
 	if(this == NetSession::GetInstance()->m_myConnection && IsHost())
 	{
 		std::map<int, NetConnection*>::iterator it;
@@ -288,25 +292,25 @@ size_t NetConnection::FlushMsgs()
 	{
 		return 0;
 	}
-	//float min = GetMinOf2(m_sendRate, m_session->m_sendRate);
-	//if (Clock::GetMasterClock()->total.m_seconds > (m_lastSendTime + 1/min))
+	float min = GetMinOf2(m_sendRate, m_session->m_sendRate);
+	if (Clock::GetMasterClock()->total.m_seconds > (m_lastSendTime + 1/min))
 	{
 		size_t sendCount = 0;
 		sendCount += FlushUnConfirmedReliables();
 		sendCount += FlushUnSentRealiables();
-		/*if (sendCount > 0)
+		if (sendCount > 0)
 		{
-			m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
+			m_lastSendTime = Clock::GetMasterClock()->total.m_seconds;
 			return sendCount;
-		}*/
+		}
 		sendCount += FlushUnrealiables();
 		if(sendCount > 0)
 		{
-			m_lastSendTime = Clock::GetMasterClock()->total.m_seconds - m_startTime;
+			m_lastSendTime = Clock::GetMasterClock()->total.m_seconds;
 		}
 		return sendCount;
 	}
-	//return 0;
+	return 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -340,7 +344,7 @@ size_t NetConnection::FlushUnConfirmedReliables()
 				msg->ResetAge();
 				//PacketTracker *tracker = msg->m_tracker;
 				PacketTracker *newTracker = AddTracker(m_nextSentAck);
-				//DevConsole::GetInstance()->PushToOutputText("SENDING UNCONFIRMED RELIABLE " + ToString(msg->m_count) + " TRACKER "+ToString(static_cast<int>(m_nextSentAck)));
+				DevConsole::GetInstance()->PushToOutputText("SENDING UNCONFIRMED RELIABLE " + ToString(msg->m_count) + " TRACKER "+ToString(static_cast<int>(m_nextSentAck)));
 				//DevConsole::GetInstance()->PushToOutputText("SENDING UNCONFIRMED OLD " + ToString(msg->m_count) + " TRACKER " +
 					//ToString(static_cast<int>(tracker->m_ackID)));
 				
@@ -625,7 +629,7 @@ void NetConnection::IncrementSendAck()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetConnection::IncrementRealiableID()
 {
-	m_highestRealiableID++;
+	m_highestSentRealiableID++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -661,17 +665,17 @@ bool NetConnection::RemoveUnconfirmedReliableMsg(NetMessage *msg)
 		{
 			m_unconfirmedReliableMessages.erase(m_unconfirmedReliableMessages.begin() + index, m_unconfirmedReliableMessages.begin() + index + 1);
 			m_reliableIDs.push_back(msg->m_reliableID);
-			DevConsole::GetInstance()->PushToOutputText("PUSHIN REL ID " + ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
+			//DevConsole::GetInstance()->PushToOutputText("PUSHIN REL ID " + ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
 
 			ret = true;
 			break;
 		}
 	}
 
-	if ((m_oldestUnconfirmedReliableID + 1) == msg->GetReliableID())
+	if ((m_oldestUnconfirmedReliableID + 1) == msg->m_reliableID)
 	{
 		m_oldestUnconfirmedReliableID++;
-		DevConsole::GetInstance()->PushToOutputText("CONFIRMING MSG " + ToString(static_cast<int>(m_oldestUnconfirmedReliableID)),Rgba::GREEN);
+		//DevConsole::GetInstance()->PushToOutputText("CONFIRMING MSG " + ToString(static_cast<int>(m_oldestUnconfirmedReliableID)),Rgba::GREEN);
 		for (int index = 0; index < m_reliableIDs.size(); index++)
 		{
 			for (int index1 = 0; index1 < m_reliableIDs.size(); index1++)
@@ -719,8 +723,8 @@ void NetConnection::AddReceivedRealiableID(uint16_t reliableID)
 {
 	m_reliableIDs.push_back(reliableID);
 
-	m_highestRealiableID = GetMax(reliableID, m_highestRealiableID);
-	uint16_t minimumReliableID = m_highestRealiableID - RELIABLE_WINDOW + 1;
+	m_highestRecvRealiableID = GetMax(reliableID, m_highestRecvRealiableID);
+	uint16_t minimumReliableID = m_highestRecvRealiableID - RELIABLE_WINDOW + 1;
 	for (size_t reliableIDIndex = 0; reliableIDIndex < m_reliableIDs.size(); reliableIDIndex++)
 	{
 		if(CycleLess(m_reliableIDs.at(reliableIDIndex),minimumReliableID))
@@ -739,8 +743,8 @@ void NetConnection::AddReceivedRealiableID(uint16_t reliableID)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool NetConnection::HasReceivedReliableID(uint16_t reliableID)
 {
-	m_highestRealiableID = GetMax(m_highestRealiableID, reliableID);
-	uint16_t minimumID = m_highestRealiableID - RELIABLE_WINDOW + 1;
+	m_highestRecvRealiableID = GetMax(m_highestRecvRealiableID, reliableID);
+	uint16_t minimumID = m_highestRecvRealiableID - RELIABLE_WINDOW + 1;
 	for (size_t reliableIDIndex = 0; reliableIDIndex < m_reliableIDs.size(); reliableIDIndex++)
 	{
 		if (CycleLess(m_reliableIDs.at(reliableIDIndex), minimumID))
@@ -774,7 +778,7 @@ bool NetConnection::HasReceivedReliableID(uint16_t reliableID)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint16_t NetConnection::GetNextRealiableIDToSend()
 {
-	return m_highestRealiableID;
+	return m_highestSentRealiableID;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -870,7 +874,8 @@ void NetConnection::ConfirmPacketReceived(uint16_t ack)
 		NetMessage *msg = GetUnconfirmedReliableMsg(tracker->m_sentReliableIDs[reliableIndexInPacket]);
 		if(msg != nullptr)
 		{
-			//DevConsole::GetInstance()->PushToOutputText("MSG NOT NULL " + ToString(static_cast<int>(tracker->m_sentReliableIDs[reliableIndexInPacket]))+ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
+			//DevConsole::GetInstance()->PushToOutputText("MSG NOT NULL " + ToString(static_cast<int>(tracker->m_sentReliableIDs[reliableIndexInPacket]))+
+				//ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
 			RemoveUnconfirmedReliableMsg(msg);
 			DestroyNetMessage(msg);
 		}
@@ -1149,7 +1154,7 @@ void NetConnection::SendHeartBeat(NetAddress *address)
 {
 	if(true)
 	{
-		//return;
+		return;
 	}
 	double lastHearBeatHPC = m_lastHeartbeatTime;
 	double heartBeatFreq   = m_heartBeatFrequency;

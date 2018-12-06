@@ -1589,9 +1589,20 @@ void EraseAllQueues(Command &cmd)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SendJoinRequest(Command &cmd)
 {
+
 	std::string ipaddress = cmd.GetNextString();
-	std::string ip = ipaddress.substr(0, ipaddress.find(':'));
-	std::string portStr = ipaddress.substr(ipaddress.find(':') + 1, ipaddress.length());
+	std::string portStr = "";
+	std::string ip		= "";
+	if(ipaddress == "")
+	{
+		ipaddress = "192.168.0.123";
+		portStr   = "10084";
+	}
+	else
+	{
+		portStr = ipaddress.substr(ipaddress.find(':') + 1, ipaddress.length());
+		ip      = ipaddress.substr(0, ipaddress.find(':'));
+	}
 
 	NetAddress *address = new NetAddress();
 	sockaddr_storage out;

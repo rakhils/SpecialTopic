@@ -35,13 +35,7 @@ NetSession::~NetSession()
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::Init()
-{
-	//RegisterMessage("ping",			OnPing,			"Pings connection");
-	//RegisterMessage("add",			OnAdd,			"Adds 2 numbers");
-	//RegisterMessage("add_response", OnAddResponse,  "Adds a response");
-	//RegisterMessage("pong",			OnPong,			"Pings connection");
-	//RegisterMessage("heartbeat",	OnHeartBeatMessage, "Update last heartbeat received");
-	
+{	
 	RegisterMessage(NETMSG_PING,	  "ping", OnPing, "Pings connection",NETMESSAGE_OPTION_CONNECTIONLESS);
 	RegisterMessage(NETMSG_PONG,	  "pong", OnPong, "Pings connection",NETMESSAGE_OPTION_CONNECTIONLESS);		
 	RegisterMessage(NETMSG_HEARTBEAT, "heartbeat", OnHeartBeatMessage,"Update last heartbeat received",NETMESSAGE_OPTION_CONNECTIONLESS);
@@ -151,18 +145,17 @@ void NetSession::UpdateSessionState()
 void NetSession::UpdateConnections(float deltaTime)
 {
 	UNUSED(deltaTime);
-	if(true)
-	{
-		return;
-	}
+	
 	std::map<int, NetConnection*>::iterator it;
 	for (it = m_boundConnections.begin(); it != m_boundConnections.end(); it++)
 	{
-		//float time = static_cast<float>(GetCurrentTimeSeconds());
-		if(static_cast<float>(GetCurrentTimeSeconds()) > (it->second->m_lastReceivedTime + DEFAULT_CONNECTION_TIMEOUT))
+		float time = static_cast<float>(GetCurrentTimeSeconds());
+		float lastrecvTime = it->second->m_lastReceivedTime;
+		if(time > (it->second->m_lastReceivedTime + DEFAULT_CONNECTION_TIMEOUT))
 		{
 			it->second->Disconnect();
-			RemoveConnections(it->second);
+			DestroyConnection(it->second);
+			//RemoveConnections(it->second);
 			break;
 		}
 	}
@@ -311,6 +304,12 @@ ESessionError NetSession::GetLastSessionError()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t NetSession::GetAndIncrementConnectionIndex()
 {
+	int connectionIndexLowest = 1;
+	for(int index = 0;index < m_allConnections.size();index++)
+	{
+		//if(m_allConnections.at(index)-m>)	
+		//if(m_)
+	}
 	return m_highestIndex++;
 }
 
@@ -521,6 +520,7 @@ void NetSession::ProcessIncomingMessage()
 
 			std::vector<NetMessage*> netMsgs = ConstructMsgFromData(netAddr, recvd, data);
 			ProcessMsgs(netMsgs, &netAddr);
+			//break;
 		} while (recvd > 0);
 	}
 
@@ -697,18 +697,29 @@ NetConnection* NetSession::CreateConnection(NetConnectionInfo &connectionInfo)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NetSession::DestroyConnection(NetConnection *connection)
 {
-	if(m_hostConnection == connection)
+	/*if(m_hostConnection == connection)
 	{
-
 		return;
+	}*/
+
+	uint8_t connectionIndex = connection->m_index;
+	NetMessage *msg = NetMessage::CreateObjectDestroyMsg(NETOBJ_PLAYER, connectionIndex);
+	m_leave.Trigger(connection);
+	if (m_hostConnection->IsHost())
+	{
+		//m_leave.Trigger(connection);
+		BroadcastMsg(msg, CONNECTION_READY);
 	}
+
 	std::map<int, NetConnection*>::iterator it = m_boundConnections.find(connection->m_index);
 	if(it == m_boundConnections.end())
 	{
 		return;
 	}
+	DevConsole::GetInstance()->PushToOutputText("REMOVED CONNECTION TO " + connection->m_address.GetIP() + ":" + ToString(connection->m_address.m_port));
 	delete m_boundConnections[connection->m_index];
-	m_boundConnections.erase(connection->m_index);
+	//m_boundConnections[connection->m_index] = nullptr;
+	m_boundConnections.erase(it);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -970,7 +981,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 		recvdPacket.ReadBytes(&cmdIndex, 1);
 		if(cmdIndex >=0 && cmdIndex < m_netMessageCmdDefinition.size())
 		{
-			//DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
+			DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
 			NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
 			netmsg->m_packetHeader = header;
 			netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
@@ -1061,21 +1072,22 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 	}*/
 	if(fromConnection != nullptr)
 	{
-		fromConnection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds - fromConnection->m_startTime;
+		fromConnection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds;// -fromConnection->m_startTime;
 		fromConnection->m_lastReceivedAck = header.m_ack;
 	}
-
-	if (msgdef != nullptr && msgdef->m_options == NETMESSAGE_OPTION_RELIABLE || msgdef->m_options == NETMESSAGE_OPTION_RELIALBE_IN_ORDER)
+	
+	if (fromConnection != nullptr && msgdef != nullptr && (msgdef->m_options == NETMESSAGE_OPTION_RELIABLE || msgdef->m_options == NETMESSAGE_OPTION_RELIALBE_IN_ORDER))
 	{
-		std::string bitString = msg->GetBitString();
+		//std::string bitString = msg->GetBitString();
 		if (!fromConnection->HasReceivedReliableID(msg->GetReliableID()))
 		{
+			//DevConsole::GetInstance()->PushToOutputText("RECEVIED REL ID "+ ToString(static_cast<int>(relID)),Rgba::GREEN);
 			msg->m_address = fromAddr;
 			fromConnection->PushToInboundMsgQueue(msg);
 			fromConnection->DoProcessInboundMsgQueue();
 		}
-		(*msgdef->m_callback)(*msg, *fromAddr);
-
+		
+		
 		NetMessage *blankMsg = NetMessage::CreateBlankMessage(fromConnection);
 		fromConnection->Append(blankMsg);
 	}
@@ -1083,11 +1095,11 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 	{
 		if ( msgdef != nullptr)
 		{
-				(*msgdef->m_callback)(*msg, *fromAddr);
+			(*msgdef->m_callback)(*msg, *fromAddr);
 		}
 	}
-
-	if(header.m_lastReceivedAck != INVALID_PACKET_ACK)
+	fromConnection = GetConnection(fromAddr);
+	if(fromConnection != nullptr && header.m_lastReceivedAck != INVALID_PACKET_ACK)
 	{
 		fromConnection->UpdateAckStatus(fromAddr, header.m_lastReceivedAck);
 		fromConnection->ConfirmPacketReceived(header.m_lastReceivedAck);
@@ -1451,7 +1463,7 @@ bool OnJoinRequest(NetMessage &netMsg, NetAddress &netAddress)
 	}
 	// CHECK ONLY IN ALL CONNECTION , CONNECTIONS EXISTING IN ALL CANNOT JOIN WITHOUT DISCONNECT 
 	// MAY BE A BUG
-	if (NetSession::GetInstance()->DoesConnectionExist(netAddress))
+	if (NetSession::GetInstance()->DoesConnectionExist(netAddress) && !(netMsg.m_definitionName == "join_request"))
 	{
 		return false;
 	}
@@ -1476,7 +1488,7 @@ bool OnJoinRequest(NetMessage &netMsg, NetAddress &netAddress)
 	connection->Append(joinAccept);
 
 	NetMessage *joinFinished = NetMessage::CreateJoinFinished(connection);
-	connection->Append(joinFinished);
+	//connection->Append(joinFinished);
 
 	return true;
 }
@@ -1503,8 +1515,9 @@ bool OnJoinDeny(NetMessage &netMsg, NetAddress &netAddress)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool OnJoinAccept(NetMessage &netMsg, NetAddress &netAddress)
 {
+	
 	DevConsole::GetInstance()->PushToOutputText("ON JOIN ACCEPT ");
-	netMsg.m_currentReadPosition = 3;
+	netMsg.m_currentReadPosition = 5;
 	uint8_t index = 0;
 	netMsg.ReadBytes(&index, 1);
 
@@ -1513,8 +1526,15 @@ bool OnJoinAccept(NetMessage &netMsg, NetAddress &netAddress)
 	connection->m_connectionState = CONNECTION_CONNECTING;
 	connection->m_index = index;
 
-	/*NetMessage *joinFinished = NetMessage::CreateJoinFinished(connection);
-	connection->Append(joinFinished);*/
+
+	DevConsole::GetInstance()->PushToOutputText("ON JOIN FINISHED ");
+	connection = NetSession::GetInstance()->GetConnection(&netAddress);
+	connection->m_connectionState = CONNECTION_READY;
+	NetSession::GetInstance()->m_sessionState = SESSION_READY;
+
+
+	NetMessage *msg = NetMessage::CreateConnUpdate(connection);
+	connection->Append(msg);
 	return true;
 }
 
@@ -1610,8 +1630,11 @@ bool OnHangUp(NetMessage &netMsg, NetAddress &netAddress)
 	{
 		return true;
 	}
-	DevConsole::GetInstance()->PushToOutputText("REMOVED CONNECTION TO " + netAddress.GetIP() + ":" + ToString(netAddress.m_port));
-	NetSession::GetInstance()->RemoveConnections(connection);
+	
+	NetSession::GetInstance()->DestroyConnection(connection);
+	//NetSession::GetInstance()->RemoveConnections(connection);
+
+
 	return true;
 }
 

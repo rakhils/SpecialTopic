@@ -17,7 +17,7 @@
 class UDPSocket;
 class NetSession;
 class PacketTracker;
-constexpr uint16_t RELIABLE_WINDOW = 4;
+constexpr uint16_t RELIABLE_WINDOW = 32;
 #define MAX_ID_LENGTH 10
 #define INVALID_SESSION_INDEX 255
 enum EConnectionState
@@ -58,7 +58,10 @@ public:
 	std::vector<NetObjectView*> m_netObjectViews;
 
 	std::vector<uint16_t>       m_reliableIDs;
-	uint16_t					m_highestRealiableID = 0;
+
+	uint16_t					m_highestSentRealiableID = 0;
+	uint16_t					m_highestRecvRealiableID = 0;
+
 	uint16_t					m_oldestUnconfirmedReliableID = 0;
 	uint16_t					m_oldestOrderedReliableMsgID = 0;
 	bool						m_isReliable = false;
@@ -67,8 +70,8 @@ public:
 	NetSession *				m_session;
 	double						m_lastHeartbeatReceivedTime = 0;
 	double						m_lastHeartbeatTime  = 0;
-	float						m_heartBeatFrequency = .05f;
-	float						m_sendRate			 = 20;
+	float						m_heartBeatFrequency = .1f;
+	float						m_sendRate = 20;
 	double					    m_startTime;
 
 	double						m_joinInterval = .1;
@@ -102,7 +105,7 @@ public:
 
 	NetConnection(int index,NetAddress netAddress); // As Client
 	NetConnection(int listenPort);		
-	NetConnection() {}					// As Server
+	NetConnection();					// As Server
 	~NetConnection();
 
 	void		 InitTracker();

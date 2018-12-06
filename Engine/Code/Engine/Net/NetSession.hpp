@@ -88,7 +88,7 @@ enum ESessionState
 	SESSION_CONNECTED
 };
 #define MAX_CONN_ID_LENGTH 16
-#define DEFAULT_CONNECTION_TIMEOUT 50
+#define DEFAULT_CONNECTION_TIMEOUT 1130
 #define MAX_NET_TIME_DILATION (0.1f)
 
 #define NETOBJ_PLAYER 	(10)
@@ -100,7 +100,7 @@ class NetSession
 
 public:
 	//Member_Variables
-
+	int												m_blankCount = 0;
 	std::vector<NetConnection*>						m_allConnections;
 	std::map<int, NetConnection*>					m_boundConnections;
 	std::vector<NetMessageDefinition>				m_netMessageCmdDefinition;

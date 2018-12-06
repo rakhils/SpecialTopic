@@ -53,6 +53,7 @@ NetMessage::NetMessage(NetMessage *msg)
 	m_currentWritePosition  = msg->m_currentWritePosition;
 	m_bufferSize			= msg->m_bufferSize;
 	m_bytepackerType		= msg->m_bytepackerType;
+	m_isReliable			= msg->m_isReliable;
 }
 
 // DESTRUCTOR
@@ -360,17 +361,27 @@ NetMessage * NetMessage::CreateJoinDeny(NetAddress *address)
 NetMessage * NetMessage::CreateJoinAcceptMsg(NetAddress *address,int indexInt)
 {
 	NetMessage *msg = new NetMessage("join_accept");
+	msg->m_isReliable = true;
 	msg->SetAddress(address);
 	size_t msgSize = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
 	
 	msg->WriteCommandIndex();
 
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(indexInt);
+	connection->IncrementRealiableID();
+	uint16_t relID = connection->GetNextRealiableIDToSend();
+	msg->WriteBytes(2, (void*)&relID);
+	msg->m_reliableID = relID;
+
+
 	uint8_t index = static_cast<uint8_t>(indexInt);
 	msg->WriteBytes(1, (char*)&index);
 
 	msg->m_currentWritePosition = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
+
+
 	return msg;
 }
 
@@ -420,11 +431,20 @@ NetMessage * NetMessage::CreateJoinFinished(NetConnection *connection)
 NetMessage * NetMessage::CreateConnUpdate(NetConnection *connection)
 {
 	NetMessage *msg = new NetMessage("update_conn_state");
+	msg->m_isReliable = true;
 	msg->m_address = &connection->m_address;
 	size_t msgSize = 0;
 
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();
+	connection->IncrementRealiableID();
+	uint16_t relID = connection->GetNextRealiableIDToSend();
+	msg->WriteBytes(2, (void*)&relID);
+	msg->m_reliableID = relID;
+
+	msgSize = msg->m_bufferSize - 2;
+	msg->m_currentWritePosition = 0;
+	msg->WriteBytes(2, (char*)&msgSize);
 	return msg;
 }
 
@@ -481,10 +501,17 @@ NetMessage * NetMessage::CreateHangUpMsg(NetConnection *connection)
 NetMessage * NetMessage::CreateObjectCreateMsg(uint8_t objectID,uint8_t networkID)
 {
 	NetMessage *msg = new NetMessage("creates_game_object");
-
+	msg->m_isReliable = true;
 	size_t msgSize = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();
+
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(networkID);
+	connection->IncrementRealiableID();
+	uint16_t relID = connection->GetNextRealiableIDToSend();
+	msg->WriteBytes(2, (void*)&relID);
+	msg->m_reliableID = relID;
+
 
 	msg->WriteBytes(1, (void *)&objectID);
 	msg->WriteBytes(1, (void *)&networkID);

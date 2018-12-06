@@ -43,6 +43,8 @@ public:
 	void					 CreateAndPushNetObjectViews(NetObject *netObject);
 	void					 RemoveNetObjectViews(NetObject *netObject);
 	void					 DestroyNetObject(NetObject *netObject);
+
+	bool					 DoesObjectExist(uint8_t id);
 	
 	//Static_Methods
 
