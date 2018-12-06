@@ -703,7 +703,7 @@ void NetSession::DestroyConnection(NetConnection *connection)
 	}*/
 
 	uint8_t connectionIndex = connection->m_index;
-	NetMessage *msg = NetMessage::CreateObjectDestroyMsg(NETOBJ_PLAYER, connectionIndex);
+	NetMessage *msg = NetMessage::CreateObjectDestroyMsg(NETOBJ_PLAYER, connectionIndex,connectionIndex);
 	m_leave.Trigger(connection);
 	if (m_hostConnection->IsHost())
 	{
@@ -981,7 +981,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 		recvdPacket.ReadBytes(&cmdIndex, 1);
 		if(cmdIndex >=0 && cmdIndex < m_netMessageCmdDefinition.size())
 		{
-			DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
+			//DevConsole::GetInstance()->PushToOutputText(m_netMessageCmdDefinition.at(cmdIndex).m_name +" MSG RECEVIED FROM " + netAddress.GetIP() + ":" + ToString(netAddress.m_port)+" SIZE "+ToString(static_cast<int>(size)),Rgba::RED,true);
 			NetMessage *netmsg = new NetMessage(GetMsgName(static_cast<int>(cmdIndex)));
 			netmsg->m_packetHeader = header;
 			netmsg->WriteBytes(msgSize - 1, ((char*)recvdPacket.m_buffer + recvdPacket.m_currentReadPosition));
@@ -1087,7 +1087,7 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 			fromConnection->DoProcessInboundMsgQueue();
 		}
 		
-		
+		DevConsole::GetInstance()->PushToOutputText("RECEIVED MSG "+msg->m_definitionName,Rgba::GREEN);
 		NetMessage *blankMsg = NetMessage::CreateBlankMessage(fromConnection);
 		fromConnection->Append(blankMsg);
 	}
@@ -1591,7 +1591,7 @@ bool OnUpdateConnState(NetMessage &netMsg, NetAddress &netAddress)
 	for(int index = 0;index < NetSession::GetInstance()->m_netObjectSystem->m_netObjects.size();index++)
 	{		
 		NetObject *netObject = NetSession::GetInstance()->m_netObjectSystem->m_netObjects.at(index);
-		NetMessage *msg = NetMessage::CreateObjectCreateMsg(NETOBJ_PLAYER, netObject->m_networkID);
+		NetMessage *msg = NetMessage::CreateObjectCreateMsg(NETOBJ_PLAYER, netObject->m_networkID,connection->m_index);
 		msg->SetAddress(&connection->m_address);
 		connection->Append(msg);
 

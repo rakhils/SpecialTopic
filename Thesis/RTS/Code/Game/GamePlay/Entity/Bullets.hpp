@@ -22,7 +22,7 @@ class Bullets
 
 public:
 	//Member_Variables
-	float				m_lifeTime				= 5;
+	float				m_lifeTime				= 2;
 	float				m_spawnTime				= 0;
 	bool				m_markAsDead			= false;
 	float				m_velocity				= 150.f;

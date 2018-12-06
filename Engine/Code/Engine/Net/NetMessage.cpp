@@ -54,6 +54,7 @@ NetMessage::NetMessage(NetMessage *msg)
 	m_bufferSize			= msg->m_bufferSize;
 	m_bytepackerType		= msg->m_bytepackerType;
 	m_isReliable			= msg->m_isReliable;
+	m_reliableID			= msg->m_reliableID;
 }
 
 // DESTRUCTOR
@@ -498,7 +499,7 @@ NetMessage * NetMessage::CreateHangUpMsg(NetConnection *connection)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetMessage * NetMessage::CreateObjectCreateMsg(uint8_t objectID,uint8_t networkID)
+NetMessage * NetMessage::CreateObjectCreateMsg(uint8_t objectID,uint8_t networkID,uint8_t conID)
 {
 	NetMessage *msg = new NetMessage("creates_game_object");
 	msg->m_isReliable = true;
@@ -506,7 +507,7 @@ NetMessage * NetMessage::CreateObjectCreateMsg(uint8_t objectID,uint8_t networkI
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();
 
-	NetConnection *connection = NetSession::GetInstance()->GetConnection(networkID);
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(conID);
 	connection->IncrementRealiableID();
 	uint16_t relID = connection->GetNextRealiableIDToSend();
 	msg->WriteBytes(2, (void*)&relID);
@@ -544,6 +545,8 @@ NetMessage * NetMessage::CreateObjectUpdateMsg(uint8_t objectType,uint8_t object
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();
 
+
+
 	msg->WriteBytes(1, (void *)&objectType);
 	msg->WriteBytes(1, (void *)&objectID);
 	size_t writePostiion = msg->m_currentWritePosition;
@@ -562,12 +565,19 @@ NetMessage * NetMessage::CreateObjectUpdateMsg(uint8_t objectType,uint8_t object
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NetMessage * NetMessage::CreateObjectDestroyMsg(uint8_t objectType, uint8_t objectID)
+NetMessage * NetMessage::CreateObjectDestroyMsg(uint8_t objectType, uint8_t objectID,uint8_t connID)
 {
 	NetMessage *msg = new NetMessage("destroys_game_object");
 	size_t msgSize = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();
+
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(connID);
+	connection->IncrementRealiableID();
+	uint16_t relID = connection->GetNextRealiableIDToSend();
+	msg->WriteBytes(2, (void*)&relID);
+	msg->m_reliableID = relID;
+
 
 	msg->WriteBytes(1, (void *)&objectType);
 	msg->WriteBytes(1, (void *)&objectID);

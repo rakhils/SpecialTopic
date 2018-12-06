@@ -117,9 +117,9 @@ public:
 	static NetMessage * CreateConnUpdate(NetConnection *connection);
 	static NetMessage * CreateDisconnectUpdateMsg(NetConnection *connection);
 	static NetMessage * CreateHangUpMsg(NetConnection *connection);
-	static NetMessage * CreateObjectCreateMsg (uint8_t objectType, uint8_t objectID);
+	static NetMessage * CreateObjectCreateMsg (uint8_t objectType, uint8_t objectID,uint8_t conID);
 	static NetMessage * CreateObjectUpdateMsg (uint8_t objectType, uint8_t objectID);
-	static NetMessage * CreateObjectDestroyMsg(uint8_t objectType, uint8_t objectID);
+	static NetMessage * CreateObjectDestroyMsg(uint8_t objectType, uint8_t objectID,uint8_t conID);
 
 
 	//static NetMessage * CreateUpdateConnState(NetConnection *connection,EConnectionState state);
