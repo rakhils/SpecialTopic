@@ -70,7 +70,7 @@ public:
 	std::vector<House*>				m_houses;
 	std::vector<TownCenter*>		m_townCenters;
 	std::vector<Resource*>			m_resources;
-
+	long long a = 1;
 	std::vector<Explosion*>			m_explosions;
 
 	std::vector<Entity*>			m_movableEntities;

@@ -225,7 +225,7 @@ void CreateOpenGLWindow(HINSTANCE applicationInstanceHandle, float clientAspect)
 {
 	UNUSED(applicationInstanceHandle);
 	Windows *window = Windows::CreateInstance(APP_NAME, clientAspect);
-	//window->AddHandler(DevConsoleMessageHandler);
+	window->AddHandler(DevConsoleMessageHandler);
 	window->AddHandler(AppMessageHandler);
 }
 

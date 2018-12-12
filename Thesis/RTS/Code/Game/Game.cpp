@@ -931,7 +931,7 @@ void OnConnectionLeave(NetConnection *cp)
 		DevConsole::GetInstance()->PushToOutputText("HOST LEFT ",Rgba::RED);
 		NetSession::GetInstance()->m_hostConnection = nullptr;
 		NetSession::GetInstance()->m_sessionState = SESSION_DISCONNECTED;
-
+		
 		Game::GetInstance()->DestroyAllBullets();
 		Game::GetInstance()->DestroyAllPlayers();
 		//g_isQuitting = true;

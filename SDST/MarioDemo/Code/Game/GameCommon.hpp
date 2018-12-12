@@ -24,12 +24,32 @@ extern Menu*				g_theCurrentMenu;
 extern AudioSystem*			g_audio;
 extern Clock*				g_theGameClock;
 extern int					g_initialMarioCount;
-extern int					g_maxMarioCountedForNextGen;
+extern int					g_maxMarioCountForNextGen;
 extern bool					g_controlMode;
 extern std::string			g_neuralNetFilePath;
 extern std::string			g_marioFitnessFilePath;
+extern float				g_minYValueForDeath;
+
+//NN
+extern float				g_minNeuralNetValueForWalk;
+extern float				g_minNeuralNetValueForJump;
+extern bool					g_isCurrentlyTraining;
+
+//GA
+extern float				g_fitnessJumpFactor;
+extern float				g_fitnessBonusScore;
+
+// INIT
+extern Vector3				g_startPosition;
+
+// MINIMAP
+extern float				g_minimapWidth;
+extern float				g_minmapMarioValue;
+extern float				g_minmapPitValue;
+extern float				g_minmapBrickValue;
 
 extern bool g_isQuitting;
 
+void InitVariables();
 void QuitApp(Command &cmd);
 

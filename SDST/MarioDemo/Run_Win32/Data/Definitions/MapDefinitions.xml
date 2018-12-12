@@ -97,7 +97,7 @@
   <Brick actor ="Pipe"    position="1860,125"  dimension="60,120"/>
   </SpawnActor>
   <SpawnActor>
-    <Brick actor ="Brick" position="1845,75"  dimension="30,30" physics="false" hidden="false"/>
+    <Brick actor ="Brick" position="1845,75"  dimension="30,30" physics="false"/>
   </SpawnActor>
   <SpawnActor>
     <Brick actor ="Brick" position="1845,105"  dimension="30,30" physics="false"/>

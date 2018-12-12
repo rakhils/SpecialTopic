@@ -95,8 +95,8 @@ void Bullets::ApplySnapshot(BulletSnapShot_t *snapShot)
 	m_angle    = m_bulletSnapshot->m_angle;
 	m_primary  = m_bulletSnapshot->m_primary;
 
-	DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - POSITION X = %f , Y = %f ", m_index, m_position.x, m_position.y);
-	DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - ANGLE = %f", m_index, m_angle);
+	/*DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - POSITION X = %f , Y = %f ", m_index, m_position.x, m_position.y);
+	DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - ANGLE = %f", m_index, m_angle);*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

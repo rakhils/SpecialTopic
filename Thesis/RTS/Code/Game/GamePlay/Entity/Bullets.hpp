@@ -25,7 +25,7 @@ public:
 	float				m_lifeTime				= 2;
 	float				m_spawnTime				= 0;
 	bool				m_markAsDead			= false;
-	float				m_velocity				= 150.f;
+	float				m_velocity				= 250.f;
 	uint8_t				m_index;
 
 	Vector2				m_position;

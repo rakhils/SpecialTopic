@@ -64,26 +64,26 @@ void Player::Update(float deltaTime)
 	bool isTurning = false;
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_LEFT_ARROW))
 	{
-		m_localPlayerSnapshot.m_angle += deltaTime * 150;
+		m_localPlayerSnapshot.m_angle += deltaTime * 50;
 		isTurning = true;
 		keyUpdate = true;
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_RIGHT_ARROW))
 	{
-		m_localPlayerSnapshot.m_angle -= deltaTime * 150;
+		m_localPlayerSnapshot.m_angle -= deltaTime * 50;
 		isTurning = true;
 		keyUpdate = true;
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_UP_ARROW) && !isTurning)
 	{
 		Vector2 direction(CosDegrees(m_angle), SinDegrees(m_angle));
-		m_localPlayerSnapshot.m_position += deltaTime * direction * 150;
+		m_localPlayerSnapshot.m_position += deltaTime * direction * 50;
 		keyUpdate = true;
 	}
 	if (InputSystem::GetInstance()->isKeyPressed(InputSystem::GetInstance()->KEYBOARD_DOWN_ARROW) && !isTurning)
 	{
 		Vector2 direction(CosDegrees(m_angle), SinDegrees(m_angle));
-		m_localPlayerSnapshot.m_position -= deltaTime * direction * 150;
+		m_localPlayerSnapshot.m_position -= deltaTime * direction * 50;
 		keyUpdate = true;
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_SPACE))
@@ -195,7 +195,7 @@ void Player::ApplySnapshot(PlayerSnapShot_t *playerSnapshot)
 	{
 		Game::GetInstance()->CreateBullet(Game::GetInstance()->GetUniqueBulletID(), m_position, m_angle);
 	}
-	if(NetSession::GetInstance()->m_hostConnection->IsHost())
+	/*if(NetSession::GetInstance()->m_hostConnection->IsHost())
 	{
 		DebugDraw::GetInstance()->DebugRenderLogf("HOST IDX %d - POSITION X = %f , Y = %f ", m_index, m_position.x, m_position.y);
 		DebugDraw::GetInstance()->DebugRenderLogf("HOST IDX %d - ANGLE = %f", m_index, m_angle);\
@@ -206,7 +206,7 @@ void Player::ApplySnapshot(PlayerSnapShot_t *playerSnapshot)
 		DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - POSITION X = %f , Y = %f ",m_index,m_position.x, m_position.y);
 		DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - ANGLE = %f", m_index,m_angle);
 		DebugDraw::GetInstance()->DebugRenderLogf("CLIENT IDX %d - FIRE COUNT = %f", m_index, m_localPlayerSnapshot.m_primary);
-	}
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

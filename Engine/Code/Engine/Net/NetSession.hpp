@@ -116,9 +116,9 @@ public:
 	uint8_t											m_highestIndex					= 1;											
 	bool											m_initMsgDefinition				= false;
 	int												m_minHeaderSize					= 2;
-	float											m_lossAmount					= 0.2f;
-	float											m_minLatency					= 0.1f;
-	float											m_maxLatency					= 0.11f;
+	float											m_lossAmount					= 0.f;
+	float											m_minLatency					= 0.f;
+	float											m_maxLatency					= 0.f;
 	float											m_sendRate						= 60.f;
 	bool											m_sessionInfoVisible			= false;
 	uint64_t										m_lastRecvdHostTimems = 0;				// this is the time we received from the host + (RTT / 2)

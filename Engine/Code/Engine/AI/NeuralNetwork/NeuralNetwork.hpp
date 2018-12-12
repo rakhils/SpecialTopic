@@ -14,9 +14,9 @@
 
 struct Neuron
 {
-	double				m_value = 0;
-	double				m_sumOfPreviousLayer = 0;
-	int					m_numberOfWeights;
+	double				 m_value = 0;
+	double				 m_sumOfPreviousLayer = 0;
+	int					 m_numberOfWeights;
 	std::vector<double>  m_weights;
 	std::vector<double>  m_oldWeights;
 	Neuron(){}
@@ -45,29 +45,45 @@ struct Neuron
 			m_oldWeights.at(weightIndex) = static_cast<double>(GetRandomFloatInRange(-1, 1));
 		}
 	}
-	
 };
 struct NeuronLayer
 {
-	int m_numberOfNeurons;
+	int					m_numberOfNeurons = 0;
 	std::vector<Neuron> m_neurons;
 	Neuron				m_bias;
+	bool				m_biasEnabled	  = true;
+
 	NeuronLayer(int numberOfNeurons,int numberOfWeights)
 	{
+		InitNeuronsLayer(numberOfNeurons, numberOfWeights, false);
+	}
+
+	NeuronLayer(int numberOfNeurons, int numberOfWeights,bool enableBias)
+	{
+		InitNeuronsLayer(numberOfNeurons, numberOfWeights, enableBias);
+	}
+
+	~NeuronLayer()
+	{
+
+	}
+
+	void InitNeuronsLayer(int numberOfNeurons, int numberOfWeights, bool enableBias)
+	{
 		m_numberOfNeurons = numberOfNeurons;
+		m_biasEnabled = enableBias;
 		m_neurons.reserve(numberOfNeurons);
-		for(int neuronIndex = 0;neuronIndex < m_numberOfNeurons;neuronIndex++)
+		for (int neuronIndex = 0; neuronIndex < m_numberOfNeurons; neuronIndex++)
 		{
 			Neuron neuron(numberOfWeights);
 			m_neurons.push_back(neuron);
 		}
-		m_bias.m_numberOfWeights = numberOfWeights;
-		m_bias.m_value = static_cast<double>(GetRandomFloatInRange(0, 1));
-		m_bias.Init();
-	}
-	~NeuronLayer()
-	{
-
+		if (m_biasEnabled)
+		{
+			m_bias.m_numberOfWeights = numberOfWeights;
+			m_bias.m_value = static_cast<double>(GetRandomFloatInRange(0, 1));
+			m_bias.Init();
+		}
 	}
 	void SetRandomWeights()
 	{
@@ -75,7 +91,10 @@ struct NeuronLayer
 		{
 			m_neurons.at(neuronIndex).SetRandomWeights();
 		}
-		m_bias.SetRandomWeights();
+		if(m_biasEnabled)
+		{
+			m_bias.SetRandomWeights();
+		}
 	}
 };
 class NeuralNetwork
@@ -116,7 +135,7 @@ public:
 	double				 GetFastSigmoidDerivative(double value);
 	double				 GetSigmoidDerivative(double value);
 	double				 GetSigmoidValue(double value);
-	void				 Mutate();
+	void				 Mutate(float mutationRate,float mutationScale);
 	bool				 CopyWeightsTo(NeuralNetwork &copy);
 	void				 CrossOver(NeuralNetwork &second);
 	void				 StoreToFile(const char* filePathname);

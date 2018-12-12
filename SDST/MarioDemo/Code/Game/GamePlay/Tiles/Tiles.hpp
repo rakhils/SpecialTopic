@@ -18,6 +18,6 @@ public:
 	SpriteSheet *spriteSheet;
 	Tiles(std::string type);
 	
-	void render();
-	void updateTileCoords(int x,int y);
+	void Render();
+	void UpdateTileCoords(int x,int y);
 };

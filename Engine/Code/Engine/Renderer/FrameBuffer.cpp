@@ -85,10 +85,13 @@ IntVector2 FrameBuffer::GetDimensions()
 //////////////////////////////////////////////////////////////
 bool FrameBuffer::Finalize()
 {
+	GLCheckError(__FILE__, __LINE__);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, m_handle);
 
 	// keep track of which outputs go to which attachments; 
 	GLenum targets[1];
+	GLCheckError(__FILE__, __LINE__);
 
 	// Bind a color target to an attachment point
 	// and keep track of which locations to to which attachments. 

@@ -1,4 +1,3 @@
-//#include <Windows.h>
 #include "Game/App.hpp"
 #include "Game/Game.hpp"
 #include "Game/GameCommon.hpp"
@@ -8,31 +7,22 @@
 #include "Engine\Renderer\Renderer.hpp"
 #include "Engine\Renderer\Shader.hpp"
 #include "Engine\Debug\DebugDraw.hpp"
-#include "Engine\Net\Net.hpp"
 #include "Engine\EngineSystem.hpp"
 
-#include "Engine/Net/TCP/TCPSocket.hpp"
-#include "Engine/Net/TCP/TCPServer.hpp"
 App::App()
 {
+	//EngineSystem::StartUp();
 	Clock::g_theMasterClock = new Clock();
 	g_theGameClock = new Clock();
-	if(g_controlMode)
-	{
-		g_initialMarioCount = 1;
-	}
+	InitVariables();
 	g_theRenderer = Renderer::GetInstance();
 	g_theInput	  = InputSystem::GetInstance();
 	g_audio		  = AudioSystem::GetInstance();
 	g_theGame	  = Game::GetInstance();
-	EngineSystem::StartUp();
-	Net::StartUp();	
 }
 
 App::~App()
 {
-	Net::ShutDown();
-	//Net::GetAddressExample();
 	delete g_theGame;
 	g_theGame = nullptr;
 
@@ -50,7 +40,6 @@ void App::RunFrame()
 {
 	Clock::g_theMasterClock->BeginFrame();
 	Renderer::GetInstance()->BeginFrame();
-	g_theInput->BeginFrame();
 	//g_audio->BeginFrame();
 	float deltaTime = static_cast<float>(Clock::g_theMasterClock->frame.m_seconds);
 	deltaTime = ClampFloat(deltaTime, 0.f, MAX_DELTA_VALUE);
@@ -58,7 +47,6 @@ void App::RunFrame()
 	Render();
 	//g_audio->EndFrame();
 
-	g_theInput->EndFrame();
 	Renderer::GetInstance()->EndFrame();
 }
 
@@ -66,11 +54,13 @@ void App::RunFrame()
 
 void App::Update(float deltaTime)
 {
-	if(InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_ESCAPE))
+	do
 	{
-		isQuitTriggered = true;
-	}
-	g_theGame->Update(deltaTime);
+		g_theInput->BeginFrame();
+		g_theGame->Update(deltaTime);
+		g_theInput->EndFrame();
+	} while (g_isCurrentlyTraining);
+
 	DebugDraw::Update();
 }
 

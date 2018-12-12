@@ -79,12 +79,12 @@ void NetSession::Update(float deltaTime)
 		if(m_currentClientTimems + localDeltams > m_desiredClientTimems)
 		{
 			localNetworkDelta =  static_cast<uint64_t>( static_cast<float>((1.f - MAX_NET_TIME_DILATION) * static_cast<float>(localDeltams)));
-			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,color,"NEGATIVE");
+			//DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,color,"NEGATIVE");
 		}
 		else if (m_currentClientTimems + localDeltams < m_desiredClientTimems)
 		{
 			localNetworkDelta =  static_cast<uint64_t>( static_cast<float>((1.f + MAX_NET_TIME_DILATION) * static_cast<float>(localDeltams)));
-			DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,color1,"POSITIVE");
+			//DebugDraw::GetInstance()->DebugRenderLogf(deltaTime,color1,"POSITIVE");
 		}
 		m_currentClientTimems += localNetworkDelta;
 	}
@@ -1625,8 +1625,23 @@ bool OnUpdateConnState(NetMessage &netMsg, NetAddress &netAddress)
 
 		//float posX = memccpy()
 
+		if (NetSession::GetInstance()->m_netObjectSystem->m_netObjects.at(index)->m_latestReceivedSnapshot == nullptr)
+		{
+			float x = 200;
+			float y = 200;
+			float angle = 0;
+			float min = 0;
+			updateMsg->WriteBytes(4, &x);
+			updateMsg->WriteBytes(4, &y);
+			updateMsg->WriteBytes(4, &angle);
+			updateMsg->WriteBytes(4, &min);
 
-		updateMsg->WriteBytes(16, NetSession::GetInstance()->m_netObjectSystem->m_netObjects.at(index)->m_latestReceivedSnapshot);
+		}
+		else
+		{
+			updateMsg->WriteBytes(16, NetSession::GetInstance()->m_netObjectSystem->m_netObjects.at(index)->m_latestReceivedSnapshot);
+		}
+		
 		size_t msgSize = updateMsg->m_bufferSize - 2;
 		updateMsg->m_currentWritePosition = 0;
 		updateMsg->WriteBytes(2, (char*)&msgSize);
