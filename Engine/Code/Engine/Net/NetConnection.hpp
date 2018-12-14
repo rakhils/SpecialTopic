@@ -58,6 +58,7 @@ public:
 	std::vector<NetObjectView*> m_netObjectViews;
 
 	std::vector<uint16_t>       m_reliableIDs;
+	std::vector<uint16_t>       m_sentReliableIDs;
 
 	uint16_t					m_highestSentRealiableID = 0;
 	uint16_t					m_highestRecvRealiableID = 0;
@@ -131,7 +132,7 @@ public:
 	bool		 IsMe();
 
 	void		 IncrementSendAck();
-	void		 IncrementRealiableID();
+	void		 IncrementSentRealiableID();
 	// RELIABLE
 	NetMessage * GetUnconfirmedReliableMsg(uint16_t reliableID);
 	bool		 RemoveUnconfirmedReliableMsg(NetMessage *msg);
@@ -140,7 +141,7 @@ public:
 	void		 AddReceivedRealiableID(uint16_t reliableID);
 	bool		 HasReceivedReliableID(uint16_t reliableID);
 
-	uint16_t	 GetNextRealiableIDToSend();
+	uint16_t	 GetNextSentReliableID();
 	uint16_t	 GetOldestUnConfirmedRealiableID();
 
 	// SENDING PART

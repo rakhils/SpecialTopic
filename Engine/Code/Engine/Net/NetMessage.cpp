@@ -5,6 +5,8 @@
 #include "Engine/Core/Time.hpp"
 #include "Engine/Time/Clock.hpp"
 #include "Engine/Debug/DebugDraw.hpp"
+#include "Engine/DevConsole/DevConsole.hpp"
+#include "Engine/Core/StringUtils.hpp"
 // CONSTRUCTOR
 // 0 -> add
 // 1 -> add_response
@@ -144,6 +146,7 @@ uint16_t NetMessage::GetReliableID()
 	uint16_t relID = 0;
 	ReadBytes(&relID, 2);
 	m_reliableID = relID;
+	std::string msgStr = GetBitString();
 	return relID;
 }
 
@@ -286,8 +289,8 @@ NetMessage * NetMessage::CreateReliableTestMessage(NetConnection *connection, in
 	///////////////
 	msg->WriteCommandIndex();
 	std::string bit = msg->GetBitString();
-	connection->IncrementRealiableID();
-	uint16_t relID = connection->GetNextRealiableIDToSend();
+	connection->IncrementSentRealiableID();
+	uint16_t relID = connection->GetNextSentReliableID();
 	bit = msg->GetBitString();
 	msg->WriteBytes(2, (void*)&relID);
 	bit = msg->GetBitString();
@@ -372,8 +375,8 @@ NetMessage * NetMessage::CreateJoinAcceptMsg(NetAddress *address,int indexInt)
 	msg->WriteCommandIndex();
 
 	NetConnection *connection = NetSession::GetInstance()->GetConnection(indexInt);
-	connection->IncrementRealiableID();
-	uint16_t relID = connection->GetNextRealiableIDToSend();
+	connection->IncrementSentRealiableID();
+	uint16_t relID = connection->GetNextSentReliableID();
 	msg->WriteBytes(2, (void*)&relID);
 	msg->m_reliableID = relID;
 
@@ -441,8 +444,8 @@ NetMessage * NetMessage::CreateConnUpdate(NetConnection *connection)
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();
 
-	connection->IncrementRealiableID();
-	uint16_t relID = connection->GetNextRealiableIDToSend();
+	connection->IncrementSentRealiableID();
+	uint16_t relID = connection->GetNextSentReliableID();
 	msg->WriteBytes(2, (void*)&relID);
 	msg->m_reliableID = relID;
 
@@ -511,16 +514,16 @@ NetMessage * NetMessage::CreateObjectCreateMsg(uint8_t objectID,uint8_t networkI
 	msg->WriteCommandIndex();
 
 	NetConnection *connection = NetSession::GetInstance()->GetConnection(conID);
-	connection->IncrementRealiableID();
-	uint16_t relID = connection->GetNextRealiableIDToSend();
+	connection->IncrementSentRealiableID();
+	uint16_t relID = connection->GetNextSentReliableID();
 	msg->WriteBytes(2, (void*)&relID);
 	msg->m_reliableID = relID;
+
+	//DevConsole::GetInstance()->PushToOutputText("CREATE MSG REL ID" + ToString(relID),Rgba::GREEN);
 
 
 	msg->WriteBytes(1, (void *)&objectID);
 	msg->WriteBytes(1, (void *)&networkID);
-	Rgba color = Rgba::GetRandomColor();
-	msg->WriteColor(color);
 	size_t writePostiion = msg->m_currentWritePosition;
 
 	msg->m_currentWritePosition = 0;
@@ -570,18 +573,20 @@ NetMessage * NetMessage::CreateObjectUpdateMsg(uint8_t objectType,uint8_t object
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 NetMessage * NetMessage::CreateObjectDestroyMsg(uint8_t objectType, uint8_t objectID,uint8_t connID)
 {
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	NetMessage *msg = new NetMessage("destroys_game_object");
+	msg->m_isReliable = true;
 	size_t msgSize = 0;
 	msg->WriteBytes(2, (char*)&msgSize);
 	msg->WriteCommandIndex();
 
 	NetConnection *connection = NetSession::GetInstance()->GetConnection(connID);
-	connection->IncrementRealiableID();
-	uint16_t relID = connection->GetNextRealiableIDToSend();
+	connection->IncrementSentRealiableID();
+	uint16_t relID = connection->GetNextSentReliableID();
 	msg->WriteBytes(2, (void*)&relID);
 	msg->m_reliableID = relID;
 
-
+	//DevConsole::GetInstance()->PushToOutputText("DESTROY MSG REL ID" + ToString(relID),Rgba::GREEN);
 	msg->WriteBytes(1, (void *)&objectType);
 	msg->WriteBytes(1, (void *)&objectID);
 

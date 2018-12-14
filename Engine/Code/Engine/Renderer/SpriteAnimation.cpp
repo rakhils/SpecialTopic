@@ -37,18 +37,14 @@ void SpriteAnimation::Update(float deltaSeconds)
 
 AABB2 SpriteAnimation::GetCurrentTexCoords() const
 {
-	int size = static_cast<int>(m_spriteIndexes.size());
-	int currentIndex = static_cast<int>((m_elapsedSeconds/m_durationSeconds*static_cast<float>(size)));
-	if(currentIndex > m_spriteIndexes.size())
-	{
-		currentIndex = 0;
-	}
-	if(currentIndex >= m_spriteIndexes.size())
-	{
-		currentIndex = 0;
-	}
 
-	return m_spriteSheet->GetTexCoordsForSpriteIndex(m_spriteIndexes.at(currentIndex));
+	int size = static_cast<int>(m_spriteEndIndex - m_spriteStartIndex);
+	int currentIndex = static_cast<int>((m_elapsedSeconds / m_durationSeconds * static_cast<float>(size)));
+	if (currentIndex >= (m_spriteEndIndex - m_spriteStartIndex))
+	{
+		currentIndex = 0;
+	}
+	return m_spriteSheet->GetTexCoordsForSpriteIndex((currentIndex));
 }
 
 void SpriteAnimation::Pause()

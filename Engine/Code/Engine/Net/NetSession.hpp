@@ -88,11 +88,13 @@ enum ESessionState
 	SESSION_CONNECTED
 };
 #define MAX_CONN_ID_LENGTH 16
-#define DEFAULT_CONNECTION_TIMEOUT 5
+#define DEFAULT_CONNECTION_TIMEOUT 5000
 #define MAX_NET_TIME_DILATION (0.1f)
 
-#define NETOBJ_PLAYER 	(10)
-#define NETOBJ_BULLET 	(11)
+#define NETOBJ_PLAYER 		(10)
+#define NETOBJ_BULLET 		(11)
+#define NETOBJ_EXPLOSION 	(12)
+
 
 class NetObjectSystem;
 class NetSession

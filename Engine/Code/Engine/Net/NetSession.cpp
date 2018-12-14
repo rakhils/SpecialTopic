@@ -1011,7 +1011,7 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 			retmsgs.push_back(netmsg);
 			std::string pack = recvdPacket.GetBitString();
 			std::string msgD = netmsg->GetBitString();
-			//int a = 1;
+			int a = 1;
 		}
 		else
 		{
@@ -1033,7 +1033,7 @@ void NetSession::ProcessMsgs(std::vector<NetMessage *> netmsg,NetAddress *fromAd
 	float currSec = static_cast<float>(GetCurrentTimeSeconds());
 	for (int msgIndex = 0; msgIndex < netmsg.size(); msgIndex++)
 	{
-		netmsg.at(msgIndex)->m_lag = currSec + GetRandomFloatInRange(m_minLatency, m_maxLatency);
+		netmsg.at(msgIndex)->m_lag     = currSec + GetRandomFloatInRange(m_minLatency, m_maxLatency);
 		netmsg.at(msgIndex)->m_address = new NetAddress(*fromAddress);
 	}
 
@@ -1088,7 +1088,7 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 		fromConnection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds;// -fromConnection->m_startTime;
 		fromConnection->m_lastReceivedAck = header.m_ack;
 	}
-	if(msg->m_definitionName == "join_accept")
+	if(msg->m_definitionName == "creates_game_object")
 	{
 		int a = 1;
 	}
@@ -1103,7 +1103,6 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 			fromConnection->DoProcessInboundMsgQueue();
 		}
 		
-		DevConsole::GetInstance()->PushToOutputText("RECEIVED MSG "+msg->m_definitionName,Rgba::GREEN);
 		NetMessage *blankMsg = NetMessage::CreateBlankMessage(fromConnection);
 		fromConnection->Append(blankMsg);
 	}
@@ -1117,6 +1116,7 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 	fromConnection = GetConnection(fromAddr);
 	if(fromConnection != nullptr && header.m_lastReceivedAck != INVALID_PACKET_ACK)
 	{
+		//DevConsole::GetInstance()->PushToOutputText("### CONFIRMING PACKET RECV"+ToString(header.m_lastReceivedAck),Rgba::GREEN);
 		fromConnection->UpdateAckStatus(fromAddr, header.m_lastReceivedAck);
 		fromConnection->ConfirmPacketReceived(header.m_lastReceivedAck);
 	}
@@ -1613,14 +1613,21 @@ bool OnUpdateConnState(NetMessage &netMsg, NetAddress &netAddress)
 	}
 	connection->m_connectionState = CONNECTION_READY;
 
+	// SENDING ALL ALREADY EXISTING NET OBJECTS
 	for(int index = 0;index < NetSession::GetInstance()->m_netObjectSystem->m_netObjects.size();index++)
 	{		
 		NetObject *netObject = NetSession::GetInstance()->m_netObjectSystem->m_netObjects.at(index);
 		NetMessage *msg = NetMessage::CreateObjectCreateMsg(NETOBJ_PLAYER, netObject->m_networkID,connection->m_index);
+		msg->WriteBytes(12, NetSession::GetInstance()->m_netObjectSystem->m_netObjects.at(index)->m_latestReceivedSnapshot);
+
+		size_t msgSize = msg->m_bufferSize - 2;
+		msg->m_currentWritePosition = 0;
+		msg->WriteBytes(2, (char*)&msgSize);
+
 		msg->SetAddress(&connection->m_address);
 		connection->Append(msg);
-
-		NetMessage *updateMsg = NetMessage::CreateObjectUpdateMsg(NETOBJ_PLAYER, netObject->m_networkID);
+		
+		/*NetMessage *updateMsg = NetMessage::CreateObjectUpdateMsg(NETOBJ_PLAYER, netObject->m_networkID);
 		updateMsg->m_address = &connection->m_address;
 
 		//float posX = memccpy()
@@ -1645,7 +1652,7 @@ bool OnUpdateConnState(NetMessage &netMsg, NetAddress &netAddress)
 		size_t msgSize = updateMsg->m_bufferSize - 2;
 		updateMsg->m_currentWritePosition = 0;
 		updateMsg->WriteBytes(2, (char*)&msgSize);
-		connection->Append(updateMsg);
+		connection->Append(updateMsg);*/
 
 	}
 	NetSession::GetInstance()->m_join.Trigger(connection);

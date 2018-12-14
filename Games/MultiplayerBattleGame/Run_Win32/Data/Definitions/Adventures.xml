@@ -1,0 +1,48 @@
+<AdventureDefinitions>
+
+  <AdventureDefinition name="Balrog" title="Kill the Balrog">
+    <StartConditions startMap="The Village" startOnTileType="StoneFloor"/>
+    <VictoryConditions haveDied="Balrog"/>
+    <Map name="The Village" mapDefinition="Village">
+      <Portal type="StairsDown" onTileType="Grass" toMap="The Cellar"
+                  toTileType="StoneFloor" reciprocalType="StairsUp"/>
+      <Actor type="Balrog" onTileType="Grass"/>
+    </Map>
+    <Map name="The Cellar" mapDefinition="Cellar">
+      <Portal type="StairsDown" onTileType="Grass" toMap ="Upper Crypt" reciprocalType="StairsUp"/>
+    </Map>
+    <Map name="Upper Crypt" mapDefinition="Crypt">
+      <Portal type="StairsDown" onTileType="Grass" toMap="Lower Crypt" reciprocalType="StairsUp"/>
+    </Map>
+    <Map name="Lower Crypt" mapDefinition="Crypt">
+      <Portal type="TeleportVortex" toMap="Temple of Evil" reciprocalType="TeleportVortex"/>
+    </Map>
+    <Map name="Temple of Evil" mapDefinition="DungeonTemple">
+      
+    </Map>
+  </AdventureDefinition>
+
+
+  <AdventureDefinition name="Balrog1" title="Kill the Balrog">
+    <StartConditions startMap="The Cellar" startOnTileType="StoneFloor"/>
+    <VictoryConditions haveDied="Balrog"/>
+    <Map name="The Village" mapDefinition="Village">
+      <Portal type="StairsDown" onTileType="Grass" toMap="The Cellar"
+                  toTileType="StoneFloor" reciprocalType="StairsUp"/>
+      <Actor type="Balrog" onTileType="StoneFloor"/>
+    </Map>
+    <Map name="The Cellar" mapDefinition="Cellar">
+      <Portal type="StairsDown" onTileType="Grass" toMap ="Upper Crypt" reciprocalType="StairsUp"/>
+    </Map>
+    <Map name="Upper Crypt" mapDefinition="Crypt">
+      <Portal type="StairsDown" onTileType="Grass" toMap="Lower Crypt" reciprocalType="StairsUp"/>
+    </Map>
+    <Map name="Lower Crypt" mapDefinition="Crypt">
+      <Portal type="TeleportVortex" toMap="Temple of Evil" reciprocalType="TeleportVortex"/>
+    </Map>
+    <Map name="Temple of Evil" mapDefinition="DungeonTemple">
+
+    </Map>
+  </AdventureDefinition>
+
+</AdventureDefinitions>

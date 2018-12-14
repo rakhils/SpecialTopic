@@ -25,10 +25,10 @@ void NetObjectSystem::SyncObject(uint8_t objType, void *localPtr)
 {
 	NetObjectType type = FindByID(objType);
 
-	NetObject *netObject = new NetObject();
-	netObject->m_networkID = m_nextNetworkID;
-	netObject->m_netObjectType = type;
-	netObject->m_localSnapShotPointer = localPtr;
+	NetObject *netObject				= new NetObject();
+	netObject->m_networkID				= m_nextNetworkID;
+	netObject->m_netObjectType			= type;
+	netObject->m_localSnapShotPointer   = localPtr;
 
 	m_netObjectMap[m_nextNetworkID] = netObject;
 	m_netObjects.push_back(netObject);
