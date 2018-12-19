@@ -64,9 +64,10 @@ public:
 	void	SetPausedState(bool paused);
 	void	SetScale(float scale);
 
-	//Static_Methods
 	void    ClockSystemStartUp();
 	double  GetMasterDeltaTime();
+	//Static_Methods
+	static Clock* GetMasterClock() { return g_theMasterClock; }
 
 protected:
 	//Member_Variables

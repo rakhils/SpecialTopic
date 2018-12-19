@@ -12,7 +12,8 @@
 * \date   : 2/24/2018 4:30:30 PM
 * \contact: srsrakhil@gmail.com
 */
-struct MiniMapObject
+
+struct MiniMapObj
 {
 	Rgba  m_color;
 	float m_value;
@@ -36,46 +37,38 @@ class Mario : public Entity
 
 public:
 	//Member_Variables
-	Map*					    m_map						= nullptr;
-	int							m_numOfJumps				= 0;
-	float						m_fitness					= 0.f;
+	Map*					    m_map								= nullptr;
+	int							m_numOfJumps						= 0;
+	float						m_fitness							= 0.f;
 	Vector2						m_lastKnownPosition;
-	float						m_timeElapsedAfterKnownLocation = 0.f;
-	int							m_framesOnJump				= 0;
-	CharacterType				m_currentCharacter			= SmallMario;
-	Action						m_currentAction				= IDLE;
+	float						m_timeElapsedInLastKnownLocation    = 0.f;
 	DeathType					m_deathType;
-	bool						m_hasReachedMaxHeight		= false;
-	float						m_maxJumpForce				= 0.3f;
-	float						m_currentJumpForce			= 0;
-	float						m_minVelocityForIdle		= 0.5;
-	float						m_movementForce				= 1.5;
-	float						m_jumpForce					= 3;
-	std::string					m_characterTypeString		= "SmallMario";
-	NeuralNetwork				*m_neuralNet = nullptr;
+	float						m_maxJumpForce						= 0.1f;
+	float						m_currentJumpForce					= 0;
+	std::string					m_characterTypeString				= "SmallMario";
+	NeuralNetwork				*m_neuralNet						= nullptr;
 	Vector2						m_miniMapPosition;
 	AABB2					    m_minimapAABB;
-	std::vector<MiniMapObject>  m_minimapObjs;
+	std::vector<MiniMapObj>   m_minimapObjs;
 	AABB2					    m_minimapLastPosAABB;
-	std::vector<MiniMapObject>  m_minimapLastPos;
-	int							m_minimapWidth  = 10;
-	int							m_minimapHeight = 10;
-	bool					    m_isDead					= false;
-	bool						m_isJumping					= false;
-	float						m_maxJumpFrames				= 0.5f;
-	float						m_jumpTime					= 0.f;
-	double						m_lastDeadTime = 0.0;
+	std::vector<MiniMapObj>   m_minimapLastPos;
+	int							m_minimapPixelWidth						= 10;
+	int							m_minimapPixelHeight						= 10;
+	bool					    m_isDead							= false;
+	bool						m_isJumping							= false;
+	float						m_maxJumpFrames						= 0.5f;
+	float						m_jumpTime							= 0.f;
+	double						m_lastDeadTime						= 0.0;
 
 	bool						m_isGrounded = false;
 	bool						m_isPushed	 = false;
 	float						m_upVelocity;
-	float						m_sideVelocity	= 0.f;
-	float						m_sideImpulse = 6.f;
-	float						m_friction = 0.f;
-	float						m_upImpulseValue = 9.5f;
-	float						m_gravity        = -0.35;
-	Vector3						m_lastSetPos;
-	bool						m_isCompleted    = false;
+	float						m_horizontalVelocity						= 0.f;
+	float						m_sideImpulse						= 305.f;
+	float						m_upImpulseValue					= 1000.f;
+	float						m_gravity							= -9.8f;
+	//Vector3						m_lastKnownPosition;
+	bool						m_isLevelCompleted					= false;
 	//Static_Member_Variables
 
 	//Methods
@@ -85,12 +78,13 @@ public:
 	~Mario();
 	//MINIMAP
 	void				InitMiniMap();
-	void				SetMiniMapValues(std::vector<MiniMapObject> &m_minimap, IntVector2 pos, Rgba color);
+	void				SetMiniMapValues(std::vector<MiniMapObj> &m_minimap, IntVector2 pos, Rgba color);
 	std::vector<float>& GetInputsFromMiniMap();
 	void				UpdateMiniMap(float deltaTime);
 	//
 	void				Update(float deltaTime);
 	void				UpdateNN(float deltaTime);
+	void				UpdateAIBotInputs(float deltaTime);
 	void				UpdateGravity(float deltaTime);
 	void				UpdateVelocity(float deltaTime);
 	void				SetPosition(Vector3 positon);
@@ -98,7 +92,6 @@ public:
 	void				ResetPosition();
 	bool				IsJumping();
 	void				UpdateJump(float deltaTime, float force);
-	void				ProcessInput(float deltaTime);
 	void				ResetWeight();
 	void				WalkWest(float deltaTime);
 	void				WalkEast(float deltaTIme);
@@ -113,7 +106,7 @@ public:
 	void				OnCollisionEnter(Collider *collider);
 
 	void				Render();
-	void				RenderMiniMap(AABB2 aabbPos, std::vector<MiniMapObject>& minimap);
+	void				RenderMiniMap(AABB2 aabbPos, std::vector<MiniMapObj>& minimap);
 
 	//Static_Methods
 

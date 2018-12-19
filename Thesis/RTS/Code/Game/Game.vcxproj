@@ -287,6 +287,10 @@
     </ClCompile>
     <ClCompile Include="Game.cpp" />
     <ClCompile Include="GameCommon.cpp" />
+    <ClCompile Include="GamePlay\Entity\Bullets.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="GamePlay\Entity\Civilian.cpp">
       <SubType>
       </SubType>
@@ -305,6 +309,10 @@
     </ClCompile>
     <ClCompile Include="GamePlay\Entity\Entity.cpp" />
     <ClCompile Include="GamePlay\Entity\House.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Entity\Player.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -384,6 +392,10 @@
     </ClInclude>
     <ClInclude Include="Game.hpp" />
     <ClInclude Include="GameCommon.hpp" />
+    <ClInclude Include="GamePlay\Entity\Bullets.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="GamePlay\Entity\Civilian.hpp">
       <SubType>
       </SubType>
@@ -406,6 +418,10 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="GamePlay\Entity\House.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Entity\Player.hpp">
       <SubType>
       </SubType>
     </ClInclude>

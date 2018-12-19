@@ -146,13 +146,22 @@ void SendCombo(Command &cmd);
 void SendBad(Command &cmd);
 void SendCommandOverUDP(Command &cmd);
 
-// NET SIMULATIONS
-//
-//-`net_sim_lag min_ms max_ms`
-//- `net_sim_loss amount`
+void SetUDPSessionSendRate(Command &cmd);
+void SetUDPConnectionSendRate(Command &cmd);
+void SetUDPSessionLossRate(Command &cmd);
+void SetUDPSessionMinMaxLatency(Command &cmd);
 
-void SetSimulationLag(Command &cmd);
-void SetSimulationLoss(Command &cmd);
+void ListenUDPPort(Command &cmd);
+
+void SetupUDPConnections(Command &cmd);
+void SetupUDPConnectionWithoutPortChangeInRemote(Command &cmd);
+void Host(Command &cmd);
+void AddRemote(Command &cmd);
+void Disconnect(Command &cmd);
+void EraseAllQueues(Command &cmd);
+
+void SendJoinRequest(Command &cmd);
+void DoHost(Command &cmd);
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -481,7 +481,28 @@
     <ClCompile Include="Net\NetPacket.cpp">
       <Filter>General</Filter>
     </ClCompile>
-    <ClCompile Include="System\System.cpp">
+    <ClCompile Include="Net\UDP\PacketTracker.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\Packet.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\NetObjectSystem.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\NetObject.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\NetObjectType.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="System\EventSystem.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\NetObjectConnectionView.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="Net\NetObjectView.cpp">
       <Filter>General</Filter>
     </ClCompile>
   </ItemGroup>
@@ -794,7 +815,14 @@
     <ClInclude Include="Net\NetMessage.hpp" />
     <ClInclude Include="Net\NetConnection.hpp" />
     <ClInclude Include="Net\NetPacket.hpp" />
-    <ClInclude Include="System\System.hpp" />
+    <ClInclude Include="Net\UDP\PacketTracker.hpp" />
+    <ClInclude Include="Net\Packet.hpp" />
+    <ClInclude Include="Net\NetObjectSystem.hpp" />
+    <ClInclude Include="Net\NetObject.hpp" />
+    <ClInclude Include="Net\NetObjectType.hpp" />
+    <ClInclude Include="System\EventSystem.hpp" />
+    <ClInclude Include="Net\NetObjectConnectionView.hpp" />
+    <ClInclude Include="Net\NetObjectView.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

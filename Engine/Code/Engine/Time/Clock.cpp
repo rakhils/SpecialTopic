@@ -97,10 +97,10 @@ void Clock::StepClock(uint64_t elapsed)
 	double elapsed_seconds = PerformanceCounterToSeconds(elapsed);
 	frame.m_seconds = elapsed_seconds;
 	frame.m_hpc = elapsed;
-	frame.m_milliSeconds = (uint64_t)frame.m_seconds * 1000;
+	frame.m_milliSeconds = static_cast<unsigned int>(frame.m_seconds * 1000);
 
-	total.m_seconds += frame.m_seconds;
-	total.m_hpc += frame.m_hpc;
+	total.m_seconds		 += frame.m_seconds;
+	total.m_hpc			 += frame.m_hpc;
 	total.m_milliSeconds += frame.m_milliSeconds;
 	for (size_t index = 0; index < m_children.size(); index++)
 	{

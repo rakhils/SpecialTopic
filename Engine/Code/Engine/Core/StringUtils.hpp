@@ -26,6 +26,7 @@ bool					 IsEqual(std::string str,char *ch);
 
 std::string				 ToString(std::vector<std::string> Strings);
 std::string				 ToString(float value);
+std::string				 ToString(float value,float precision);
 std::string				 ToString(double value);
 std::string				 ToString(bool value);
 std::string				 ToString(int value);
@@ -33,8 +34,12 @@ std::string				 ToString(size_t value);
 std::string				 ToString(Vector2 value);
 std::string				 ToString(Vector3 value);
 std::string				 ToString(Vector4 value);
+std::string				 ToString(uint16_t value);
+std::string				 ToString(uint8_t value);
 std::string				 ToBitString(size_t value);
 std::string				 ToBitString(char value);
+std::string				 ToBitString(uint16_t value);
+std::string				 ToBitString(void *ptr, size_t size);
 
 std::string				 Reverse(std::string str);
 std::string				 TrimString(std::string);

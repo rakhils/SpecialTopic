@@ -529,12 +529,9 @@ Frustum Camera::GetFrustum()
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/02/19
 *@purpose : NIL
-*
 *@param   : NIL
-*
 *@return  : NIL
-*/
-//////////////////////////////////////////////////////////////
+*//////////////////////////////////////////////////////////////
 void Camera::Finalize()
 {
 	m_defaultFrameBuffer->Finalize();
@@ -581,7 +578,7 @@ void Camera::InitCamera()
 	s_uiCamera->SetOrthoProjection(Vector2(0.f, 0.f), Vector2(static_cast<float>(window_width), static_cast<float>(window_height)), -100.f, 100.f);
 	s_uiCamera->m_name = "ui_camera";
 
-	//SetCurrentCamera(GetGamePlayCamera());
+	SetCurrentCamera(GetGamePlayCamera());
 	SetCurrentCamera(GetUICamera());
 	SetCurrentCamera(GetDefaultCamera());
 }

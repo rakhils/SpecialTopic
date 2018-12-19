@@ -6,7 +6,7 @@ Tiles::Tiles(std::string type)
 	m_type = type;
 }
 
-void Tiles::render()
+void Tiles::Render()
 {
 	Texture *m_texture = Texture::CreateOrGetTexture("Data\\Images\\terrain.png");	
 	if(spriteSheet==nullptr)
@@ -31,7 +31,7 @@ void Tiles::render()
 	g_theRenderer->DrawTexturedAABB(aabb2, m_texture, minPosition , maxPosition,tint);
 }
 
-void Tiles::updateTileCoords(int x, int y)
+void Tiles::UpdateTileCoords(int x, int y)
 {
 	/*m_tileCoords.x = x;
 	m_tileCoords.y = y;

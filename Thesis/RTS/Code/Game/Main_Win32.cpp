@@ -26,7 +26,10 @@ bool AppMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t lParam)
 	switch (wmMessageCode)
 	{
 		// App close requested via "X" button, or right-click "Close Window" on task bar, or "Close" from system menu, or Alt-F4
-		// 
+		
+		// TO UPDATE AND RENDER EVEN IF NOT IN FOCUS
+	case WM_NCACTIVATE:
+		return 0;
 	case WM_CLOSE:
 		//case WM_DESTROY:
 	case WM_QUIT:
@@ -107,7 +110,8 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 	UNUSED(lParam);
 	switch (wmMessageCode)
 	{
-
+	case WM_NCACTIVATE:
+		return 0;
 	case WM_CHAR:
 	{
 		unsigned char asKey = (unsigned char)wParam;
@@ -221,7 +225,7 @@ void CreateOpenGLWindow(HINSTANCE applicationInstanceHandle, float clientAspect)
 {
 	UNUSED(applicationInstanceHandle);
 	Windows *window = Windows::CreateInstance(APP_NAME, clientAspect);
-	//window->AddHandler(DevConsoleMessageHandler);
+	window->AddHandler(DevConsoleMessageHandler);
 	window->AddHandler(AppMessageHandler);
 }
 
@@ -234,6 +238,9 @@ void Initialize(HINSTANCE applicationInstanceHandle)
 	InitVariables();
 	g_theRenderer = Renderer::GetInstance();
 	CommandRegister("quit", QuitApp, "QUITS APPLICATION");
+	CommandRegister("net_unreliable_test", UnreliableTest, "TEST UNRELIABLE");
+	CommandRegister("net_reliable_test", ReliableTest, "TEST UNRELIABLE");
+
 	//CommandRegister("udp_star", UDPTestStart, "STARTS TEST UDP ");
 	//CommandRegister("udp_stop", UDPTestStop, "STOPS TEST UDP");
 	//CommandRegister("udp_send", UDPTestSend, "UDP SEND TEST");

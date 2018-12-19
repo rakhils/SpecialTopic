@@ -15,6 +15,7 @@
 #include "Engine/Net/RCS.hpp"
 #include "Engine/Net/UDP/UDPTest.hpp"
 #include "Engine/Net/NetSession.hpp"
+//#include "Engine/Net/UDP/UDPSocket.hpp"
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // CONSTRUCTOR
 Command::Command()
@@ -279,6 +280,22 @@ void CommandStartup()
 	CommandRegister("send_add", SendAdd, "SENDS ADD COMMANDS OVER UDP");
 	CommandRegister("send_combo", SendCombo, "SENDS COMBINATION OF MSGS");
 	CommandRegister("send_bad", SendBad, "SENDS BAD MSG TO A CONNECTION");
+
+	CommandRegister("net_set_session_send_rate", SetUDPSessionSendRate, "SETS UDP SESSION'S SEND RATE");
+	CommandRegister("net_set_connection_send_rate", SetUDPConnectionSendRate, "SETS UDP CONNECTION'S SEND RATE");
+	CommandRegister("net_sim_loss", SetUDPSessionLossRate, "SETS UDP SESSION LOSS RATE");
+	CommandRegister("net_sim_latency", SetUDPSessionMinMaxLatency, "SETS UDP SESSION MIN AND MAX LATENCY");
+
+
+	CommandRegister("setup_udp", SetupUDPConnections, "SETS UP CONNECTION FOR UDP");
+	CommandRegister("add_host",  Host, "ADDS LOCAL CONNECTION TO LCOAL AND REMOTE");
+	CommandRegister("add_remote", AddRemote, "ADDS REMOTE CONNECTION TO LOCAL AND REMOTE");
+	CommandRegister("disconnect", Disconnect, "DISCONNECTS A CONNECTION");
+
+	CommandRegister("listen_udp", ListenUDPPort, "LISTEN NET SESSION IN GIVEN PORT");
+	CommandRegister("erase_queues", EraseAllQueues, "ERASES ALL MSGS IN QUEUES OF GIVEN CONN");
+
+	CommandRegister("send_join", SendJoinRequest, "SENDS JOIN REQUEST");
 }
 
 //////////////////////////////////////////////////////////////
@@ -1233,7 +1250,7 @@ void SendPing(Command &cmd)
 			msgSize = msg.m_bufferSize - 2;
 			msg.WriteBytes(2, (char*)&(msgSize));
 			std::string str = msg.GetBitString();
-			connection->Send(msg);
+			connection->SendImmediately(msg);
 		}
 	}
 }
@@ -1270,7 +1287,7 @@ void SendAdd(Command &cmd)
 			msgSize = msg.m_bufferSize - 2;
 			msg.WriteBytes(2, (char*)&(msgSize));
 			std::string str = msg.GetBitString();
-			connection->Send(msg);
+			connection->SendImmediately(msg);
 		}
 	}
 }
@@ -1307,7 +1324,7 @@ void SendCombo(Command &cmd)
 		}
 		msgs.push_back(netmsg);
 	}
-	connection->Send(connectionIndex,msgs);
+	connection->SendImmediately(connectionIndex,msgs);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1330,7 +1347,7 @@ void SendBad(Command &cmd)
 			NetMessage netmsg("");
 			//int randomSize = GetRandomIntInRange(1, 1000);
 			netmsg.WriteBytes(commandSize, badMsg);
-			connection->Send(netmsg);
+			connection->SendImmediately(netmsg);
 			DevConsole::GetInstance()->PushToOutputText("SENDING BAD MSG TO " +connection->GetIPPortAsString());
 		}
 	}
@@ -1361,7 +1378,6 @@ void SendCommandOverUDP(Command &cmd)
 
 			}
 
-
 			NetMessage msg(netcmd);
 			size_t size = 7;
 			// write temporarily 
@@ -1370,37 +1386,249 @@ void SendCommandOverUDP(Command &cmd)
 			msg.WriteCommandIndex();
 			msg.WriteString("hello");
 			std::string str = msg.GetBitString();
-			connection->Send(msg);
+			connection->SendImmediately(msg);
 		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/15
-*@purpose : Sets net session simulation lag
+/*DATE    : 2018/10/19
+*@purpose : Sets udp session send rate
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SetSimulationLag(Command &cmd)
+void SetUDPSessionSendRate(Command &cmd)
 {
-	float minLag = 0;
-	float maxLag = 0;
-	cmd.GetNextFloat(&minLag);
-	cmd.GetNextFloat(&maxLag);
-	//NetSession::GetInstance()->SetSimulateLatency(minLag, maxLag);
+	//net_set_session_send_rate 20
+	//net_set_connection_send_rate 0 10
+	int sentRate = 0;
+	cmd.GetNextInt(&sentRate);
+	NetSession::GetInstance()->m_sendRate = static_cast<float>(sentRate);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/15
-*@purpose : Sets net sessions loss
+/*DATE    : 2018/10/19
+*@purpose : Sets UDP Connections send rate
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void SetSimulationLoss(Command &cmd)
+void SetUDPConnectionSendRate(Command &cmd)
+{
+	//net_set_connection_send_rate 0 10
+	int connectionIndex = -1;
+	int sendRate		= 0;
+	cmd.GetNextInt(&connectionIndex);
+	cmd.GetNextInt(&sendRate);
+	NetSession::GetInstance()->GetConnection(connectionIndex)->m_sendRate = static_cast<float>(sendRate);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/03
+*@purpose : Sets udp session loss rate
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetUDPSessionLossRate(Command &cmd)
+{
+	float lossAmount = 0;
+	cmd.GetNextFloat(&lossAmount);
+	NetSession::GetInstance()->m_lossAmount = lossAmount;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/05
+*@purpose : Sets min and max latency  udp netsession
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetUDPSessionMinMaxLatency(Command &cmd)
+{
+	float minLatency = 0;
+	float maxLatency = 0;
+	cmd.GetNextFloat(&minLatency);
+	cmd.GetNextFloat(&maxLatency);
+	NetSession::GetInstance()->m_minLatency = minLatency;
+	NetSession::GetInstance()->m_maxLatency = maxLatency;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : Netsession recv port
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ListenUDPPort(Command &cmd)
+{
+	int port = -1;
+	int index = -1;
+	cmd.GetNextInt(&port);
+	cmd.GetNextInt(&index);
+	NetSession::GetInstance()->s_defaultPort = port;
+	NetSession::GetInstance()->RestartInPort(index,port);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetupUDPConnections(Command &cmd)
+{
+	int index = 0;
+	cmd.GetNextInt(&index);
+
+	std::string rcmd = "listen_udp 10085 1";
+	RCS::GetInstance()->SendMsg(index, false, rcmd.c_str());
+	std::string myIp = Net::GetIP();
+	std::string addConnection0 = "add_connection 0 "+myIp+":10084";
+	std::string addConnection1 = "add_connection 1 "+myIp+":10085";
+	
+	RCS::GetInstance()->SendMsg(index, false, addConnection0.c_str());
+	RCS::GetInstance()->SendMsg(index, false, addConnection1.c_str());
+
+	NetSession::GetInstance()->AddConnection(0, myIp, 10084);
+	NetSession::GetInstance()->AddConnection(1, myIp, 10085);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SetupUDPConnectionWithoutPortChangeInRemote(Command &cmd)
+{
+	int index = 0;
+	cmd.GetNextInt(&index);
+
+	std::string addConnection0 = "add_connection 0 192.168.0.123:10084";
+	std::string addConnection1 = "add_connection 1 192.168.0.123:10085";
+	RCS::GetInstance()->SendMsg(index, false, addConnection0.c_str());
+	RCS::GetInstance()->SendMsg(index, false, addConnection1.c_str());
+
+	NetSession::GetInstance()->AddConnection(0, "192.168.0.123", 10084);
+	NetSession::GetInstance()->AddConnection(1, "192.168.0.123", 10085);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/22
+*@purpose : Adds local connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Host(Command &cmd)
 {
 	UNUSED(cmd);
-	//float simLost = 0;
-	//NetSession::GetInstance()->SetSimulateLoss(simLost);
+	int port = 0;
+	cmd.GetNextInt(&port);
+	NetSession::s_defaultPort = port;
+	NetSession::GetInstance()->Host("", static_cast<uint16_t>(port));
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/10/22
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AddRemote(Command &cmd)
+{
+	UNUSED(cmd);
+	std::string addConnection0 = "add_connection 1 192.168.0.123:10085";
+	NetSession::GetInstance()->AddConnection(1,"192.168.0.123",10085);
+	RCS::GetInstance()->SendMsg(0, false, addConnection0.c_str());
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Disconnect(Command &cmd)
+{
+	int index = -1;
+	cmd.GetNextInt(&index);
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(index);
+	if(connection == nullptr)
+	{
+		return;
+	}
+	connection->Disconnect();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/11
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EraseAllQueues(Command &cmd)
+{
+	int connectionIndex = -1;
+	cmd.GetNextInt(&connectionIndex);
+	NetConnection *connection = NetSession::GetInstance()->GetConnection(connectionIndex);
+	for(int index = 0;index < connection->m_unsentReliableMsgs.size();index++)
+	{
+		connection->m_unsentReliableMsgs.erase(connection->m_unsentReliableMsgs.begin() + index, connection->m_unsentReliableMsgs.begin() + index + 1);
+		index--;
+	}
+	for (int index = 0; index < connection->m_unconfirmedReliableMessages.size(); index++)
+	{
+		connection->m_unconfirmedReliableMessages.erase(connection->m_unconfirmedReliableMessages.begin() + index, connection->m_unconfirmedReliableMessages.begin() + index + 1);
+		index--;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/22
+*@purpose : Sends a join request
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void SendJoinRequest(Command &cmd)
+{
+
+	std::string ipaddress = cmd.GetNextString();
+	std::string portStr = "";
+	std::string ip		= "";
+	if(ipaddress == "")
+	{
+		ipaddress = "192.168.0.123";
+		portStr   = "10084";
+	}
+	else
+	{
+		portStr = ipaddress.substr(ipaddress.find(':') + 1, ipaddress.length());
+		ip      = ipaddress.substr(0, ipaddress.find(':'));
+	}
+
+	NetAddress *address = new NetAddress();
+	sockaddr_storage out;
+	int out_addrlen;
+	NetAddress::GetRemoteAddress(address, (sockaddr*)&out, &out_addrlen, ip.c_str(), portStr.c_str());
+	
+	NetConnectionInfo connectionInfo;
+	connectionInfo.m_address = *address;
+
+	NetSession::GetInstance()->Join("", connectionInfo);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void DoHost(Command &cmd)
+{
+	int port = 0;
+	cmd.GetNextInt(&port);
+	NetSession::s_defaultPort = port;
+
+	std::string myIp = Net::GetIP();
+	NetSession::GetInstance()->Host("", static_cast<uint16_t>(port));
 }
 
 /*

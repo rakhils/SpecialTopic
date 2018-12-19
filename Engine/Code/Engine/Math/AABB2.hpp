@@ -20,7 +20,9 @@ public:
 	void AddPaddingToSides( float xPaddingRadius, float yPaddingRadius );
 	void Translate( const Vector2& translation );							// move the box; similar to +=
 	void Translate( float translationX, float translationY );
-	
+	AABB2 Rotate2D(float angle);
+
+
 	bool IsPointInside( float x, float y ) const;							//check if “x,y” within box’s interior?
 	bool IsPointInside( const Vector2& point ) const;						//check if “point” within box’s interior?
 	Vector2 GetDimensions() const;										    // return a Vector2 of ( width, height )

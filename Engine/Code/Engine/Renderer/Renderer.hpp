@@ -237,6 +237,7 @@ public:
 	void			DrawTextOnPoint(char value[], int start, int length, Vector2 pos, float height, Rgba rgba);
 	void			DrawTextOnPoint(char value[], int start, int length, Vector3 pos, float height, Rgba rgba);
 	void			DrawTextOnPoint(std::string str, int start, int length, Vector2 pos, float height, Rgba rgba);
+	void			DrawTextOnPoint(std::string str, Vector2 pos, float height, Rgba rgba);
 	void			DrawTextOn3DPoint(Vector3 position, Vector3 rigthDirection, Vector3 upDirection, std::string stringValue, float heigth, Rgba color);
 	void			DrawTextOnPointWithCR(std::vector<std::string>, Vector2 pos, float height, Rgba rgba);
 	void			DrawTextOnPointWithCR(std::vector<std::string>, Vector2 pos, float height, Rgba rgba, int startIndex);

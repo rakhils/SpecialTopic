@@ -152,12 +152,14 @@ extern Vector3				g_unitStatHUDTaskInfoPosition;
 extern AABB2				g_unitStatHUDFirstButton;
 extern AABB2				g_unitStatHUDSecondButton;
 
-//std::map<EntityType, double> g_minMapValues;
+extern int					g_counter;
 
 void ResetLocalScores();
 void ResetGlobalScores();
 void InitVariables();
 void QuitApp(Command &cmd);
+void UnreliableTest(Command &cmd);
+void ReliableTest(Command &cmd);
 
 
 

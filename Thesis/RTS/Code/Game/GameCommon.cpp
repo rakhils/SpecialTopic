@@ -3,6 +3,7 @@
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Engine/Time/Clock.hpp"
 #include "Engine/Audio/AudioSystem.hpp"
+#include "Game/Game.hpp"
 
 Renderer*			g_theRenderer	= nullptr;
 InputSystem*		g_theInput		= nullptr;
@@ -35,7 +36,7 @@ float				g_mapYOffset;
 // MAIN MENU
 
 float				g_mainMenuStartX = 300.f;
-float				g_mainMenuStartY = 800.f;
+float				g_mainMenuStartY = 500.f;
 
 // GAME PLAY
 
@@ -126,7 +127,6 @@ Vector3				g_unitStatHUDTaskInfoPosition(Vector3::ONE);
 AABB2				g_unitStatHUDFirstButton(Vector2::ONE ,Vector2::ONE);
 AABB2				g_unitStatHUDSecondButton(Vector2::ONE,Vector2::ONE);
 
-
 void ResetLocalScores()
 {
 	g_localMaxScoreTeam1 = -1;
@@ -159,6 +159,7 @@ void ResetGlobalScores()
 	g_globalMaxScoreTownCenter2 = -1;
 }
 
+int					g_counter = 0;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31
 *@purpose : Init all uninitilaized variables
@@ -192,4 +193,37 @@ void QuitApp(Command &cmd)
 {
 	UNUSED(cmd);
 	g_isQuitting = true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Sends set of unrealiable msgs to a connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void UnreliableTest(Command &cmd)
+{
+	int index = -1;
+	int maxCount = 0;
+	cmd.GetNextInt(&index);
+	cmd.GetNextInt(&maxCount);
+	Game::GetInstance()->m_netMsgMaxUnrealiableMsgCount = maxCount;
+	Game::GetInstance()->m_netMsgConnectionIndex = index;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/11/04
+*@purpose : Sends set of unrealiable msgs to a connection
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ReliableTest(Command &cmd)
+{
+	int index = -1;
+	int maxCount = 0;
+	cmd.GetNextInt(&index);
+	cmd.GetNextInt(&maxCount);
+	Game::GetInstance()->m_netMsgMaxUnrealiableMsgCount = maxCount;
+	Game::GetInstance()->m_netMsgConnectionIndex = index;
+	Game::GetInstance()->m_reliableMsg = true;
 }

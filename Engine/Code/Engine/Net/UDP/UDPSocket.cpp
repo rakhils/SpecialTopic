@@ -3,6 +3,8 @@
 UDPSocket::UDPSocket(NetAddress &address)
 {
 	m_address = address;
+	Bind(m_address, 0);
+	SetBlocking(false);
 	//NetAddress *addr = new NetAddress();
 	/*sockaddr_storage out;
 	int out_addrlen;
@@ -24,7 +26,7 @@ UDPSocket::UDPSocket(int port)
 
 UDPSocket::~UDPSocket()
 {
-
+	Close();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

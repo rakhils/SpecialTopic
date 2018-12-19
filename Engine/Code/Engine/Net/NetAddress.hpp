@@ -14,12 +14,13 @@
 * \date   : 8/23/2018 2:14:19 PM
 * \contact: srsrakhil@gmail.com
 */
+
 class NetAddress
 {
 
 public:
 	//Member_Variables
-	int m_address;
+	int m_addressInt;
 	int m_port;
 	//Static_Member_Variables
 
@@ -27,13 +28,16 @@ public:
 
 	NetAddress();
 	NetAddress(char *ip, char* port);
+	NetAddress(const NetAddress& copyFrom);
 	bool operator ==(NetAddress &netaddress);
 	void operator=(const NetAddress &address);
+
 
 	~NetAddress();
 	
 	bool FromSockAddr(sockaddr const *addr);
 	bool ToSockAddr(sockaddr *addr, size_t *out_size);
+	void DoDeepCopy(NetAddress *address);
 
 	//Static_Methods
 	static bool GetBindableAddress(NetAddress *netaddr,int port);

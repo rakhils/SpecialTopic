@@ -1,37 +1,35 @@
 #define WIN32_LEAN_AND_MEAN		// Always #define this before #including <windows.h>	
 #include <cassert>
 #include <crtdbg.h>
-#include "GameCommon.hpp"
-#include "Engine/Time/Clock.hpp"
-#include "App.hpp"
-
-#include "Engine/Renderer/Renderer.hpp"
-#include "Engine/Core/Windows.hpp"
-#include "Engine/DevConsole/Command.hpp"
 #include <stdio.h>
+#include "Engine/EngineSystem.hpp"
+#include "Engine/Renderer/Renderer.hpp"
+#include "Engine/DevConsole/Command.hpp"
+#include "Engine/Core/Windows.hpp"
+#include "Engine/Time/Clock.hpp"
+#include "Game/GameCommon.hpp"
+#include "Game/App.hpp"
+
 //#pragma comment( lib, "opengl32" )	// Link in the OpenGL32.lib static library
 
 #define UNUSED(x) (void)(x);
-//float MAX_DELTA_VALUE = 0.01616f;
-//float MIN_DELTA_VALUE = 0.01216f;
 
-
-constexpr float CLIENT_ASPECT = 1.0f; 
-const char* APP_NAME = "Space Shooter3D";	
+constexpr float CLIENT_ASPECT = 1.0f;
+const char* APP_NAME = "Space Shooter3D";
 App *g_theApp;
 bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t lParam);
-bool AppMessageHandler( unsigned int wmMessageCode, size_t wParam, size_t lParam )
+bool AppMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t lParam)
 {
-	/*if(DevConsole::GetInstance()->IsDevConsoleOpen())
-	{
-	return true;
-	}*/
-	unsigned char keyCode = (unsigned char) wParam;
-	switch( wmMessageCode )
+
+	unsigned char keyCode = (unsigned char)wParam;
+	switch (wmMessageCode)
 	{
 		// App close requested via "X" button, or right-click "Close Window" on task bar, or "Close" from system menu, or Alt-F4
-		// 
-	case WM_CLOSE:	
+
+		// TO UPDATE AND RENDER EVEN IF NOT IN FOCUS
+	case WM_NCACTIVATE:
+		return 0;
+	case WM_CLOSE:
 		//case WM_DESTROY:
 	case WM_QUIT:
 	{
@@ -43,30 +41,30 @@ bool AppMessageHandler( unsigned int wmMessageCode, size_t wParam, size_t lParam
 	break;
 	case WM_CHAR:
 	{
-		unsigned char asKey = (unsigned char) wParam;
+		unsigned char asKey = (unsigned char)wParam;
 		if (asKey == '`') // TILDE
 		{
 			Windows::GetInstance()->RemoveHandler(AppMessageHandler);
 			Windows::GetInstance()->AddHandler(DevConsoleMessageHandler);
-			DevConsole::GetInstance()->m_isActive = true;
+			DevConsole::GetInstance()->Open();
 			DevConsole::GetInstance()->ClearPrediction();
 			IntVector2 dimensions = Windows::GetInstance()->GetDimensions();
-			DevConsole::GetInstance()->UpdateDimensions(Vector2(0,0),Vector2(static_cast<float>(dimensions.x),static_cast<float>(dimensions.y)));
+			DevConsole::GetInstance()->UpdateDimensions(Vector2(0, 0), Vector2(static_cast<float>(dimensions.x), static_cast<float>(dimensions.y)));
 			return false;
 		}
 	}
 	break;
 	case WM_KEYDOWN:
 	{
-		unsigned char asKey = (unsigned char) wParam;
-		g_theInput->onKeyPressed( keyCode );
+		unsigned char asKey = (unsigned char)wParam;
+		g_theInput->onKeyPressed(keyCode);
 		// If ESC, Quit the app
-		if(asKey == VK_ESCAPE) 
+		if (asKey == VK_ESCAPE)
 		{
 			//g_isQuitting = true;
 			//return false;
 		}
-		if(asKey == VK_F10)
+		if (asKey == VK_F10)
 		{
 			g_theGameClock->SetScale(0);
 		}
@@ -75,7 +73,7 @@ bool AppMessageHandler( unsigned int wmMessageCode, size_t wParam, size_t lParam
 	}// Raw physical keyboard "key-was-just-released" event (case-insensitive, not translated)
 	case WM_KEYUP:
 	{
-		g_theInput->onKeyReleased( keyCode );
+		g_theInput->onKeyReleased(keyCode);
 		break;
 	}
 	case WM_LBUTTONDOWN:
@@ -109,13 +107,10 @@ bool AppMessageHandler( unsigned int wmMessageCode, size_t wParam, size_t lParam
 bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t lParam)
 {
 	UNUSED(lParam);
-	/*if(!DevConsole::GetInstance()->IsDevConsoleOpen())
-	{
-	return true;
-	}*/
 	switch (wmMessageCode)
 	{
-
+	case WM_NCACTIVATE:
+		return 0;
 	case WM_CHAR:
 	{
 		unsigned char asKey = (unsigned char)wParam;
@@ -138,12 +133,12 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 			{
 				Windows::GetInstance()->AddHandler(AppMessageHandler);
 				Windows::GetInstance()->RemoveHandler(DevConsoleMessageHandler);
-				DevConsole::GetInstance()->m_isActive = false;
+				DevConsole::GetInstance()->Close();
 			}
 			DevConsole::GetInstance()->ClearInputScreen();
 			return true;
 		}
-		if(asKey == InputSystem::KEYBOARD_ENTER)
+		if (asKey == InputSystem::KEYBOARD_ENTER)
 		{
 			DevConsole::GetInstance()->ResetHistoryIndex();
 			if (DevConsole::GetInstance()->IsPredictionOn())
@@ -151,7 +146,7 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 				DevConsole::GetInstance()->UpdateInputWithEnterKey();
 				return true;
 			}
-			if(!DevConsole::GetInstance()->IsInputAlreadyCleared())
+			if (!DevConsole::GetInstance()->IsInputAlreadyCleared())
 			{
 				DevConsole::GetInstance()->UpdateInputWithEnterKey();
 			}
@@ -165,7 +160,7 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 	case WM_MOUSEWHEEL:
 	{
 		short zDelta = GET_WHEEL_DELTA_WPARAM(wParam);
-		if(zDelta < 0)
+		if (zDelta < 0)
 		{
 			DevConsole::GetInstance()->ScrollOutputUp();
 		}
@@ -178,11 +173,11 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 	case WM_KEYUP:
 	{
 		unsigned char asKey = (unsigned char)wParam;
-		if(asKey == VK_SHIFT)
+		if (asKey == VK_SHIFT)
 		{
 			DevConsole::GetInstance()->SetShiftPressed(false);
 		}
-		if(asKey == VK_CONTROL)
+		if (asKey == VK_CONTROL)
 		{
 			DevConsole::GetInstance()->SetControlPressed(false);
 		}
@@ -195,11 +190,11 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 		{
 			DevConsole::GetInstance()->UpdateInputTextWithLeftKey();
 		}
-		if(asKey == VK_RIGHT)
+		if (asKey == VK_RIGHT)
 		{
 			DevConsole::GetInstance()->UpdateInputTextWithRightKey();
 		}
-		if(asKey == VK_UP)
+		if (asKey == VK_UP)
 		{
 			DevConsole::GetInstance()->UpdateInputTextWithUpKey();
 		}
@@ -207,15 +202,15 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 		{
 			DevConsole::GetInstance()->UpdateInputTextWithDownKey();
 		}
-		if(asKey == VK_DELETE)
+		if (asKey == VK_DELETE)
 		{
 			DevConsole::GetInstance()->UpdateInputTextWithDeleteKey();
 		}
-		if(asKey == VK_SHIFT)
+		if (asKey == VK_SHIFT)
 		{
 			DevConsole::GetInstance()->SetShiftPressed(true);
 		}
-		if(asKey == VK_CONTROL)
+		if (asKey == VK_CONTROL)
 		{
 			DevConsole::GetInstance()->SetControlPressed(true);
 		}
@@ -225,25 +220,28 @@ bool DevConsoleMessageHandler(unsigned int wmMessageCode, size_t wParam, size_t 
 	return true;
 }
 
-void CreateOpenGLWindow( HINSTANCE applicationInstanceHandle, float clientAspect )
+void CreateOpenGLWindow(HINSTANCE applicationInstanceHandle, float clientAspect)
 {
 	UNUSED(applicationInstanceHandle);
-	Windows *window = Windows::CreateInstance( APP_NAME, clientAspect );
+	Windows *window = Windows::CreateInstance(APP_NAME, clientAspect);
 	//window->AddHandler(DevConsoleMessageHandler);
-	window->AddHandler( AppMessageHandler );
+	window->AddHandler(AppMessageHandler);
 }
 
 //-----------------------------------------------------------------------------------------------
-void Initialize( HINSTANCE applicationInstanceHandle )
+void Initialize(HINSTANCE applicationInstanceHandle)
 {
-	CreateOpenGLWindow( applicationInstanceHandle, CLIENT_ASPECT );
+	CreateOpenGLWindow(applicationInstanceHandle, CLIENT_ASPECT);
+	EngineSystem::StartUp();
 	g_theRenderer = Renderer::GetInstance();
-	g_theRenderer->RenderStartup();
-	g_theRenderer->PostStartup();
-	//CommandStartup();
-	CommandRunScript("");
-	CommandRegister("quit",QuitApp,"QUITS APPLICATION");
+	CommandRegister("quit", QuitApp, "QUITS APPLICATION");
 	g_theApp = new App();
+	//InitVariables();
+	
+
+	//CommandRegister("udp_star", UDPTestStart, "STARTS TEST UDP ");
+	//CommandRegister("udp_stop", UDPTestStop, "STOPS TEST UDP");
+	//CommandRegister("udp_send", UDPTestSend, "UDP SEND TEST");
 }
 
 
@@ -251,20 +249,20 @@ void Initialize( HINSTANCE applicationInstanceHandle )
 void Shutdown()
 {
 	// Destroy the global App instance
-	delete g_theApp;			
+	delete g_theApp;
 	g_theApp = nullptr;
 }
 
 
 //-----------------------------------------------------------------------------------------------
-int WINAPI WinMain( HINSTANCE applicationInstanceHandle, HINSTANCE, LPSTR commandLineString, int )
+int WINAPI WinMain(HINSTANCE applicationInstanceHandle, HINSTANCE, LPSTR commandLineString, int)
 {
 
-	UNUSED( commandLineString );
-	Initialize( applicationInstanceHandle );
-	while( !g_theApp->IsReadyToQuit())
+	UNUSED(commandLineString);
+	Initialize(applicationInstanceHandle);
+	while (!g_theApp->IsReadyToQuit())
 	{
-		if(g_isQuitting)
+		if (g_isQuitting)
 		{
 			break;
 		}
@@ -273,5 +271,3 @@ int WINAPI WinMain( HINSTANCE applicationInstanceHandle, HINSTANCE, LPSTR comman
 	Shutdown();
 	return 0;
 }
-
-

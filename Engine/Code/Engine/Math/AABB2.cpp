@@ -1,4 +1,5 @@
 #include "Engine/Math/AABB2.hpp"
+#include "Engine/Math/MathUtil.hpp"
 
 AABB2::AABB2( const AABB2& copy )
 {
@@ -79,6 +80,32 @@ void AABB2::Translate( float translationX, float translationY )
 	this->mins.y += translationY;
 	this->maxs.x += translationX;
 	this->maxs.y += translationY;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/12/12
+*@purpose : Rotates AABB2 along center
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+AABB2 AABB2::Rotate2D(float angle)
+{
+	Vector2 center = GetCenter();
+	Vector2 dimensions = GetDimensions()/2.f;
+	
+	float diagonalHalf = sqrt(dimensions.x * dimensions.x + dimensions.y*dimensions.y);
+
+	float topRightAngle    = 0   + Atan2Degrees(dimensions.y, dimensions.x);
+	float topLeftAngle     = 90  + Atan2Degrees(dimensions.x, dimensions.y);
+	float BottomLeftAngle  = 180 + Atan2Degrees(dimensions.y, dimensions.x);
+	float BottomRightAngle = 270 + Atan2Degrees(dimensions.x, dimensions.y);
+
+	Vector2 topRightPosition    = center + (Vector2(CosDegrees(angle + topRightAngle),    SinDegrees(angle + topRightAngle))    * diagonalHalf);
+	Vector2 topLeftPosition     = center + (Vector2(CosDegrees(angle + topLeftAngle),     SinDegrees(angle + topLeftAngle))     * diagonalHalf);
+	Vector2 BottomLeftPosition  = center + (Vector2(CosDegrees(angle + BottomLeftAngle),  SinDegrees(angle + BottomLeftAngle))  * diagonalHalf);
+	Vector2 BottomRightPosition = center + (Vector2(CosDegrees(angle + BottomRightAngle), SinDegrees(angle + BottomRightAngle)) * diagonalHalf);
+
+	return AABB2(BottomLeftPosition, topRightPosition);
 }
 
 bool AABB2::IsPointInside( float x, float y ) const // is “x,y” within box’s interior?

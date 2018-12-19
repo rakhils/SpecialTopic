@@ -518,7 +518,7 @@ void RCS::PushNewConnection(TCPSocket *socket)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 TCPSocket * RCS::GetConnectionByIndex(int index)
 {
-	if(m_tcpSocketArray.size() < index)
+	if(m_tcpSocketArray.size() <= index)
 	{
 		return nullptr;
 	}

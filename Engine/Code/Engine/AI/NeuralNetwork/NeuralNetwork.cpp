@@ -107,6 +107,7 @@ void NeuralNetwork::CreateNeuralNetwork(int numberOfInputNeurons, int numberOfHi
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NeuralNetwork::FeedForward(std::vector<double> &inputs)
 {
+	// FEED INPUTS
 	for (int inputIndex = 0; inputIndex < m_inputs->m_neurons.size(); inputIndex++)
 	{
 		if (inputIndex < inputs.size())
@@ -114,7 +115,41 @@ void NeuralNetwork::FeedForward(std::vector<double> &inputs)
 			m_inputs->m_neurons.at(inputIndex).m_value = (inputs.at(inputIndex));
 		}
 	}
-	FeedForwardNN();
+	
+	//FEED FORWARDS FROM INPUT TO HIDDEN
+	for (int hiddenIndex = 0; hiddenIndex < m_hiddenLayers->m_neurons.size(); hiddenIndex++)
+	{
+		double sum = 0;
+		for (int inputIndex = 0; inputIndex < m_inputs->m_neurons.size(); inputIndex++)
+		{
+			sum += (m_inputs->m_neurons.at(inputIndex).m_value) * (m_inputs->m_neurons.at(inputIndex).m_weights.at(hiddenIndex));
+		}
+		// ADD BIAS
+		if(m_inputs->m_biasEnabled)
+		{
+			sum += m_inputs->m_bias.m_value * m_inputs->m_bias.m_weights.at(hiddenIndex);
+		}
+
+		m_hiddenLayers->m_neurons.at(hiddenIndex).m_sumOfPreviousLayer = sum;
+		m_hiddenLayers->m_neurons.at(hiddenIndex).m_value = GetActivationValue(sum);
+	}
+
+	//FEED FORWARDS FROM HIDDEN TO OUTPUT
+	for (int outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
+	{
+		double sum = 0;
+		for (int hiddenIndex = 0; hiddenIndex < m_hiddenLayers->m_neurons.size(); hiddenIndex++)
+		{
+			sum += (m_hiddenLayers->m_neurons.at(hiddenIndex).m_value) * (m_hiddenLayers->m_neurons.at(hiddenIndex).m_weights.at(outputIndex));
+		}
+		// ADD BIAS
+		if(m_hiddenLayers->m_biasEnabled)
+		{
+			sum += m_hiddenLayers->m_bias.m_value * m_hiddenLayers->m_bias.m_weights.at(outputIndex);
+		}
+		m_outputs->m_neurons.at(outputIndex).m_sumOfPreviousLayer = sum;
+		m_outputs->m_neurons.at(outputIndex).m_value = GetActivationValue(sum);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -684,7 +719,6 @@ void NeuralNetwork::GetOutputs()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NeuralNetwork::FeedForwardNN()
 {
-	// OBSOLETE
 	for (int hiddenIndex = 0; hiddenIndex < m_hiddenLayers->m_neurons.size(); hiddenIndex++)
 	{
 		double sum = 0;
@@ -775,15 +809,19 @@ double NeuralNetwork::GetSigmoidDerivative(double value)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void NeuralNetwork::Mutate()
+void NeuralNetwork::Mutate(float mutationRate,float mutationScale)
 {
+	if(mutationScale <= 0)
+	{
+		return;
+	}
 	for(int inputNeuronIndex = 0;inputNeuronIndex < m_inputs->m_neurons.size();inputNeuronIndex++)
 	{
 		for(int inputNeuronWeightIndex = 0;inputNeuronWeightIndex < m_inputs->m_neurons.at(inputNeuronIndex).m_weights.size();inputNeuronWeightIndex++)
 		{
-			if(GetRandomFloatZeroToOne() < 0.25)
+			if(GetRandomFloatZeroToOne() < mutationRate)
 			{
-				double random = static_cast<double>(GetRandomFloatInRange(-1, 1)) / 20;
+				double random = static_cast<double>(GetRandomFloatInRange(-1, 1) / mutationScale);
 				double weight = m_inputs->m_neurons.at(inputNeuronIndex).m_weights.at(inputNeuronWeightIndex) + random;
 				weight = ClampDouble(weight, -1, 1);
 				m_inputs->m_neurons.at(inputNeuronIndex).m_weights.at(inputNeuronWeightIndex) = weight;
@@ -794,11 +832,11 @@ void NeuralNetwork::Mutate()
 	{
 		for (int hiddenNeuronWeightIndex = 0; hiddenNeuronWeightIndex < m_hiddenLayers->m_neurons.at(hiddenNeuronIndex).m_weights.size(); hiddenNeuronWeightIndex++)
 		{
-			if (GetRandomFloatZeroToOne() < 0.25)
+			if (GetRandomFloatZeroToOne() < mutationRate)
 			{
-				double random = static_cast<double>(GetRandomFloatInRange(-1, 1)) / 20;
+				double random = static_cast<double>(GetRandomFloatInRange(-1, 1) / mutationScale);
 				double weight = m_hiddenLayers->m_neurons.at(hiddenNeuronIndex).m_weights.at(hiddenNeuronWeightIndex) + random;
-				weight		 = ClampDouble(weight, -1, 1);
+				weight		  = ClampDouble(weight, -1, 1);
 				m_hiddenLayers->m_neurons.at(hiddenNeuronIndex).m_weights.at(hiddenNeuronWeightIndex) = weight;
 			}
 		}
