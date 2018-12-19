@@ -702,6 +702,9 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="System\System.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="System\EventSystem.cpp">
       <SubType>
       </SubType>

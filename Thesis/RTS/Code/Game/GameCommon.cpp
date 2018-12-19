@@ -194,36 +194,3 @@ void QuitApp(Command &cmd)
 	UNUSED(cmd);
 	g_isQuitting = true;
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/04
-*@purpose : Sends set of unrealiable msgs to a connection
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void UnreliableTest(Command &cmd)
-{
-	int index = -1;
-	int maxCount = 0;
-	cmd.GetNextInt(&index);
-	cmd.GetNextInt(&maxCount);
-	Game::GetInstance()->m_netMsgMaxUnrealiableMsgCount = maxCount;
-	Game::GetInstance()->m_netMsgConnectionIndex = index;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/04
-*@purpose : Sends set of unrealiable msgs to a connection
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ReliableTest(Command &cmd)
-{
-	int index = -1;
-	int maxCount = 0;
-	cmd.GetNextInt(&index);
-	cmd.GetNextInt(&maxCount);
-	Game::GetInstance()->m_netMsgMaxUnrealiableMsgCount = maxCount;
-	Game::GetInstance()->m_netMsgConnectionIndex = index;
-	Game::GetInstance()->m_reliableMsg = true;
-}
