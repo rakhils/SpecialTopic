@@ -44,7 +44,6 @@ enum eNetMessageOption
 struct PacketHeader
 {
 	uint8_t  m_connectionindex				= static_cast<uint8_t>(-1);
-	//uint16_t m_reliableID					= static_cast<uint16_t>(0U);
 	uint16_t m_ack							= static_cast<uint16_t>(0U);
 	uint16_t m_lastReceivedAck				= INVALID_PACKET_ACK;
 	uint16_t m_previousReceivedAckBitfield  = static_cast<uint8_t>(0U);

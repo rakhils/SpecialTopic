@@ -189,7 +189,6 @@ size_t NetConnection::SendImmediately(int connectionIndex, std::vector<NetMessag
 		return 0;
 	}
 	NetAddress *address = msgs.at(0)->m_address;
-	//int msgCount = msgs.size();
 	int actualSendCount = 0;
 
 	m_header.m_unrealiableCount			   = static_cast<uint8_t>(1);
@@ -303,11 +302,6 @@ size_t NetConnection::FlushMsgs()
 		size_t sendCount = 0;
 		sendCount += FlushUnConfirmedReliables();
 		sendCount += FlushUnSentRealiables();
-		if (sendCount > 0)
-		{
-			m_lastSendTime = Clock::GetMasterClock()->total.m_seconds;
-			return sendCount;
-		}
 		sendCount += FlushUnrealiables();
 		if(sendCount > 0)
 		{
@@ -341,7 +335,7 @@ size_t NetConnection::FlushUnConfirmedReliables()
 
 		packet.WritePacketHeader();
 
-		if (ShouldSentUnconfirmedReliableMsg(msg))
+		if (CanSentUnconfirmedReliableMsg(msg))
 		{
 			if (packet.WriteMsg(msg))
 			{
@@ -514,10 +508,6 @@ void NetConnection::PushToInboundMsgQueue(NetMessage* msg)
 		return;
 	}
 	m_inboundMsgQueue.push_back(msg);
-	if(m_inboundMsgQueue.size()  > 10)
-	{
-		int a = 1;
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -549,10 +539,6 @@ void NetConnection::DoProcessInboundMsgQueue()
 				//DevConsole::GetInstance()->PushToOutputText(" INBOUND TOTAL SIZE " + ToString(m_inboundMsgQueue.size()), Rgba::RED);
 			}
 		}
-	}
-	if(m_inboundMsgQueue.size() > 0)
-	{
-		int a = 1;
 	}
 }
 
@@ -841,7 +827,7 @@ uint16_t NetConnection::GetNextPacketAck()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool NetConnection::ShouldSentUnconfirmedReliableMsg(NetMessage *msg)
+bool NetConnection::CanSentUnconfirmedReliableMsg(NetMessage *msg)
 {
 	if(msg->m_lastSentTime + 0.01 < static_cast<float>(GetCurrentTimeSeconds()))
 	{

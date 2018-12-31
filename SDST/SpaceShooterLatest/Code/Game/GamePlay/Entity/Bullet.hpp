@@ -27,6 +27,7 @@ public:
 	//Member_Variables
 	int m_index = 0;
 	float m_lifeTime = 6;
+	Light *m_light = nullptr;
 	//Static_Member_Variables
 
 	//Methods

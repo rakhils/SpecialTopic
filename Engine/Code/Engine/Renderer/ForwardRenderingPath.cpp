@@ -54,7 +54,7 @@ ForwardRenderingPath::~ForwardRenderingPath()
 //////////////////////////////////////////////////////////////
 void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 {
-	ProfilerManager::PushProfiler("ForwardRenderingPath::RenderSceneFromCamera");
+	//ProfilerManager::PushProfiler("ForwardRenderingPath::RenderSceneFromCamera");
 
 	Camera::SetCurrentCamera(camera);
 	m_renderer->BeginFrame();
@@ -164,14 +164,14 @@ void ForwardRenderingPath::RenderSceneForCamera(Camera *camera,Scene *scene)
 	{
 		m_renderer->BindMaterial(drawCalls.at(index).m_material);
 		//Shader *shader = Shader::GetCurrentShader();
-		Renderer::GetInstance()->BindTexture(9, m_shadowCamera->m_defaultFrameBuffer->m_depth_stencil_target);
-		Renderer::GetInstance()->BindSampler(9, Sampler::CreateShadowSampler());
+		//Renderer::GetInstance()->BindTexture(9, m_shadowCamera->m_defaultFrameBuffer->m_depth_stencil_target);
+		//Renderer::GetInstance()->BindSampler(9, Sampler::CreateShadowSampler());
 		std::vector<Light*> lights = scene->GetMostContributingLights(8, drawCalls.at(index).m_modelMatrix.GetTVector());
 		Light::BindAllLightsToShader(m_renderer,lights);
 		DrawCall dc = drawCalls.at(index);
 		m_renderer->DrawMesh(dc.m_mesh,dc.m_modelMatrix);
 	}
-	ProfilerManager::PoPProfiler();
+	//ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

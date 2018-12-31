@@ -56,11 +56,6 @@ struct NetMessageDefinition
 		m_options = flag;
 	}
 
-	bool IsReliable()
-	{
-		return true;
-	}
-
 	std::string     m_name;
 	NetMessageCB    m_callback;
 	std::string     m_description;
@@ -123,10 +118,10 @@ public:
 	float											m_maxLatency					= 0.f;
 	float											m_sendRate						= 60.f;
 	bool											m_sessionInfoVisible			= false;
-	uint64_t										m_lastRecvdHostTimems = 0;				// this is the time we received from the host + (RTT / 2)
-	uint64_t										m_desiredClientTimems = 0;				// Time we want the the client to eventually be
-	uint64_t										m_currentClientTimems = 0;				// what the client will actually report return
-	float											m_dtp				   = 0;
+	uint64_t										m_lastRecvdHostTimems			= 0;				// this is the time we received from the host + (RTT / 2)
+	uint64_t										m_desiredClientTimems			= 0;				// Time we want the the client to eventually be
+	uint64_t										m_currentClientTimems			= 0;				// what the client will actually report return
+	float											m_dtp							= 0;
 
 	NetEvents										m_join;
 	NetEvents										m_leave;

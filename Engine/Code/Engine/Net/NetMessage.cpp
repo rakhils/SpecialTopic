@@ -217,8 +217,6 @@ NetMessage * NetMessage::CreateHeartBeatMessage(NetAddress *netaddress)
 	netMsg->m_address = netaddress;
 
 	//NetConnection *connection = NetSession::GetInstance()->GetConnection(netaddress);
-	
-
 	size_t msgSize = 0;
 	// write temporarily 
 	netMsg->WriteBytes(2, (char*)&msgSize);
@@ -518,9 +516,6 @@ NetMessage * NetMessage::CreateObjectCreateMsg(uint8_t objectID,uint8_t networkI
 	uint16_t relID = connection->GetNextSentReliableID();
 	msg->WriteBytes(2, (void*)&relID);
 	msg->m_reliableID = relID;
-
-	//DevConsole::GetInstance()->PushToOutputText("CREATE MSG REL ID" + ToString(relID),Rgba::GREEN);
-
 
 	msg->WriteBytes(1, (void *)&objectID);
 	msg->WriteBytes(1, (void *)&networkID);

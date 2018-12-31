@@ -197,7 +197,6 @@ void NetSession::Host(char const *id, uint16_t port)
 
 	s_defaultPort = static_cast<int>(port);
 	m_hostConnection = new NetConnection(s_defaultPort);
-	//m_hostConnection->BindConnection();
 	m_hostConnection->m_index = 0;
 	m_hostConnection->m_session = this;
 	m_myConnection = m_hostConnection;
@@ -526,7 +525,6 @@ void NetSession::ProcessIncomingMessage()
 
 			std::vector<NetMessage*> netMsgs = ConstructMsgFromData(netAddr, recvd, data);
 			ProcessMsgs(netMsgs, &netAddr);
-			//break;
 		} while (recvd > 0);
 	}
 

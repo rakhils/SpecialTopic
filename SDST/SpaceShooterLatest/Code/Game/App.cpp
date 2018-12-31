@@ -40,11 +40,11 @@ void App::RunFrame()
 	Clock::g_theMasterClock->BeginFrame();
 	g_theRenderer->BeginFrame();
 	g_theInput->BeginFrame();
-	g_audio->BeginFrame();
+	//g_audio->BeginFrame();
 
 	Update(MAX_DELTA_VALUE);
 	Render();
-	g_audio->EndFrame();
+	//g_audio->EndFrame();
 
 	g_theInput->EndFrame();
 	g_theRenderer->EndFrame();
@@ -63,7 +63,7 @@ void App::Render()
 	g_theGame->Render();
 	if (DevConsole::GetInstance()->IsDevConsoleOpen())
 	{
-		DevConsole::GetInstance()->Render(g_theRenderer);
+		//DevConsole::GetInstance()->Render(g_theRenderer);
 	}
 }
 

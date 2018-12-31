@@ -146,7 +146,7 @@ public:
 
 	// SENDING PART
 	uint16_t	 GetNextPacketAck();
-	bool		 ShouldSentUnconfirmedReliableMsg(NetMessage *msg);
+	bool		 CanSentUnconfirmedReliableMsg(NetMessage *msg);
 	void		 ConfirmSentRealiable(uint16_t relID);
 	bool		 CanSendNewReliableMessage(uint16_t nextReliableID);
 

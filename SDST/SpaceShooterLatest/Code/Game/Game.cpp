@@ -92,7 +92,7 @@ void Game::CreateShip()
 	//g_theCamera::GetCurrentCamera() = g_theCamera::GetGamePlayCamera();
 	//m_ship = new Ship();
 	//m_ship->m_renderable->SetMesh(g_theRenderer->CreateOrGetMesh("Data\\Model\\scifi_fighter_mk6.obj"));
-	//m_ship->m_renderable->SetMaterial(Material::CreateOrGetMaterial("Data\\Materials\\ship.mat", g_theRenderer));
+	//m_ship->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\ship.mat", g_theRenderer));
 	//m_ship->m_renderable->m_useLight = true;
 	//m_ship->m_renderable->m_name = "ship";
 	//m_ship->m_transform.RotateLocalByEuler(Vector3(1.f * 0.5f, 0.f, 0.f));
@@ -104,7 +104,7 @@ void Game::CreateShip()
 
 	//Mesh *mesh = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3(0, 0, 0), 1, 15, 15, Rgba::BLUE, FILL_MODE_WIRE);
 	//m_lightObj->m_renderable->SetMesh(mesh);
-	//m_lightObj->m_renderable->SetMaterial(Material::CreateOrGetMaterial("default", g_theRenderer));
+	//m_lightObj->m_renderable->SetMaterial(Material::AquireResource("default", g_theRenderer));
 	//m_lightObj->m_transform.Translate(g_theRenderer->GetCurrentCameraForwardVector());
 	//m_lightObj->m_renderable->m_sortOrder = 0;
 	
@@ -116,7 +116,7 @@ void Game::CreateShip()
 	m_testObject = new GameObject("testobject",m_scene);
 	Mesh *meshtest = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3(0, 0, 0), .10, 15, 15, Rgba::YELLOW, FILL_MODE_WIRE);
 	m_testObject->m_renderable->SetMesh(meshtest);
-	m_testObject->m_renderable->SetMaterial(Material::CreateOrGetMaterial("default"));
+	m_testObject->m_renderable->SetMaterial(Material::AquireResource("default"));
 	m_testObject->AddRigidBody3DComponent();
 	m_testObject->AddSphereCollider(Vector3::ZERO, 10.f);
 	m_testObject->AddLightComponent(Vector3::ZERO, Rgba::RED);
@@ -144,8 +144,8 @@ void Game::CreateShip()
 	m_test1Object->AddBoxCollider2D(Vector3::ZERO, Vector3(2, 50, 50),Vector3(0,0,1));
 	m_test1Object->m_renderable->SetMesh(plane);
 	m_test1Object->m_transform.Translate(Vector3(0, -80, 0));
-	m_test1Object->m_renderable->SetMaterial(Material::CreateOrGetMaterial("default", g_theRenderer));
-	m_test1Object->AddAudioComponent("Data\\Audio\\GameplayMusic.mp3");
+	m_test1Object->m_renderable->SetMaterial(Material::AquireResource("default"));
+	//m_test1Object->AddAudioComponent("Data\\Audio\\GameplayMusic.mp3");
 	m_test1Object->AddParticleComponent(Vector3::ZERO,g_theRenderer);
 
 	m_scene->AddRenderable(m_testObject->m_renderable);
@@ -201,20 +201,20 @@ void Game::Update(float deltaTime)
 	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_A))
 	{
 		Matrix44 worldMatrix = m_testObject->m_transform.GetWorldMatrix();
-		Vector3 rigthDirection  = worldMatrix.GetIAxis();
+		Vector3 rigthDirection  = worldMatrix.GetIVector();
 		m_testObject->m_transform.Translate(rigthDirection*(-1 * deltaTime));
 	}
 
 	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_D))
 	{
 		Matrix44 worldMatrix = m_testObject->m_transform.GetWorldMatrix();
-		Vector3 rigthDirection = worldMatrix.GetIAxis();
+		Vector3 rigthDirection = worldMatrix.GetIVector();
 		m_testObject->m_transform.Translate(rigthDirection*(1 * deltaTime));
 	}
 	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_W))
 	{
 		Matrix44 worldMatrix = m_testObject->m_transform.GetWorldMatrix();
-		Vector3 forwardDirection = worldMatrix.GetKAxis();
+		Vector3 forwardDirection = worldMatrix.GetKVector();
 		m_testObject->m_transform.Translate(forwardDirection*(1 * deltaTime));
 		//LogManager::PushLog("Data//Logs//Sample.txt", "test2\n");
 
@@ -224,7 +224,7 @@ void Game::Update(float deltaTime)
 	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_S))
 	{
 		Matrix44 worldMatrix = m_testObject->m_transform.GetWorldMatrix();
-		Vector3 forwardDirection = worldMatrix.GetKAxis();
+		Vector3 forwardDirection = worldMatrix.GetKVector();
 		m_testObject->m_transform.Translate(forwardDirection*(-1 * deltaTime));
 	}
 	if (g_theInput->isKeyPressed(InputSystem::KEYBOARD_A))
@@ -292,16 +292,16 @@ void Game::Render()
 	Transform transformTemp;
 	transformTemp.SetLocalPosition(Vector3(0, 0, 0));
 	renderable->m_modelMatrix = transformTemp.GetLocalMatrix();
-	renderable->SetMaterial(Material::CreateOrGetMaterial("default",g_theRenderer));
+	renderable->SetMaterial(Material::AquireResource("default"));
 	m_scene->AddRenderable(renderable);
 	GL_CHECK_ERROR();
 
-	Material *material1 = Material::CreateOrGetMaterial("Data//Materials//default_light.mat");
+	Material *material1 = Material::AquireResource("Data//Materials//default_light.mat");
 
 	Material *material2 = Material::AquireResource("Data//Materials//default_light.mat");
 	Material *material3 = Material::AquireResource("Data//Materials//default_light.mat");
 	material1->SetProperty("TINT1", Vector4(0, 0, 0, 1));
-	Material *material4 = Material::CreateOrGetMaterial("Data//Materials//default_light.mat", g_theRenderer);
+	Material *material4 = Material::AquireResource("Data//Materials//default_light.mat");
 	float x = 10;
 	Vector2 k(1, 1);
 	Vector2 j = x * k;
@@ -424,7 +424,7 @@ void Game::CreateBullet(Vector3 position, Vector3 forward,bool isEnemy)
 	if(bullet-> m_light != nullptr)
 	{
 		bullet->m_light->SetPointLightColor(Rgba::FADED_RED.GetAsFloats());
-		bullet->m_light->SetPointLightDirection(bullet->m_forward);
+		bullet->m_light->SetLightDirection(bullet->m_forward);
 		bullet->m_light->SetPointLightAttenutaion(Vector3(1, 0, 0));
 		bullet->m_light->SetPointLigthSpecAttenuation(Vector3(1, 0, 0));
 		bullet->m_light->SetPointLightAttenutaion(Vector3(1, 0, 0));
@@ -432,7 +432,7 @@ void Game::CreateBullet(Vector3 position, Vector3 forward,bool isEnemy)
 	}
 	bullet->m_forward = forward;
 	//bullet->m_velocity = forward*10;
-	bullet->m_renderable->SetMaterial(Material::CreateOrGetMaterial("default", g_theRenderer));
+	bullet->m_renderable->SetMaterial(Material::AquireResource("default"));
 	//Mesh *mesh = MeshBuilder::CreateUVSpehere<Vertex_3DPCUNTB>(Vector3(0, 0, 0), 0.5f, 10, 10, Rgba::RED, FILL_MODE_FILL);
 	//bullet->m_renderable->SetMesh(mesh);
 	bullet->m_renderable->m_name = "bullet";
@@ -464,7 +464,7 @@ void Game::CreateAsteroid(Vector3 position, Vector3 forward,float radius)
 	asteroid->m_name = "asteroid";
 	asteroid->m_renderable->m_name = "asteroid";
 	//asteroid->m_velocity = forward*0.25;
-	asteroid->m_renderable->SetMaterial(Material::CreateOrGetMaterial("Data\\Materials\\Asteroids.mat", g_theRenderer));
+	asteroid->m_renderable->SetMaterial(Material::AquireResource("Data\\Materials\\Asteroids.mat"));
 	asteroid->m_radius = radius;
 	asteroid->m_health = static_cast<float>(radius);
 	Mesh *mesh = MeshBuilder::CreateDistortedUVSpehere<Vertex_3DPCUNTB>(Vector3(0, 0, 0), radius, 32, 16,radius/8, Rgba::WHITE, FILL_MODE_FILL);
