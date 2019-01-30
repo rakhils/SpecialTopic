@@ -32,7 +32,7 @@ ClassAWarrior::ClassAWarrior(Map *map,Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_MOVEY);
 	InitNeuralNet();
 	InitStates();
-	m_taskQueue.push(new TaskIdle());
+	SetRandomTaskInQueue();
 }
 
 // DESTRUCTOR
@@ -69,7 +69,7 @@ void ClassAWarrior::ProcessInputs(float deltaTime)
 				Task *task = new TaskMove(m_map, this, mapPosition);
 				m_taskQueue.push(task);
 			}
-			else if (entity != nullptr && m_map->IsEnemies(entity,this))// && IsInRange(m_map->GetCordinates(entity->GetPosition())))
+			else if (entity != nullptr && m_map->AreEnemies(entity,this))// && IsInRange(m_map->GetCordinates(entity->GetPosition())))
 			{
 				ClearTaskQueue();
 				Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
@@ -99,6 +99,38 @@ void ClassAWarrior::Update(float deltaTime)
 {
 	ProcessInputs(deltaTime);
 	Entity::Update(deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TaskType ClassAWarrior::GetTaskFromNNOutput(double &max)
+{
+	TaskType type = m_taskTypeSupported.at(0);
+	int subtractTaskCount = 2;
+	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size() - subtractTaskCount; outputIndex++)
+	{
+		if (m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value > max)
+		{
+			type = m_taskTypeSupported.at(outputIndex);
+			max = m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value;
+		}
+	}
+	return type;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::InitDefenseNNModel()
+{
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,6 +241,56 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords)
 {
+	if(true)
+	{
+		/*std::vector<Entity*> m_entityList = m_map->GetAllAlliesNearLocation(m_teamID, previousState.m_position, 1);
+		if (m_entityList.size() > 0)
+		{
+			SetDesiredOutputForTask(TASK_MOVE, 1);
+			m_state.m_neuralNetPoints++;
+			return;
+		}*/
+		std::vector<Entity*> m_entityListAlliesNear1 = m_map->GetAllAlliesNearLocation(m_teamID, previousState.m_position, 4);
+		if (m_entityListAlliesNear1.size() > 0)
+		{
+			SetDesiredOutputForTask(TASK_MOVE, 1);
+			Vector2 desiredLocation = m_map->GetRelativePosition(GetCordinates(), m_entityListAlliesNear1.at(0)->GetCordinates(), 4);
+			SetDesiredOutputForTask(TASK_MOVEX, desiredLocation.x);
+			SetDesiredOutputForTask(TASK_MOVEY, desiredLocation.y);
+			m_state.m_neuralNetPoints++;
+			return;
+		}
+		std::vector<Entity*> m_entityListAllies = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
+		if (m_entityListAllies.size() > 0)
+		{
+			SetDesiredOutputForTask(TASK_MOVE, 0);
+			m_state.m_neuralNetPoints++;
+			return;
+		}
+		UpdateMostFavoredMoveTask(previousState, cords);
+		float maxValue = -1;
+		int index = GetMostFavoredMoveTask(&maxValue);
+
+		if (previousState.m_favoredMoveTaskCount.at(index) < m_state.m_favoredMoveTaskCount.at(index))
+		{
+			if (m_map->GetEntityFromPosition(cords) != nullptr && m_map->GetEntityFromPosition(cords) != this)
+			{
+				SetDesiredOutputToMoveToNeighbour(previousState, 2);
+				m_state.m_neuralNetPoints++;
+				return;
+			}
+			SetDesiredOutputForTask(TASK_MOVE, 1);
+			m_state.m_neuralNetPoints++;
+			return;
+		}
+		SetDesiredOutputToMoveToNeighbour(previousState, 2);
+		m_state.m_neuralNetPoints++;
+	}
+
+	if(true)
+	{
+		return;
+	}
 	IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
 	if(m_map->GetCordinates(m_previousState.m_position) == cords)
 	{

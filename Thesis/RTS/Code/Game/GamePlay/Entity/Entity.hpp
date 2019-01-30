@@ -10,6 +10,11 @@
 #include "Game/GamePlay/Task/Task.hpp"
 #include "Game/GamePlay/Utils/ScoreCard.hpp"
 #pragma once
+enum Strategy
+{
+	ATTACK,
+	DEFENSE
+};
 enum EntityType
 {
 	CIVILIAN,
@@ -128,6 +133,29 @@ public:
 	Vector2	m_position;
 
 };
+struct NNInputs
+{
+	double m_allyArmySpawnerCount;
+	double m_allyCiviliansCount;
+	double m_allyLongRangeArmyCount;
+	double m_allyShortRangeArmyCount;
+	double m_allyHouseCount;
+	double m_allyTownCenterHealth;
+	
+	double m_enemyArmySpawnerCount;
+	double m_enemyCiviliansCount;
+	double m_enemyHouseCount;
+	double m_enemyLongRangeArmyCount;
+	double m_enemyShortRangeArmyCount;
+	double m_enemyTownCenterHealth;
+	
+	double m_resourceFoodCount;
+	double m_resourceStoneCount;
+	double m_resourceWoodCount;
+	
+	double m_health;
+	double m_resourceCarrying;
+};
 class Map;
 class Entity
 {
@@ -165,8 +193,11 @@ public:
 	ScoreCard					m_scoreBoard;
 	ScoreCard					m_prevScoreBoard;
 
+	Strategy					m_strategy;
+
 	Entity();
 	Entity(float x,float y);
+	~Entity();
 
 	Vector2							GetPosition();
 	IntVector2						GetCordinates();
@@ -177,7 +208,7 @@ public:
 	float							GetMiniMapValue();
 	double							GetTaskValueFromNNOutput(TaskType type);
 	double							GetTaskValueFromDesiredOutput(TaskType type);
-	TaskType						GetTaskFromNNOutput(double &max);
+	virtual TaskType				GetTaskFromNNOutput(double &max);
 	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition);
 	Vector2							GetPredictedNNOutputFromMapPosition(IntVector2 entityCords,IntVector2 mapCords,int width,int height);
 	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition,int width,int height);
@@ -185,17 +216,21 @@ public:
 	IntVector2						GetRelativeCellLocation(float x, float y);
 	IntVector2						GetRandomSafeArea();
 	IntVector2						GetRandomTeritaryArea();
+	Task *							GetRandomTaskByType(TaskType type);
 
 	std::string						GetGlobalBestFilePath();
 	std::string						GetLocalBestFilePath();
 	std::string						GetGlobalBestStatFilePath();
 	std::string						GetLocalBestStatFilePath();
 	
+	NNInputs						GetMyNNInputs();
+
 	bool							IsStationaryEntity();
 	bool							HasResource();
 
 	int								GetIndexOfTaskInNN(TaskType type);
 	Entity*							FindMyTownCenter();
+	Entity*							FindEnemyTownCenter();
 	std::vector<Entity*>			GetAllEntitiesNearMe(int cellDistance);
 
 	std::vector<Entity*>			GetResourceEntityFromList(std::vector<Entity*> &list);
@@ -206,6 +241,7 @@ public:
 	int								GetMyFoodCount();
 	int								GetMyStoneCount();
 	int								GetMyWoodCount();
+
 	void							InitNeuralNet();
 	void							InitStates();
 	void							ProcessInputs(float deltaTime);
@@ -263,6 +299,7 @@ public:
 	void							SetDesiredOutputToMoveToPrevPosition();
 	void							SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance);
 
+	void							SetRandomTaskInQueue();
 	void							ClearTaskQueue();
 	void							CopyDesiredOutputs();
 	void							ClearDesiredOutputs();
@@ -291,4 +328,6 @@ public:
 
 	static std::string				GetEntityTypeAsString(EntityType entityType);
 	static std::string				GetFavoredMoveToAsString(FavoredMoveStats stats);
+	static std::string				GetStrategyAsString(Strategy strategy);
+	static Strategy					GetStrategyFromString(std::string strategyStr);
 };

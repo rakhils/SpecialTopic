@@ -32,8 +32,7 @@ ClassBWarrior::ClassBWarrior(Map *map, Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_MOVEY);
 	InitStates();
 	InitNeuralNet();
-
-	m_taskQueue.push(new TaskIdle());
+	SetRandomTaskInQueue();
 }
 
 // DESTRUCTOR
@@ -70,7 +69,7 @@ void ClassBWarrior::ProcessInputs(float deltaTime)
 				Task *task = new TaskMove(m_map, this, mapPosition);
 				m_taskQueue.push(task);
 			}
-			else if (entity != nullptr && m_map->IsEnemies(entity,this))// && IsInRange(m_map->GetCordinates(entity->GetPosition())))
+			else if (entity != nullptr && m_map->AreEnemies(entity,this))// && IsInRange(m_map->GetCordinates(entity->GetPosition())))
 			{
 				ClearTaskQueue();
 				Vector2 mapPosition = m_map->GetMapPosition(tileIndex);
@@ -92,6 +91,27 @@ void ClassBWarrior::Update(float deltaTime)
 {
 	ProcessInputs(deltaTime);
 	Entity::Update(deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TaskType ClassBWarrior::GetTaskFromNNOutput(double &max)
+{
+	TaskType type = m_taskTypeSupported.at(0);
+	int subtractTaskCount = 2;
+	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size() - subtractTaskCount; outputIndex++)
+	{
+		if (m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value > max)
+		{
+			type = m_taskTypeSupported.at(outputIndex);
+			max = m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value;
+		}
+	}
+	return type;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

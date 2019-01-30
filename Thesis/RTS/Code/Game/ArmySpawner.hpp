@@ -30,6 +30,7 @@ public:
 	void EvaluateLongRangeArmySpawnTask(EntityState previousState, IntVector2 cords);
 	void EvaluateIdleTask(EntityState previousState, IntVector2 cords);
 
+	TaskType GetTaskFromNNOutput(double &max);
 	void Update(float deltaTime);
 	void Render();
 	//Static_Methods

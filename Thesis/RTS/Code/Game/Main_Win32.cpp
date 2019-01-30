@@ -225,7 +225,7 @@ void CreateOpenGLWindow(HINSTANCE applicationInstanceHandle, float clientAspect)
 {
 	UNUSED(applicationInstanceHandle);
 	Windows *window = Windows::CreateInstance(APP_NAME, clientAspect);
-	window->AddHandler(DevConsoleMessageHandler);
+	//window->AddHandler(DevConsoleMessageHandler);
 	window->AddHandler(AppMessageHandler);
 }
 
@@ -236,7 +236,6 @@ void Initialize(HINSTANCE applicationInstanceHandle)
 	CreateOpenGLWindow(applicationInstanceHandle, CLIENT_ASPECT);
 	EngineSystem::StartUp();
 	InitVariables();
-	g_theRenderer = Renderer::GetInstance();
 	CommandRegister("quit", QuitApp, "QUITS APPLICATION");
 
 	//CommandRegister("udp_star", UDPTestStart, "STARTS TEST UDP ");

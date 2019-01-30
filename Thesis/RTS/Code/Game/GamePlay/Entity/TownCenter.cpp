@@ -21,9 +21,9 @@ TownCenter::TownCenter(Map *map,Vector2 position, int teamId)
 	SetPosition(position);
 	m_taskTypeSupported.push_back(TASK_SPAWN_VILLAGER);
 	m_taskTypeSupported.push_back(TASK_IDLE);
-	m_taskQueue.push(new TaskIdle());
 	m_health = 50;
 	InitNeuralNet();
+	SetRandomTaskInQueue();
 }
 
 // DESTRUCTOR
@@ -72,6 +72,26 @@ void TownCenter::Update(float deltaTime)
 {
 	ProcessInputs(deltaTime);
 	Entity::Update(deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TaskType TownCenter::GetTaskFromNNOutput(double &max)
+{
+	TaskType type = m_taskTypeSupported.at(0);
+	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size(); outputIndex++)
+	{
+		if (m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value > max)
+		{
+			type = m_taskTypeSupported.at(outputIndex);
+			max = m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value;
+		}
+	}
+	return type;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

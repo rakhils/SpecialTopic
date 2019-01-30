@@ -143,7 +143,7 @@ void Game::UpdateMap(float deltaTime)
 		if(m_map->m_gameFinished)
 		{
 			g_lastTrainingStopTime += deltaTime;
-			if(g_lastTrainingStopTime > 5)
+			if(g_lastTrainingStopTime > 5 || ( m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN))
 			{
 				if(g_isGlobalyCurrentlyTraining)
 				{
@@ -222,6 +222,11 @@ void Game::UpdateMainMenu(float deltaTime)
 		m_currentIndex = 8;
 		InitMapAndStartGame();
 	}
+	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_0))
+	{
+		m_currentIndex = 9;
+		InitMapAndStartGame();
+	}
 
 	if (g_theInput->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_ENTER))
 	{
@@ -274,7 +279,6 @@ void Game::RenderMainMenu()
 
 		g_theRenderer->DrawTextOn3DPoint(menuItemStartPosition, Vector3::RIGHT, Vector3::UP, menuItemString, g_fontSize, color);
 		menuItemStartPosition.y -= g_fontSize*4;
-		break;
 	}
 	delete textMaterial;
 }

@@ -24,6 +24,7 @@ int			     GetRandomIntLessThan(int maxExclusive);
 char			 GetRandomCharacter();
 Vector3			 GetRandomDirection();
 Vector3			 GetRandomPoint(Vector3 minBounds, Vector3 maxBounds);
+bool			 GetRandomBoolean();
 
 double			 GetRandomDoubleInRange(float minInclusive, float maxExclusive);
 

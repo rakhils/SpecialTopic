@@ -8,6 +8,7 @@
 #include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Core/Windows.hpp"
 #include "Engine/DevConsole/Command.hpp"
+#include "Engine/EngineSystem.hpp"
 #include <stdio.h>
 #pragma comment( lib, "opengl32" )	// Link in the OpenGL32.lib static library
 
@@ -240,8 +241,11 @@ void Initialize( HINSTANCE applicationInstanceHandle )
 	g_theRenderer = Renderer::GetInstance();
 	g_theRenderer->RenderStartup();
 	g_theRenderer->PostStartup();
+	EngineSystem::StartUp();
+
 	CommandRunScript("");
 	CommandRegister("quit",QuitApp,"QUITS APPLICATION");
+
 }
 
 

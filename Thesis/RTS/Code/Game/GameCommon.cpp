@@ -103,19 +103,19 @@ int					g_minCellDistanceToStartCounting			= 5;
 
 //HUD
 float				g_fontSize							 = 10;
-Vector3				g_resourceFoodPositionPopulationA	 (100, 1050, 0);
-Vector3				g_resourceStonePositionPopulationA	 (100, 1025, 0);
-Vector3				g_resourceWoodPositionPopulationA	 (100, 1000, 0);
-Vector3				g_buildingCountPositionPopulationA   (400, 1050, 0);
-Vector3             g_unitsCountPositionPopulationA      (400, 1025, 0);
-Vector3             g_unitsKilledCountPositionPopulationA(400, 1000, 0);
+Vector3				g_resourceFoodPositionPopulationA	 (100, 950, 0);
+Vector3				g_resourceStonePositionPopulationA	 (100, 925, 0);
+Vector3				g_resourceWoodPositionPopulationA	 (100, 900, 0);
+Vector3				g_buildingCountPositionPopulationA   (400, 950, 0);
+Vector3             g_unitsCountPositionPopulationA      (400, 925, 0);
+Vector3             g_unitsKilledCountPositionPopulationA(400, 900, 0);
 
-Vector3				g_resourceFoodPositionPopulationB	 (800, 1050, 0);
-Vector3				g_resourceStonePositionPopulationB	 (800, 1025, 0);
-Vector3				g_resourceWoodPositionPopulationB	 (800, 1000, 0);
-Vector3				g_buildingCountPositionPopulationB   (1100, 1050, 0);
-Vector3             g_unitsCountPositionPopulationB      (1100, 1025, 0);
-Vector3             g_unitsKilledCountPositionPopulationB(1100, 1000, 0);
+Vector3				g_resourceFoodPositionPopulationB	 (800, 950, 0);
+Vector3				g_resourceStonePositionPopulationB	 (800, 925, 0);
+Vector3				g_resourceWoodPositionPopulationB	 (800, 900, 0);
+Vector3				g_buildingCountPositionPopulationB   (1100, 950, 0);
+Vector3             g_unitsCountPositionPopulationB      (1100, 925, 0);
+Vector3             g_unitsKilledCountPositionPopulationB(1100, 900, 0);
 
 Vector3				g_unitTypePosition					  (100, 100, 0);
 Vector3				g_unitHealthPosition				  (400, 100, 0);

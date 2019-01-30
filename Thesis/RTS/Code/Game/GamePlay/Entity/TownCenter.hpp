@@ -31,6 +31,7 @@ public:
 
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
+	TaskType GetTaskFromNNOutput(double &max);
 	void EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
 	void EvaluateSpawnCivilianTask(EntityState previousState, IntVector2 cords);
 	void EvaluateIdleTask(EntityState previousState, IntVector2 cords);

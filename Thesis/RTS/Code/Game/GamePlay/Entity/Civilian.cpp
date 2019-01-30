@@ -33,10 +33,10 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_IDLE);
 	m_taskTypeSupported.push_back(TASK_MOVEX);
 	m_taskTypeSupported.push_back(TASK_MOVEY);
-	//m_resourceTypeCarrying = m_map->m_resources.at(0);
 	InitNeuralNet();
 	InitStates();
-	m_taskQueue.push(new TaskIdle());
+	SetRandomTaskInQueue();
+	
 }
 
 // DESTRUCTOR
@@ -135,6 +135,38 @@ void Civilian::Update(float deltaTime)
 {
 	ProcessInputs(deltaTime);
 	Entity::Update(deltaTime);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TaskType Civilian::GetTaskFromNNOutput(double &max)
+{
+	TaskType type = m_taskTypeSupported.at(0);
+	int subtractTaskCount = 2;
+	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size() - subtractTaskCount; outputIndex++)
+	{
+		if (m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value > max)
+		{
+			if(m_resourceTypeCarrying == nullptr && m_taskTypeSupported.at(outputIndex) == TASK_DROP_RESOURCE)
+			{
+				continue;
+			}
+			if (m_resourceTypeCarrying != nullptr && 
+				(m_taskTypeSupported.at(outputIndex) == TASK_GATHER_RESOURCE_FOOD || 
+					m_taskTypeSupported.at(outputIndex) == TASK_GATHER_RESOURCE_STONE || 
+					   m_taskTypeSupported.at(outputIndex) == TASK_GATHER_RESOURCE_WOOD))
+			{
+				continue;
+			}
+			type = m_taskTypeSupported.at(outputIndex);
+			max = m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value;
+		}
+	}
+	return type;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

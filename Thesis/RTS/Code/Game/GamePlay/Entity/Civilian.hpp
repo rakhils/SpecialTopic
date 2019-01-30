@@ -34,6 +34,7 @@ public:
 	void ProcessInputs(float deltaTime);
 	void Update(float deltaTime);
 
+	TaskType GetTaskFromNNOutput(double &max);
 	bool HasMoreResources();
 	
 	void EvaluateNN(Task * task,EntityState previousState,IntVector2 cords);

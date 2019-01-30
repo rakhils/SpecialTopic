@@ -30,6 +30,7 @@ enum MapMode
 	MAP_MODE_TRAINING_LONGRANGE_ARMY,
 	MAP_MODE_TRAINING_ARMYSPAWNER,
 	MAP_MODE_TRAINING_NONE,
+	MAP_MODE_TRAINING_RANDOM_MAP_GEN,
 	MAP_MODE_NUM_ITEMS
 };
 struct GameStats
@@ -98,7 +99,8 @@ public:
 	bool							m_init = false;
 	bool							m_gameFinished = false;
 	
-	float							m_gameFinishedTime = 0;
+	float							m_gameFinishedTime = 0.f;
+	float							m_gameTime		   = 0.f;
 
 	bool							m_displaySensoryFoodValue = false;
 	bool							m_displaySensoryStoneValue = false;
@@ -124,7 +126,7 @@ public:
 	std::vector<House*>				m_houses;
 	std::vector<TownCenter*>		m_townCenters;
 	std::vector<Resource*>			m_resources;
-	long long a = 1;
+
 	std::vector<Explosion*>			m_explosions;
 	std::vector<DebugEntity*>       m_debugEntities;
 
@@ -151,6 +153,8 @@ public:
 	ScoreCard						m_team1;
 	ScoreCard						m_team2;
 	bool							m_isScoreBoardUpdated = false;
+	bool							m_firstTime = true;
+	int								m_counter = 0;
 
 	Map();
 	~Map();
@@ -159,6 +163,7 @@ public:
 	void							InitTiles();
 	void							InitCellSensoryValues();
 	void							CreateDirectoryForNN();
+	void							ResetAllScores();
 	void							InitAndStoreBestScoreFromFile();
 	void							ResetBestScoreToFile();
 	float							GetHeatMapDistanceFromEntity(IntVector2 cellposition, EntityType type,int teamID);
@@ -174,18 +179,20 @@ public:
 	void							InitTrainingForShortRangeArmy();
 	void							InitTrainingForLongRangeArmy();
 	void							InitTrainingForArmySpawner();
+	void							InitTrainingForRandomGenMaps();
 	void							InitNonTrainingMode();
 
 	bool							IsNonTrainingMode();
 	bool							HasTrainingEnabled(Entity *entity);
 
-	void							CreateCivilian(Vector2 position, int teamID);
-	void							CreateArmySpawner(Vector2 position, int teamID);
-	void							CreateClassAWarrior(Vector2 position, int teamID);
-	void							CreateClassBWarrior(Vector2 position, int teamID);
-	void							CreateHouse(Vector2 position, int teamID);
-	void							CreateTownCenter(Vector2 position, int teamID);
-	void							CreateResources(Vector2 position, EntityType type);
+	Entity*							CreateCivilian(Vector2 position, int teamID);
+	Entity*							CreateArmySpawner(Vector2 position, int teamID);
+	Entity*							CreateClassAWarrior(Vector2 position, int teamID);
+	Entity*							CreateClassBWarrior(Vector2 position, int teamID);
+	Entity*							CreateHouse(Vector2 position, int teamID);
+	Entity*							CreateTownCenter(Vector2 position, int teamID);
+	Entity*							CreateResources(Vector2 position, EntityType type);
+	Entity*							GetResourceByType(EntityType type);
 	void							CreateExplosions(Vector2 position,Rgba color);
 	void							CreateDebugLetterEntity(Vector2 position,std::string str,float fontsize,Rgba color);
 
@@ -220,7 +227,11 @@ public:
 	IntVector2						GetTilePosition(Vector2 position);
 	IntVector2						GetRandomNeighbour(IntVector2 cords,int cellDistance);
 	std::vector<IntVector2>			GetAllNeighbourCoordinates(IntVector2 cords,int distance);
+	std::vector<IntVector2>			GetAllNeighbouringCoordinates(IntVector2 cords, int distance);
+
 	IntVector2						ClampCoordinates(IntVector2 cords);
+	Vector2							GetRelativePosition(IntVector2 cords, IntVector2 targetCords,int maxCoverage);
+
 	int								GetTileIndex(Vector2 mapPosition);
 	int								GetTileIndex(IntVector2 position);
 	int								GetCellDistance(Vector2 position, Vector2 position2);
@@ -242,6 +253,7 @@ public:
 	std::vector<Entity*>			GetAllResourcesNearLocation(Vector2 mapPosition, int distance);
 	std::vector<Entity*>			GetAllTownCentersNearLocation(Vector2 mapPosition, int distance);
 	std::vector<Entity*>			GetAllEnemiesNearLocation(int teamID, Vector2 mapPosition, int distance);
+	std::vector<Entity*>			GetAllAlliesNearLocation (int teamID, Vector2 mapPosition, int distance);
 
 	bool							IsValidCordinate(IntVector2 cords);
 
@@ -249,7 +261,7 @@ public:
 	Entity *						AttackOnPosition(IntVector2 cords, float damagePoint);
 	Entity *						AttackOnPosition(Vector2 cords, float damagePoint);
 
-	bool							IsEnemies(Entity *entityOne, Entity *entityTwo);
+	bool							AreEnemies(Entity *entityOne, Entity *entityTwo);
 	void							DestroyEntity(Entity *entity);
 	
 	Vector2							GetMapPosition(int tileIndex);
@@ -261,6 +273,7 @@ public:
 	void							ProcessInputs(float deltaTime);
 	
 	void							CheckAndUpdateOnWinCondition(float deltaTime);
+	void							CheckAndUpdateOnRandomMapGen(float deltaTime);
 
 	void							CheckAndSaveBestStats();
 	void							CheckAndSaveBestTeamStats();

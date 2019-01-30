@@ -25,6 +25,11 @@ struct Neuron
 		m_numberOfWeights = numberOfWeights;
 		Init();
 	}
+	~Neuron()
+	{
+		m_weights.clear();
+		m_oldWeights.clear();
+	}
 
 	void Init()
 	{
@@ -65,7 +70,7 @@ struct NeuronLayer
 
 	~NeuronLayer()
 	{
-
+		m_neurons.clear();
 	}
 
 	void InitNeuronsLayer(int numberOfNeurons, int numberOfWeights, bool enableBias)

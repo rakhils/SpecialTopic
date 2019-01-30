@@ -22,8 +22,8 @@ ArmySpawner::ArmySpawner(Map *map, Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_SPAWN_CLASSA_WARRIOR);
 	m_taskTypeSupported.push_back(TASK_SPAWN_CLASSB_WARRIOR);
 	m_taskTypeSupported.push_back(TASK_IDLE);
-	m_taskQueue.push(new TaskIdle());
 	InitNeuralNet();
+	SetRandomTaskInQueue();
 }
 
 // DESTRUCTOR
@@ -211,6 +211,26 @@ void ArmySpawner::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
 	
 	m_desiredOuputs.at(2) = 1;
 	return;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/28
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+TaskType ArmySpawner::GetTaskFromNNOutput(double &max)
+{
+	TaskType type = m_taskTypeSupported.at(0);
+	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size(); outputIndex++)
+	{
+		if (m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value > max)
+		{
+			type = m_taskTypeSupported.at(outputIndex);
+			max = m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value;
+		}
+	}
+	return type;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

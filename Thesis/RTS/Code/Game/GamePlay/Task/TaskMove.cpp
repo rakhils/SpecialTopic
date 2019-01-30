@@ -36,7 +36,12 @@ bool TaskMove::DoTask(float deltaTime)
 	currentPosition			+= direction * m_speed * deltaTime;
 	m_entity->SetPositionInFloat(currentPosition);
 
+	if(m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN)
+	{
+		m_entity->SetPosition(m_targetPosition);
+	}
 	Vector2 distance = m_entity->GetPosition() - m_targetPosition;
+
 	if(distance.GetLength() < 1)
 	{
 		CheckAndUpdateResourcesUsed();

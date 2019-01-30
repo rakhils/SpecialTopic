@@ -4,6 +4,7 @@
 #include "Engine/Core/EngineCommon.hpp"
 #include "Engine/FileUtil/File.h"
 #include "Engine/Core/StringUtils.hpp"
+
 // CONSTRUCTOR
 NeuralNetwork::NeuralNetwork()
 {
@@ -954,7 +955,8 @@ bool NeuralNetwork::LoadFromFile(const char* filePathname)
 	{
 		return false;
 	}
-	std::string fileContent		    = GetFileContentAsString(filePathname);
+	size_t length;
+	std::string fileContent = GetFileContentAsString(filePathname);
 	std::vector<std::string> values;
 	Split(values,fileContent, ':');
 	int index = 0;
@@ -964,6 +966,7 @@ bool NeuralNetwork::LoadFromFile(const char* filePathname)
 		{
 			double weight = 0;
 			ToDouble(values.at(index++),&weight);
+			//values.at(index).clear();
 			m_inputs->m_neurons.at(inputNeuronIndex).m_weights.at(inputNeuronWeightIndex) = weight;
 		}
 	}
@@ -971,6 +974,7 @@ bool NeuralNetwork::LoadFromFile(const char* filePathname)
 	{
 		double weight = 0;
 		ToDouble(values.at(index++), &weight);
+		//values.at(index).clear();
 		m_inputs->m_bias.m_weights.at(inputNeuronWeightIndex) = weight;
 	}
 	for (int hiddenNeuronIndex = 0; hiddenNeuronIndex < m_hiddenLayers->m_neurons.size(); hiddenNeuronIndex++)
@@ -979,6 +983,7 @@ bool NeuralNetwork::LoadFromFile(const char* filePathname)
 		{
 			double weight = 0;
 			ToDouble(values.at(index++), &weight);
+			//values.at(index).clear();
 			m_hiddenLayers->m_neurons.at(hiddenNeuronIndex).m_weights.at(hiddenNeuronWeightIndex) = weight;
 		}
 	}
@@ -986,7 +991,10 @@ bool NeuralNetwork::LoadFromFile(const char* filePathname)
 	{
 		double weight = 0;
 		ToDouble(values.at(index++), &weight);
+		//values.at(index).clear();
 		m_hiddenLayers->m_bias.m_weights.at(hiddenNeuronWeightIndex) = weight;
 	}
+	//fileContent.clear();
+	
 	return true;
 }

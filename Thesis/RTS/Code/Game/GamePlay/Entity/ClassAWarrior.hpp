@@ -25,19 +25,24 @@ public:
 	ClassAWarrior(Map *map,Vector2 position, int teamIndex);
 	~ClassAWarrior();
 
-	void ProcessInputs(float deltaTime);
-	void Update(float deltaTime);
-	void TrainNN(Task *task);
-	void EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
-	void EvaluateMoveTask(EntityState previousState, IntVector2 cords);
-	void EvaluateShortAttackTask(EntityState previousState, IntVector2 cords);
-	void EvaluateIdleTask(EntityState previousState, IntVector2 cords);
+	void	 ProcessInputs(float deltaTime);
+	void	 Update(float deltaTime);
+	TaskType GetTaskFromNNOutput(double &max);
 
-	void Render();
+	void	 InitDefenseNNModel();
+	void     InitAttackModel();
 
-	bool IsInRange(int tileIndex);
-	bool IsInRange(Vector2 position);
-	bool IsInRange(IntVector2 cords);
+	void	 TrainNN(Task *task);
+	void	 EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
+	void	 EvaluateMoveTask(EntityState previousState, IntVector2 cords);
+	void	 EvaluateShortAttackTask(EntityState previousState, IntVector2 cords);
+	void	 EvaluateIdleTask(EntityState previousState, IntVector2 cords);
+			 
+	void	 Render();
+			 
+	bool	 IsInRange(int tileIndex);
+	bool	 IsInRange(Vector2 position);
+	bool	 IsInRange(IntVector2 cords);
 
 	
 	//Static_Methods

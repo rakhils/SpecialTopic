@@ -188,11 +188,14 @@ std::string GetFileContentAsString(char const* filename)
 	char* buffer = (char*)malloc(size + 1U); // space for NULL 
 
 	size_t readLength = fread(buffer, 1, size, fp);
+	
 	fclose(fp);
 
 	buffer[readLength] = NULL;
 	std::string fileContent(buffer, 0, readLength);
-	return fileContent;
+	std::string clone = std::string(fileContent);
+	free(buffer);
+	return clone;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
