@@ -176,6 +176,16 @@ std::string Task::GetTaskTypeAsString(TaskType type)
 	case TASK_SPAWN_CLASSB_WARRIOR:
 		return "TASK_SPAWN_CLASSB     ";
 		break;
+	case TASK_ATTACK:
+		return "TASK_ATTACK           ";
+	case TASK_RETREAT:
+		return "TASK_RETREAT          ";
+	case TASK_FOLLOW:
+		return "TASK_FOLLOW           ";
+	case TASK_PATROL:
+		return "TASK_PATROL           ";
+	case TASK_EXPLORE:
+		return "TASK_EXPLORE          ";
 	case TASK_IDLE:
 		return "TASK_IDLE             ";
 	case TASK_MOVEX:
@@ -199,19 +209,19 @@ std::string Task::GetTaskTypeAsShortString(TaskType type)
 	switch (type)
 	{
 	case TASK_MOVE:
-		return "MV";
+		return "M";
 		break;
 	case TASK_GATHER_RESOURCE_FOOD:
-		return "GATHER_FOOD";
+		return "G_F";
 		break;
 	case TASK_GATHER_RESOURCE_STONE:
-		return "GATHER_STONE";
+		return "G_S";
 		break;
 	case TASK_GATHER_RESOURCE_WOOD:
-		return "GATHER_WOOD";
+		return "G_W";
 		break;
 	case TASK_DROP_RESOURCE:
-		return "DROP";
+		return "D";
 		break;
 	case TASK_BUILD_TOWNCENTER:
 		return "B_TC";
@@ -220,7 +230,7 @@ std::string Task::GetTaskTypeAsShortString(TaskType type)
 		return "B_H";
 		break;
 	case TASK_BUILD_ARMY_SPAWNER:
-		return "B_A_C";
+		return "B_AS";
 		break;
 	case TASK_LONG_ATTACK:
 		return "L_A";
@@ -238,9 +248,19 @@ std::string Task::GetTaskTypeAsShortString(TaskType type)
 		return "S_LA";
 		break;
 	case TASK_IDLE:
-		return "IDLE";
+		return "I";
+	case TASK_ATTACK:
+		return "A";
+	case TASK_RETREAT:
+		return "R";
+	case TASK_FOLLOW:
+		return "F";
+	case TASK_PATROL:
+		return "P";
+	case TASK_EXPLORE:
+		return "E";
 	default:
 		break;
 	}
-	return "INVALID";
+	return "#";
 }

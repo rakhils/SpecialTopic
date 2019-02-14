@@ -28,7 +28,7 @@ enum MapMode
 	MAP_MODE_TRAINING_TOWNCENTER,
 	MAP_MODE_TRAINING_SHORTRANGE_ARMY,
 	MAP_MODE_TRAINING_LONGRANGE_ARMY,
-	MAP_MODE_TRAINING_ARMYSPAWNER,
+	MAP_MODE_TRAINING_NONE_PLAY_GREEN,
 	MAP_MODE_TRAINING_NONE,
 	MAP_MODE_TRAINING_RANDOM_MAP_GEN,
 	MAP_MODE_NUM_ITEMS
@@ -152,6 +152,8 @@ public:
 
 	ScoreCard						m_team1;
 	ScoreCard						m_team2;
+	Strategy						m_team1Strategy;
+	Strategy						m_team2Strategy;
 	bool							m_isScoreBoardUpdated = false;
 	bool							m_firstTime = true;
 	int								m_counter = 0;
@@ -178,7 +180,7 @@ public:
 	void							InitTrainingForTownCenter();
 	void							InitTrainingForShortRangeArmy();
 	void							InitTrainingForLongRangeArmy();
-	void							InitTrainingForArmySpawner();
+	void							InitTrainingForPlayGreen();
 	void							InitTrainingForRandomGenMaps();
 	void							InitNonTrainingMode();
 
@@ -301,6 +303,7 @@ public:
 	void							UpdateResources(float deltaTime);
 	void							UpdateExplosions(float deltaTime);
 	void							UpdateDebugEntities(float deltaTime);
+	void							UpdateEntities(float deltaTime);
 
 	void							Render();
 	void							RenderCivilians();

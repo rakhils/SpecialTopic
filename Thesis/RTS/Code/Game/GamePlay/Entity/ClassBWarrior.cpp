@@ -23,6 +23,7 @@ ClassBWarrior::ClassBWarrior(Map *map, Vector2 position, int teamID)
 {
 	m_map = map;
 	m_type = LONG_RANGE_ARMY;
+	m_attackRange = 2;
 	SetPosition(position);
 	SetTeam(teamID);
 	m_taskTypeSupported.push_back(TASK_LONG_ATTACK);
@@ -115,6 +116,180 @@ TaskType ClassBWarrior::GetTaskFromNNOutput(double &max)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int ClassBWarrior::GetGlobalBestScore()
+{
+	if (m_teamID == 1)
+	{
+		return g_globalMaxScoreLongRangeArmy1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_globalMaxScoreLongRangeArmy2;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			return g_globalAttackMaxScoreLongRangeArmy1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalAttackMaxScoreLongRangeArmy2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_globalDefenseMaxScoreLongRangeArmy1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalDefenseMaxScoreLongRangeArmy2;
+		}
+		break;
+	default:
+		break;
+	}*/
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int ClassBWarrior::GetLocalBestScore()
+{
+	if (m_teamID == 1)
+	{
+		return g_localMaxScoreLongRangeArmy1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_localMaxScoreLongRangeArmy2;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			return g_localAttackMaxScoreLongRangeArmy1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localAttackMaxScoreLongRangeArmy2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_localDefenseMaxScoreLongRangeArmy1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localDefenseMaxScoreLongRangeArmy2;
+		}
+		break;
+	default:
+		break;
+	}*/
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassBWarrior::SetGlobalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_globalMaxScoreLongRangeArmy1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_globalMaxScoreLongRangeArmy2 = value;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_globalAttackMaxScoreLongRangeArmy1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalAttackMaxScoreLongRangeArmy2 = value;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_globalDefenseMaxScoreLongRangeArmy1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalDefenseMaxScoreLongRangeArmy2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassBWarrior::SetLocalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_localMaxScoreLongRangeArmy1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_localMaxScoreLongRangeArmy2 = value;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_localAttackMaxScoreLongRangeArmy1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_localAttackMaxScoreLongRangeArmy2 = value;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_localDefenseMaxScoreLongRangeArmy1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_localDefenseMaxScoreLongRangeArmy2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/30
 *@purpose : Trains NN according to the expected output
 *@param   : NIL
@@ -181,13 +356,13 @@ void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 
 			float xPosition = RangeMapInt(xPos, 0, 8, 0, 1);
 			float yPosition = RangeMapInt(yPos, 0, 8, 0, 1);
-			xPosition += GetRandomFloatInRange(-0.15, 0.15);
-			yPosition += GetRandomFloatInRange(-0.15, 0.15);
+			xPosition += GetRandomFloatInRange(-0.15f, 0.15f);
+			yPosition += GetRandomFloatInRange(-0.15f, 0.15f);
 			SetDesiredOutputToMoveToNeighbour(Vector2(xPosition, yPosition));
 			m_state.m_neuralNetPoints++;
 
 			IntVector2 actualCords = minimapMins + IntVector2(xPos, yPos);
-			Entity *entity = m_map->GetEntityFromPosition(actualCords);
+			//Entity *entity = m_map->GetEntityFromPosition(actualCords);
 			float currentTime = static_cast<float>(GetCurrentTimeSeconds());
 			m_scoreBoard.m_bonusScore++;
 			if (currentTime - m_lastAttackTime > 2)

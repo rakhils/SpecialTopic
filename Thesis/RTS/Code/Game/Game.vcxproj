@@ -323,6 +323,10 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskAttack.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="GamePlay\Task\TaskBuildArmySpawner.cpp">
       <SubType>
       </SubType>
@@ -331,7 +335,19 @@
       <SubType>
       </SubType>
     </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskDefense.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="GamePlay\Task\TaskDropResource.cpp" />
+    <ClCompile Include="GamePlay\Task\TaskExplore.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskFollow.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
     <ClCompile Include="GamePlay\Task\TaskGatherResource.cpp">
       <SubType>
       </SubType>
@@ -345,6 +361,14 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="GamePlay\Task\TaskMove.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskPatrol.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskRetreat.cpp">
       <SubType>
       </SubType>
     </ClCompile>
@@ -424,6 +448,10 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskAttack.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="GamePlay\Task\TaskBuildArmySpawner.hpp">
       <SubType>
       </SubType>
@@ -432,7 +460,19 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskDefense.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
     <ClInclude Include="GamePlay\Task\TaskDropResource.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskExplore.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskFollow.hpp">
       <SubType>
       </SubType>
     </ClInclude>
@@ -449,6 +489,14 @@
       </SubType>
     </ClInclude>
     <ClInclude Include="GamePlay\Task\TaskMove.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskPatrol.hpp">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskRetreat.hpp">
       <SubType>
       </SubType>
     </ClInclude>

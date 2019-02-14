@@ -13,7 +13,12 @@
 enum Strategy
 {
 	ATTACK,
-	DEFENSE
+	EXPLORE,
+	FOLLOW,
+	PATROL,
+	RETREAT,
+	IDLE,
+	MAX_NUM_STRATEGY
 };
 enum EntityType
 {
@@ -46,11 +51,6 @@ enum FavoredMoveStats
 	FAVORED_MOVETO_TEAM2_TOWNCENTER,
 };
 
-enum Stats
-{
-	HEALTH,
-	RESOURCE_COUNT,
-};
 struct EntityState
 {
 public:
@@ -133,6 +133,57 @@ public:
 	Vector2	m_position;
 
 };
+enum NNInputEnums
+{
+	NNInput_allyArmySpawnerCount,
+	NNInput_allyCiviliansCount,
+	NNInput_allyLongRangeArmyCount,
+	NNInput_allyShortRangeArmyCount,
+	NNInput_allyHouseCount,
+	NNInput_allyTownCenterHealth,
+	NNInput_allyTownCenterHealthLastFrame,
+
+	NNInput_enemyArmySpawnerCount,
+	NNInput_enemyCiviliansCount,
+	NNInput_enemyHouseCount,
+	NNInput_enemyLongRangeArmyCount,
+	NNInput_enemyShortRangeArmyCount,
+	NNInput_enemyTownCenterHealth,
+	NNInput_enemyTownCenterHealthLastFrame,
+
+	NNInput_resourceFoodCount,
+	NNInput_resourceStoneCount,
+	NNInput_resourceWoodCount,
+
+	NNInput_inRangeAllyArmySpawnerCount,
+	NNInput_inRangeAllyCiviliansCount,
+	NNInput_inRangeAllyLongRangeArmyCount,
+	NNInput_inRangeAllyShortRangeArmyCount,
+	NNInput_inRangeAllyHouseCount,
+	NNInput_inRangeAllyTownCenterCount,
+	NNInput_inRangeAttackingAllyHeatMapValue,
+	NNInput_inRangeStationaryAllyHeatMapValue,
+
+	NNInput_inRangeEnemyArmySpawnerCount,
+	NNInput_inRangeEnemyCiviliansCount,
+	NNInput_inRangeEnemyHouseCount,
+	NNInput_inRangeEnemyLongRangeArmyCount,
+	NNInput_inRangeEnemyShortRangeArmyCount,
+	NNInput_inRangeEnemyTownCenterCount,
+	NNInput_inRangeAttackingEnemyHeatMapValue,
+	NNInput_inRangeStationaryEnemyHeatMapValue,
+
+	NNInput_allyInAttackMode,
+	NNInput_allyInExploreMode,
+	NNInput_allyInFollowMode,
+	NNInput_allyInPatrolMode,
+	NNInput_allyInRetreatMode,
+
+	NNInput_health,
+	NNInput_healthLastFrame,
+	NNInput_resourceCarrying,
+	NNInput_InputMaxCount,
+};
 struct NNInputs
 {
 	double m_allyArmySpawnerCount;
@@ -141,19 +192,48 @@ struct NNInputs
 	double m_allyShortRangeArmyCount;
 	double m_allyHouseCount;
 	double m_allyTownCenterHealth;
-	
+	double m_allyTownCenterHealthLastFrame;
+
+	//
 	double m_enemyArmySpawnerCount;
 	double m_enemyCiviliansCount;
 	double m_enemyHouseCount;
 	double m_enemyLongRangeArmyCount;
 	double m_enemyShortRangeArmyCount;
 	double m_enemyTownCenterHealth;
-	
+	double m_enemyTownCenterHealthLastFrame;
+
 	double m_resourceFoodCount;
 	double m_resourceStoneCount;
 	double m_resourceWoodCount;
-	
+	//15 count till now
+	// IN RANGE
+	double m_inRangeAllyArmySpawnerCount;
+	double m_inRangeAllyCiviliansCount;
+	double m_inRangeAllyLongRangeArmyCount;
+	double m_inRangeAllyShortRangeArmyCount;
+	double m_inRangeAllyHouseCount;
+	double m_inRangeAllyTownCenterCount;
+	double m_inRangeAttackingAllyHeatMapValue;
+	double m_inRangeStationaryAllyHeatMapValue;
+
+	double m_inRangeEnemyArmySpawnerCount;
+	double m_inRangeEnemyCiviliansCount;
+	double m_inRangeEnemyHouseCount;
+	double m_inRangeEnemyLongRangeArmyCount;
+	double m_inRangeEnemyShortRangeArmyCount;
+	double m_inRangeEnemyTownCenterCount;
+	double m_inRangeAttackingEnemyHeatMapValue;
+	double m_inRangeStationaryEnemyHeatMapValue;
+
+	double m_allyInAttackMode ;
+	double m_allyInExploreMode;
+	double m_allyInFollowMode ;
+	double m_allyInPatrolMode ;
+	double m_allyInRetreatMode;
+
 	double m_health;
+	double m_healthLastFrame;
 	double m_resourceCarrying;
 };
 class Map;
@@ -169,8 +249,10 @@ public:
 	Entity *					m_resourceTypeCarrying  = nullptr;
 
 	int							m_teamID				= 0;
+	int							m_attackRange			= 0;
 	Map *						m_map					= nullptr;
 	float						m_health				= 10;
+	float						m_healthLastFrame		= 10;
 	float						m_neuralNetTrainCount	= 0;
 	NeuralNetwork				m_neuralNet;
 	float						m_lastDebug				= 0;
@@ -181,9 +263,9 @@ public:
 	Rgba						m_color;
 	std::queue<Task*>			m_taskQueue;
 	std::vector<TaskType>		m_taskTypeSupported;
-	std::vector<Stats>			m_statsSupported;
 
 	std::vector<double>			 m_desiredOuputs;
+	std::vector<double>			 m_desiredStrategyValues;
 
 	IntVector2					m_minSafeArea;
 	IntVector2					m_maxSafeArea;
@@ -194,6 +276,7 @@ public:
 	ScoreCard					m_prevScoreBoard;
 
 	Strategy					m_strategy;
+	Strategy					m_intendedStrategy;
 
 	Entity();
 	Entity(float x,float y);
@@ -217,16 +300,21 @@ public:
 	IntVector2						GetRandomSafeArea();
 	IntVector2						GetRandomTeritaryArea();
 	Task *							GetRandomTaskByType(TaskType type);
+	TaskType						GetMyCurrentTask();
 
 	std::string						GetGlobalBestFilePath();
 	std::string						GetLocalBestFilePath();
 	std::string						GetGlobalBestStatFilePath();
 	std::string						GetLocalBestStatFilePath();
 	
+	virtual int						GetGlobalBestScore();
+	virtual int						GetLocalBestScore();
+
 	NNInputs						GetMyNNInputs();
 
 	bool							IsStationaryEntity();
 	bool							HasResource();
+	bool							IsUnderAttack();
 
 	int								GetIndexOfTaskInNN(TaskType type);
 	Entity*							FindMyTownCenter();
@@ -264,6 +352,7 @@ public:
 	void							UpdateEntityState();
 	void							PrintDebugNN();
 	void							Render();
+	void							RenderTaskType();
 
 	void							UpdateUnitStatForFoodGathered(int count);
 	void							UpdateUnitStatForStoneGathered(int count);
@@ -285,7 +374,6 @@ public:
 
 	void							UpdateMostFavoredMoveTask(EntityState prevState,IntVector2 cords);
 	int 							GetMostFavoredMoveTask(float *maxValue);
-	std::vector<FavoredMoveStats>   GetPastFavoredMoveTaskOrderer();
 	bool							IsCurrentMoveFavoredByPastMoveTask(EntityState prevState,IntVector2 cords);
 
 	void							SetTeam(int team);
@@ -302,6 +390,9 @@ public:
 	void							SetRandomTaskInQueue();
 	void							ClearTaskQueue();
 	void							CopyDesiredOutputs();
+	void							CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+	void							ClearDesiredStrategyValues();
+	void							SetDesiredStrategyAsOutputForNN(Strategy strategy,int incrementValue);
 	void							ClearDesiredOutputs();
 	void							SetDesiredOutputForTask(TaskType type,float value);
 	double							GetDesiredOutputForTask(TaskType type);
@@ -325,6 +416,21 @@ public:
 	bool							CreateAndPushSpawnVillagerTask(IntVector2 cordinate);
 	bool							CreateAndPushSpawnClassAArmyTask(IntVector2 cordinate);
 	bool							CreateAndPushSpawnClassBArmyTask(IntVector2 cordinate);
+
+	bool							CreateAndPushDefenseTask(IntVector2 cordinate);
+	bool							CreateAndPushFollowTask(IntVector2 cordinate);
+	bool							CreateAndPushRetreatTask(IntVector2 cordinate);
+	bool							CreateAndPushPatrolTask(IntVector2 cordinate);
+	bool							CreateAndPushExploreTask(IntVector2 cordinate);
+	bool							CreateAndPushAttackTask(IntVector2 cordinate);
+
+	bool							CheckAndSetStrategyIfTownCenterUnderAttack (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
+	bool							CheckAndSetStrategyIfEntityUnderAttack     (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
+	bool							CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);																														
+	bool							CheckAndSetStrategyPatrol			       (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
+	bool							CheckAndSetStrategyExplore				   (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
+	bool							CheckAndSetStrategyAttack				   (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
+
 
 	static std::string				GetEntityTypeAsString(EntityType entityType);
 	static std::string				GetFavoredMoveToAsString(FavoredMoveStats stats);

@@ -28,13 +28,14 @@ enum TaskType
 	TASK_SPAWN_CLASSA_WARRIOR,
 	TASK_SPAWN_CLASSB_WARRIOR,
 	TASK_IDLE,
+	TASK_ATTACK,
+	TASK_RETREAT,
+	TASK_FOLLOW,
+	TASK_PATROL,
+	TASK_EXPLORE,
 	TASK_MOVEX,
-	TASK_MOVEY
-};
-enum AttackSubTask
-{
-	DEAL_DAMAGE,
-	ANIMATION
+	TASK_MOVEY,
+	TASK_INVALID
 };
 class Task
 {
@@ -48,6 +49,7 @@ public:
 	Resources m_resourcesNeeded;
 	Vector2   m_targetPosition;
 	Vector2   m_startPosition;
+	bool	  m_taskComplete;
 	//Static_Member_Variables
 
 	//Methods
@@ -65,7 +67,7 @@ public:
 	bool HasStandAloneEntity(IntVector2 cords);
 
 	void Update(float deltaTime);
-	virtual bool DoTask(float delatTime) = 0;
+	virtual bool DoTask(float deltaTime) = 0;
 
 	//Static_Methods
 	static std::string GetTaskTypeAsString(TaskType type);

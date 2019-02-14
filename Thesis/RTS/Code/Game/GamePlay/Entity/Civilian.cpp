@@ -102,9 +102,10 @@ void Civilian::ProcessInputs(float deltaTime)
 			}
 			else if(entity != nullptr && (entity->m_type == RESOURCE_FOOD || entity->m_type == RESOURCE_STONE|| entity->m_type == RESOURCE_WOOD))
 			{
-				/*ClearTaskQueue();
-				Task *task = new TaskGatherResource(this,entity->m_type);
-				m_taskQueue.push(task);*/
+				if(m_map->GetCellDistance(entity->GetCordinates(),GetCordinates()) == 1)
+				{
+					m_resourceTypeCarrying = entity;
+				}
 			}
 			else if(entity != nullptr && (entity->m_type == TOWN_CENTER))
 			{
@@ -170,6 +171,181 @@ TaskType Civilian::GetTaskFromNNOutput(double &max)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Civilian::GetGlobalBestScore()
+{
+	if (m_teamID == 1)
+	{
+		return g_globalMaxScoreCivilianTeam1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_globalMaxScoreCivilianTeam2;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			return g_globalAttackMaxScoreCivilianTeam1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalAttackMaxScoreCivilianTeam2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_globalDefenseMaxScoreCivilianTeam1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalDefenseMaxScoreCivilianTeam2;
+		}
+		break;
+	default:
+		break;
+	}*/
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int Civilian::GetLocalBestScore()
+{
+	if (m_teamID == 1)
+	{
+		return g_localMaxScoreCivilianTeam1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_localMaxScoreCivilianTeam2;
+	}
+
+/*	switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			return g_localAttackMaxScoreCivilianTeam1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localAttackMaxScoreCivilianTeam2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_localDefenseMaxScoreCivilianTeam1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localDefenseMaxScoreCivilianTeam2;
+		}
+		break;
+	default:
+		break;
+	}*/
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::SetGlobalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_globalMaxScoreCivilianTeam1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_globalMaxScoreCivilianTeam2 = value;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_globalAttackMaxScoreCivilianTeam1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalAttackMaxScoreCivilianTeam2 = value;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_globalDefenseMaxScoreCivilianTeam1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalDefenseMaxScoreCivilianTeam2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::SetLocalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_localMaxScoreCivilianTeam1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_localMaxScoreCivilianTeam2 = value;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_localAttackMaxScoreCivilianTeam1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_localAttackMaxScoreCivilianTeam2 = value;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_localDefenseMaxScoreCivilianTeam1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_localDefenseMaxScoreCivilianTeam2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/11/16
 *@purpose : NIL
 *@param   : NIL
@@ -206,7 +382,8 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 		m_state.m_neuralNetPoints++;
 		return;
 	}
-	
+
+	TrainOnDropingResources(previousState, cords);
 	TrainOnBuildHouseTask(previousState, cords);
 	TrainOnBuildArmySpawnerTask(previousState, cords);
 	TrainToGatherAndDropResource(previousState, cords);
@@ -631,9 +808,9 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 		&& resourceStat.m_stone > g_maxResourceCountRequired
 		&& resourceStat.m_wood > g_maxResourceCountRequired)
 	{
-		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD,  1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
-		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
+		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD,  1.f);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -652,6 +829,23 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Civilian::TrainOnDropingResources(EntityState previousState, IntVector2 cords)
+{
+	UNUSED(previousState);
+	UNUSED(cords);
+	if(m_resourceTypeCarrying == nullptr)
+	{
+		return;
+	}
+	SetDesiredOutputForTask(TASK_DROP_RESOURCE, 1.f);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/11/18
 *@purpose : NIL
 *@param   : NIL
@@ -659,6 +853,7 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Civilian::TrainToGatherAndDropResource(EntityState previousState, IntVector2 cords)
 {
+	UNUSED(cords);
 	m_state.m_neuralNetPoints++;
 	if(HasResource())
 	{
@@ -668,7 +863,6 @@ void Civilian::TrainToGatherAndDropResource(EntityState previousState, IntVector
 		if(!(GetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER) > 0 || GetDesiredOutputForTask(TASK_BUILD_HOUSE) > 0))
 		{
 			SetDesiredOutputForTask(TASK_DROP_RESOURCE, 1);
-
 		}
 		return;
 	}

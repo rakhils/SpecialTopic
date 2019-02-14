@@ -15,7 +15,7 @@ TaskGatherResource::TaskGatherResource(Entity *entity,TaskType type)
 	m_taskType = type;
 	int cellDistance = 100;
 	m_targetPosition = Vector2(-1, -1);
-	EntityType entityType;
+	EntityType entityType = RESOURCE_FOOD;
 	if(type == TASK_GATHER_RESOURCE_FOOD)
 	{
 		entityType = RESOURCE_FOOD;

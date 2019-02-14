@@ -73,7 +73,7 @@ void App::RunFrame()
 void App::Update(float deltaTime)
 {
 	ProfilerManager::PushProfiler("App::Update");
-	int temp = s_gameCounter;
+	//int temp = s_gameCounter;
 	bool once = true;
 	do
 	{

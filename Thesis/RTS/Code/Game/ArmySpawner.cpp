@@ -214,6 +214,184 @@ void ArmySpawner::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int ArmySpawner::GetGlobalBestScore()
+{
+	if (m_teamID == 1)
+	{
+		return g_globalMaxScoreArmySpawnerTeam1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_globalMaxScoreArmySpawnerTeam2;
+	}
+	return 0;
+/*switch (m_strategy)
+	{
+	case ATTACK:
+		if(m_teamID == 1)
+		{
+			return g_globalAttackMaxScoreArmySpawnerTeam1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalAttackMaxScoreArmySpawnerTeam2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_globalDefenseMaxScoreArmySpawnerTeam1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalDefenseMaxScoreArmySpawnerTeam2;
+		}
+		break;
+	default:
+		break;
+	}
+	return 0;*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int ArmySpawner::GetLocalBestScore()
+{
+	if (m_teamID == 1)
+	{
+		return g_localMaxScoreArmySpawnerTeam1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_localMaxScoreArmySpawnerTeam2;
+	}
+	return 0;
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			return g_localAttackMaxScoreArmySpawnerTeam1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localAttackMaxScoreArmySpawnerTeam2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_localDefenseMaxScoreArmySpawnerTeam1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localDefenseMaxScoreArmySpawnerTeam2;
+		}
+		break;
+	default:
+		break;
+	}
+	return 0;*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ArmySpawner::SetGlobalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_globalMaxScoreArmySpawnerTeam1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_globalMaxScoreArmySpawnerTeam2 = value;
+	}
+
+/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_globalAttackMaxScoreArmySpawnerTeam1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalAttackMaxScoreArmySpawnerTeam2 = value;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_globalDefenseMaxScoreArmySpawnerTeam1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalDefenseMaxScoreArmySpawnerTeam2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ArmySpawner::SetLocalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_localMaxScoreArmySpawnerTeam1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_localMaxScoreArmySpawnerTeam2 = value;
+	}
+
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_localAttackMaxScoreArmySpawnerTeam1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_localAttackMaxScoreArmySpawnerTeam2 = value;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_localDefenseMaxScoreArmySpawnerTeam1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_localDefenseMaxScoreArmySpawnerTeam2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/01/28
 *@purpose : NIL
 *@param   : NIL

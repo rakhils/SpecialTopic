@@ -21,15 +21,18 @@ ClassAWarrior::ClassAWarrior()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ClassAWarrior::ClassAWarrior(Map *map,Vector2 position, int teamID)
 {
-	m_map		  = map;
-	m_type		  = SHORT_RANGE_ARMY;
+	m_map			= map;
+	m_type			= SHORT_RANGE_ARMY;
+	m_attackRange	= 1;
+	m_taskTypeSupported.push_back(TASK_ATTACK);
+	m_taskTypeSupported.push_back(TASK_EXPLORE);
+	m_taskTypeSupported.push_back(TASK_FOLLOW);
+	m_taskTypeSupported.push_back(TASK_PATROL);
+	m_taskTypeSupported.push_back(TASK_RETREAT);
+	m_taskTypeSupported.push_back(TASK_IDLE);
+
 	SetPosition(position);
 	SetTeam(teamID);
-	m_taskTypeSupported.push_back(TASK_SHORT_ATTACK);
-	m_taskTypeSupported.push_back(TASK_MOVE);
-	m_taskTypeSupported.push_back(TASK_IDLE);
-	m_taskTypeSupported.push_back(TASK_MOVEX);
-	m_taskTypeSupported.push_back(TASK_MOVEY);
 	InitNeuralNet();
 	InitStates();
 	SetRandomTaskInQueue();
@@ -38,17 +41,13 @@ ClassAWarrior::ClassAWarrior(Map *map,Vector2 position, int teamID)
 // DESTRUCTOR
 ClassAWarrior::~ClassAWarrior()
 {
-	/*Entity::Render();
-	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
-	Renderer::GetInstance()->BindMaterial(textMaterial);
-	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "SA", g_fontSize / 2, GetTeamColor());
-	delete textMaterial;*/
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
-*@purpose : NIL
-*@param   : NIL
+*@purpose : Process inputs for ClassAWarrior
+*@param   : Delta Time
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::ProcessInputs(float deltaTime)
@@ -91,7 +90,7 @@ void ClassAWarrior::ProcessInputs(float deltaTime)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
-*@purpose : NIL
+*@purpose : Update cycle of ClassAWarrior
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -103,15 +102,14 @@ void ClassAWarrior::Update(float deltaTime)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/01/28
-*@purpose : NIL
-*@param   : NIL
+*@purpose : Retrieves the best task associated with neural net.
+*@param   : Value (returnining) associated with best task
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 TaskType ClassAWarrior::GetTaskFromNNOutput(double &max)
 {
 	TaskType type = m_taskTypeSupported.at(0);
-	int subtractTaskCount = 2;
-	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size() - subtractTaskCount; outputIndex++)
+	for (int outputIndex = 0; outputIndex < m_taskTypeSupported.size(); outputIndex++)
 	{
 		if (m_neuralNet.m_outputs->m_neurons.at(outputIndex).m_value > max)
 		{
@@ -123,14 +121,177 @@ TaskType ClassAWarrior::GetTaskFromNNOutput(double &max)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/01/28
+/*DATE    : 2019/01/31
+*@purpose : Retrives global best score
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int ClassAWarrior::GetGlobalBestScore()
+{
+	if (m_teamID == 1)
+	{
+		return g_globalMaxScoreShortRangeArmy1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_globalMaxScoreShortRangeArmy2;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			return g_globalAttackMaxScoreShortRangeArmy1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalAttackMaxScoreShortRangeArmy2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_globalDefenseMaxScoreShortRangeArmy1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalDefenseMaxScoreShortRangeArmy2;
+		}
+		break;
+	default:
+		break;
+	}*/
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClassAWarrior::InitDefenseNNModel()
+int ClassAWarrior::GetLocalBestScore()
 {
-	
+	if (m_teamID == 1)
+	{
+		return g_localMaxScoreShortRangeArmy1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_localMaxScoreShortRangeArmy2;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			return g_localAttackMaxScoreShortRangeArmy1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localAttackMaxScoreShortRangeArmy2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_localDefenseMaxScoreShortRangeArmy1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localDefenseMaxScoreShortRangeArmy2;
+		}
+		break;
+	default:
+		break;
+	}*/
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::SetGlobalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_globalMaxScoreShortRangeArmy1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_globalMaxScoreShortRangeArmy2 = value;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_globalAttackMaxScoreShortRangeArmy1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalAttackMaxScoreShortRangeArmy2 = value;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_globalDefenseMaxScoreShortRangeArmy1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalDefenseMaxScoreShortRangeArmy2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::SetLocalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_localMaxScoreShortRangeArmy1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_localMaxScoreShortRangeArmy2 = value;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_localAttackMaxScoreShortRangeArmy1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_localAttackMaxScoreShortRangeArmy2 = value;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_localDefenseMaxScoreShortRangeArmy1 = value; 
+		}
+		if (m_teamID == 2)
+		{
+			g_localDefenseMaxScoreShortRangeArmy2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -158,79 +319,105 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 	}
 
 	CopyDesiredOutputs();
-	/*Entity *targetPlaceEntity = m_map->GetEntityFromPosition(GetTaskPositonFromNNOutput());
-	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
-	{
-		m_state.m_neuralNetPoints++;
-		SetDesiredOutputToMoveToNeighbour(previousState,2);
-		return;
-	}*/
-	if(previousState.m_health > m_state.m_health && m_state.m_health < 5)
-	{
-		SetDesiredOutputToChooseRandomNeighbourLocation(8);
-		m_state.m_neuralNetPoints++;
-		return;
-	}
-	switch (task->m_taskType)
-	{
-		case TASK_MOVE:
-			EvaluateMoveTask(previousState, cords);
-			break;
-		case TASK_SHORT_ATTACK:
-			cords = GetTaskPositonFromNNOutput(previousState.m_position, 2, 2);
-			EvaluateShortAttackTask(previousState, cords);
-			break;
-		case TASK_IDLE:
-			EvaluateIdleTask(previousState, cords);
-			break;
-	}
+	ClearDesiredStrategyValues();
+	NNInputs inputs  = GetMyNNInputs();
 
-	std::vector<Entity*> neighbourEnemies = m_map->GetAllEnemiesNearLocation(m_teamID,previousState.m_position, 1);
-	if (neighbourEnemies.size() > 0)
+
+	Strategy strategy = ATTACK;
+	double priority = MAX_NUM_STRATEGY * NNInput_InputMaxCount;
+
+
+	std::vector<double> strategyValues;
+	for(int index = 0;index < MAX_NUM_STRATEGY;index++)
 	{
-		SetDesiredOutputForTask(TASK_MOVE, 0);
-		SetDesiredOutputForTask(TASK_SHORT_ATTACK, 1);
-		m_state.m_neuralNetPoints++;
+		strategyValues.push_back(0);
+	}
+	std::vector<double> NNInputVectors;
+	for (int inputIndex = 0; inputIndex < NNInput_InputMaxCount; inputIndex++)
+	{
+		NNInputVectors.push_back(0);
+	}
+	if(CheckAndSetStrategyIfTownCenterUnderAttack (NNInputVectors, strategy, priority, inputs))
+	{
 		return;
 	}
-	bool found = false;
-	std::vector<double> entityMiniMapInput = GetMyMiniMap();
-	for (int index = 0; index < entityMiniMapInput.size(); index++)
+	priority -= NNInput_InputMaxCount;
+	if(CheckAndSetStrategyIfEntityUnderAttack     (NNInputVectors, strategy, priority, inputs))
 	{
-		if (entityMiniMapInput.at(index) == 1)
+		return;
+	}
+	priority -= NNInput_InputMaxCount;
+	if(CheckAndSetStrategyIfEnemiesOutweighsAllies(NNInputVectors, strategy, priority, inputs))
+	{
+		return;
+	}
+	priority -= NNInput_InputMaxCount;
+	if(CheckAndSetStrategyPatrol                  (NNInputVectors, strategy, priority, inputs))
+	{
+		return;
+	}
+	priority -= NNInput_InputMaxCount;
+	if(CheckAndSetStrategyExplore                 (NNInputVectors, strategy, priority, inputs))
+	{
+		return;
+	}
+	priority -= NNInput_InputMaxCount;
+	if(CheckAndSetStrategyAttack                  (NNInputVectors, strategy, priority, inputs))
+	{
+		return;
+	}
+	priority -= NNInput_InputMaxCount;
+	/*for(int strategyIndex = 0;strategyIndex < MAX_NUM_STRATEGY;strategyIndex++)
+	{
+		std::vector<double> NNInputVectors;
+		for(int inputIndex = 0;inputIndex < NNInput_InputMaxCount;inputIndex++)
 		{
-			IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
-			IntVector2 minimapMins = GetMiniMapMins(m_map->GetCordinates(previousState.m_position));
-			int xPos = index % 8;
-			int yPos = index / 8;
-
-			float xPosition = RangeMapInt(xPos, 0, 8, 0, 1);
-			float yPosition = RangeMapInt(yPos, 0, 8, 0, 1);
-			xPosition += GetRandomFloatInRange(-0.15, 0.15);
-			yPosition += GetRandomFloatInRange(-0.15, 0.15);
-			SetDesiredOutputToMoveToNeighbour(Vector2(xPosition, yPosition));
-			m_state.m_neuralNetPoints++;
-
-
-
-			IntVector2 actualCords = minimapMins + IntVector2(xPos, yPos);
-			Entity *entity = m_map->GetEntityFromPosition(actualCords);
-			float currentTime = static_cast<float>(GetCurrentTimeSeconds());
-			m_scoreBoard.m_bonusScore++;
-			if (currentTime - m_lastAttackTime > 2)
-			{
-				//m_map->CreateExplosions(m_map->GetMapPosition(actualCords), Rgba::YELLOW);
-				m_lastAttackTime = currentTime;
-			}
-			found = true;
+			NNInputVectors.push_back(0);
 		}
-	}
-	if (!found)
-	{
-		SetDesiredOutputToChooseRandomNeighbourLocation(8);
-		m_state.m_neuralNetPoints++;
-	}
+		
+		
+		strategy = (Strategy)(strategy + 1);
+
+	}*/
+	
+
+	SetDesiredStrategyAsOutputForNN(IDLE, 1);
+	m_state.m_neuralNetPoints++;
+	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+
 	Entity::EvaluateNN(task, previousState, cords);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::EvaluateDefenseTask(EntityState previousState, IntVector2 cords)
+{
+	UNUSED(cords);
+	std::vector<Entity*> m_entityListAlliesNear = m_map->GetAllAlliesNearLocation(m_teamID, GetPosition(), 4);
+	if(m_entityListAlliesNear.size() > 0)
+	{
+		IntVector2 freeCords = m_map->GetFreeNeighbourTile(m_entityListAlliesNear.at(0)->GetPosition(),2);
+		Task *taskMove = new TaskMove(m_map, this, m_map->GetMapPosition(freeCords));
+		m_taskQueue.push(taskMove);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::EvaluateAttackTask(EntityState previousState, IntVector2 cords)
+{
+	UNUSED(cords);
+	IntVector2 freeCords = m_map->GetFreeNeighbourTile(GetPosition(),8);
+	Task *taskMove = new TaskMove(m_map, this, m_map->GetMapPosition(freeCords));
+	m_taskQueue.push(taskMove);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -241,15 +428,19 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords)
 {
+	SetDesiredOutputToMoveToNeighbour(previousState,2);
 	if(true)
 	{
-		/*std::vector<Entity*> m_entityList = m_map->GetAllAlliesNearLocation(m_teamID, previousState.m_position, 1);
-		if (m_entityList.size() > 0)
-		{
-			SetDesiredOutputForTask(TASK_MOVE, 1);
-			m_state.m_neuralNetPoints++;
-			return;
-		}*/
+		return;
+	}
+	/*IntVector2 freeCords = m_map->GetFreeNeighbourTile(GetPosition(), 8);
+	Task *taskMove = new TaskMove(m_map, this, m_map->GetMapPosition(freeCords));
+	m_taskQueue.push(taskMove);
+
+	if (true)
+	{
+		return;
+	}*/
 		std::vector<Entity*> m_entityListAlliesNear1 = m_map->GetAllAlliesNearLocation(m_teamID, previousState.m_position, 4);
 		if (m_entityListAlliesNear1.size() > 0)
 		{
@@ -257,10 +448,13 @@ void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 			Vector2 desiredLocation = m_map->GetRelativePosition(GetCordinates(), m_entityListAlliesNear1.at(0)->GetCordinates(), 4);
 			SetDesiredOutputForTask(TASK_MOVEX, desiredLocation.x);
 			SetDesiredOutputForTask(TASK_MOVEY, desiredLocation.y);
+
+			Vector2 relativeX = GetPosition() - Vector2(1,1)*4*g_radius*2 + (desiredLocation * 8 ) * g_radius*2;
+			m_map->CreateExplosions(relativeX, Rgba::WHITE);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
-		std::vector<Entity*> m_entityListAllies = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
+		/*std::vector<Entity*> m_entityListAllies = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
 		if (m_entityListAllies.size() > 0)
 		{
 			SetDesiredOutputForTask(TASK_MOVE, 0);
@@ -284,8 +478,8 @@ void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 			return;
 		}
 		SetDesiredOutputToMoveToNeighbour(previousState, 2);
-		m_state.m_neuralNetPoints++;
-	}
+		m_state.m_neuralNetPoints++;*/
+	
 
 	if(true)
 	{
@@ -335,6 +529,7 @@ void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::EvaluateShortAttackTask(EntityState previousState, IntVector2 cords)
 {
+	UNUSED(cords);
 	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
 	if(m_entityList.size() > 0)
 	{

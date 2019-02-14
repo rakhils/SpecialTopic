@@ -156,7 +156,6 @@ void NetSession::UpdateConnections(float deltaTime)
 	for (it = m_boundConnections.begin(); it != m_boundConnections.end(); it++)
 	{
 		float time = static_cast<float>(GetCurrentTimeSeconds());
-		float lastrecvTime = it->second->m_lastReceivedTime;
 		if(time > (it->second->m_lastReceivedTime + DEFAULT_CONNECTION_TIMEOUT))
 		{
 			it->second->Disconnect();
@@ -309,7 +308,6 @@ ESessionError NetSession::GetLastSessionError()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t NetSession::GetAndIncrementConnectionIndex()
 {
-	int connectionIndexLowest = 1;
 	for(int index = 0;index < m_allConnections.size();index++)
 	{
 		//if(m_allConnections.at(index)-m>)	
@@ -1001,7 +999,6 @@ std::vector<NetMessage*> NetSession::ConstructMsgFromData(NetAddress &netAddress
 			retmsgs.push_back(netmsg);
 			std::string pack = recvdPacket.GetBitString();
 			std::string msgD = netmsg->GetBitString();
-			int a = 1;
 		}
 		else
 		{
@@ -1078,10 +1075,7 @@ void NetSession::ProcessMsg(NetMessage *msg, NetAddress *fromAddr)
 		fromConnection->m_lastReceivedTime = Clock::GetMasterClock()->total.m_seconds;// -fromConnection->m_startTime;
 		fromConnection->m_lastReceivedAck = header.m_ack;
 	}
-	if(msg->m_definitionName == "creates_game_object")
-	{
-		int a = 1;
-	}
+	
 	if (fromConnection != nullptr && msgdef != nullptr && (msgdef->m_options == NETMESSAGE_OPTION_RELIABLE || msgdef->m_options == NETMESSAGE_OPTION_RELIALBE_IN_ORDER))
 	{
 		//std::string bitString = msg->GetBitString();
@@ -1257,12 +1251,12 @@ void NetSession::RenderConnectionDetails(NetConnection *connection,Vector2 start
 	if (connection == m_hostConnection)
 	{
 		connectionDetailsStr = Stringf("%*s%-*s %s   %-22s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
-			(3 * indent), "L", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2.f).c_str(), ToString(loss, 2.f).c_str(), ToString(lrcv, 2.f).c_str(), ToString(lsnt,2.f).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
+			(3 * indent), "L", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2.f).c_str(), ToString(loss, 2.f).c_str(), ToString(lrcv, 2.f).c_str(), ToString(static_cast<float>(lsnt),2.f).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
 	}
 	else
 	{
 		connectionDetailsStr = Stringf("%*s%-*s %s   %-22s %-7s %-7s %-7s %-7s %-7s %-7s %-7s", indent, "",
-			(3 * indent), "", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2.f).c_str(), ToString(loss, 2.f).c_str(), ToString(lrcv, 2.f).c_str(), ToString(lsnt,2.f).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
+			(3 * indent), "", ToString(index).c_str(), ip.c_str(), ToString(rtt, 2.f).c_str(), ToString(loss, 2.f).c_str(), ToString(lrcv, 2.f).c_str(), ToString(static_cast<float>(lsnt),2.f).c_str(), ToString(sntack).c_str(), ToString(rcvack).c_str(), ToBitString(prevRcvBit).c_str());
 	}
 	Renderer::GetInstance()->DrawTextOnPoint(connectionDetailsStr, startPosition, fontSize, Rgba::WHITE);
 	delete textMaterial;
@@ -1502,7 +1496,7 @@ bool OnJoinRequest(NetMessage &netMsg, NetAddress &netAddress)
 	NetMessage *joinAccept = NetMessage::CreateJoinAcceptMsg(&netAddress,connectionInfo.m_sessionIndex);
 	connection->Append(joinAccept);
 
-	NetMessage *joinFinished = NetMessage::CreateJoinFinished(connection);
+	//NetMessage *joinFinished = NetMessage::CreateJoinFinished(connection);
 	//connection->Append(joinFinished);
 
 	return true;

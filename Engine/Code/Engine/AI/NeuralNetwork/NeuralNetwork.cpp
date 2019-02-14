@@ -955,7 +955,6 @@ bool NeuralNetwork::LoadFromFile(const char* filePathname)
 	{
 		return false;
 	}
-	size_t length;
 	std::string fileContent = GetFileContentAsString(filePathname);
 	std::vector<std::string> values;
 	Split(values,fileContent, ':');

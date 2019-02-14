@@ -22,6 +22,7 @@ TownCenter::TownCenter(Map *map,Vector2 position, int teamId)
 	m_taskTypeSupported.push_back(TASK_SPAWN_VILLAGER);
 	m_taskTypeSupported.push_back(TASK_IDLE);
 	m_health = 50;
+	m_healthLastFrame = 50;
 	InitNeuralNet();
 	SetRandomTaskInQueue();
 }
@@ -92,6 +93,181 @@ TaskType TownCenter::GetTaskFromNNOutput(double &max)
 		}
 	}
 	return type;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int TownCenter::GetGlobalBestScore()
+{
+	if (m_teamID == 1)
+	{
+		return g_globalMaxScoreTownCenter1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_globalMaxScoreTownCenter2;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			return g_globalAttackMaxScoreTownCenter1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalAttackMaxScoreTownCenter2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_globalDefenseMaxScoreTownCenter1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_globalDefenseMaxScoreTownCenter2;
+		}
+		break;
+	default:
+		break;
+	}*/
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+int TownCenter::GetLocalBestScore()
+{
+	if (m_teamID == 1)
+	{
+		return g_localMaxScoreTownCenter1;
+	}
+	if (m_teamID == 2)
+	{
+		return g_localMaxScoreTownCenter2;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			return g_localAttackMaxScoreTownCenter1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localAttackMaxScoreTownCenter2;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			return g_localDefenseMaxScoreTownCenter1;
+		}
+		if (m_teamID == 2)
+		{
+			return g_localDefenseMaxScoreTownCenter2;
+		}
+		break;
+	default:
+		break;
+	}*/
+	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void TownCenter::SetGlobalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_globalMaxScoreTownCenter1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_globalMaxScoreTownCenter2 = value;
+	}
+
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_globalAttackMaxScoreTownCenter1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalAttackMaxScoreTownCenter2 = value;
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_globalDefenseMaxScoreTownCenter1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_globalDefenseMaxScoreTownCenter2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/01/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void TownCenter::SetLocalBestScore(int value)
+{
+	if (m_teamID == 1)
+	{
+		g_localMaxScoreTownCenter1 = value;
+	}
+	if (m_teamID == 2)
+	{
+		g_localMaxScoreTownCenter2 = value;
+	}
+	/*switch (m_strategy)
+	{
+	case ATTACK:
+		if (m_teamID == 1)
+		{
+			g_localAttackMaxScoreTownCenter1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_localAttackMaxScoreTownCenter2 = value;  
+		}
+		break;
+	case DEFENSE:
+		if (m_teamID == 1)
+		{
+			g_localDefenseMaxScoreTownCenter1 = value;
+		}
+		if (m_teamID == 2)
+		{
+			g_localDefenseMaxScoreTownCenter2 = value;
+		}
+		break;
+	default:
+		break;
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

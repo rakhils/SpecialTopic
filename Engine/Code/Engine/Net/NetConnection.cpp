@@ -894,10 +894,6 @@ void NetConnection::ConfirmPacketReceived(uint16_t ack)
 		NetMessage *msg = GetUnconfirmedReliableMsg(tracker->m_sentReliableIDs[reliableIndexInPacket]);
 		if(msg != nullptr)
 		{
-			if (msg->m_definitionName == "join_accept")
-			{
-				int	a = 1;
-			}
 			//DevConsole::GetInstance()->PushToOutputText("MSG CONFIRMED " + ToString(static_cast<int>(tracker->m_sentReliableIDs[reliableIndexInPacket]))+
 				//ToString(static_cast<int>(msg->m_reliableID)), Rgba::YELLOW);
 

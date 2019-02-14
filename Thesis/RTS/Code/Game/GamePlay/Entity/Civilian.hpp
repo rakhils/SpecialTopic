@@ -35,6 +35,10 @@ public:
 	void Update(float deltaTime);
 
 	TaskType GetTaskFromNNOutput(double &max);
+	int		 GetGlobalBestScore();
+	int		 GetLocalBestScore();
+	void		 SetGlobalBestScore(int value);
+	void		 SetLocalBestScore (int value);
 	bool HasMoreResources();
 	
 	void EvaluateNN(Task * task,EntityState previousState,IntVector2 cords);
@@ -49,6 +53,7 @@ public:
 
 	void TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords);
 	void TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2 cords);
+	void TrainOnDropingResources(EntityState previousState, IntVector2 cords);
 	void TrainToGatherAndDropResource(EntityState previousState, IntVector2 cords);
 
 	IntVector2 GetBestNeighbour();

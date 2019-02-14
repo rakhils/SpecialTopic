@@ -6,6 +6,7 @@ TaskMove::TaskMove(Map* map,Entity *entity,Vector2 position)
 {
 	m_entity = entity;
 	m_map    = map;
+	m_taskType = TASK_MOVE;
 	SetTargetPosition(position);
 	SetStartPosition(entity->GetPosition());
 }

@@ -48,8 +48,9 @@ extern bool					g_isCurrentlyTraining;
 extern bool				    g_isGlobalyCurrentlyTraining;
 extern float				g_lastTrainingStopTime;
 extern bool					g_enableDebugPrints;
-extern int					g_extraNNInputs;
-extern int					g_hiddenLayerCount;
+
+extern int					g_NNInputCount;
+extern int					g_NNHiddenLayerCount;
 extern int				    g_entityMiniMapMaxWidth;
 extern int				    g_entityMiniMapMaxHeight;
 extern int					g_mapCounter;
@@ -77,8 +78,8 @@ extern int					g_minWoodCountToSpawnLongRangeArmy;
 // NN OUTPUT
 extern int					g_globalMaxScoreTeam1;
 extern int					g_globalMaxScoreTeam2;
-extern int					g_globalMaxScoreArmySpawnerTeam1;
-extern int					g_globalMaxScoreArmySpawnerTeam2;
+extern int					g_globalMaxScoreArmySpawnerTeam1 ;
+extern int					g_globalMaxScoreArmySpawnerTeam2 ;
 extern int					g_globalMaxScoreCivilianTeam1;
 extern int					g_globalMaxScoreCivilianTeam2;
 extern int					g_globalMaxScoreShortRangeArmy1;

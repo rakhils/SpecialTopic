@@ -33,6 +33,10 @@ public:
 	void Update(float deltaTime);
 
 	TaskType GetTaskFromNNOutput(double &max);
+	int		 GetGlobalBestScore();
+	int		 GetLocalBestScore();
+	void		 SetGlobalBestScore(int value);
+	void		 SetLocalBestScore (int value);
 	void TrainNN(Task *task);
 	void EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
 	void EvaluateMoveTask(EntityState previousState, IntVector2 cords);

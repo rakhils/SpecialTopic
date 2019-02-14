@@ -17,14 +17,14 @@ float				g_unitDistance  = g_radius * 2;
 bool				g_isQuitting	= false;
 int					g_mapMaxWidth	= 8;
 int					g_mapMaxHeight	= 8;
-int					g_hiddenLayerCount = 80;
 bool				g_skipRendering = false;
 bool				g_isCurrentlyTraining = true;
 bool			    g_isGlobalyCurrentlyTraining = false;
 float				g_lastTrainingStopTime = 0.f;
 bool				g_enableNeuralNet = true;
 bool				g_enableDebugPrints = false;
-int					g_extraNNInputs = 10;
+int					g_NNInputCount = 38;
+int					g_NNHiddenLayerCount = 50;
 int					g_mapCounter = 0;
 int					g_mapBreakCounter = 0;
 int 				g_entityMiniMapMaxWidth  = 8;
@@ -77,19 +77,20 @@ int					g_globalMaxScoreLongRangeArmy2 = -1;
 int					g_globalMaxScoreTownCenter1 = -1;
 int					g_globalMaxScoreTownCenter2 = -1;
 
-int					g_localMaxScoreTeam1			= -1;
-int					g_localMaxScoreTeam2			= -1;
+int					g_localMaxScoreTeam1 = -1;
+int					g_localMaxScoreTeam2 = -1;
 int					g_localMaxScoreArmySpawnerTeam1 = -1;
 int					g_localMaxScoreArmySpawnerTeam2 = -1;
-int					g_localMaxScoreCivilianTeam1	= -1;
-int					g_localMaxScoreCivilianTeam2	= -1;
-int					g_localMaxScoreShortRangeArmy1	= -1;
-int					g_localMaxScoreShortRangeArmy2	= -1;
-int					g_localMaxScoreLongRangeArmy1	= -1;
-int					g_localMaxScoreLongRangeArmy2	= -1;
-int					g_localMaxScoreTownCenter1		= -1;
-int					g_localMaxScoreTownCenter2		= -1;
+int					g_localMaxScoreCivilianTeam1 = -1;
+int					g_localMaxScoreCivilianTeam2 = -1;
+int					g_localMaxScoreShortRangeArmy1 = -1;
+int					g_localMaxScoreShortRangeArmy2 = -1;
+int					g_localMaxScoreLongRangeArmy1 = -1;
+int					g_localMaxScoreLongRangeArmy2 = -1;
+int					g_localMaxScoreTownCenter1 = -1;
+int					g_localMaxScoreTownCenter2 = -1;
 
+////////////////////////////////////////////////////////////////////////
 float				g_desiredOutputForSameRandomPosition        = 0.5f;
 float				g_desiredOutputForRandomPosition            = 0.5f;
 
@@ -159,7 +160,7 @@ void ResetGlobalScores()
 	g_globalMaxScoreTownCenter2 = -1;
 }
 
-int					g_counter = 0;
+int	g_counter = 0;
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31
 *@purpose : Init all uninitilaized variables

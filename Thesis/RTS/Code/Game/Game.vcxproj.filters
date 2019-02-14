@@ -130,6 +130,24 @@
     <ClCompile Include="GamePlay\Utils\ScoreCard.cpp">
       <Filter>General\GamePlay\Utils</Filter>
     </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskDefense.cpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskAttack.cpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskFollow.cpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskRetreat.cpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskPatrol.cpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClCompile>
+    <ClCompile Include="GamePlay\Task\TaskExplore.cpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="App.hpp">
@@ -227,6 +245,24 @@
     </ClInclude>
     <ClInclude Include="GamePlay\Utils\ScoreCard.hpp">
       <Filter>General\GamePlay\Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskDefense.hpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskAttack.hpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskFollow.hpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskRetreat.hpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskPatrol.hpp">
+      <Filter>General\GamePlay\Task</Filter>
+    </ClInclude>
+    <ClInclude Include="GamePlay\Task\TaskExplore.hpp">
+      <Filter>General\GamePlay\Task</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

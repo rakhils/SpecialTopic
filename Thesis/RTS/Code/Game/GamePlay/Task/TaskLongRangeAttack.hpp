@@ -21,7 +21,6 @@ public:
 	int m_nearestAttackTile = -1;
 	float m_time = 0.f;
 	float m_totalTime = 1.f;
-	AttackSubTask m_subTask = DEAL_DAMAGE;
 	//Static_Member_Variables
 
 	//Methods
