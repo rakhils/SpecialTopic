@@ -37,9 +37,9 @@ public:
 	TaskType GetTaskFromNNOutput(double &max);
 	int		 GetGlobalBestScore();
 	int		 GetLocalBestScore();
-	void		 SetGlobalBestScore(int value);
-	void		 SetLocalBestScore (int value);
-	bool HasMoreResources();
+	void	 SetGlobalBestScore(int value);
+	void	 SetLocalBestScore (int value);
+	bool	 HasMoreResources();
 	
 	void EvaluateNN(Task * task,EntityState previousState,IntVector2 cords);
 	void EvaluateMoveTask(EntityState prevState,IntVector2 location);
@@ -66,7 +66,6 @@ public:
 	void SetDesiredOutputToMoveToTownCenter(float value,EntityState previousState,IntVector2 cords);
 	void SetDesiredOuputForMoveToResourceTask  (float value, EntityState previousState, IntVector2 cords);
 
-
 	void EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cords);
 	void EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords);
 
@@ -74,7 +73,6 @@ public:
 	
 	void Render();
 
-	void GatherResource(Vector2 resourcePosition);
 	//Static_Methods
 
 protected:

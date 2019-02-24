@@ -33,6 +33,9 @@ public:
 	const Vector2   operator	*  (Vector2 vectora) const;
 	const Vector2   operator	/  (const Vector2& vec) const;			    // vec2 + vec2
 
+	bool			operator    > (const Vector2& compare) const;
+	bool			operator    < (const Vector2& compare) const;
+
 	friend const Vector2 operator*(float uniformScale, const Vector2& vecToScale);
 
 

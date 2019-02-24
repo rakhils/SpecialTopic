@@ -62,8 +62,7 @@ public:
 										
 		m_resourceFoodGathered			= state.m_resourceFoodGathered;
 		m_resourceFoodDropped			= state.m_resourceFoodDropped;
-		m_resourceStoneGathered			= state.m_resourceStoneGathered;
-										
+		m_resourceStoneGathered			= state.m_resourceStoneGathered;								
 		m_resourceStoneDropped			= state.m_resourceStoneDropped;
 		m_resourceWoodGathered			= state.m_resourceWoodGathered;
 		m_resourceWoodDropped			= state.m_resourceWoodDropped;
@@ -278,6 +277,8 @@ public:
 	Strategy					m_strategy;
 	Strategy					m_intendedStrategy;
 
+	std::vector<IntVector2>     m_exploredPlacesOfNoInterest;
+
 	Entity();
 	Entity(float x,float y);
 	~Entity();
@@ -349,6 +350,7 @@ public:
 	virtual void					TrainNN(Task *task);
 	void							UpdateNN(float deltaTime);
 	void							UpdateTaskFromNN(float deltaTime);
+
 	void							UpdateEntityState();
 	void							PrintDebugNN();
 	void							Render();
@@ -404,6 +406,7 @@ public:
 	bool							IsDifferentFaction(Entity *entity);
 	bool							IsResourceNearMe(int cellDistance);
 
+	bool							CreateAndPushTask(TaskType taskType,IntVector2 taskPosition);
 	bool							CreateAndPushIdleTask(IntVector2 cordinate);
 	bool							CreateAndPushMoveTask(IntVector2 cordinate);
 	bool							CreateAndPushBuildHouseTask(IntVector2 cordinate);
@@ -424,6 +427,7 @@ public:
 	bool							CreateAndPushExploreTask(IntVector2 cordinate);
 	bool							CreateAndPushAttackTask(IntVector2 cordinate);
 
+	bool							CheckAndSetStrategyIfNoEnemies             (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
 	bool							CheckAndSetStrategyIfTownCenterUnderAttack (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
 	bool							CheckAndSetStrategyIfEntityUnderAttack     (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
 	bool							CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);																														

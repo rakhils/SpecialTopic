@@ -103,11 +103,11 @@ bool TaskAttack::DoAttackBehavior(float deltaTime)
 
 	if(m_map->GetCellDistance(currentCords,startCords) > 2)
 	{
-		return true;
+		//return true;
 	}
 	if (m_map->GetCellDistance(currentCords, targetCords) > 4)
 	{
-		return true;
+		///return true;
 	}
 
 	// ATTACK
@@ -129,13 +129,14 @@ bool TaskAttack::DoAttackBehavior(float deltaTime)
 					m_targetEntity = nullptr;
 				}
 				CheckAndUpdateResourcesUsed();
+				return true;
 			}
 			else
 			{
 				return true;
 			}
 		}
-		return true;
+		return false;
 	}
 
 	// MOVE

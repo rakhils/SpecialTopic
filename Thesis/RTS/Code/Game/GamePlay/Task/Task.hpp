@@ -67,6 +67,7 @@ public:
 	bool HasStandAloneEntity(IntVector2 cords);
 
 	void Update(float deltaTime);
+	void UpdateScoreCard();
 	virtual bool DoTask(float deltaTime) = 0;
 
 	//Static_Methods

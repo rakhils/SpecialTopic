@@ -33,11 +33,12 @@ void TaskExplore::InitExploreBehaviour()
 		retryCount++;
 		IntVector2 freeCord = freecords.at(static_cast<int>(GetRandomIntLessThan(static_cast<int>(freecords.size()))));
 		std::vector<Entity*> entityList = m_map->GetAllEnemiesNearLocation(m_entity->m_teamID, m_map->GetMapPosition(freeCord), 1);
-		if(entityList.size() == 0)
+		if(entityList.size() > 0)
 		{
 			m_targetPosition = m_map->GetMapPosition(freeCord);
 		}
 	}
+	m_targetPosition = m_map->GetMapPosition(m_map->GetRandomNeighbour(m_entity->FindEnemyTownCenter()->GetCordinates(), 5));
 	retryCount = 0;
 }
 
@@ -76,7 +77,27 @@ bool TaskExplore::DoExploreMoveTask(float deltaTime)
 	{
 		CheckAndUpdateResourcesUsed();
 		m_entity->m_state.m_position = m_entity->GetPosition();
+		//CheckAndPushExploredPlace();
 		return true;
 	}
 	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/18
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void TaskExplore::CheckAndPushExploredPlace()
+{
+	std::vector<IntVector2> neighbouringCords = m_map->GetAllNeighbouringCoordinates(m_entity->GetCordinates(), 4);
+	for(int index = 0;index < neighbouringCords.size();index++)
+	{
+		Entity *entity = m_map->GetEntityFromPosition(neighbouringCords.at(index));
+		if(entity->m_type == TOWN_CENTER && entity->m_teamID != m_entity->m_teamID)
+		{
+			
+		}
+	}
 }

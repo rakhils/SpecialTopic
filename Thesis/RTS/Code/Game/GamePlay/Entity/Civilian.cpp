@@ -29,10 +29,10 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_DROP_RESOURCE);
 	m_taskTypeSupported.push_back(TASK_BUILD_ARMY_SPAWNER);
 	m_taskTypeSupported.push_back(TASK_BUILD_HOUSE);
-	m_taskTypeSupported.push_back(TASK_MOVE);
+	//m_taskTypeSupported.push_back(TASK_MOVE);
 	m_taskTypeSupported.push_back(TASK_IDLE);
-	m_taskTypeSupported.push_back(TASK_MOVEX);
-	m_taskTypeSupported.push_back(TASK_MOVEY);
+	//m_taskTypeSupported.push_back(TASK_MOVEX);
+	//m_taskTypeSupported.push_back(TASK_MOVEY);
 	InitNeuralNet();
 	InitStates();
 	SetRandomTaskInQueue();
@@ -102,9 +102,28 @@ void Civilian::ProcessInputs(float deltaTime)
 			}
 			else if(entity != nullptr && (entity->m_type == RESOURCE_FOOD || entity->m_type == RESOURCE_STONE|| entity->m_type == RESOURCE_WOOD))
 			{
-				if(m_map->GetCellDistance(entity->GetCordinates(),GetCordinates()) == 1)
+				Task * task = nullptr;
+				switch (entity->m_type)
 				{
-					m_resourceTypeCarrying = entity;
+					case RESOURCE_FOOD:
+					{
+						task = new TaskGatherResource(this, TASK_GATHER_RESOURCE_FOOD);
+						m_taskQueue.push(task);
+					}
+					break;
+					case RESOURCE_STONE:
+					{	task = new TaskGatherResource(this, TASK_GATHER_RESOURCE_STONE);
+						m_taskQueue.push(task);
+					}
+					break;
+					case RESOURCE_WOOD:
+					{
+						task = new TaskGatherResource(this, TASK_GATHER_RESOURCE_WOOD);
+						m_taskQueue.push(task);
+					}
+					break;
+					default:
+						break;
 				}
 			}
 			else if(entity != nullptr && (entity->m_type == TOWN_CENTER))

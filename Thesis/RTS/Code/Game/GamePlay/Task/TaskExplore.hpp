@@ -29,6 +29,8 @@ public:
 
 	bool DoTask(float deltaTime);
 	bool DoExploreMoveTask(float deltaTime);
+
+	void CheckAndPushExploredPlace();
 	//Static_Methods
 
 protected:

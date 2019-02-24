@@ -22,6 +22,6 @@ TOTAL_KILL_ON_TOWNCENTERS           : 0
 TOTAL_SCORE_RATE                    : 0.000000
 TOTAL_NEGATIVE_SCORE                : 0
 TOTAL_BONUS_SCORE                   : 0
-TOTAL_FRAMES                        : 1
+TOTAL_FRAMES                        : 0
 ALIVE                               : 0
 TOTAL_SCORE                         : 0

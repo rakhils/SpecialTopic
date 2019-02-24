@@ -313,7 +313,7 @@ void ClassAWarrior::TrainNN(Task *task)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
 {
-	if (!g_isCurrentlyTraining)
+	if (!m_map->HasTrainingEnabled(this))
 	{
 		return;
 	}
@@ -321,7 +321,6 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 	CopyDesiredOutputs();
 	ClearDesiredStrategyValues();
 	NNInputs inputs  = GetMyNNInputs();
-
 
 	Strategy strategy = ATTACK;
 	double priority = MAX_NUM_STRATEGY * NNInput_InputMaxCount;
@@ -337,6 +336,12 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 	{
 		NNInputVectors.push_back(0);
 	}
+
+	if(CheckAndSetStrategyIfNoEnemies(NNInputVectors, strategy, priority, inputs))
+	{
+		return;
+	}
+	priority -= NNInput_InputMaxCount;
 	if(CheckAndSetStrategyIfTownCenterUnderAttack (NNInputVectors, strategy, priority, inputs))
 	{
 		return;
@@ -367,20 +372,6 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 		return;
 	}
 	priority -= NNInput_InputMaxCount;
-	/*for(int strategyIndex = 0;strategyIndex < MAX_NUM_STRATEGY;strategyIndex++)
-	{
-		std::vector<double> NNInputVectors;
-		for(int inputIndex = 0;inputIndex < NNInput_InputMaxCount;inputIndex++)
-		{
-			NNInputVectors.push_back(0);
-		}
-		
-		
-		strategy = (Strategy)(strategy + 1);
-
-	}*/
-	
-
 	SetDesiredStrategyAsOutputForNN(IDLE, 1);
 	m_state.m_neuralNetPoints++;
 	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
@@ -428,97 +419,7 @@ void ClassAWarrior::EvaluateAttackTask(EntityState previousState, IntVector2 cor
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords)
 {
-	SetDesiredOutputToMoveToNeighbour(previousState,2);
-	if(true)
-	{
-		return;
-	}
-	/*IntVector2 freeCords = m_map->GetFreeNeighbourTile(GetPosition(), 8);
-	Task *taskMove = new TaskMove(m_map, this, m_map->GetMapPosition(freeCords));
-	m_taskQueue.push(taskMove);
 
-	if (true)
-	{
-		return;
-	}*/
-		std::vector<Entity*> m_entityListAlliesNear1 = m_map->GetAllAlliesNearLocation(m_teamID, previousState.m_position, 4);
-		if (m_entityListAlliesNear1.size() > 0)
-		{
-			SetDesiredOutputForTask(TASK_MOVE, 1);
-			Vector2 desiredLocation = m_map->GetRelativePosition(GetCordinates(), m_entityListAlliesNear1.at(0)->GetCordinates(), 4);
-			SetDesiredOutputForTask(TASK_MOVEX, desiredLocation.x);
-			SetDesiredOutputForTask(TASK_MOVEY, desiredLocation.y);
-
-			Vector2 relativeX = GetPosition() - Vector2(1,1)*4*g_radius*2 + (desiredLocation * 8 ) * g_radius*2;
-			m_map->CreateExplosions(relativeX, Rgba::WHITE);
-			m_state.m_neuralNetPoints++;
-			return;
-		}
-		/*std::vector<Entity*> m_entityListAllies = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
-		if (m_entityListAllies.size() > 0)
-		{
-			SetDesiredOutputForTask(TASK_MOVE, 0);
-			m_state.m_neuralNetPoints++;
-			return;
-		}
-		UpdateMostFavoredMoveTask(previousState, cords);
-		float maxValue = -1;
-		int index = GetMostFavoredMoveTask(&maxValue);
-
-		if (previousState.m_favoredMoveTaskCount.at(index) < m_state.m_favoredMoveTaskCount.at(index))
-		{
-			if (m_map->GetEntityFromPosition(cords) != nullptr && m_map->GetEntityFromPosition(cords) != this)
-			{
-				SetDesiredOutputToMoveToNeighbour(previousState, 2);
-				m_state.m_neuralNetPoints++;
-				return;
-			}
-			SetDesiredOutputForTask(TASK_MOVE, 1);
-			m_state.m_neuralNetPoints++;
-			return;
-		}
-		SetDesiredOutputToMoveToNeighbour(previousState, 2);
-		m_state.m_neuralNetPoints++;*/
-	
-
-	if(true)
-	{
-		return;
-	}
-	IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
-	if(m_map->GetCordinates(m_previousState.m_position) == cords)
-	{
-		SetDesiredOutputToMoveToNeighbour(previousState,2);
-		m_state.m_neuralNetPoints++;
-		return;
-	}
-	
-	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
-	if (m_entityList.size() > 0)
-	{
-		SetDesiredOutputForTask(TASK_MOVE, 0);
-		SetDesiredOutputForTask(TASK_SHORT_ATTACK,1);
-		m_state.m_neuralNetPoints++;
-		return;
-	}
-	UpdateMostFavoredMoveTask(previousState, cords);
-	float maxValue = -1;
-	int index = GetMostFavoredMoveTask(&maxValue);
-
-	if(previousState.m_favoredMoveTaskCount.at(index) < m_state.m_favoredMoveTaskCount.at(index))
-	{
-		if (m_map->GetEntityFromPosition(cords) != nullptr && m_map->GetEntityFromPosition(cords) != this)
-		{
-			SetDesiredOutputToMoveToNeighbour(previousState, 2);
-			m_state.m_neuralNetPoints++;
-			return;
-		}
-		SetDesiredOutputForTask(TASK_MOVE, 1);
-		m_state.m_neuralNetPoints++;
-		return;
-	}
-	SetDesiredOutputToMoveToNeighbour(previousState,2);
-	m_state.m_neuralNetPoints++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

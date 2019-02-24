@@ -27,7 +27,7 @@ enum MapMode
 	MAP_MODE_TRAINING_CIVILIAN,
 	MAP_MODE_TRAINING_TOWNCENTER,
 	MAP_MODE_TRAINING_SHORTRANGE_ARMY,
-	MAP_MODE_TRAINING_LONGRANGE_ARMY,
+	MAP_MODE_TRAINING_NONE_PLAY_RANDOM,
 	MAP_MODE_TRAINING_NONE_PLAY_GREEN,
 	MAP_MODE_TRAINING_NONE,
 	MAP_MODE_TRAINING_RANDOM_MAP_GEN,
@@ -92,7 +92,29 @@ struct CellSensoryValues
 	IntVector2 m_coords;
 	std::vector<float> m_entityNearness;
 };
+struct ScoreCardByActions
+{
+	bool m_isSuccess = false;
+	int  m_numOfAttackActions  = 0;
+	int  m_numOfExploreActions = 0;
+	int  m_numOfFollowActions  = 0;
+	int  m_numOfPatrolActions  = 0;
+	int  m_numOfRetreatActions = 0;
 
+	std::string GetAsString(std::string winString)
+	{
+		std::string behaviorActions;
+		behaviorActions +=
+			"TEAM WIN - " + winString+"\n"+
+			"ATTACK   - " + ToString(m_numOfAttackActions)  + "\n" +
+			"EXPLORE  - " + ToString(m_numOfExploreActions) + "\n" +
+			"FOLLOW   - " + ToString(m_numOfFollowActions)  + "\n" +
+			"PATROL   - " + ToString(m_numOfPatrolActions)  + "\n" +
+			"RETREAT  - " + ToString(m_numOfRetreatActions) + "\n" +
+			"TOTAL    - " + ToString(m_numOfAttackActions   + m_numOfExploreActions + m_numOfFollowActions + m_numOfPatrolActions + m_numOfRetreatActions);
+		return behaviorActions;
+	}
+};
 class Map
 {
 public:
@@ -130,6 +152,7 @@ public:
 	std::vector<Explosion*>			m_explosions;
 	std::vector<DebugEntity*>       m_debugEntities;
 
+	std::vector<Entity*>			m_selectedEntities;
 	std::vector<Entity*>			m_movableEntities;
 	std::vector<Entity*>			m_standAloneEntities;
 	std::vector<EntityType>			m_entitiesHavingTraning;
@@ -141,6 +164,11 @@ public:
 	GameStats						m_gameStats;
 	MapMode							m_mapMode = MAP_MODE_TRAINING_NONE;
 	std::string						m_folder;
+
+	bool							m_multipleEntitySelectionJustStarted = false;
+	bool							m_multipleEntitySelectionJustEnded	   = false;
+	Vector2							m_multipleEntitySelectionStartPoint;
+	Vector2							m_multipleEntitySelectionEndPoint;
 
 	int								m_currentTileIndex = 0;
 	int								m_maxWidth;
@@ -158,6 +186,9 @@ public:
 	bool							m_firstTime = true;
 	int								m_counter = 0;
 
+	ScoreCardByActions				m_team1ScoreCard;
+	ScoreCardByActions				m_team2ScoreCard;
+
 	Map();
 	~Map();
 
@@ -172,6 +203,8 @@ public:
 	void							InitCamera();
 	void							RestartMap();
 
+	IntVector2						GetRandomFreePosition(IntVector2 positionStart, IntVector2 positionEnd);
+
 	void							SetMapType(MapMode type);
 	void							InitTrainingForCivilianGatherFood();
 	void							InitTrainingForCivilianGatherAllResources();
@@ -179,7 +212,7 @@ public:
 	void							InitTrainingForCivilian();
 	void							InitTrainingForTownCenter();
 	void							InitTrainingForShortRangeArmy();
-	void							InitTrainingForLongRangeArmy();
+	void							InitTrainingNonePlayRandom();
 	void							InitTrainingForPlayGreen();
 	void							InitTrainingForRandomGenMaps();
 	void							InitNonTrainingMode();
@@ -280,6 +313,7 @@ public:
 	void							CheckAndSaveBestStats();
 	void							CheckAndSaveBestTeamStats();
 	void							CheckAndSaveBestEntities();
+	void							CheckAndSaveScoreCardsOnActions();
 
 	void							CheckAndSaveBestEntityNN(EntityType type,int teamID);
 	Entity*							FindLocalBestByEntity(EntityType type,int teamID);
@@ -291,6 +325,9 @@ public:
 
 	void							DeleteFromMovableEntityList(Entity *entity);
 	void							DeleteFromStandAlonEntityList(Entity *entity);
+
+	void							ProcessInputForMultipleSelection(float deltaTime);
+	void							SelectAllEntitiesUnderMouseSelection();
 
 	void							Update(float deltaTime);
 	void							UpdateCamera(float deltaTime);
@@ -304,6 +341,7 @@ public:
 	void							UpdateExplosions(float deltaTime);
 	void							UpdateDebugEntities(float deltaTime);
 	void							UpdateEntities(float deltaTime);
+	void							UpdateMultipleSelectionEntityTasks(float deltaTime);
 
 	void							Render();
 	void							RenderCivilians();

@@ -159,7 +159,6 @@ void Entity::ProcessInputs(float deltaTime)
 	{
 		if(g_currentSelectedEntity == this)
 		{
-			
 			m_neuralNet.StoreToFile(GetGlobalBestFilePath().c_str());
 		}
 	}
@@ -186,7 +185,7 @@ void Entity::ProcessInputs(float deltaTime)
 			{
 				g_currentSelectedEntity = this;
 			}
-			if (g_currentSelectedEntity->m_type == SHORT_RANGE_ARMY || g_currentSelectedEntity->m_type == LONG_RANGE_ARMY)
+			/*if (g_currentSelectedEntity->m_type == SHORT_RANGE_ARMY || g_currentSelectedEntity->m_type == LONG_RANGE_ARMY)
 			{
 				switch (this->m_type)
 				{
@@ -221,7 +220,7 @@ void Entity::ProcessInputs(float deltaTime)
 				default:
 					break;
 				}
-			}
+			}*/
 		}
 	}
 }
@@ -407,7 +406,6 @@ void Entity::TrainNN(Task *task)
 		return;
 	}
 
-
 	if (!g_isCurrentlyTraining)
 	{
 		return;
@@ -427,7 +425,7 @@ void Entity::TrainNN(Task *task)
 
 	if (m_state.m_neuralNetPoints > m_previousState.m_neuralNetPoints)
 	{
-		for (int index = 0; index < 5; index++)
+		//for (int index = 0; index < 5; index++)
 		{
 			m_neuralNet.DoBackPropogation(m_desiredOuputs);
 		}
@@ -447,6 +445,7 @@ void Entity::Update(float deltaTime)
 		if(isCompleted)
 		{
 			Task *task = m_taskQueue.front();
+			task->UpdateScoreCard();
 			m_taskQueue.pop();
 			if(m_taskQueue.size() == 0)
 			{
@@ -533,17 +532,7 @@ void Entity::UpdateNN(float deltaTime)
 	{
 		return;
 	}
-	if (m_map->m_mapMode == MAP_MODE_TRAINING_NONE_PLAY_GREEN && m_teamID == 1)
-	{
-		return;
-	}
 
-	//PrintDebugNN();
-	TownCenter *townCenter = m_map->m_townCenters.at(m_teamID - 1);
-	if (townCenter == nullptr)
-	{
-		return;
-	}
 	std::vector<double> m_gameStats;
 	NNInputs inputs = GetMyNNInputs();
 	m_gameStats.push_back(inputs.m_allyArmySpawnerCount				);
@@ -578,7 +567,6 @@ void Entity::UpdateNN(float deltaTime)
 	m_gameStats.push_back(inputs.m_inRangeAttackingEnemyHeatMapValue);
 	m_gameStats.push_back(inputs.m_inRangeStationaryEnemyHeatMapValue);
 
-
 	m_gameStats.push_back(inputs.m_allyInAttackMode					);
 	m_gameStats.push_back(inputs.m_allyInExploreMode				);
 	m_gameStats.push_back(inputs.m_allyInFollowMode					);
@@ -593,246 +581,30 @@ void Entity::UpdateNN(float deltaTime)
 	m_gameStats.push_back(inputs.m_resourceCarrying					);
 
 	m_neuralNet.FeedForward(m_gameStats);
-
-
-	if (true)
-		return;
-
-
-	int foodCount  = townCenter->m_resourceStat.m_food;
-	int stoneCount = townCenter->m_resourceStat.m_stone;
-	int woodCount  = townCenter->m_resourceStat.m_wood;
-	float newfoodCount  = RangeMapFloat(static_cast<float>(foodCount) , 0.f, 30.f, 0.f, 1.f);
-	float newstoneCount = RangeMapFloat(static_cast<float>(stoneCount), 0.f, 30.f, 0.f, 1.f);
-	float newwoodCount  = RangeMapFloat(static_cast<float>(woodCount) , 0.f, 30.f, 0.f, 1.f);
-	newfoodCount  =	ClampFloat(newfoodCount  ,0,1);
-	newstoneCount =	ClampFloat(newstoneCount ,0,1);
-	newwoodCount  = ClampFloat(newwoodCount  ,0,1);
-	m_gameStats.push_back(static_cast<double>(newfoodCount));
-	m_gameStats.push_back(static_cast<double>(newstoneCount));
-	m_gameStats.push_back(static_cast<double>(newwoodCount));
-	
-	float civilianTeam1		  = RangeMapFloat(static_cast<float>(m_map->m_gameStats.m_numOfCiviliansTeam1),      0.f, 5.f, 0.f, 1.f);
-	float shortRangeArmyTeam1 = RangeMapFloat(static_cast<float>(m_map->m_gameStats.m_numOfShortRangeArmyTeam1), 0.f, 5.f, 0.f, 1.f);
-	float longRangeArmyTeam1  = RangeMapFloat(static_cast<float>(m_map->m_gameStats.m_numOfLongRangeArmyTeam1),  0.f, 5.f, 0.f, 1.f);
-
-	float civilianTeam2		  = RangeMapFloat(static_cast<float>(m_map->m_gameStats.m_numOfCiviliansTeam2), 0.f, 5.f, 0.f, 1.f);
-	float shortRangeArmyTeam2 = RangeMapFloat(static_cast<float>(m_map->m_gameStats.m_numOfShortRangeArmyTeam2), 0.f, 5.f, 0.f, 1.f);
-	float longRangeArmyTeam2  = RangeMapFloat(static_cast<float>(m_map->m_gameStats.m_numOfLongRangeArmyTeam2), 0.f, 5.f, 0.f, 1.f);
-
-	civilianTeam1        = ClampFloat(civilianTeam1, 0, 1);
-	shortRangeArmyTeam1  = ClampFloat(shortRangeArmyTeam1, 0, 1);
-	longRangeArmyTeam1   = ClampFloat(longRangeArmyTeam1, 0, 1);
-	civilianTeam2		 = ClampFloat(civilianTeam2, 0, 1);
-	shortRangeArmyTeam2  = ClampFloat(shortRangeArmyTeam2, 0, 1);
-	longRangeArmyTeam2   = ClampFloat(longRangeArmyTeam2, 0, 1);
-
-
-	if(m_teamID == 1)
-	{
-		m_gameStats.push_back(static_cast<double>(m_map->m_gameStats.m_numOfArmySpawnerTeam1));
-		m_gameStats.push_back(static_cast<double>(civilianTeam1));
-		m_gameStats.push_back(static_cast<double>(shortRangeArmyTeam1));
-		m_gameStats.push_back(static_cast<double>(longRangeArmyTeam1));
-		m_gameStats.push_back(static_cast<double>(m_map->m_gameStats.m_numOfHousesTeam1));
-	}
-	else
-	{
-		m_gameStats.push_back(static_cast<double>(m_map->m_gameStats.m_numOfArmySpawnerTeam2));
-		m_gameStats.push_back(static_cast<double>(civilianTeam2));
-		m_gameStats.push_back(static_cast<double>(shortRangeArmyTeam2));
-		m_gameStats.push_back(static_cast<double>(longRangeArmyTeam2));
-		m_gameStats.push_back(static_cast<double>(m_map->m_gameStats.m_numOfHousesTeam2));
-	}
-	int health = 0;
-	if(m_type == TOWN_CENTER)
-	{
-		health = static_cast<int>(RangeMapFloat(m_health, 0.f, 50.f, 0.f, 1.f));
-	}
-	else
-	{
-		health = static_cast<int>(RangeMapFloat(m_health, 0.f, 10.f, 0.f, 1.f));
-	}
-	m_gameStats.push_back(health);
-
-
-	if (HasResource())
-	{
-		m_gameStats.push_back((static_cast<double>(1)));
-	}
-	else
-	{
-		m_gameStats.push_back((static_cast<double>(0)));
-	}
-
-/*
-	IntVector2 myPosition = m_map->GetCordinates(GetPosition());
-	double minimapValue    = m_map->GetMiniMapValueAtPositionFromEntityType(myPosition.x, myPosition.y,m_teamID,m_type);
-	m_map->SetMiniMapValues(myPosition.x, myPosition.y, this);*/
-
-	std::vector<double> entityMiniMapInput = GetMyMiniMap();
-	m_neuralNet.FeedForward(entityMiniMapInput, m_gameStats);
-	//m_map->SetMiniMapValues(myPosition.x, myPosition.y, static_cast<float>(minimapValue));
 }
 
 void Entity::UpdateTaskFromNN(float deltaTime)
 {
 	if (!m_map->HasTrainingEnabled(this))
 	{
+		if (m_map->m_mapMode == MAP_MODE_TRAINING_NONE_PLAY_RANDOM && m_teamID == 1)
+		{
+			int randomTask = GetRandomIntLessThan(m_taskTypeSupported.size());
+			TaskType task = m_taskTypeSupported.at(randomTask);
+			int randomIntX = GetRandomIntLessThan(8);
+			int randomIntY = GetRandomIntLessThan(8);
+
+			CreateAndPushTask(task, IntVector2(randomIntX,randomIntY));
+		}
 		return;
 	}
+
 	double max = 0;
 	TaskType task			= GetTaskFromNNOutput(max);
 	IntVector2 taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position);
 	m_previousState			= m_state;
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	float logTime = 3;
-
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	deltaTime = logTime;
-	switch (task)
-	{
-	case TASK_IDLE:
-		{
-			CreateAndPushIdleTask(taskPosition);
-			break;
-		}
-	case TASK_MOVE:
-		{
-		
-		std::vector<Entity*> entityList     = m_map->GetAllEntitiesNearLocation(m_map->GetMapPosition(taskPosition), 1);
-		std::vector<Entity*> townCenterList = GetMyTownCenterEntityFromList(entityList);
-		std::vector<Entity*> resourceList   = GetResourceEntityFromList(entityList);
-		CreateAndPushMoveTask(taskPosition);
-		}
-		break;
-	case TASK_GATHER_RESOURCE_FOOD:
-	{
-		CreateAndPushGatherResourceTask(taskPosition,TASK_GATHER_RESOURCE_FOOD);
-	}
-	break;
-	case TASK_GATHER_RESOURCE_STONE:
-	{
-		CreateAndPushGatherResourceTask(taskPosition, TASK_GATHER_RESOURCE_STONE);
-	}
-	break;
-	case TASK_GATHER_RESOURCE_WOOD:
-	{
-		CreateAndPushGatherResourceTask(taskPosition, TASK_GATHER_RESOURCE_WOOD);
-	}
-	break;
-	case TASK_DROP_RESOURCE:
-	{
-		logTime = deltaTime;
-		CreateAndPushDropResourceTask(taskPosition);
-	}
-		break;
-	case TASK_BUILD_TOWNCENTER:
-	{
-		logTime = deltaTime;
-		CreateAndPushBuildTownCenterTask(taskPosition);
-	}
-		break;
-	case TASK_BUILD_HOUSE:
-	{
-		logTime = deltaTime;
-		CreateAndPushBuildHouseTask(taskPosition);
-	}
-		break;
-	case TASK_BUILD_ARMY_SPAWNER:
-	{
-		logTime = deltaTime;
-		CreateAndPushBuildArmySpawnerTask(taskPosition);
-	}
-		break;
-	case TASK_RETREAT:
-	{
-		if(m_intendedStrategy == RETREAT)
-		{
-			m_scoreBoard.m_bonusScore++;
-		}
-		CreateAndPushRetreatTask(taskPosition);
-	}
-	break;
-	case TASK_EXPLORE:
-	{
-		if (m_intendedStrategy == EXPLORE)
-		{
-			m_scoreBoard.m_bonusScore++;
-		}
-		CreateAndPushExploreTask(taskPosition);
-	}
-	break;
-	case TASK_PATROL:
-	{
-		if (m_intendedStrategy == PATROL)
-		{
-			m_scoreBoard.m_bonusScore++;
-		}
-		CreateAndPushPatrolTask(taskPosition);
-	}
-	break;
-	case TASK_FOLLOW:
-	{
-		if (m_intendedStrategy == FOLLOW)
-		{
-			m_scoreBoard.m_bonusScore++;
-		}
-		CreateAndPushFollowTask(taskPosition);
-	}
-	break;
-	case TASK_ATTACK:
-	{
-		if (m_intendedStrategy == ATTACK)
-		{
-			m_scoreBoard.m_bonusScore++;
-		}
-		CreateAndPushAttackTask(taskPosition);
-	}
-	break;
-	case TASK_LONG_ATTACK:
-	{
-		IntVector2 currentPosition = m_map->GetCordinates(m_previousState.m_position);
-
-		//double taskXPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
-		//double taskYPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
-
-		taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position, 4, 4);
-		//m_map->CreateExplosions(m_map->GetMapPosition(taskPosition), Rgba::RED);
-		CreateAndPushLongRangeAttackTask(taskPosition);
-	}
-		break;
-	case TASK_SHORT_ATTACK:
-	{
-		IntVector2 currentPosition = m_map->GetCordinates(m_previousState.m_position);
-
-		//double taskXPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
-		//double taskYPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
-
-		taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position,2,2);
-		
-		CreateAndPushShortRangeAttackTask(taskPosition);
-	}
-		break;
-	case TASK_SPAWN_VILLAGER:
-	{
-		CreateAndPushSpawnVillagerTask(taskPosition);
-	}
-		break;
-	case TASK_SPAWN_CLASSA_WARRIOR:
-	{
-		CreateAndPushSpawnClassAArmyTask(taskPosition);
-	}
-		break;
-	case TASK_SPAWN_CLASSB_WARRIOR:
-	{
-		CreateAndPushSpawnClassBArmyTask(taskPosition);
-	}
-		break;
-	default:
-		break;
-	}
-	
+	CreateAndPushTask(task, taskPosition);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2000,6 +1772,121 @@ bool Entity::IsResourceNearMe(int cellDistance)
 		}
 	}
 	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CreateAndPushTask(TaskType taskType, IntVector2 taskPosition)
+{
+	switch (taskType)
+	{
+		case TASK_IDLE:
+		{
+			CreateAndPushIdleTask(taskPosition);
+		}
+		break;
+		case TASK_MOVE:
+		{
+			CreateAndPushMoveTask(taskPosition);
+		}
+		break;
+		case TASK_GATHER_RESOURCE_FOOD:
+		{
+			CreateAndPushGatherResourceTask(taskPosition, TASK_GATHER_RESOURCE_FOOD);
+		}
+		break;
+		case TASK_GATHER_RESOURCE_STONE:
+		{
+			CreateAndPushGatherResourceTask(taskPosition, TASK_GATHER_RESOURCE_STONE);
+		}
+		break;
+		case TASK_GATHER_RESOURCE_WOOD:
+		{
+			CreateAndPushGatherResourceTask(taskPosition, TASK_GATHER_RESOURCE_WOOD);
+		}
+		break;
+		case TASK_DROP_RESOURCE:
+		{
+			CreateAndPushDropResourceTask(taskPosition);
+		}
+		break;
+		case TASK_BUILD_TOWNCENTER:
+		{
+			CreateAndPushBuildTownCenterTask(taskPosition);
+		}
+		break;
+		case TASK_BUILD_HOUSE:
+		{
+			CreateAndPushBuildHouseTask(taskPosition);
+		}
+		break;
+		case TASK_BUILD_ARMY_SPAWNER:
+		{
+			CreateAndPushBuildArmySpawnerTask(taskPosition);
+		}
+		break;
+		case TASK_RETREAT:
+		{
+			CreateAndPushRetreatTask(taskPosition);
+		}
+		break;
+		case TASK_EXPLORE:
+		{
+			CreateAndPushExploreTask(taskPosition);
+		}
+		break;
+		case TASK_PATROL:
+		{
+			CreateAndPushPatrolTask(taskPosition);
+		}
+		break;
+		case TASK_FOLLOW:
+		{
+			CreateAndPushFollowTask(taskPosition);
+		}
+		break;
+		case TASK_ATTACK:
+		{
+			CreateAndPushAttackTask(taskPosition);
+		}
+		break;
+		case TASK_LONG_ATTACK:
+		{
+			IntVector2 currentPosition = m_map->GetCordinates(m_previousState.m_position);
+			taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position, 4, 4);
+			CreateAndPushLongRangeAttackTask(taskPosition);
+		}
+		break;
+		case TASK_SHORT_ATTACK:
+		{
+			IntVector2 currentPosition = m_map->GetCordinates(m_previousState.m_position);
+			taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position, 2, 2);
+			CreateAndPushShortRangeAttackTask(taskPosition);
+		}
+		break;
+		case TASK_SPAWN_VILLAGER:
+		{
+			CreateAndPushSpawnVillagerTask(taskPosition);
+		}
+		break;
+		case TASK_SPAWN_CLASSA_WARRIOR:
+		{
+			CreateAndPushSpawnClassAArmyTask(taskPosition);
+		}
+		break;
+		case TASK_SPAWN_CLASSB_WARRIOR:
+		{
+			CreateAndPushSpawnClassBArmyTask(taskPosition);
+		}
+		break;
+		default:
+			break;
+	}
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3186,6 +3073,10 @@ bool Entity::CreateAndPushDefenseTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushFollowTask(IntVector2 cordinate)
 {
+	if (m_intendedStrategy == FOLLOW)
+	{
+		m_scoreBoard.m_bonusScore++;
+	}
 	UNUSED(cordinate);
 	Task *task = new TaskFollow(m_map, this);
 	m_taskQueue.push(task);
@@ -3200,6 +3091,10 @@ bool Entity::CreateAndPushFollowTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushRetreatTask(IntVector2 cordinate)
 {
+	if (m_intendedStrategy == RETREAT)
+	{
+		m_scoreBoard.m_bonusScore++;
+	}
 	UNUSED(cordinate);
 	Task *task = new TaskRetreat(m_map, this);
 	m_taskQueue.push(task);
@@ -3214,6 +3109,10 @@ bool Entity::CreateAndPushRetreatTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushPatrolTask(IntVector2 cordinate)
 {
+	if (m_intendedStrategy == PATROL)
+	{
+		m_scoreBoard.m_bonusScore++;
+	}
 	UNUSED(cordinate);
 	Task *task = new TaskPatrol(m_map, this);
 	m_taskQueue.push(task);
@@ -3228,6 +3127,10 @@ bool Entity::CreateAndPushPatrolTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushExploreTask(IntVector2 cordinate)
 {
+	if (m_intendedStrategy == EXPLORE)
+	{
+		m_scoreBoard.m_bonusScore++;
+	}
 	UNUSED(cordinate);
 	Task *task = new TaskExplore(m_map, this);
 	m_taskQueue.push(task);
@@ -3242,10 +3145,39 @@ bool Entity::CreateAndPushExploreTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushAttackTask(IntVector2 cordinate)
 {
+	if (m_intendedStrategy == ATTACK)
+	{
+		m_scoreBoard.m_bonusScore++;
+	}
 	UNUSED(cordinate);
 	Task *task = new TaskAttack(m_map, this,m_attackRange);
 	m_taskQueue.push(task);
 	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/19
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CheckAndSetStrategyIfNoEnemies(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs)
+{
+	if (inputs.m_enemyLongRangeArmyCount + inputs.m_enemyShortRangeArmyCount == 0)
+	{
+		if(inputs.m_inRangeEnemyTownCenterCount == 0)
+		{
+			SetDesiredStrategyAsOutputForNN(EXPLORE, 1);
+			m_state.m_neuralNetPoints++;
+			CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+			return true;
+		}
+		SetDesiredStrategyAsOutputForNN(ATTACK, 1);
+		m_state.m_neuralNetPoints++;
+		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+		return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

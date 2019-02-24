@@ -1,4 +1,4 @@
-1324
+1299
 TOTAL_RESOURCE_FOOD_COLLECTED       : 0
 TOTAL_RESOURCE_STONE_COLLECTED      : 0
 TOTAL_RESOURCE_WOOD_COLLECTED       : 0
@@ -24,4 +24,4 @@ TOTAL_NEGATIVE_SCORE                : 0
 TOTAL_BONUS_SCORE                   : 999
 TOTAL_FRAMES                        : 1
 ALIVE                               : 1
-TOTAL_SCORE                         : 1324
+TOTAL_SCORE                         : 1299
