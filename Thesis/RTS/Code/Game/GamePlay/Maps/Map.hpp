@@ -26,8 +26,8 @@ enum MapMode
 	MAP_MODE_TRAINING_CIVILIAN_BUILD,
 	MAP_MODE_TRAINING_CIVILIAN,
 	MAP_MODE_TRAINING_TOWNCENTER,
-	MAP_MODE_TRAINING_SHORTRANGE_ARMY,
-	MAP_MODE_TRAINING_NONE_PLAY_RANDOM,
+	MAP_MODE_TRAINED_VS_RANDOM_TRAINING,
+	MAP_MODE_TRAINED_VS_RANDOM_GAME,
 	MAP_MODE_TRAINING_NONE_PLAY_GREEN,
 	MAP_MODE_TRAINING_NONE,
 	MAP_MODE_TRAINING_RANDOM_MAP_GEN,
@@ -100,6 +100,13 @@ struct ScoreCardByActions
 	int  m_numOfFollowActions  = 0;
 	int  m_numOfPatrolActions  = 0;
 	int  m_numOfRetreatActions = 0;
+	int  m_numOfTotalActions   = 0;
+
+	int  CalculateTotalScore()
+	{
+		m_numOfTotalActions = m_numOfAttackActions + m_numOfExploreActions + m_numOfFollowActions + m_numOfPatrolActions + m_numOfRetreatActions + m_numOfTotalActions;
+		return m_numOfTotalActions;
+	}
 
 	std::string GetAsString(std::string winString)
 	{
@@ -211,8 +218,8 @@ public:
 	void							InitTrainingForCivilianBuildAll();
 	void							InitTrainingForCivilian();
 	void							InitTrainingForTownCenter();
-	void							InitTrainingForShortRangeArmy();
-	void							InitTrainingNonePlayRandom();
+	void							InitTrainedVsRandomTraining();
+	void							InitTrainedVsRandomGame();
 	void							InitTrainingForPlayGreen();
 	void							InitTrainingForRandomGenMaps();
 	void							InitNonTrainingMode();
@@ -236,6 +243,7 @@ public:
 	bool							IsNeighbours(IntVector2 position1, IntVector2 position2);
 	bool							IsNeighbours(IntVector2 position1, IntVector2 position2,int distance);
 	bool							IsResource(Entity * entity);
+	bool							ShouldSaveLocalResultInDirectory();
 	//MINIMAP
 	void							InitMiniMap();
 	void							UpdateMiniMap();

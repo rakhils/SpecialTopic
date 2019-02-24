@@ -277,6 +277,8 @@ public:
 	Strategy					m_strategy;
 	Strategy					m_intendedStrategy;
 
+	ScoreCardByActions			m_entityScoreCard;
+
 	std::vector<IntVector2>     m_exploredPlacesOfNoInterest;
 
 	Entity();

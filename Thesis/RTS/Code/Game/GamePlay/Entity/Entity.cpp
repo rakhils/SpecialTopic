@@ -587,7 +587,7 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 {
 	if (!m_map->HasTrainingEnabled(this))
 	{
-		if (m_map->m_mapMode == MAP_MODE_TRAINING_NONE_PLAY_RANDOM && m_teamID == 1)
+		if (m_map->m_mapMode == MAP_MODE_TRAINED_VS_RANDOM_GAME && m_teamID == 1)
 		{
 			int randomTask = GetRandomIntLessThan(m_taskTypeSupported.size());
 			TaskType task = m_taskTypeSupported.at(randomTask);
