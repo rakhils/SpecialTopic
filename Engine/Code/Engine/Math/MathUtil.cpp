@@ -1355,6 +1355,18 @@ int RoundToNearestInt(float inValue)
 
 }
 
+int GetFlooredValue(float value)
+{
+	//return floor(value);
+	float temp = value;
+	int returnValue = static_cast<int>(temp);
+	if(static_cast<float>(returnValue) > temp)
+	{
+		return returnValue - 1;
+	}
+	return returnValue;
+}
+
 int ClampInt(int inValue, int min, int max)
 {
 	if(inValue < min)
@@ -1432,6 +1444,19 @@ Vector3 ClampVector3(Vector3 inValue, Vector3 minClamp, Vector3 maxClamp)
 	inValue.x = ClampFloat(inValue.x, minClamp.x, maxClamp.x);
 	inValue.y = ClampFloat(inValue.y, minClamp.y, maxClamp.y);
 	inValue.z = ClampFloat(inValue.z, minClamp.z, maxClamp.z);
+	return inValue;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+Vector2 ClampVector2(Vector2 inValue, Vector2 minClamp, Vector2 maxClamp)
+{
+	inValue.x = ClampFloat(inValue.x, minClamp.x, maxClamp.x);
+	inValue.y = ClampFloat(inValue.y, minClamp.y, maxClamp.y);
 	return inValue;
 }
 

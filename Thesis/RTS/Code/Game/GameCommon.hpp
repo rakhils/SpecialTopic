@@ -53,6 +53,7 @@ extern int					g_NNInputCount;
 extern int					g_NNHiddenLayerCount;
 extern int				    g_entityMiniMapMaxWidth;
 extern int				    g_entityMiniMapMaxHeight;
+extern int					g_numOfGameCounter;
 extern int					g_mapCounter;
 extern int					g_mapBreakCounter;
 extern float				g_mapXOffset;

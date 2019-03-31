@@ -13,6 +13,123 @@
 * \contact: srsrakhil@gmail.com
 */
 class Entity;
+struct ScoreCardByActions
+{
+	bool m_isSuccess = false;
+	int  m_numOfAttackActions = 0;
+	int  m_numOfExploreActions = 0;
+	int  m_numOfFollowActions = 0;
+	int  m_numOfPatrolActions = 0;
+	int  m_numOfRetreatActions = 0;
+	int  m_totalScore = 0;
+
+	int  CalculateTotalScore()
+	{
+		m_totalScore = m_numOfAttackActions + m_numOfExploreActions + m_numOfFollowActions + m_numOfPatrolActions + m_numOfRetreatActions;
+		return m_totalScore;
+	}
+
+	void Reset()
+	{
+		m_isSuccess = false;
+		m_numOfAttackActions = 0;
+		m_numOfExploreActions = 0;
+		m_numOfFollowActions = 0;
+		m_numOfPatrolActions = 0;
+		m_numOfRetreatActions = 0;
+		m_totalScore = 0;
+	}
+
+	std::string GetAsString()
+	{
+		std::string behaviorActions;
+		behaviorActions     +=
+			"TEAM STATS - " + ToString(m_isSuccess)           + "\n" +
+			"ATTACK     - " + ToString(m_numOfAttackActions)  + "\n" +
+			"EXPLORE    - " + ToString(m_numOfExploreActions) + "\n" +
+			"FOLLOW     - " + ToString(m_numOfFollowActions)  + "\n" +
+			"PATROL     - " + ToString(m_numOfPatrolActions)  + "\n" +
+			"RETREAT    - " + ToString(m_numOfRetreatActions) + "\n" +
+			"TOTAL      - " + ToString(m_numOfAttackActions   + m_numOfExploreActions + m_numOfFollowActions + m_numOfPatrolActions + m_numOfRetreatActions);
+		return behaviorActions;
+	}
+
+	void ReadFromFile(char const *fileName)
+	{
+		std::string fileContent = GetFileContentAsString(fileName);
+		std::vector<std::string> params;
+		Split(params, fileContent, '\n');
+		for(int index = 0;index < params.size();index++)
+		{
+			std::vector<std::string> paramValues;
+			Split(paramValues, params.at(index), '-');
+			if(StartsWith(paramValues.at(0),"ATTACK"))
+			{
+				paramValues.at(1) = TrimString(paramValues.at(1));
+				ToInt(paramValues.at(1), &m_numOfAttackActions);
+			}
+			if (StartsWith(paramValues.at(0), "EXPLORE"))
+			{
+				paramValues.at(1) = TrimString(paramValues.at(1));
+				ToInt(paramValues.at(1), &m_numOfExploreActions);
+			}
+			if (StartsWith(paramValues.at(0), "FOLLOW"))
+			{
+				paramValues.at(1) = TrimString(paramValues.at(1));
+				ToInt(paramValues.at(1), &m_numOfFollowActions);
+			}
+			if (StartsWith(paramValues.at(0), "PATROL"))
+			{
+				paramValues.at(1) = TrimString(paramValues.at(1));
+				ToInt(paramValues.at(1), &m_numOfPatrolActions);
+			}
+			if (StartsWith(paramValues.at(0), "RETREAT"))
+			{
+				paramValues.at(1) = TrimString(paramValues.at(1));
+				ToInt(paramValues.at(1), &m_numOfRetreatActions);
+			}
+			if (StartsWith(paramValues.at(0), "TOTAL"))
+			{
+				paramValues.at(1) = TrimString(paramValues.at(1));
+				ToInt(paramValues.at(1), &m_totalScore);
+			}
+		}
+	}
+
+	void SaveToFile(char const *fileName)
+	{
+		std::string fileContent = GetAsString();
+		FileWrite(fileName, fileContent);
+		std::string fileNameStr(fileName);
+		std::vector<std::string> fileNameWithoutExtensionStr;
+		Split(fileNameWithoutExtensionStr, fileNameStr, '.');
+
+		std::string fileContents = ToString(m_numOfAttackActions)  + ","  +
+								   ToString(m_numOfExploreActions) + ","  +
+								   ToString(m_numOfFollowActions)  + ","  +
+								   ToString(m_numOfPatrolActions)  + ","  +
+								   ToString(m_numOfRetreatActions) + ","  +
+								   ToString(m_totalScore); 
+		FileWrite(fileNameWithoutExtensionStr.at(0) + "_TOTAL.txt", fileContents);
+	}
+	void SaveStatsToFile(char const *fileName)
+	{
+		std::string fileContent = ToString(m_totalScore) +"\n"+ GetAsString();
+		FileWrite(fileName, fileContent);
+		
+		/*std::string fileNameStr(fileName);
+		std::vector<std::string> fileNameWithoutExtensionStr;
+		Split(fileNameWithoutExtensionStr, fileNameStr, '.');
+
+		std::string fileContents = "TOTAL," + ToString(m_totalScore);
+		FileWrite(fileNameWithoutExtensionStr.at(0) + "_TOTAL.txt", fileContents);*/
+		//FileWrite(fileNameWithoutExtensionStr.at(0) + "_EXPLORE.txt", ToString(m_numOfAttackActions));
+		//FileWrite(fileNameWithoutExtensionStr.at(0) + "_.txt", ToString(m_numOfAttackActions));
+		//FileWrite(fileNameWithoutExtensionStr.at(0) + "_ATTACK.txt", ToString(m_numOfAttackActions));
+		//FileWrite(fileNameWithoutExtensionStr.at(0) + "_ATTACK.txt", ToString(m_numOfAttackActions));
+
+	}
+};
 class ScoreCard
 {
 public:

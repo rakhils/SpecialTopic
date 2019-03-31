@@ -130,11 +130,11 @@ int ClassAWarrior::GetGlobalBestScore()
 {
 	if (m_teamID == 1)
 	{
-		return g_globalMaxScoreShortRangeArmy1;
+		return m_map->m_localBestShortRangeArmyScoreCardTeam1.m_totalScore;
 	}
 	if (m_teamID == 2)
 	{
-		return g_globalMaxScoreShortRangeArmy2;
+		return m_map->m_localBestShortRangeArmyScoreCardTeam2.m_totalScore;
 	}
 	/*switch (m_strategy)
 	{
@@ -311,7 +311,7 @@ void ClassAWarrior::TrainNN(Task *task)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
+void ClassAWarrior::EvaluateNNDefensive(Task *task, EntityState previousState, IntVector2 cords)
 {
 	if (!m_map->HasTrainingEnabled(this))
 	{
@@ -323,6 +323,27 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 	NNInputs inputs  = GetMyNNInputs();
 
 	Strategy strategy = ATTACK;
+
+
+	Entity *townCenter = m_map->m_townCenters.at(1);
+	NNInputs townCentreInputs = townCenter->GetMyNNInputs();
+
+	if (inputs.m_inRangeEnemyShortRangeArmyCount > 0.f)
+	{
+		SetDesiredStrategyAsOutputForNN(FOLLOW, 1);
+		SetDesiredStrategyAsOutputForNN(ATTACK, 0);
+		m_state.m_neuralNetPoints++;
+		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+		return;
+	}
+
+	SetDesiredStrategyAsOutputForNN(IDLE, 1);
+	m_state.m_neuralNetPoints++;
+	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+	if (true)
+	{
+		return;
+	}
 	double priority = MAX_NUM_STRATEGY * NNInput_InputMaxCount;
 
 
@@ -337,7 +358,7 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 		NNInputVectors.push_back(0);
 	}
 
-	if(CheckAndSetStrategyIfNoEnemies(NNInputVectors, strategy, priority, inputs))
+	if(CheckAndSetStrategyIfNoEnemiesAlive(NNInputVectors, strategy, priority, inputs))
 	{
 		return;
 	}
@@ -376,6 +397,122 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 	m_state.m_neuralNetPoints++;
 	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
 
+	Entity::EvaluateNN(task, previousState, cords);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords, bool value)
+{
+	if (!m_map->HasTrainingEnabled(this))
+	{
+		return;
+	}
+
+	CopyDesiredOutputs();
+	ClearDesiredStrategyValues();
+	NNInputs inputs = GetMyNNInputs();
+
+	Strategy strategy = ATTACK;
+	
+	if(inputs.m_enemyShortRangeArmyCount > 0)
+	{
+		SetDesiredStrategyAsOutputForNN(RETREAT, 1);
+		m_state.m_neuralNetPoints++;
+		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+		return;
+	}
+
+	SetDesiredStrategyAsOutputForNN(IDLE, 1);
+	m_state.m_neuralNetPoints++;
+	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+
+	
+	double priority = MAX_NUM_STRATEGY * NNInput_InputMaxCount;
+
+	std::vector<double> strategyValues;
+	for (int index = 0; index < MAX_NUM_STRATEGY; index++)
+	{
+		strategyValues.push_back(0);
+	}
+	std::vector<double> NNInputVectors;
+	for (int inputIndex = 0; inputIndex < NNInput_InputMaxCount; inputIndex++)
+	{
+		NNInputVectors.push_back(0);
+	}
+
+	CheckAndSetStrategyIfNoEnemiesAlive		   (NNInputVectors, strategy, priority, inputs,value);
+	priority -= NNInput_InputMaxCount;
+	CheckAndSetStrategyIfTownCenterUnderAttack (NNInputVectors, strategy, priority, inputs,value);
+	priority -= NNInput_InputMaxCount;
+	CheckAndSetStrategyIfEntityUnderAttack     (NNInputVectors, strategy, priority, inputs,value);
+	priority -= NNInput_InputMaxCount;
+	CheckAndSetStrategyIfEnemiesOutweighsAllies(NNInputVectors, strategy, priority, inputs,value);
+	priority -= NNInput_InputMaxCount;
+	CheckAndSetStrategyPatrol                  (NNInputVectors, strategy, priority, inputs,value);
+	priority -= NNInput_InputMaxCount;
+	CheckAndSetStrategyExplore                 (NNInputVectors, strategy, priority, inputs,value);
+	priority -= NNInput_InputMaxCount;
+	CheckAndSetStrategyAttack                  (NNInputVectors, strategy, priority, inputs,value);
+	priority -= NNInput_InputMaxCount;
+	//SetDesiredStrategyAsOutputForNN(IDLE, 1);
+	m_state.m_neuralNetPoints++;
+	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+
+	Entity::EvaluateNN(task, previousState, cords);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/29
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
+{
+	if (!m_map->HasTrainingEnabled(this))
+	{
+		return;
+	}
+
+	CopyDesiredOutputs();
+	ClearDesiredStrategyValues();
+	NNInputs inputs = GetMyNNInputs();
+
+	Strategy strategy = ATTACK;
+	std::vector<double> NNInputVectors;
+	for (int inputIndex = 0; inputIndex < NNInput_InputMaxCount; inputIndex++)
+	{
+		NNInputVectors.push_back(0);
+	}
+	Entity *townCenter = m_map->m_townCenters.at(1);
+	NNInputs townCentreInputs = townCenter->GetMyNNInputs();
+
+
+	double priority = MAX_NUM_STRATEGY * NNInput_InputMaxCount;
+	if (CheckAndSetStrategyIfTownCenterUnderAttack (NNInputVectors, strategy, priority, inputs))
+	{
+		return;
+	}
+	priority -= NNInput_InputMaxCount;
+	if (CheckAndSetStrategyPatrol                  (NNInputVectors, strategy, priority, inputs))
+	{
+		return;
+	}
+	priority -= NNInput_InputMaxCount;
+	if (CheckAndSetStrategyExplore                 (NNInputVectors, strategy, priority, inputs))
+	{
+		return;
+	}
+	priority -= NNInput_InputMaxCount;
+	if (CheckAndSetStrategyAttack                  (NNInputVectors, strategy, priority, inputs))
+	{
+		return;
+	}
 	Entity::EvaluateNN(task, previousState, cords);
 }
 
@@ -430,26 +567,7 @@ void ClassAWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassAWarrior::EvaluateShortAttackTask(EntityState previousState, IntVector2 cords)
 {
-	UNUSED(cords);
-	std::vector<Entity*> m_entityList = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
-	if(m_entityList.size() > 0)
-	{
-		m_state.m_neuralNetPoints++;
-		IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
-		IntVector2 minimapMins = GetMiniMapMins(m_map->GetCordinates(previousState.m_position),2,2);
-
-		IntVector2 pos = m_entityList.at(0)->GetCordinates();
-		IntVector2 diff = pos - minimapMins;
-
-		float xOffSet = RangeMapInt(diff.x, 0, 2, 0, 1);
-		float yOffSet = RangeMapInt(diff.y, 0, 2, 0, 1);
-		SetDesiredOutputForTask(TASK_SHORT_ATTACK, 1);
-		SetDesiredOutputForTask(TASK_MOVEX,xOffSet);
-		SetDesiredOutputForTask(TASK_MOVEY,yOffSet);
-		return;
-	}
-	m_state.m_neuralNetPoints++;
-	SetDesiredOutputForTask(TASK_SHORT_ATTACK, 0);
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

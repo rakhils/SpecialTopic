@@ -466,6 +466,33 @@ void Renderer::DrawCircle(Disc2 disc, Rgba color)
 	DrawCircle(disc.center.x,disc.center.y,disc.radius,color,20);
 }
 
+void Renderer::DrawSolidCircle(Vector2 centre, float nradius, Rgba color)
+{
+	const int MAX_NUM_VERTEX = 15;
+	float nangle = 360.0f / (MAX_NUM_VERTEX);
+
+	const int TOTAL_VERTEX = 360 / (MAX_NUM_VERTEX) * 3;
+
+	Vertex_3DPCU line[TOTAL_VERTEX];
+	
+	for (int angleIndex = 0,pointIndex = 0; angleIndex < nangle; angleIndex++,pointIndex+=3)
+	{
+		float startX = centre.x + (nradius)*CosDegrees(angleIndex/nangle * 360.f);
+		float startY = centre.y + (nradius)*SinDegrees(angleIndex/nangle * 360.f);
+
+		float endX = centre.x + (nradius)*CosDegrees((angleIndex + 1)/ nangle * 360.f);
+		float endY = centre.y + (nradius)*SinDegrees((angleIndex + 1)/ nangle * 360.f);
+
+		line[pointIndex + 0].setRGBA(color);
+		line[pointIndex + 0].setPoint(startX, startY);
+		line[pointIndex + 1].setRGBA(color);
+		line[pointIndex + 1].setPoint(endX, endY);
+		line[pointIndex + 2].setRGBA(color);
+		line[pointIndex + 2].setPoint(centre.x, centre.y);
+	}
+	DrawMeshImmediate(PRIMITIVE_TRIANGES, static_cast<int>(TOTAL_VERTEX), line);
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/02/04
 *@purpose : Draws rectangle in 2d space
@@ -556,6 +583,26 @@ void Renderer::DrawRectangle(float x1, float y1, float x2, float y2)
 void Renderer::DrawSolidRectangle(float x1, float y1, float x2, float y2)
 {
 	DrawRectangle(x1,y1,x2,y2);
+}
+
+void Renderer::DrawSolidRectangle(Vector2 position1, Vector2 position2, Vector2 position3, Vector2 position4, Rgba color)
+{
+	Vertex_3DPCU rectangle[6];
+	rectangle[0].setPoint(position1);
+	rectangle[0].setRGBA(color);
+	rectangle[1].setPoint(position2);
+	rectangle[1].setRGBA(color);
+	rectangle[2].setPoint(position3);
+	rectangle[2].setRGBA(color);
+
+	rectangle[3].setPoint(position1);
+	rectangle[3].setRGBA(color);
+	rectangle[4].setPoint(position3);
+	rectangle[4].setRGBA(color);
+	rectangle[5].setPoint(position4);
+	rectangle[5].setRGBA(color);
+
+	DrawMeshImmediate(PRIMITIVE_TRIANGES, 6, rectangle);
 }
 
 //////////////////////////////////////////////////////////////

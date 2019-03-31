@@ -414,7 +414,7 @@ size_t NetConnection::FlushUnSentRealiables()
 size_t NetConnection::FlushUnrealiables()
 {
 	size_t sendCount = 0;
-	for (size_t unsentUnreliableIndex = 0; unsentUnreliableIndex < m_unsentUnreliableMsgs.size(); unsentUnreliableIndex++)
+	for (size_t unsentUnreliableIndex = 0; unsentUnreliableIndex < m_unsentUnreliableMsgs.size();)
 	{
 		NetMessage *msg = m_unsentUnreliableMsgs.at(unsentUnreliableIndex);
 		Packet packet;

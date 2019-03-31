@@ -45,6 +45,7 @@ void Map::Initialize()
 	std::string str = GetCurrentTimeMilliSecAsString();
 	m_gameTime = 0.f;
 	InitCamera();
+	g_mapCounter = 0;
 	switch (m_mapMode)
 	{
 	case MAP_MODE_TRAINING_CIVILIAN_GATHER_FOOD:
@@ -62,25 +63,24 @@ void Map::Initialize()
 	case MAP_MODE_TRAINING_TOWNCENTER:
 		InitTrainingForTownCenter();
 		break;
-	case MAP_MODE_TRAINED_VS_RANDOM_TRAINING:
+	case MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN:
 		InitTrainedVsRandomTraining();
 		break;
-	case MAP_MODE_TRAINED_VS_RANDOM_GAME:
+	case MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN:
 		InitTrainedVsRandomGame();
 		break;
-	case MAP_MODE_TRAINING_NONE_PLAY_GREEN:
+	case MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN:
 		InitTrainingForPlayGreen();
 		break;
 	case MAP_MODE_TRAINING_RANDOM_MAP_GEN:
 		InitTrainingForRandomGenMaps();
 		break;
-	case MAP_MODE_TRAINING_NONE:
+	case MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN:
 	default:
-		InitNonTrainingMode();
+		InitTrainedRedVsHumanGreen();
 		break;
 	}
-	m_team1.Reset();
-	m_team2.Reset();
+
 	m_gameStats.Reset();
 	m_gameFinished = false;
 	m_isScoreBoardUpdated = false;
@@ -89,12 +89,10 @@ void Map::Initialize()
 	{
 		return;
 	}
-	InitMiniMap();
 	InitTiles();
-	InitCellSensoryValues();
 	CreateDirectoryForNN();
 	InitAndStoreBestScoreFromFile();
-
+	
 	m_firstTime = false;
 }
 
@@ -114,36 +112,6 @@ void Map::InitTiles()
 	{
 		Tile *tile = new Tile();
 		m_tiles.push_back(tile);
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Initialize sensory values
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitCellSensoryValues()
-{
-	if(m_cellSensoryValues.size() > 0)
-	{
-		return;
-	}
-	for(int index = 0;index < m_maxWidth*m_maxHeight;index++)
-	{
-		CellSensoryValues cellValue;
-		cellValue.m_entityNearness.at(FAVORED_MOVETO_RESOURCE_FOOD)  = GetHeatMapDistanceFromEntity(GetCordinates(index), RESOURCE_FOOD, 0);
-		cellValue.m_entityNearness.at(FAVORED_MOVETO_RESOURCE_STONE) = GetHeatMapDistanceFromEntity(GetCordinates(index), RESOURCE_STONE, 0);
-		cellValue.m_entityNearness.at(FAVORED_MOVETO_RESOURCE_WOOD)  = GetHeatMapDistanceFromEntity(GetCordinates(index), RESOURCE_WOOD, 0);
-
-		cellValue.m_entityNearness.at(FAVORED_MOVETO_TEAM1_TOWNCENTER) = GetHeatMapDistanceFromEntity(GetCordinates(index), TOWN_CENTER, 1);
-		cellValue.m_entityNearness.at(FAVORED_MOVETO_TEAM2_TOWNCENTER) = GetHeatMapDistanceFromEntity(GetCordinates(index), TOWN_CENTER, 2);
-		if(index >= m_cellSensoryValues.size())
-		{
-			m_cellSensoryValues.push_back(cellValue);
-			continue;
-		}
-		m_cellSensoryValues.at(index) = cellValue;
 	}
 }
 
@@ -177,11 +145,6 @@ void Map::CreateDirectoryForNN()
 
 	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\1\\BestStats\\").c_str());
 	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\2\\BestStats\\").c_str());
-
-	//System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\1\\Attack\\BestStats\\").c_str());
-	//System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\2\\Attack\\BestStats\\").c_str());
-	//System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\1\\Defense\\BestStats\\").c_str());
-	//System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\2\\Defense\\BestStats\\").c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -194,6 +157,26 @@ void Map::ResetAllScores()
 {
 	ResetLocalScores();
 	ResetGlobalScores();
+	m_localBestCivilianScoreCardTeam1		.Reset();
+	m_localBestCivilianScoreCardTeam2		.Reset();
+	m_localBestShortRangeArmyScoreCardTeam1	.Reset();
+	m_localBestShortRangeArmyScoreCardTeam2	.Reset();
+	m_localBestLongRangeArmyScoreCardTeam1	.Reset();
+	m_localBestLongRangeArmyScoreCardTeam2	.Reset();
+	m_localBestTownCenterScoreCardTeam1		.Reset();
+	m_localBestTownCenterScoreCardTeam2		.Reset();
+	if (m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN || m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN)
+	{
+		return;
+	}
+	m_localBestCivilianScoreCardTeam1.ReadFromFile("Data\\NN\\BestGame\\1\\BestStats\\CIVILIAN_1_STATS.txt");
+	m_localBestCivilianScoreCardTeam2.ReadFromFile("Data\\NN\\BestGame\\2\\BestStats\\CIVILIAN_2_STATS.txt");
+	m_localBestShortRangeArmyScoreCardTeam1 .ReadFromFile("Data\\NN\\BestGame\\1\\BestStats\\SHORT_RANGE_ARMY_1_STATS.txt");
+	m_localBestShortRangeArmyScoreCardTeam2 .ReadFromFile("Data\\NN\\BestGame\\2\\BestStats\\SHORT_RANGE_ARMY_2_STATS.txt");
+	m_localBestLongRangeArmyScoreCardTeam1  .ReadFromFile("Data\\NN\\BestGame\\1\\BestStats\\LONG_RANGE_ARMY_1_STATS.txt");
+	m_localBestLongRangeArmyScoreCardTeam2  .ReadFromFile("Data\\NN\\BestGame\\2\\BestStats\\LONG_RANGE_ARMY_2_STATS.txt");
+	m_localBestTownCenterScoreCardTeam1		.ReadFromFile("Data\\NN\\BestGame\\1\\BestStats\\TOWN_CENTER_1_STATS.txt");
+	m_localBestTownCenterScoreCardTeam2		.ReadFromFile("Data\\NN\\BestGame\\2\\BestStats\\TOWN_CENTER_2_STATS.txt");
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -204,215 +187,34 @@ void Map::ResetAllScores()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitAndStoreBestScoreFromFile()
 {
-	std::string strategyTeam1 = Entity::GetStrategyAsString(m_team1Strategy);
-	std::string strategyTeam2 = Entity::GetStrategyAsString(m_team2Strategy);
+	/*std::string strategyTeam1	   = Entity::GetStrategyAsString(m_team1Strategy);
+	std::string strategyTeam2	   = Entity::GetStrategyAsString(m_team2Strategy);
 
-	std::string fileContentTeam1    = GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\TEAM_1_STATS.txt"				));
-	std::string fileContentTeam2    = GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\TEAM_2_STATS.txt"				));
-	std::string armySpawnerTeam1    = GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\ARMY_SPAWNER_1_STATS.txt"		));
-	std::string armySpawnerTeam2    = GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\ARMY_SPAWNER_2_STATS.txt"		));
-	std::string civilianTeam1       = GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\CIVILIAN_1_STATS.txt"			));
-	std::string civilianTeam2       = GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\CIVILIAN_2_STATS.txt"			));
-	std::string shortRangeArmyTeam1 = GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\SHORT_RANGE_ARMY_1_STATS.txt"	));
-	std::string shortRangeArmyTeam2 = GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\SHORT_RANGE_ARMY_2_STATS.txt"	));
-	std::string longRangeArmyTeam1  = GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\LONG_RANGE_ARMY_1_STATS.txt"	));
-	std::string longRangeArmyTeam2  = GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\LONG_RANGE_ARMY_2_STATS.txt"	));
-	std::string townCenterTeam1     = GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\TOWN_CENTER_1_STATS.txt"		));
-	std::string townCenterTeam2     = GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\TOWN_CENTER_2_STATS.txt"		));
+	std::string fileContentTeam1	= GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\TEAM_1_STATS.txt"));
+	std::string fileContentTeam2	= GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\TEAM_2_STATS.txt"));
+	std::string armySpawnerTeam1	= GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\ARMY_SPAWNER_1_STATS.txt"));
+	std::string armySpawnerTeam2	= GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\ARMY_SPAWNER_2_STATS.txt"));
+	std::string civilianTeam1		= GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\CIVILIAN_1_STATS.txt"));
+	std::string civilianTeam2		= GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\CIVILIAN_2_STATS.txt"));
+	std::string shortRangeArmyTeam1 = GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\SHORT_RANGE_ARMY_1_STATS.txt"));
+	std::string shortRangeArmyTeam2 = GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\SHORT_RANGE_ARMY_2_STATS.txt"));
+	std::string longRangeArmyTeam1  = GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\LONG_RANGE_ARMY_1_STATS.txt"));
+	std::string longRangeArmyTeam2  = GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\LONG_RANGE_ARMY_2_STATS.txt"));
+	std::string townCenterTeam1		= GetFileContentAsString(("Data\\NN\\BestGame\\1\\BestStats\\TOWN_CENTER_1_STATS.txt"));
+	std::string townCenterTeam2		= GetFileContentAsString(("Data\\NN\\BestGame\\2\\BestStats\\TOWN_CENTER_2_STATS.txt"));
 
-	ToInt(fileContentTeam1.substr(0,    fileContentTeam1.find('\n')),		 &g_globalMaxScoreTeam1);
-	ToInt(fileContentTeam2.substr(0,    fileContentTeam2.find('\n')),		 &g_globalMaxScoreTeam2);
-	ToInt(armySpawnerTeam1.substr(0,    armySpawnerTeam1.find('\n')),		 &g_globalMaxScoreArmySpawnerTeam1);
-	ToInt(armySpawnerTeam2.substr(0,    armySpawnerTeam2.find('\n')),		 &g_globalMaxScoreArmySpawnerTeam2);
-	ToInt(civilianTeam1.substr(0,       civilianTeam1.find('\n')),			 &g_globalMaxScoreCivilianTeam1);
-	ToInt(civilianTeam2.substr(0,       civilianTeam2.find('\n')),			 &g_globalMaxScoreCivilianTeam2);
-	ToInt(shortRangeArmyTeam1.substr(0, shortRangeArmyTeam1.find('\n')),     &g_globalMaxScoreShortRangeArmy1);
-	ToInt(shortRangeArmyTeam2.substr(0, shortRangeArmyTeam2.find('\n')),     &g_globalMaxScoreShortRangeArmy2);
-	ToInt(longRangeArmyTeam1.substr(0,  longRangeArmyTeam1.find('\n')),      &g_globalMaxScoreLongRangeArmy1);
-	ToInt(longRangeArmyTeam2.substr(0,  longRangeArmyTeam2.find('\n')),      &g_globalMaxScoreLongRangeArmy2);
-	ToInt(townCenterTeam1.substr(0,     townCenterTeam1.find('\n')),		 &g_globalMaxScoreTownCenter1);
-	ToInt(townCenterTeam2.substr(0,     townCenterTeam2.find('\n')),		 &g_globalMaxScoreTownCenter2);
-
-	g_globalMaxScoreTeam1			 = 0;
-	g_globalMaxScoreTeam2			 = 0;
-	g_globalMaxScoreArmySpawnerTeam1 = 0;
-	g_globalMaxScoreArmySpawnerTeam2 = 0;
-	g_globalMaxScoreShortRangeArmy1	 = 0;
-	g_globalMaxScoreShortRangeArmy2	 = 0;
-	g_globalMaxScoreLongRangeArmy1	 = 0;
-	g_globalMaxScoreLongRangeArmy2	 = 0;
-	g_globalMaxScoreCivilianTeam1	 = 0;
-	g_globalMaxScoreCivilianTeam2	 = 0;
-	g_globalMaxScoreTownCenter1		 = 0;
-	g_globalMaxScoreTownCenter2		 = 0;
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/27
-*@purpose : Calculate and retrieves heatmap distance from enity of type
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Map::GetHeatMapDistanceFromEntity(IntVector2 cellposition, EntityType type, int teamID)
-{
-	float avgCellDistance = 0.f;
-	int   entityCount = 0;
-	if(type == RESOURCE_FOOD || type == RESOURCE_STONE || type == RESOURCE_WOOD)
-	{
-		for(int resourceIndex = 0;resourceIndex < m_resources.size();resourceIndex++)
-		{
-			if(m_resources.at(resourceIndex)->m_type == type)
-			{
-				int cellDistance = GetCellDistance(m_resources.at(resourceIndex)->GetCordinates(), cellposition);
-				entityCount++;
-				if(cellDistance == 1 || cellDistance == 2)
-				{
-					return static_cast<float>(cellDistance);
-				}
-				avgCellDistance += cellDistance;
-			}
-		}
-		if(entityCount > 0)
-		{
-			return 2 + avgCellDistance / entityCount;
-		}
-		return 0;
-	}
-	if(type == TOWN_CENTER)
-	{
-		for (int entityIndex = 0; entityIndex < m_townCenters.size(); entityIndex++)
-		{
-			Entity *entity = m_townCenters.at(entityIndex);
-			if (entity->m_type == type && entity->m_teamID == teamID)
-			{
-				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
-				entityCount++;
-				if (cellDistance == 1 || cellDistance == 2)
-				{
-					return static_cast<float>(cellDistance);
-				}
-				avgCellDistance += cellDistance;
-			}
-		}
-		if (entityCount > 0)
-		{
-			return 2 + avgCellDistance / entityCount;
-		}
-		return 0;
-	}
-
-	if (type == CIVILIAN)
-	{
-		for (int entityIndex = 0; entityIndex < m_civilians.size(); entityIndex++)
-		{
-			Entity *entity = m_civilians.at(entityIndex);
-			if (entity->m_type == type && entity->m_teamID == teamID)
-			{
-				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
-				entityCount++;
-				if (cellDistance == 1 || cellDistance == 2)
-				{
-					return static_cast<float>(cellDistance);
-				}
-				avgCellDistance += cellDistance;
-			}
-		}
-		if (entityCount > 0)
-		{
-			return 2 + avgCellDistance / entityCount;
-		}
-		return 0;
-	}
-	if(type == ARMY_SPAWNER)
-	{
-		for (int entityIndex = 0; entityIndex < m_armySpawners.size(); entityIndex++)
-		{
-			Entity *entity = m_armySpawners.at(entityIndex);
-			if (entity->m_type == type && entity->m_teamID == teamID)
-			{
-				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
-				entityCount++;
-				if (cellDistance == 1 || cellDistance == 2)
-				{
-					return static_cast<float>(cellDistance);
-				}
-				avgCellDistance += cellDistance;
-			}
-		}
-		if (entityCount > 0)
-		{
-			return 2 + avgCellDistance / entityCount;
-		}
-		return 0;
-	}
-	if (type == SHORT_RANGE_ARMY)
-	{
-		for (int entityIndex = 0; entityIndex < m_classAWarriors.size(); entityIndex++)
-		{
-			Entity *entity = m_classAWarriors.at(entityIndex);
-			if (entity->m_type == type && entity->m_teamID == teamID)
-			{
-				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
-				entityCount++;
-				if (cellDistance == 1 || cellDistance == 2)
-				{
-					return static_cast<float>(cellDistance);
-				}
-				avgCellDistance += cellDistance;
-			}
-		}
-		if (entityCount > 0)
-		{
-			return 2 + avgCellDistance / entityCount;
-		}
-		return 0;
-	}
-	if (type == LONG_RANGE_ARMY)
-	{
-		for (int entityIndex = 0; entityIndex < m_classBWarriors.size(); entityIndex++)
-		{
-			Entity *entity = m_classBWarriors.at(entityIndex);
-			if (entity->m_type == type && entity->m_teamID == teamID)
-			{
-				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
-				entityCount++;
-				if (cellDistance == 1 || cellDistance == 2)
-				{
-					return static_cast<float>(cellDistance);
-				}
-				avgCellDistance += cellDistance;
-			}
-		}
-		if (entityCount > 0)
-		{
-			return 2 + avgCellDistance / entityCount;
-		}
-		return 0;
-	}
-	if (type == HOUSE)
-	{
-		for (int entityIndex = 0; entityIndex < m_houses.size(); entityIndex++)
-		{
-			Entity *entity = m_houses.at(entityIndex);
-			if (entity->m_type == type && entity->m_teamID == teamID)
-			{
-				int cellDistance = GetCellDistance(entity->GetCordinates(), cellposition);
-				entityCount++;
-				if (cellDistance == 1 || cellDistance == 2)
-				{
-					return static_cast<float>(cellDistance);
-				}
-				avgCellDistance += cellDistance;
-			}
-		}
-		if (entityCount > 0)
-		{
-			return 2 + avgCellDistance / entityCount;
-		}
-		return 0;
-	}
-	return 0;
+	ToInt(fileContentTeam1.substr	(0, fileContentTeam1.find('\n')), &g_globalMaxScoreTeam1);
+	ToInt(fileContentTeam2.substr	(0, fileContentTeam2.find('\n')), &g_globalMaxScoreTeam2);
+	ToInt(armySpawnerTeam1.substr	(0, armySpawnerTeam1.find('\n')), &g_globalMaxScoreArmySpawnerTeam1);
+	ToInt(armySpawnerTeam2.substr	(0, armySpawnerTeam2.find('\n')), &g_globalMaxScoreArmySpawnerTeam2);
+	ToInt(civilianTeam1.substr		(0, civilianTeam1.find('\n')),    &g_globalMaxScoreCivilianTeam1);
+	ToInt(civilianTeam2.substr		(0, civilianTeam2.find('\n')),     &g_globalMaxScoreCivilianTeam2);
+	ToInt(shortRangeArmyTeam1.substr(0, shortRangeArmyTeam1.find('\n')), &g_globalMaxScoreShortRangeArmy1);
+	ToInt(shortRangeArmyTeam2.substr(0, shortRangeArmyTeam2.find('\n')), &g_globalMaxScoreShortRangeArmy2);
+	ToInt(longRangeArmyTeam1.substr (0, longRangeArmyTeam1.find('\n')), &g_globalMaxScoreLongRangeArmy1);
+	ToInt(longRangeArmyTeam2.substr (0, longRangeArmyTeam2.find('\n')), &g_globalMaxScoreLongRangeArmy2);
+	ToInt(townCenterTeam1.substr	(0, townCenterTeam1.find('\n')), &g_globalMaxScoreTownCenter1);
+	ToInt(townCenterTeam2.substr	(0, townCenterTeam2.find('\n')), &g_globalMaxScoreTownCenter2);*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -447,20 +249,6 @@ void Map::InitCamera()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::RestartMap()
 {
-	/*std::vector<ArmySpawner*>	    m_armySpawners;
-	std::vector<Civilian*>			m_civilians;
-	std::vector<ClassAWarrior*>		m_classAWarriors;
-	std::vector<ClassBWarrior*>		m_classBWarriors;
-	std::vector<House*>				m_houses;
-	std::vector<TownCenter*>		m_townCenters;
-	std::vector<Resource*>			m_resources;
-
-	std::vector<Explosion*>			m_explosions;
-	std::vector<DebugEntity*>       m_debugEntities;
-
-	std::vector<Entity*>			m_movableEntities;
-	std::vector<Entity*>			m_standAloneEntities;
-	std::vector<EntityType>			m_entitiesHavingTraning;*/
 	for(int index = 0;index < m_armySpawners.size();index++)
 	{
 		delete m_armySpawners.at(index);
@@ -562,7 +350,6 @@ void Map::InitTrainingForCivilianGatherFood()
 
 	CreateTownCenter(GetMapPosition(6), 1);
 	CreateResources(GetMapPosition(10),  RESOURCE_FOOD);
-	//m_townCenters.at(0)->m_resourceStat.m_food = 100;
 	CreateTownCenter(GetMapPosition(61), 2);
 	CreateCivilian(GetMapPosition(42), 2);
 }
@@ -588,19 +375,6 @@ void Map::InitTrainingForCivilianGatherAllResources()
 
 
 	CreateCivilian(GetMapPosition(17), 2);
-
-
-	/*m_maxWidth  = 8; //g_mapMaxWidth;
-	m_maxHeight = 8;// g_mapMaxHeight;
-
-	CreateTownCenter(GetMapPosition(8), 1);
-	CreateResources(GetMapPosition(1), RESOURCE_STONE);
-	CreateResources(GetMapPosition(57), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(35), RESOURCE_WOOD);
-
-
-	CreateTownCenter(GetMapPosition(62), 2);
-	CreateCivilian(GetMapPosition(34), 2);*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -691,12 +465,12 @@ void Map::InitTrainedVsRandomTraining()
 	int randomWoodCount = GetRandomIntInRange(1, 3);
 	int randomStoneCount = GetRandomIntInRange(1, 3);
 
-	IntVector2 randomTownCenterPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	IntVector2 randomTownCenterPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
+	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
 
 
-	randomTownCenterPosition1 = IntVector2(15, 10);
-	randomTownCenterPosition2 = IntVector2(25, 10);
+	//randomTownCenterPosition1 = IntVector2(15, 10);
+	//randomTownCenterPosition2 = IntVector2(25, 10);
 
 
 	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
@@ -725,8 +499,8 @@ void Map::InitTrainedVsRandomTraining()
 
 	for (int index = 0; index < 5; index++)
 	{
-		CreateClassAWarrior(GetMapPosition(IntVector2(15, 15)), 1);
-		CreateClassAWarrior(GetMapPosition(IntVector2(25, 15)), 2);
+		CreateClassAWarrior(GetMapPosition(IntVector2(15 + index, 15)), 1);
+		CreateClassAWarrior(GetMapPosition(IntVector2(25 + index, 15)), 2);
 	}
 
 
@@ -755,12 +529,12 @@ void Map::InitTrainedVsRandomGame()
 	int randomWoodCount = GetRandomIntInRange(1, 3);
 	int randomStoneCount = GetRandomIntInRange(1, 3);
 
-	IntVector2 randomTownCenterPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	IntVector2 randomTownCenterPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
+	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
 
 
-	randomTownCenterPosition1 = IntVector2(15, 10);
-	randomTownCenterPosition2 = IntVector2(25, 10);
+	//randomTownCenterPosition1 = IntVector2(15, 10);
+	//randomTownCenterPosition2 = IntVector2(25, 10);
 
 
 	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
@@ -789,9 +563,10 @@ void Map::InitTrainedVsRandomGame()
 
 	for (int index = 0; index < 5; index++)
 	{
-		CreateClassAWarrior(GetMapPosition(IntVector2(15,15)), 1);
-		CreateClassAWarrior(GetMapPosition(IntVector2(25, 15)), 2);
+		CreateClassAWarrior(GetMapPosition(IntVector2(15 + index, 15)), 1);
+		CreateClassAWarrior(GetMapPosition(IntVector2(25 + index, 15)), 2);
 	}
+
 
 	//CreateCivilian(GetMapPosition(randomCivilianPosition1), 1);
 	//CreateCivilian(GetMapPosition(randomCivilianPosition2), 2);
@@ -821,12 +596,12 @@ void Map::InitTrainingForPlayGreen()
 	int randomWoodCount = GetRandomIntInRange(1, 3);
 	int randomStoneCount = GetRandomIntInRange(1, 3);
 
-	IntVector2 randomTownCenterPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	IntVector2 randomTownCenterPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
+	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
 
 
-	randomTownCenterPosition1 = IntVector2(15, 10);
-	randomTownCenterPosition2 = IntVector2(25, 10);
+	randomTownCenterPosition1 = IntVector2(15, 13);
+	randomTownCenterPosition2 = IntVector2(27, 10);
 
 
 	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
@@ -853,6 +628,13 @@ void Map::InitTrainingForPlayGreen()
 	IntVector2 randomCivilianPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
 	CreateCivilian(GetMapPosition(randomCivilianPosition1), 1);
 	CreateCivilian(GetMapPosition(randomCivilianPosition2), 2);
+
+	for (int index = 0; index < 5; index++)
+	{
+		CreateClassAWarrior(GetMapPosition(IntVector2(15 + index, 15)), 1);
+		CreateClassAWarrior(GetMapPosition(IntVector2(25 + index, 15)), 2);
+	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -873,17 +655,17 @@ void Map::InitTrainingForRandomGenMaps()
 	m_entitiesHavingTraning.push_back(ARMY_SPAWNER);
 	m_entitiesHavingTraning.push_back(TOWN_CENTER);
 
-	int randomCivilian1       = GetRandomIntLessThan(10);
-	int randomShortRangeArmy1 = GetRandomIntLessThan(10);
-	int randomLongRangeArmy1  = GetRandomIntLessThan(10);
-	int randomArmySpawner1    = GetRandomIntLessThan(10);
-	int randomHouses1		  = GetRandomIntLessThan(10);
-								
-	int randomCivilian2		  = GetRandomIntLessThan(10);
-	int randomShortRangeArmy2 = GetRandomIntLessThan(10);
-	int randomLongRangeArmy2  = GetRandomIntLessThan(10);
-	int randomArmySpawner2    = GetRandomIntLessThan(10);
-	int randomHouses2         = GetRandomIntLessThan(10);
+	int randomCivilian1       = GetRandomIntLessThan(5);
+	int randomShortRangeArmy1 = GetRandomIntInRange(5,10);
+	int randomLongRangeArmy1 =  GetRandomIntLessThan(5);
+	int randomArmySpawner1    = GetRandomIntLessThan(5);
+	int randomHouses1		  = GetRandomIntLessThan(5);
+													 
+	int randomCivilian2		  = GetRandomIntLessThan(5);
+	int randomShortRangeArmy2 = GetRandomIntLessThan(5);
+	int randomLongRangeArmy2 =  GetRandomIntLessThan(5);
+	int randomArmySpawner2    = GetRandomIntLessThan(5);
+	int randomHouses2         = GetRandomIntLessThan(5);
 								
 	int randomFoodCount       = GetRandomIntLessThan(4);
 	int randomWoodCount		  = GetRandomIntLessThan(4);
@@ -900,6 +682,8 @@ void Map::InitTrainingForRandomGenMaps()
 
 	entityTC1->m_health = static_cast<float>(GetRandomIntLessThan(50));
 	entityTC2->m_health = static_cast<float>(GetRandomIntLessThan(50));
+	entityTC1->m_healthLastFrame = entityTC1->m_health;
+	entityTC2->m_healthLastFrame = entityTC2->m_health;
 
 	m_townCenters.at(0)->m_resourceStat.m_food  = GetRandomIntLessThan(30);
 	m_townCenters.at(0)->m_resourceStat.m_stone = GetRandomIntLessThan(30);
@@ -1035,25 +819,8 @@ void Map::InitTrainingForRandomGenMaps()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitNonTrainingMode()
+void Map::InitTrainedRedVsHumanGreen()
 {
-	/*
-	CreateResources     (GetMapPosition(0), RESOURCE_FOOD);
-	CreateResources     (GetMapPosition(1), RESOURCE_WOOD);
-	CreateResources     (GetMapPosition(2), RESOURCE_STONE);
-	CreateTownCenter    (GetMapPosition(3), 1);
-	CreateTownCenter    (GetMapPosition(4), 2);
-	CreateCivilian      (GetMapPosition(5), 1);
-	CreateCivilian      (GetMapPosition(6), 2);
-	CreateClassAWarrior (GetMapPosition(7), 1);
-	CreateClassAWarrior (GetMapPosition(8), 2);
-	CreateClassBWarrior (GetMapPosition(9), 1);
-	CreateClassBWarrior (GetMapPosition(10), 2);
-	CreateHouse			(GetMapPosition(11), 1);
-	CreateHouse			(GetMapPosition(12), 2);
-	CreateArmySpawner   (GetMapPosition(13), 1);
-	CreateArmySpawner   (GetMapPosition(14), 2);*/
-
 	if(true)
 	{
 		InitTrainedVsRandomGame();
@@ -1073,12 +840,12 @@ void Map::InitNonTrainingMode()
 	int randomWoodCount  = GetRandomIntInRange(1, 3);
 	int randomStoneCount = GetRandomIntInRange(1, 3);
 
-	IntVector2 randomTownCenterPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	IntVector2 randomTownCenterPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
+	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
 
 
-	randomTownCenterPosition1 = IntVector2(10, 10);
-	randomTownCenterPosition2 = IntVector2(20, 10);
+	randomTownCenterPosition1 = IntVector2(15, 10);
+	randomTownCenterPosition2 = IntVector2(25, 10);
 
 
 	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
@@ -1104,35 +871,6 @@ void Map::InitNonTrainingMode()
 	CreateCivilian(GetMapPosition(randomCivilianPosition1), 1);
 	CreateCivilian(GetMapPosition(randomCivilianPosition2), 2);
 
-	/*TOTAL_RESOURCE_FOOD_COLLECTED		: 95
-	TOTAL_RESOURCE_STONE_COLLECTED		: 50
-	TOTAL_RESOURCE_WOOD_COLLECTED		: 121
-	TOTAL_HOUSES_BUILT					: 2
-	TOTAL_ARMY_CENTRE_SPAWNED			: 3
-	TOTAL_CIVILIANS_SPAWNED				: 6
-	TOTAL_SHORT_RANGE_ARMY_SPAWNED		: 1
-	TOTAL_LONG_RANGE_ARMY_SPAWNED		: 0
-	TOTAL_ATTACK_ON_HOUSES				: 0
-	TOTAL_ATTACK_ON_ARMY_SPAWNERS		: 0
-	TOTAL_ATTACK_ON_CIVILIANS			: 42
-	TOTAL_ATTACK_ON_SHORT_RANGE_ARMIES  : 0
-	TOTAL_ATTACK_ON_LONG_RANGE_ARMIES	: 0
-	TOTAL_ATTACK_ON_TOWNCENTERS			: 50
-	TOTAL_KILL_ON_HOUSES				: 0
-	TOTAL_KILL_ON_ARMY_SPAWNERS			: 0
-	TOTAL_KILL_ON_CIVILIANS				: 1
-	TOTAL_KILL_ON_SHORT_RANGE_ARMIES	: 0
-	TOTAL_KILL_ON_LONG_RANGE_ARMIES		: 0
-	TOTAL_KILL_ON_TOWNCENTERS			: 1
-	TOTAL_SCORE_RATE					: 0.000000
-	TOTAL_NEGATIVE_SCORE				: 0
-	TOTAL_BONUS_SCORE					: 0
-	TOTAL_FRAMES						: 58280
-	ALIVE								: 0
-	TOTAL_SCORE							: 2260*/
-
-
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1143,7 +881,7 @@ void Map::InitNonTrainingMode()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Map::IsNonTrainingMode()
 {
-	if(m_mapMode == MAP_MODE_TRAINING_NONE)
+	if(m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN)
 	{
 		return true;
 	}
@@ -1163,21 +901,101 @@ bool Map::HasTrainingEnabled(Entity *entity)
 	{
 		return false;
 	}
-	if (m_mapMode == MAP_MODE_TRAINING_NONE_PLAY_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN  && entity->m_teamID == 1)
 	{
 		return false;
 	}
-	if(m_mapMode == MAP_MODE_TRAINED_VS_RANDOM_GAME && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
 	{
 		return false;
 	}
-	
+	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN  && entity->m_teamID == 1)
+	{
+		return false;
+	}
+	if(m_mapMode ==  MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN   && entity->m_teamID == 1)
+	{
+		return false;
+	}
+	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN && entity->m_teamID == 2)
+	{
+		return false;
+	}
+	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN && entity->m_teamID == 2)
+	{
+		return false;
+	}
 	for(int index = 0;index < m_entitiesHavingTraning.size();index++)
 	{
 		if(entity->m_type == m_entitiesHavingTraning.at(index))
 		{
 			return true;
 		}
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::HasFeedForwardEnabled(Entity *entity)
+{
+	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
+	{
+		return false;
+	}
+	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
+	{
+		return false;
+	}
+	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN && entity->m_teamID == 1)
+	{
+		return false;
+	}
+	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN && entity->m_teamID == 1)
+	{
+		return false;
+	}
+	return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::HasRandomBehaviorEnabled(Entity *entity)
+{
+	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN && entity->m_teamID == 1)
+	{
+		return true;
+	}
+	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN && entity->m_teamID == 1)
+	{
+		return true;
+	}
+	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/24
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Map::HasHumanBehaviorEnabled(Entity *entity)
+{
+	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
+	{
+		return true;
+	}
+	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
+	{
+		return true;
 	}
 	return false;
 }
@@ -1471,560 +1289,11 @@ bool Map::IsResource(Entity * entity)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Map::ShouldSaveLocalResultInDirectory()
 {
-	if (!(m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN || m_mapMode == MAP_MODE_TRAINED_VS_RANDOM_TRAINING))
+	if (!(m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN || m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN || m_mapMode == MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN))
 	{
 		return true;
 	}
 	return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/09/22
-*@purpose : Init all mini map values
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitMiniMap()
-{
-	if(m_minimapValue.size() >= m_maxHeight * m_maxWidth)
-	{
-		return;
-	}
-	for(int indexY = 0;indexY < m_maxHeight;indexY++)
-	{
-		for(int indexX = 0;indexX < m_maxWidth;indexX++)
-		{
-			m_minimapValue.push_back(nullptr);
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/09/22
-*@purpose : Updates mini map object with current entities
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::UpdateMiniMap()
-{
-	/*int count = 0;
-	for (int indexY = 0; indexY < m_maxHeight; indexY++)
-	{
-		for (int indexX = 0; indexX < m_maxWidth; indexX++)
-		{
-			int tileIndex = indexY * m_maxWidth + indexX;
-			Entity *entity = GetEntityFromPosition(tileIndex);
-			if (entity != nullptr)
-			{
-				count++;
-				SetMiniMapValues(indexX, indexY, entity);
-				continue;
-			}
-			SetMiniMapValues(indexX, indexY, nullptr);
-		}
-	}*/
-	if(g_skipRendering)
-	{
-		return;
-	}
-	for(int index = 0;index < m_maxHeight*m_maxWidth;index++)
-	{
-		m_tiles.at(index)->m_covered = 0;
-		m_tiles.at(index)->m_teamID = 0;
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/09/22
-*@purpose : Retrives values from minimap object
-*@param   : Row and column index
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Entity* Map::GetMiniMapValueAtPosition(int x, int y)
-{
-	int tileIndex = y * m_maxWidth + x;
-	if (tileIndex >= 0 && tileIndex < m_maxHeight * m_maxWidth)
-	{
-		return m_minimapValue.at(tileIndex);
-	}
-	return nullptr;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/18
-*@purpose : Retrieves minimap value by entity type
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-double Map::GetMiniMapValueAtPositionFromEntityType(int row, int column,int myTeamID,EntityType myType,Entity *entity)
-{
-	if(entity->GetCordinates() == IntVector2(row,column))
-	{
-		return 0.25;
-	}
-	switch (myType)
-	{
-	case CIVILIAN:
-		return GetMiniMapValueAtPositionForCivilian(myTeamID, row, column);
-		break;
-	case SHORT_RANGE_ARMY:
-		return GetMiniMapValueAtPositionForShortRangeArmy(myTeamID,row, column);
-		break;
-	case LONG_RANGE_ARMY:
-		return GetMiniMapValueAtPositionForLongRangeArmy(myTeamID, row, column);
-		break;
-	}
-	return 0.f;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/18
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-double Map::GetMiniMapValueAtPositionForCivilian(int myTeamID,int row, int column)
-{
-	Entity * entity = GetMiniMapValueAtPosition(row, column);
-	if(entity == nullptr)
-	{
-		return 0.5;
-	}
-
-	// FOR SAME TEAM
-	if(entity->m_teamID == myTeamID)
-	{
-		switch (entity->m_type)
-		{
-		case TOWN_CENTER:
-			return 0.75;
-			break;
-		case CIVILIAN:
-			return 0.5;
-			break;
-		case SHORT_RANGE_ARMY:
-			return 1;
-			break;
-		case LONG_RANGE_ARMY:
-			return 1;
-			break;
-		default:
-			break;
-		}
-		return 0.5;
-	}
-	// FOR DIFFERENT TEAM
-	if (entity->m_teamID  != myTeamID)
-	{
-		switch (entity->m_type)
-		{
-		case CIVILIAN:
-			return 0.5;
-			break;
-		case SHORT_RANGE_ARMY:
-			return 0;
-			break;
-		case LONG_RANGE_ARMY:
-			return 0;
-			break;
-		default:
-			break;
-		}
-		return 0.5;
-	}
-	return 0.5;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/18
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-double Map::GetMiniMapValueAtPositionForShortRangeArmy(int myTeamID, int row, int column)
-{
-	Entity * entity = GetMiniMapValueAtPosition(row, column);
-	if (entity == nullptr)
-	{
-		return 0.5;
-	}
-	// FOR SAME TEAM
-	if (entity->m_teamID == myTeamID)
-	{
-		switch (entity->m_type)
-		{
-		case CIVILIAN:
-			return 0.5;
-			break;
-		case SHORT_RANGE_ARMY:
-			return 0.5;
-			break;
-		case HOUSE:
-			return 0.5;
-			break;
-		case ARMY_SPAWNER:
-			return 0.5;
-			break;
-		case TOWN_CENTER:
-			return 0.5;
-			break;
-		case LONG_RANGE_ARMY:
-			return 0.5;
-			break;
-		default:
-			break;
-		}
-		return 0.5;
-	}
-	// DIFFERENT TEAM
-	if (entity->m_teamID != myTeamID)
-	{
-		switch (entity->m_type)
-		{
-		case CIVILIAN:
-			return 1;
-			break;
-		case SHORT_RANGE_ARMY:
-			return 1;
-			break;
-		case HOUSE:
-			return 1;
-			break;
-		case ARMY_SPAWNER:
-			return 1;
-			break;
-		case TOWN_CENTER:
-			return 1;
-			break;
-		case LONG_RANGE_ARMY:
-			return 1;
-			break;
-		default:
-			break;
-		}
-		return 0.5;
-	}
-	return 0.5;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/18
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-double Map::GetMiniMapValueAtPositionForLongRangeArmy(int myTeamID, int row, int column)
-{
-	Entity * entity = GetMiniMapValueAtPosition(row, column);
-	if (entity == nullptr)
-	{
-		return 0.5;
-	}
-	// FOR SAME TEAM
-	if (entity->m_teamID == myTeamID)
-	{
-		switch (entity->m_type)
-		{
-		case CIVILIAN:
-			return 0.5;
-			break;
-		case SHORT_RANGE_ARMY:
-			return 0.5;
-			break;
-		case HOUSE:
-			return 0.5;
-			break;
-		case ARMY_SPAWNER:
-			return 0.5;
-			break;
-		case TOWN_CENTER:
-			return 0.5;
-			break;
-		case LONG_RANGE_ARMY:
-			return 0.5;
-			break;
-		default:
-			break;
-		}
-		return 0.5;
-	}
-	// DIFFERENT TEAM
-	if (entity->m_teamID != myTeamID)
-	{
-		switch (entity->m_type)
-		{
-		case CIVILIAN:
-			return 1;
-			break;
-		case SHORT_RANGE_ARMY:
-			return 1;
-			break;
-		case HOUSE:
-			return 1;
-			break;
-		case ARMY_SPAWNER:
-			return 1;
-			break;
-		case TOWN_CENTER:
-			return 1;
-			break;
-		case LONG_RANGE_ARMY:
-			return 1;
-			break;
-		default:
-			break;
-		}
-		return 0.5;
-	}
-	return 0.5;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/09/22
-*@purpose : Sets the values of minimap 
-*@param   : Row,column and minimap value
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::SetMiniMapValues(int x, int y, Entity* entity)
-{
-	int tileIndex = y * m_maxWidth + x;
-	if(tileIndex >= 0 && tileIndex < m_maxHeight * m_maxWidth)
-	{
-		m_minimapValue.at(tileIndex) = entity;
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Checks the clossness to townCenter
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float Map::NearnessValueToTownCenter(IntVector2 coords, int teamID)
-{
-	UNUSED(teamID);
-	CellSensoryValues cellValue = m_cellSensoryValues.at(GetTileIndex(coords));
-	/*if(teamID == 1)
-	{
-		return cellValue.m_team1TownCenterNearness;
-	}
-	if(teamID == 2)
-	{
-		return cellValue.m_team2TownCenterNearness;
-	}*/
-	return -1;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/23
-*@purpose : Updates cell sensory values
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::UpdateCellSensoryValues()
-{
-	for(int index = 0;index < m_maxHeight*m_maxWidth;index++)
-	{
-		/*float shortRangeArmyTeam1NearnessValue	 = 0.f;
-		float shortRangeArmyTeam1Count			 = 0.f;
-		float shortRangeArmyTeam2NearnessValue	 = 0.f;
-		float shortRangeArmyTeam2Count			 = 0.f;
-
-		float longRangeArmyTeam1NearnessValue = 0.f;
-		float longRangeArmyTeam1Count = 0.f;
-		float longRangeArmyTeam2NearnessValue = 0.f;
-		float longRangeArmyTeam2Count = 0.f;
-
-		float buildingTeam1NearnessValue = 0.f;
-		float buildingTeam1Count		 = 0.f;
-		float buildingTeam2NearnessValue = 0.f;
-		float buildingTeam2Count		 = 0.f;
-
-		float civilianTeam1NearnessValue = 0.f;
-		float civilianTeam1Count		 = 0.f;
-		float civilianTeam2NearnessValue = 0.f;
-		float civilianTeam2Count		 = 0.f;
-
-		float townCenterTeam1NearnessValue = 0.f;
-		float townCenterTeam1Count		   = 0.f;
-		float townCenterTeam2NearnessValue = 0.f;
-		float townCenterTeam2Count		   = 0.f;
-
-
-		for(int civilianIndex = 0;civilianIndex < m_civilians.size();civilianIndex++)
-		{
-			if(m_civilians.at(civilianIndex)->m_teamID == 1)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_civilians.at(civilianIndex)->GetCordinates());
-				civilianTeam1NearnessValue += cellDistance;
-				civilianTeam1Count++;
-			}
-			if(m_civilians.at(civilianIndex)->m_teamID == 2)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_civilians.at(civilianIndex)->GetCordinates());
-				civilianTeam2NearnessValue += cellDistance;
-				civilianTeam2Count++;
-			}
-		}
-
-		for(int houseIndex = 0;houseIndex < m_houses.size();houseIndex++)
-		{
-			if (m_houses.at(houseIndex)->m_teamID == 1)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_houses.at(houseIndex)->GetCordinates());
-				buildingTeam1NearnessValue += cellDistance;
-				buildingTeam1Count++;
-			}
-			if (m_houses.at(houseIndex)->m_teamID == 2)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_houses.at(houseIndex)->GetCordinates());
-				buildingTeam2NearnessValue += cellDistance;
-				buildingTeam2Count++;
-			}
-		}
-
-		for (int armySpawnerIndex = 0; armySpawnerIndex < m_armySpawners.size(); armySpawnerIndex++)
-		{
-			if (m_armySpawners.at(armySpawnerIndex)->m_teamID == 1)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_armySpawners.at(armySpawnerIndex)->GetCordinates());
-				buildingTeam1NearnessValue += cellDistance;
-				buildingTeam1Count++;
-			}
-			if (m_armySpawners.at(armySpawnerIndex)->m_teamID == 2)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_armySpawners.at(armySpawnerIndex)->GetCordinates());
-				buildingTeam2NearnessValue += cellDistance;
-				buildingTeam2Count++;
-			}
-		}
-
-
-		for (int armyUnitIndex = 0; armyUnitIndex < m_classAWarriors.size(); armyUnitIndex++)
-		{
-			if (m_classAWarriors.at(armyUnitIndex)->m_teamID == 1)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_classAWarriors.at(armyUnitIndex)->GetCordinates());
-				shortRangeArmyTeam1NearnessValue += cellDistance;
-				shortRangeArmyTeam1Count++;
-			}
-			if (m_classAWarriors.at(armyUnitIndex)->m_teamID == 2)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_classAWarriors.at(armyUnitIndex)->GetCordinates());
-				shortRangeArmyTeam2NearnessValue += cellDistance;
-				shortRangeArmyTeam2Count++;
-			}
-		}
-
-		for (int armyUnitIndex = 0; armyUnitIndex < m_classBWarriors.size(); armyUnitIndex++)
-		{
-			if (m_classBWarriors.at(armyUnitIndex)->m_teamID == 1)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_classBWarriors.at(armyUnitIndex)->GetCordinates());
-				longRangeArmyTeam1NearnessValue += cellDistance;
-				longRangeArmyTeam1Count++;
-			}
-			if (m_classBWarriors.at(armyUnitIndex)->m_teamID == 2)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_classBWarriors.at(armyUnitIndex)->GetCordinates());
-				longRangeArmyTeam2NearnessValue += cellDistance;
-				longRangeArmyTeam2Count++;
-			}
-		}
-
-		for (int townCenterIndex = 0; townCenterIndex < m_townCenters.size(); townCenterIndex++)
-		{
-			if (m_townCenters.at(townCenterIndex)->m_teamID == 1)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_townCenters.at(townCenterIndex)->GetCordinates());
-				townCenterTeam1NearnessValue += cellDistance;
-				townCenterTeam1Count++;
-			}
-			if (m_townCenters.at(townCenterIndex)->m_teamID == 2)
-			{
-				int cellDistance = GetCellDistance(GetCordinates(index), m_townCenters.at(townCenterIndex)->GetCordinates());
-				townCenterTeam2NearnessValue += cellDistance;
-				townCenterTeam2Count++;
-			}
-		}
-
-		//armyTeam1NearnessValue = RangeMap(armyTeam1NearnessValue, 0, GetMax(m_maxHeight, m_maxWidth), 0, 1);
-
-
-
-		if (shortRangeArmyTeam1Count == 0)
-		{
-			shortRangeArmyTeam1Count = 1;
-		}
-		if (shortRangeArmyTeam2Count == 0)
-		{
-			shortRangeArmyTeam2Count = 1;
-		}
-		if (longRangeArmyTeam1Count == 0)
-		{
-			longRangeArmyTeam1Count = 1;
-		}
-		if (longRangeArmyTeam2Count == 0)
-		{
-			longRangeArmyTeam2Count = 1;
-		}
-		if (buildingTeam1Count == 0)
-		{
-			buildingTeam1Count = 1;
-		}
-		if (buildingTeam2Count == 0)
-		{
-			buildingTeam2Count = 1;
-		}
-		if (civilianTeam1Count == 0)
-		{
-			civilianTeam1Count = 1;
-		}
-		if (civilianTeam2Count == 0)
-		{
-			civilianTeam2Count = 1;
-		}*/
-
-
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE) 
-			= GetHeatMapDistanceFromEntity(GetCordinates(index),SHORT_RANGE_ARMY,1);
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE) 
-			= GetHeatMapDistanceFromEntity(GetCordinates(index),SHORT_RANGE_ARMY,2);
-
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_ARMY_LONG_RANGE) 
-			= GetHeatMapDistanceFromEntity(GetCordinates(index),LONG_RANGE_ARMY,1);
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_ARMY_LONG_RANGE) 
-			= GetHeatMapDistanceFromEntity(GetCordinates(index),LONG_RANGE_ARMY,2);
-
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_BUILDING)   
-			= GetHeatMapDistanceFromEntity(GetCordinates(index),HOUSE,1);
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_BUILDING)   
-			= GetHeatMapDistanceFromEntity(GetCordinates(index),HOUSE,2);
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_ARMYSPAWNER)
-			= GetHeatMapDistanceFromEntity(GetCordinates(index), ARMY_SPAWNER, 1);
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_ARMYSPAWNER)
-			= GetHeatMapDistanceFromEntity(GetCordinates(index), ARMY_SPAWNER, 2);
-
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM1_CIVILIAN)  
-			= GetHeatMapDistanceFromEntity(GetCordinates(index),CIVILIAN,1);
-		m_cellSensoryValues.at(index).m_entityNearness.at(FAVORED_MOVETO_TEAM2_CIVILIAN)  
-			= GetHeatMapDistanceFromEntity(GetCordinates(index),CIVILIAN,2);
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/04
-*@purpose : returns my score board
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ScoreCard & Map::GetMyScoreBoard(Entity *entity)
-{
-	if(entity->m_teamID == 1)
-	{
-		return m_team1;
-	}
-	return m_team2;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2205,62 +1474,6 @@ IntVector2 Map::GetRandomNeighbour(IntVector2 tileCords, int distance)
 		return IntVector2::ONE*-1;
 	}
 	return cords.at(GetRandomIntLessThan(static_cast<int>(cords.size())));
-	/*if (IsValidCordinate(tileCordsE))
-	{
-		if (!HasAnyEntityInTile(tileCordsE))
-		{
-			return tileCordsE;
-		}
-	}
-	if (IsValidCordinate(tileCordsN))
-	{
-		if (!HasAnyEntityInTile(tileCordsN))
-		{
-			return tileCordsN;
-		}
-	}
-	if (IsValidCordinate(tileCordsW))
-	{
-		if (!HasAnyEntityInTile(tileCordsW))
-		{
-			return tileCordsW;
-		}
-	}
-	if (IsValidCordinate(tileCordsS))
-	{
-		if (!HasAnyEntityInTile(tileCordsS))
-		{
-			return tileCordsS;
-		}
-	}
-	if (IsValidCordinate(tileCordsNE))
-	{
-		if (!HasAnyEntityInTile(tileCordsNE))
-		{
-			return tileCordsNE;
-		}
-	}
-	if (IsValidCordinate(tileCordsNW))
-	{
-		if (!HasAnyEntityInTile(tileCordsNW))
-		{
-			return tileCordsNW;
-		}
-	}
-	if (IsValidCordinate(tileCordsSW))
-	{
-		if (!HasAnyEntityInTile(tileCordsSW))
-		{
-			return tileCordsSW;
-		}
-	}
-	if (IsValidCordinate(tileCordsSE))
-	{
-		if (!HasAnyEntityInTile(tileCordsSE))
-		{
-			return tileCordsSE;
-		}
-	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2894,10 +2107,14 @@ bool Map::IsValidCordinate(IntVector2 cords)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Entity* Map::AttackOnPosition(int tileIndex,float damagePoint)
+Entity* Map::AttackOnPosition(int tileIndex,float damagePoint,int teamID)
 {
 	Entity *entity = GetEntityFromPosition(tileIndex);
 	if(entity == nullptr)
+	{
+		return nullptr;
+	}
+	if(entity->m_teamID == teamID)
 	{
 		return nullptr;
 	}
@@ -2911,10 +2128,10 @@ Entity* Map::AttackOnPosition(int tileIndex,float damagePoint)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Entity* Map::AttackOnPosition(IntVector2 cords, float damagePoint)
+Entity* Map::AttackOnPosition(IntVector2 cords, float damagePoint,int teamID)
 {
 	int tileIndex = GetTileIndex(cords);
-	return AttackOnPosition(tileIndex,damagePoint);
+	return AttackOnPosition(tileIndex,damagePoint,teamID);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2923,10 +2140,10 @@ Entity* Map::AttackOnPosition(IntVector2 cords, float damagePoint)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Entity* Map::AttackOnPosition(Vector2 position, float damagePoint)
+Entity* Map::AttackOnPosition(Vector2 position, float damagePoint,int teamID)
 {
 	int tileIndex = GetTileIndex(position);
-	return AttackOnPosition(tileIndex, damagePoint);
+	return AttackOnPosition(tileIndex, damagePoint,teamID);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3111,82 +2328,24 @@ void Map::ProcessInputs(float deltaTime)
 	if(InputSystem::GetInstance()->WasRButtonJustPressed())
 	{
 		g_currentSelectedEntity = nullptr;
+		m_selectedEntities.clear();
 	}
 	if(InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_P))
 	{
 		g_enableDebugPrints = g_enableDebugPrints == true ? false : true;
 	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_F))
-	{
-		m_displaySensoryFoodValue = m_displaySensoryFoodValue == true ? false : true;
-	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_S))
 	{
 		g_mapBreakCounter++;
 		m_gameFinished = true;
-		if (g_skipRendering)
+		/*if (g_skipRendering)
 		{
 			g_skipRendering = false;
-		}
-		m_displaySensoryStoneValue = m_displaySensoryStoneValue == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_W))
-	{
-		m_displaySensoryWoodValue = m_displaySensoryWoodValue == true ? false : true;
-		Renderer::GetInstance()->TakeScreenShotAndSave("Data\\NN\\BestGame\\");
+		}*/
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_T))
 	{
 		g_isCurrentlyTraining = g_isCurrentlyTraining == true ? false : true;
-	}
-
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_Z))
-	{
-		m_displaySensoryArmySpawner1Value = m_displaySensoryArmySpawner1Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_X))
-	{
-		m_displaySensoryArmySpawner2Value = m_displaySensoryArmySpawner2Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_C))
-	{
-		m_displaySensoryCivilian1Value = m_displaySensoryCivilian1Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_V))
-	{
-		m_displaySensoryCivilian2Value = m_displaySensoryCivilian2Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_B))
-	{
-		m_displaySensoryBuilding1Value = m_displaySensoryBuilding1Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_N))
-	{
-		m_displaySensoryBuilding2Value = m_displaySensoryBuilding2Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_M))
-	{
-		m_displaySensoryLongRangeArmy1Value = m_displaySensoryLongRangeArmy1Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_G))
-	{
-		m_displaySensoryLongRangeArmy2Value = m_displaySensoryLongRangeArmy2Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_H))
-	{
-		m_displaySensoryShortRangeArmy1Value = m_displaySensoryShortRangeArmy1Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_J))
-	{
-		m_displaySensoryShortRangeArmy2Value = m_displaySensoryShortRangeArmy2Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_K))
-	{
-		m_displaySensoryTC1Value = m_displaySensoryTC1Value == true ? false : true;
-	}
-	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_L))
-	{
-		m_displaySensoryTC2Value = m_displaySensoryTC2Value == true ? false : true;
 	}
 
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::GetInstance()->KEYBOARD_1))
@@ -3271,7 +2430,7 @@ void Map::CheckAndUpdateOnWinCondition(float deltaTime)
 	if(m_gameFinished)
 	{
 		m_gameFinishedTime += deltaTime;
-		g_skipRendering = false;
+		//g_skipRendering = false;
 		if(m_gameFinishedTime > 1 || m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN)
 		{
 			m_gameFinishedTime = 0;
@@ -3279,31 +2438,30 @@ void Map::CheckAndUpdateOnWinCondition(float deltaTime)
 		}
 		return;
 	}
-	m_team1.m_totalSteps++;
-	m_team2.m_totalSteps++;
 	for(size_t townCenterIndex = 0;townCenterIndex < m_townCenters.size();townCenterIndex++)
 	{
 		if(m_townCenters.at(townCenterIndex)->m_health <= 0)
 		{
 			m_gameFinished = true;
-			g_mapCounter++;
-			if(g_skipRendering)
+			g_numOfGameCounter++;
+			/*if(g_skipRendering)
 			{
 				g_skipRendering = false;
-			}
+			}*/
 			return;
 		}
 	}
-	/*if (m_team1.m_totalSteps > 75000 || m_team2.m_totalSteps > 75000)
+	if (g_mapCounter > 150000)
 	{
-		g_mapCounter++;
+		g_mapCounter = 0;
+		g_numOfGameCounter++;
 		g_mapBreakCounter++;
 		m_gameFinished = true;
-		if (g_skipRendering)
+		/*if (g_skipRendering)
 		{
 			g_skipRendering = false;
-		}
-	}*/
+		}*/
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3321,10 +2479,11 @@ void Map::CheckAndUpdateOnRandomMapGen(float deltaTime)
 		{
 			g_mapBreakCounter++;
 			m_gameFinished = true;
-			if (g_skipRendering)
+			CheckAndSaveBestStats();
+			/*if (g_skipRendering)
 			{
 				g_skipRendering = false;
-			}
+			}*/
 		}
 	}
 }
@@ -3345,7 +2504,6 @@ void Map::CheckAndSaveBestStats()
 	m_isScoreBoardUpdated = true;
 	CheckAndSaveBestTeamStats();
 	CheckAndSaveBestEntities();
-	CheckAndSaveScoreCardsOnActions();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3356,27 +2514,13 @@ void Map::CheckAndSaveBestStats()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::CheckAndSaveBestTeamStats()
 {
-	/*m_team1.CalculateTotalScore();
-	m_team2.CalculateTotalScore();
-
-	if (m_team2.m_totalScore > g_globalMaxScoreTeam2)
-	{
-		m_team2.SaveToFile("Data\\NN\\BestGame\\2\\BestStats\\TEAM_1_STATS.txt");
-	}
-	if (m_team1.m_totalScore > g_globalMaxScoreTeam1)
-	{
-		m_team1.SaveToFile("Data\\NN\\BestGame\\1\\BestStats\\TEAM_1_STATS.txt");
-	}
-
-	m_team1.SaveToFile(("Data\\NN\\" + m_folder+"\\1\\BestStats\\" + "TEAM_1_STATS.txt").c_str());
-	m_team2.SaveToFile(("Data\\NN\\" + m_folder+"\\2\\BestStats\\" + "TEAM_2_STATS.txt").c_str());*/
-
 	m_team1ScoreCard.CalculateTotalScore();
 	m_team2ScoreCard.CalculateTotalScore();
 
 	if(ShouldSaveLocalResultInDirectory())
 	{
-		
+		m_team1ScoreCard.SaveToFile(("Data\\NN\\" + m_folder + "\\1\\TEAM_STATS.txt").c_str());
+		m_team2ScoreCard.SaveToFile(("Data\\NN\\" + m_folder + "\\2\\TEAM_STATS.txt").c_str());
 	}
 }
 
@@ -3401,38 +2545,6 @@ void Map::CheckAndSaveBestEntities()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/02/22
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::CheckAndSaveScoreCardsOnActions()
-{
-	std::string team1Win;
-	std::string team2Win;
-	if(m_townCenters.size() > 0)
-	{
-		if(m_townCenters.at(0)->m_health > 0)
-		{
-			team1Win = "WIN";
-			team2Win = "LOSS";
-		}
-		else
-		{
-			team1Win = "LOSS";
-			team2Win = "WIN";
-		}
-	}
-
-
-	std::string team1ScoreCard = m_team1ScoreCard.GetAsString(team1Win);
-	std::string team2ScoreCard = m_team2ScoreCard.GetAsString(team2Win);
-
-	FileWrite("Data\\NN\\" + m_folder + "\\1\\TEAM_SCORE.txt",team1ScoreCard);
-	FileWrite("Data\\NN\\" + m_folder + "\\2\\TEAM_SCORE.txt",team2ScoreCard);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/11/06
 *@purpose : Checks the best entity for current game and save stats off
 *@param   : NIL
@@ -3441,46 +2553,10 @@ void Map::CheckAndSaveScoreCardsOnActions()
 void Map::CheckAndSaveBestEntityNN(EntityType type,int teamID)
 {
 	Entity *entity = FindLocalBestByEntity(type, teamID);
-	if(entity == nullptr)
+	if(entity != nullptr)
 	{
-		return;
+		SaveEntityBestGlobalScore(entity);
 	}
-	switch (type)
-	{
-	case CIVILIAN:
-		if(entity->m_scoreBoard.m_totalScore > entity->GetGlobalBestScore())
-		{
-			SaveEntityBestGlobalScore(entity);
-		}
-		break;
-	case SHORT_RANGE_ARMY:
-		if (entity->m_scoreBoard.m_totalScore > entity->GetGlobalBestScore())
-		{
-			SaveEntityBestGlobalScore(entity);
-		}
-		break;
-	case LONG_RANGE_ARMY:
-		if (entity->m_scoreBoard.m_totalScore > entity->GetGlobalBestScore())
-		{
-			SaveEntityBestGlobalScore(entity);
-		}
-		break;
-	case TOWN_CENTER:
-		if (entity->m_scoreBoard.m_totalScore > entity->GetGlobalBestScore())
-		{
-			SaveEntityBestGlobalScore(entity);
-		}
-		break;
-	case ARMY_SPAWNER:
-		if (entity->m_scoreBoard.m_totalScore > entity->GetGlobalBestScore())
-		{
-			SaveEntityBestGlobalScore(entity);
-		}
-		break;
-	default:
-		break;
-	}
-	SaveEntityBestLocalScore(entity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3497,11 +2573,14 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 	case CIVILIAN:
 		for (size_t index = 0; index < m_civilians.size(); index++)
 		{
-			m_civilians.at(index)->m_scoreBoard.CalculateTotalScore();
-			if (m_civilians.at(index)->GetLocalBestScore() < m_civilians.at(index)->m_scoreBoard.m_totalScore)
+			if (teamID == m_civilians.at(index)->m_teamID)
 			{
-				m_civilians.at(index)->SetLocalBestScore(m_civilians.at(index)->m_scoreBoard.m_totalScore);
-				returnIndex = static_cast<int>(index);
+				m_civilians.at(index)->m_scoreBoard.CalculateTotalScore();
+				if (m_civilians.at(index)->GetGlobalBestScore() < m_civilians.at(index)->m_scoreBoard.m_totalScore)
+				{
+					m_civilians.at(index)->SetGlobalBestScore(m_civilians.at(index)->m_scoreBoard.m_totalScore);
+					returnIndex = static_cast<int>(index);
+				}
 			}
 		}
 		if(returnIndex >= 0)
@@ -3515,9 +2594,9 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 			if (teamID == m_classAWarriors.at(index)->m_teamID)
 			{
 				m_classAWarriors.at(index)->m_scoreBoard.CalculateTotalScore();
-				if (m_classAWarriors.at(index)->GetLocalBestScore() < m_classAWarriors.at(index)->m_scoreBoard.m_totalScore)
+				if (m_classAWarriors.at(index)->GetGlobalBestScore() < m_classAWarriors.at(index)->m_scoreBoard.m_totalScore)
 				{
-					m_classAWarriors.at(index)->SetLocalBestScore(m_classAWarriors.at(index)->m_scoreBoard.m_totalScore);
+					m_classAWarriors.at(index)->SetGlobalBestScore(m_classAWarriors.at(index)->m_scoreBoard.m_totalScore);
 					returnIndex = static_cast<int>(index);
 				}
 			}
@@ -3530,9 +2609,10 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 	case LONG_RANGE_ARMY:
 		for (size_t index = 0; index < m_classBWarriors.size(); index++)
 		{
-			if (m_classBWarriors.at(index)->GetLocalBestScore() < m_classBWarriors.at(index)->m_scoreBoard.m_totalScore)
+			m_classBWarriors.at(index)->m_scoreBoard.CalculateTotalScore();
+			if (m_classBWarriors.at(index)->GetGlobalBestScore() < m_classBWarriors.at(index)->m_scoreBoard.m_totalScore)
 			{
-				m_classBWarriors.at(index)->SetLocalBestScore(m_classBWarriors.at(index)->m_scoreBoard.m_totalScore);
+				m_classBWarriors.at(index)->SetGlobalBestScore(m_classBWarriors.at(index)->m_scoreBoard.m_totalScore);
 				returnIndex = static_cast<int>(index);
 			}
 		}
@@ -3545,9 +2625,9 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 		for (size_t index = 0; index < m_townCenters.size(); index++)
 		{
 			m_townCenters.at(index)->m_scoreBoard.CalculateTotalScore();
-			if (m_townCenters.at(index)->GetLocalBestScore() < m_townCenters.at(index)->m_scoreBoard.m_totalScore)
+			if (m_townCenters.at(index)->GetGlobalBestScore() < m_townCenters.at(index)->m_scoreBoard.m_totalScore)
 			{
-				m_townCenters.at(index)->SetLocalBestScore(m_townCenters.at(index)->m_scoreBoard.m_totalScore);
+				m_townCenters.at(index)->SetGlobalBestScore(m_townCenters.at(index)->m_scoreBoard.m_totalScore);
 				returnIndex = static_cast<int>(index);
 			}
 		}
@@ -3560,9 +2640,9 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 		for (size_t index = 0; index < m_armySpawners.size(); index++)
 		{
 			m_armySpawners.at(index)->m_scoreBoard.CalculateTotalScore();
-			if (m_armySpawners.at(index)->GetLocalBestScore() < m_armySpawners.at(index)->m_scoreBoard.m_totalScore)
+			if (m_armySpawners.at(index)->GetGlobalBestScore() < m_armySpawners.at(index)->m_scoreBoard.m_totalScore)
 			{
-				m_armySpawners.at(index)->SetLocalBestScore(m_armySpawners.at(index)->m_scoreBoard.m_totalScore);
+				m_armySpawners.at(index)->SetGlobalBestScore(m_armySpawners.at(index)->m_scoreBoard.m_totalScore);
 				returnIndex = static_cast<int>(index);
 			}
 		}
@@ -3585,11 +2665,18 @@ Entity* Map::FindLocalBestByEntity(EntityType type,int teamID)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::SaveEntityBestGlobalScore(Entity *entity)
 {
-	//FileWrite(entity->GetGlobalBestStatFilePath(), ToString(entity->m_scoreBoard.m_totalScore));
-	entity->m_scoreBoard.SaveToFile(entity->GetGlobalBestStatFilePath().c_str());
+	entity->SetGlobalBestScore(entity->m_scoreBoard.m_totalScore);
+	entity->m_scoreBoard.SaveStatsToFile(entity->GetGlobalBestStatFilePath().c_str());
+	if(ShouldSaveLocalResultInDirectory())
+	{
+		entity->m_scoreBoard.SaveStatsToFile(entity->GetLocalBestStatFilePath().c_str());
+		entity->m_neuralNet.StoreToFile(entity->GetLocalBestFilePath().c_str());
+	}
+
 	std::string filePath = entity->GetGlobalBestFilePath();
 	FileRemove(filePath.c_str());
 	entity->m_neuralNet.StoreToFile(filePath.c_str());
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3699,7 +2786,7 @@ void Map::DeleteFromStandAlonEntityList(Entity *entity)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::ProcessInputForMultipleSelection(float deltaTime)
 {
-	if (InputSystem::GetInstance()->WasLButtonJustPressed())
+	if (InputSystem::GetInstance()->WasLButtonJustPressed() && m_selectedEntities.size() == 0)
 	{
 		Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
 		mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
@@ -3738,6 +2825,10 @@ void Map::SelectAllEntitiesUnderMouseSelection()
 {
 	for(int index = 0;index < m_classAWarriors.size();index++)
 	{
+		if(m_classAWarriors.at(index)->m_teamID == 2)
+		{
+			continue;
+		}
 		if(m_classAWarriors.at(index)->GetPosition().x > m_multipleEntitySelectionStartPoint.x && m_classAWarriors.at(index)->GetPosition().y < m_multipleEntitySelectionStartPoint.y)
 		{
 			if (m_classAWarriors.at(index)->GetPosition().x < m_multipleEntitySelectionEndPoint.x && m_classAWarriors.at(index)->GetPosition().y > m_multipleEntitySelectionEndPoint.y)
@@ -3752,6 +2843,8 @@ void Map::Update(float deltaTime)
 {
 	m_gameTime += deltaTime;
 	m_counter++;
+	g_mapCounter++;
+
 	CheckAndUpdateOnWinCondition(deltaTime);
 	CheckAndClearEntityOverlap();
 	if(m_gameFinished)
@@ -3763,9 +2856,6 @@ void Map::Update(float deltaTime)
 	ProcessInputs(deltaTime);
 	UpdateMultipleSelectionEntityTasks(deltaTime);
 	ProcessInputForMultipleSelection(deltaTime);
-
-	UpdateMiniMap();
-	//UpdateCellSensoryValues();
 
 	UpdateCamera(deltaTime);
 	UpdateResources(deltaTime);
@@ -3869,6 +2959,7 @@ void Map::UpdateClassAWarriors(float deltaTime)
 		m_classAWarriors.at(classAWarriorIndex)->Update(deltaTime);
 		if (m_classAWarriors.at(classAWarriorIndex)->m_health <= 0)
 		{
+			ClassAWarrior *warrior = m_classAWarriors.at(classAWarriorIndex);
 			TownCenter *townCenter = (TownCenter*)m_classAWarriors.at(classAWarriorIndex)->FindMyTownCenter();
 			townCenter->m_resourceStat.m_shortRangeArmies--;
 
@@ -3884,9 +2975,9 @@ void Map::UpdateClassAWarriors(float deltaTime)
 			}
 			delete m_classAWarriors.at(classAWarriorIndex);
 			m_classAWarriors.at(classAWarriorIndex) = nullptr;
+			warrior = nullptr;
 			m_classAWarriors.erase(m_classAWarriors.begin() + classAWarriorIndex, m_classAWarriors.begin() + classAWarriorIndex + 1);
 			classAWarriorIndex--;
-
 		}
 	}
 }
@@ -4078,6 +3169,12 @@ void Map::UpdateMultipleSelectionEntityTasks(float deltaTime)
 	{
 		for (int index = 0; index < m_selectedEntities.size(); index++)
 		{
+			if(m_selectedEntities.at(index) == nullptr || m_selectedEntities.at(index)->m_health <= 0)
+			{
+				continue;
+			}
+
+
 			int tileIndex = GetTileIndex(mousePosition);
 			Entity *entity = GetEntityFromPosition(tileIndex);
 			if (entity == nullptr)
@@ -4109,7 +3206,7 @@ void Map::Render()
 {
 	Camera::SetCurrentCamera(m_camera);
 	Renderer::GetInstance()->BeginFrame();
-	DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d MAP COUNTER %d MAP BREAK COUNTER %d", App::s_gameCounter,g_mapCounter,g_mapBreakCounter);
+	//DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d MAP COUNTER %d MAP BREAK COUNTER %d", App::s_gameCounter,g_numOfGameCounter,g_mapBreakCounter);
 
 	RenderTiles();
 	RenderCivilians();
@@ -4129,6 +3226,7 @@ void Map::Render()
 	RenderCensoryValues();
 	
 	RenderMousePosition();
+	RenderMultipleSelectionBox();
 
 	if (m_gameFinished)
 	{
@@ -4290,17 +3388,16 @@ void Map::RenderTiles()
 			if(m_tiles.at(index)->m_covered == 1)
 			{
 				g_theRenderer->DrawAABB(aabb, lightGreen);
-
 			}
 			if (m_tiles.at(index)->m_covered == 2)
 			{
 				g_theRenderer->DrawAABB(aabb, lightRed);
-
 			}
 			if (m_tiles.at(index)->m_covered == 3)
 			{
 				g_theRenderer->DrawAABB(aabb, lightBlue);
 			}
+			m_tiles.at(index)->m_covered = 0;
 		}
 	}
 	delete defaultMaterial;
@@ -4510,6 +3607,28 @@ void Map::RenderUnitTask()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/25
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderMultipleSelectionBox()
+{
+	if (m_multipleEntitySelectionJustStarted)
+	{
+		AABB2 selectionBox(m_multipleEntitySelectionStartPoint, Vector2::ZERO);
+		Material *defaultMaterial = Material::AquireResource("default");
+		Renderer::GetInstance()->BindMaterial(defaultMaterial);
+		g_theRenderer->DrawLine(m_multipleEntitySelectionStartPoint, Vector2(m_mousePosition.x,m_multipleEntitySelectionStartPoint.y));
+		g_theRenderer->DrawLine(m_multipleEntitySelectionStartPoint, Vector2(m_multipleEntitySelectionStartPoint.x, m_mousePosition.y));
+		g_theRenderer->DrawLine(Vector2(m_multipleEntitySelectionStartPoint.x,m_mousePosition.y), m_mousePosition);
+		g_theRenderer->DrawLine(Vector2(m_mousePosition.x,m_multipleEntitySelectionStartPoint.y), m_mousePosition);
+
+		delete defaultMaterial;
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31
 *@purpose : Renders the current mouse position
 *@param   : NIL
@@ -4546,114 +3665,13 @@ void Map::RenderWinState()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/17
-*@purpose : Render Censory values
+*@purpose : Render sensory values
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::RenderCensoryValues()
 {
-	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
-	Renderer::GetInstance()->BindMaterial(textMaterial);
 	
-	if (m_displaySensoryFoodValue)
-	{
-	}
-
-	int tileIndex = GetTileIndex(m_mousePosition);
-	if(tileIndex < 0 || tileIndex >= m_maxHeight*m_maxWidth)
-	{
-		return;
-	}
-	float resourceNearnessCurrentForFood  =  m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_RESOURCE_FOOD);
-	float resourceNearnessCurrentForStone =  m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_RESOURCE_STONE);
-	float resourceNearnessCurrentForWood  =  m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_RESOURCE_WOOD);
-
-	float army1NearnessValue		      = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE);
-	float army2NearnessValue			  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE);
-
-	float longArmy1NearnessValue          = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_ARMY_LONG_RANGE);
-	float longArmy2NearnessValue          = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_ARMY_LONG_RANGE);
-
-	float building1NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_BUILDING);
-	float building2NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_BUILDING);
-
-	float armySpawner1NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_ARMYSPAWNER);
-	float armySpawner2NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_ARMYSPAWNER);
-										  
-	float civilian1NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_CIVILIAN);
-	float civilian2NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_CIVILIAN);
-										  
-	float townCenter1NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM1_TOWNCENTER);
-	float townCenter2NearnessValue		  = m_cellSensoryValues.at(tileIndex).m_entityNearness.at((FavoredMoveStats)FAVORED_MOVETO_TEAM2_TOWNCENTER);
-
-
-
-	if(m_displaySensoryFoodValue)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(resourceNearnessCurrentForFood), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryStoneValue)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(resourceNearnessCurrentForStone), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryWoodValue)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(resourceNearnessCurrentForWood), 5.f, Rgba::YELLOW);
-	}
-	// SENSORY VALUES
-	if (m_displaySensoryShortRangeArmy1Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(army1NearnessValue), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryShortRangeArmy2Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(army2NearnessValue), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryLongRangeArmy1Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(longArmy1NearnessValue), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryLongRangeArmy2Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(longArmy2NearnessValue), 5.f, Rgba::YELLOW);
-	}
-
-	if (m_displaySensoryBuilding1Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(building1NearnessValue), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryBuilding2Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(building2NearnessValue), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryArmySpawner1Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(armySpawner1NearnessValue), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryArmySpawner2Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(armySpawner2NearnessValue), 5.f, Rgba::YELLOW);
-	}
-
-	if (m_displaySensoryCivilian1Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(civilian1NearnessValue), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryCivilian2Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(civilian2NearnessValue), 5.f, Rgba::YELLOW);
-	}
-
-	if (m_displaySensoryTC1Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(townCenter1NearnessValue), 5.f, Rgba::YELLOW);
-	}
-	if (m_displaySensoryTC2Value)
-	{
-		g_theRenderer->DrawTextOn3DPoint(GetMapPosition(tileIndex), Vector3::RIGHT, Vector3::UP, ToString(townCenter2NearnessValue), 5.f, Rgba::YELLOW);
-	}
-	///////////////////////////////////////////////////////////////
-	delete textMaterial;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -4681,20 +3699,20 @@ std::string Map::GetMapModeAsString(MapMode mode)
 	case MAP_MODE_TRAINING_TOWNCENTER:
 		return "TRAINING_TOWNCENTER";
 		break;
-	case MAP_MODE_TRAINED_VS_RANDOM_TRAINING:
-		return "TRAINING_SHORTRANGE_ARMY";
+	case MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN:
+		return "TRAINING_RED_VS_RANDOM_GREEN";
 		break;
-	case MAP_MODE_TRAINED_VS_RANDOM_GAME:
-		return "TRAINING_NONE_PLAY_RANDOM";
+	case MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN:
+		return "TRAINED_RED_VS_RANDOM_GREEN";
 		break;
-	case MAP_MODE_TRAINING_NONE_PLAY_GREEN:
-		return "TRAINING_NONE_PLAY_GREEN";
+	case MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN:
+		return "TRAINING_RED_VS_HUMAN_GREEN";
+		break;
+	case MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN:
+		return "TRAINED_RED_VS_HUMAN_GREEN";
 		break;
 	case MAP_MODE_TRAINING_RANDOM_MAP_GEN:
 		return "TRAINING_RANDOM_MAP_GEN";
-		break;
-	case MAP_MODE_TRAINING_NONE:
-		return "TRAINING_NONE";
 		break;
 	case MAP_MODE_NUM_ITEMS:
 		return "NUM_ITEMS";

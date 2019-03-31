@@ -136,6 +136,7 @@ public:
 	void				 FeedForwardNN();
 	double				 GetSumOfWeightsInHiddenLayer(int outputIndex);
 	double				 GetActivationValue(double value);
+	double				 GetRELUActivationValue(double value);
 	double				 GetFastSigmoidValue(double value);
 	double				 GetFastSigmoidDerivative(double value);
 	double				 GetSigmoidDerivative(double value);

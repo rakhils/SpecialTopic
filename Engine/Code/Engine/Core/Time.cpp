@@ -104,7 +104,7 @@ double GetSystemTimeInSeconds()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 long double GetCurrentTimeMilliSec()
 {
-	long double sysTime = time(0);
+	long double sysTime = static_cast<long double>(time(0));
 	long double sysTimeMS = sysTime * 1000;
 	return sysTimeMS;
 }

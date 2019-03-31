@@ -32,24 +32,6 @@ enum EntityType
 	RESOURCE_WOOD,
 	ARMY_SPAWNER
 };
-enum FavoredMoveStats
-{
-	FAVORED_MOVETO_RESOURCE_FOOD,
-	FAVORED_MOVETO_RESOURCE_STONE,
-	FAVORED_MOVETO_RESOURCE_WOOD,
-	FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE,
-	FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE,
-	FAVORED_MOVETO_TEAM1_ARMY_LONG_RANGE,
-	FAVORED_MOVETO_TEAM2_ARMY_LONG_RANGE,
-	FAVORED_MOVETO_TEAM1_ARMYSPAWNER,
-	FAVORED_MOVETO_TEAM2_ARMYSPAWNER,
-	FAVORED_MOVETO_TEAM1_BUILDING,
-	FAVORED_MOVETO_TEAM2_BUILDING,
-	FAVORED_MOVETO_TEAM1_CIVILIAN,
-	FAVORED_MOVETO_TEAM2_CIVILIAN,
-	FAVORED_MOVETO_TEAM1_TOWNCENTER,
-	FAVORED_MOVETO_TEAM2_TOWNCENTER,
-};
 
 struct EntityState
 {
@@ -271,13 +253,10 @@ public:
 	IntVector2					m_minTeritaryArea;
 	IntVector2					m_maxTeritaryArea;
 
-	ScoreCard					m_scoreBoard;
-	ScoreCard					m_prevScoreBoard;
+	ScoreCardByActions			m_scoreBoard;
 
-	Strategy					m_strategy;
-	Strategy					m_intendedStrategy;
-
-	ScoreCardByActions			m_entityScoreCard;
+	Strategy					m_desiredStrategy;
+	Strategy					m_currentStrategy;
 
 	std::vector<IntVector2>     m_exploredPlacesOfNoInterest;
 
@@ -302,6 +281,8 @@ public:
 	IntVector2						GetRelativeCellLocation(float x, float y);
 	IntVector2						GetRandomSafeArea();
 	IntVector2						GetRandomTeritaryArea();
+	IntVector2						GetMiniMapMins();
+	IntVector2						GetMiniMapMaxs();
 	Task *							GetRandomTaskByType(TaskType type);
 	TaskType						GetMyCurrentTask();
 
@@ -312,6 +293,8 @@ public:
 	
 	virtual int						GetGlobalBestScore();
 	virtual int						GetLocalBestScore();
+	virtual void					SetGlobalBestScore(int globalScore);
+	virtual void					SetLocalBestScore (int globalScore);
 
 	NNInputs						GetMyNNInputs();
 
@@ -336,14 +319,6 @@ public:
 	void							InitNeuralNet();
 	void							InitStates();
 	void							ProcessInputs(float deltaTime);
-	std::vector<double>				GetMyMiniMap();
-
-	IntVector2						GetMiniMapMins(IntVector2 cords);
-	IntVector2						GetMiniMapMaxs(IntVector2 cords);
-	IntVector2						GetMiniMapMins(IntVector2 cords,int width,int height);
-	IntVector2						GetMiniMapMaxs(IntVector2 cords,int width,int height);
-	IntVector2						GetMyMiniMapMins();
-	IntVector2						GetMyMiniMapMaxs();
 
 	void							Update(float deltaTime);
 	void							UpdateCoveredArea();
@@ -352,11 +327,12 @@ public:
 	virtual void					TrainNN(Task *task);
 	void							UpdateNN(float deltaTime);
 	void							UpdateTaskFromNN(float deltaTime);
-
+	
 	void							UpdateEntityState();
 	void							PrintDebugNN();
 	void							Render();
 	void							RenderTaskType();
+	void							RenderSelection();
 
 	void							UpdateUnitStatForFoodGathered(int count);
 	void							UpdateUnitStatForStoneGathered(int count);
@@ -384,12 +360,6 @@ public:
 	void							SetPosition(Vector2 position);
 	void							SetPosition(int index);
 	void							SetPositionInFloat(Vector2 position);
-
-	void							SetDesiredOutputToMoveToNeighbour(EntityState prevState,int cellDistance);
-	void							SetDesiredOutputToMoveToNeighbour(Vector2 potision);
-	void							SetDesiredOutputToMoveToNeighbourOpposite(int cellDistance,IntVector2 cords);
-	void							SetDesiredOutputToMoveToPrevPosition();
-	void							SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance);
 
 	void							SetRandomTaskInQueue();
 	void							ClearTaskQueue();
@@ -429,17 +399,24 @@ public:
 	bool							CreateAndPushExploreTask(IntVector2 cordinate);
 	bool							CreateAndPushAttackTask(IntVector2 cordinate);
 
-	bool							CheckAndSetStrategyIfNoEnemies             (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
+	bool							CheckAndSetStrategyIfNoEnemiesAlive        (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
 	bool							CheckAndSetStrategyIfTownCenterUnderAttack (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
 	bool							CheckAndSetStrategyIfEntityUnderAttack     (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
-	bool							CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);																														
+	bool							CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy,double priority, NNInputs inputs);
 	bool							CheckAndSetStrategyPatrol			       (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
 	bool							CheckAndSetStrategyExplore				   (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
 	bool							CheckAndSetStrategyAttack				   (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
 
+	bool CheckAndSetStrategyIfNoEnemiesAlive        (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
+	bool CheckAndSetStrategyIfTownCenterUnderAttack (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
+	bool CheckAndSetStrategyIfEntityUnderAttack     (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
+	bool CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
+	bool CheckAndSetStrategyPatrol			        (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
+	bool CheckAndSetStrategyExplore				    (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
+	bool CheckAndSetStrategyAttack				    (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
+
 
 	static std::string				GetEntityTypeAsString(EntityType entityType);
-	static std::string				GetFavoredMoveToAsString(FavoredMoveStats stats);
 	static std::string				GetStrategyAsString(Strategy strategy);
 	static Strategy					GetStrategyFromString(std::string strategyStr);
 };

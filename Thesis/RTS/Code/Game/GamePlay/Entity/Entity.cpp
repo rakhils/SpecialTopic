@@ -134,7 +134,7 @@ void Entity::InitStates()
 	m_state.m_health   = m_health;
 	m_state.m_position = GetPosition();
 	m_previousState    = m_state;
-	m_scoreBoard.m_entity = this;
+	//m_scoreBoard.m_entity = this;
 
 	for (int index = 0; index < 15; index++)
 	{
@@ -226,172 +226,6 @@ void Entity::ProcessInputs(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/30
-*@purpose : Retrieves my minimap
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::vector<double> Entity::GetMyMiniMap()
-{
-	std::vector<double> minmapValues;
-	for(int index = 0;index < g_entityMiniMapMaxHeight * g_entityMiniMapMaxWidth;index++)
-	{
-		minmapValues.push_back(0);
-	}
-	IntVector2 minimapMins = GetMyMiniMapMins();
-	int mapMinX = minimapMins.x;
-	int mapMinY = minimapMins.y;
-	IntVector2 minimapMaxs = GetMyMiniMapMaxs();
-	int mapMaxX = minimapMaxs.x;
-	int mapMaxY = minimapMaxs.y;
-
-	for(int indexY = mapMinY;indexY < mapMaxY;indexY++)
-	{
-		for(int indexX = mapMinX;indexX < mapMaxX;indexX++)
-		{
-			double minimapValue    = m_map->GetMiniMapValueAtPositionFromEntityType(indexX, indexY,m_teamID,m_type,this);
-			IntVector2 miniMapCords(indexX - mapMinX, indexY - mapMinY);
-			int miniMapIndex = miniMapCords.y * g_entityMiniMapMaxHeight + miniMapCords.x;
-			minmapValues.at(miniMapIndex) = (minimapValue);
-			if(m_miniMapDebug)
-			{
-				m_map->CreateDebugLetterEntity(m_map->GetMapPosition(IntVector2(indexX, indexY)), ToString(miniMapIndex), 8, Rgba::YELLOW);
-				//m_map->CreateExplosions(m_map->GetMapPosition(IntVector2(indexX, indexY)));
-			}
-		}
-	}
-	return minmapValues;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/20
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetMiniMapMins(IntVector2 cords)
-{
-	return GetMiniMapMins(cords, g_entityMiniMapMaxWidth, g_entityMiniMapMaxHeight);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/20
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetMiniMapMins(IntVector2 cords, int width,int height)
-{
-	int xPosition = cords.x;
-	int yPosition = cords.y;
-
-	int minX = xPosition - width / 2;
-	int minY = yPosition - height / 2;
-
-	int maxX = xPosition + width / 2;
-	int maxY = yPosition + height / 2;
-
-	if (minX < 0)
-	{
-		maxX += (0 - minX);
-	}
-	if (minY < 0)
-	{
-		maxY += (0 - minY);
-	}
-	if (maxX > m_map->m_maxWidth)
-	{
-		minX -= (maxX - m_map->m_maxWidth);
-	}
-	if (maxY > m_map->m_maxHeight)
-	{
-		minY -= (maxY - m_map->m_maxHeight);
-	}
-
-	int mapMinX = GetMax(minX, 0);
-	int mapMinY = GetMax(minY, 0);
-
-	//int mapMaxX = GetMin(maxX, m_map->m_maxWidth);
-	//int mapMaxY = GetMin(maxY, m_map->m_maxHeight);
-	return IntVector2(mapMinX, mapMinY);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/20
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetMiniMapMaxs(IntVector2 cords)
-{
-	return GetMiniMapMaxs(cords, g_entityMiniMapMaxWidth, g_entityMiniMapMaxHeight);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/20
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetMiniMapMaxs(IntVector2 cords, int width, int height)
-{
-	int xPosition = cords.x;
-	int yPosition = cords.y;
-
-	int minX = xPosition - width / 2;
-	int minY = yPosition - height / 2;
-
-	int maxX = xPosition + width / 2;
-	int maxY = yPosition + height / 2;
-
-	if (minX < 0)
-	{
-		maxX += (0 - minX);
-	}
-	if (minY < 0)
-	{
-		maxY += (0 - minY);
-	}
-	if (maxX > m_map->m_maxWidth)
-	{
-		minX -= (maxX - m_map->m_maxWidth);
-	}
-	if (maxY > m_map->m_maxHeight)
-	{
-		minY -= (maxY - m_map->m_maxHeight);
-	}
-
-	//int mapMinX = GetMax(minX, 0);
-	//int mapMinY = GetMax(minY, 0);
-
-	int mapMaxX = GetMin(maxX, m_map->m_maxWidth);
-	int mapMaxY = GetMin(maxY, m_map->m_maxHeight);
-	return IntVector2(mapMaxX, mapMaxY);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/20
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetMyMiniMapMins()
-{
-	return GetMiniMapMins(GetCordinates());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/20
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetMyMiniMapMaxs()
-{
-	return GetMiniMapMaxs(GetCordinates());
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/30
 *@purpose : Trains NN with the snapshot input
 *@param   : NIL
@@ -401,15 +235,11 @@ void Entity::TrainNN(Task *task)
 {
 	PrintDebugNN();
 
-	if(m_map->m_mapMode == MAP_MODE_TRAINING_NONE_PLAY_GREEN && m_teamID == 1)
+	if(!m_map->HasTrainingEnabled(this))
 	{
 		return;
 	}
 
-	if (!g_isCurrentlyTraining)
-	{
-		return;
-	}
 	UNUSED(task);
 	for (int index = 0; index < m_taskTypeSupported.size(); index++)
 	{
@@ -425,7 +255,7 @@ void Entity::TrainNN(Task *task)
 
 	if (m_state.m_neuralNetPoints > m_previousState.m_neuralNetPoints)
 	{
-		//for (int index = 0; index < 5; index++)
+		for (int index = 0; index < 3; index++)
 		{
 			m_neuralNet.DoBackPropogation(m_desiredOuputs);
 		}
@@ -469,14 +299,14 @@ void Entity::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateCoveredArea()
 {
-	if (g_skipRendering)
+	/*if (g_skipRendering)
 	{
 		return;
-	}
+	}*/
 	if(m_type == SHORT_RANGE_ARMY || m_type == LONG_RANGE_ARMY)
 	{
-		IntVector2 minimapMins = GetMiniMapMins(GetCordinates());
-		IntVector2 minimapMaxs = GetMiniMapMaxs(GetCordinates());
+		IntVector2 minimapMins = GetMiniMapMins();
+		IntVector2 minimapMaxs = GetMiniMapMaxs();
 		for(int indexX = minimapMins.x;indexX < minimapMaxs.x;indexX++)
 		{
 			for (int indexY = minimapMins.y; indexY < minimapMaxs.y; indexY++)
@@ -510,12 +340,6 @@ void Entity::EvaluateNN(Task * type,EntityState previousState,IntVector2 cords)
 	UNUSED(previousState);
 	UNUSED(cords);
 	UNUSED(type);
-	m_scoreBoard.m_totalSteps++;
-	bool interimScoreSuccess = m_scoreBoard.CalculateInterimScore(false, m_prevScoreBoard.m_interimScore);
-	if(interimScoreSuccess)
-	{
-		m_prevScoreBoard = m_scoreBoard;
-	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -528,7 +352,7 @@ void Entity::UpdateNN(float deltaTime)
 {
 	UNUSED(deltaTime);
 	
-	if(!m_map->HasTrainingEnabled(this))
+	if(!m_map->HasFeedForwardEnabled(this))
 	{
 		return;
 	}
@@ -585,17 +409,19 @@ void Entity::UpdateNN(float deltaTime)
 
 void Entity::UpdateTaskFromNN(float deltaTime)
 {
-	if (!m_map->HasTrainingEnabled(this))
+	if(m_map->HasHumanBehaviorEnabled(this))
 	{
-		if (m_map->m_mapMode == MAP_MODE_TRAINED_VS_RANDOM_GAME && m_teamID == 1)
-		{
-			int randomTask = GetRandomIntLessThan(m_taskTypeSupported.size());
-			TaskType task = m_taskTypeSupported.at(randomTask);
-			int randomIntX = GetRandomIntLessThan(8);
-			int randomIntY = GetRandomIntLessThan(8);
+		return;
+	}
 
-			CreateAndPushTask(task, IntVector2(randomIntX,randomIntY));
-		}
+	if (m_map->HasRandomBehaviorEnabled(this))
+	{
+		int randomTask = GetRandomIntLessThan(m_taskTypeSupported.size());
+		TaskType task = m_taskTypeSupported.at(randomTask);
+		int randomIntX = GetRandomIntLessThan(8);
+		int randomIntY = GetRandomIntLessThan(8);
+
+		CreateAndPushTask(task, IntVector2(randomIntX,randomIntY));
 		return;
 	}
 
@@ -603,7 +429,6 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 	TaskType task			= GetTaskFromNNOutput(max);
 	IntVector2 taskPosition = GetTaskPositonFromNNOutput(m_previousState.m_position);
 	m_previousState			= m_state;
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	CreateAndPushTask(task, taskPosition);
 }
 
@@ -648,9 +473,7 @@ void Entity::PrintDebugNN()
 		}
 		float maxValue = 0;
 		int index = GetMostFavoredMoveTask(&maxValue);
-		std::string taskStr = GetFavoredMoveToAsString((FavoredMoveStats)index);
-
-		DebugDraw::GetInstance()->DebugRenderLogf(taskStr, m_debugPrintDelay, GetTeamColor(), GetTeamColor());
+		//DebugDraw::GetInstance()->DebugRenderLogf(taskStr, m_debugPrintDelay, GetTeamColor(), GetTeamColor());
 	}
 
 }
@@ -697,8 +520,8 @@ void Entity::UpdateUnitStatForWoodGathered(int count)
 void Entity::UpdateUnitStatForFoodDropped(int count)
 {
 	m_state.m_resourceFoodDropped += count;
-	m_scoreBoard.UpdateScoreResourceFoodCollected(count);
-	m_map->GetMyScoreBoard(this).UpdateScoreResourceFoodCollected(count);
+	//m_scoreBoard.UpdateScoreResourceFoodCollected(count);
+	//m_map->GetMyScoreBoard(this).UpdateScoreResourceFoodCollected(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -710,8 +533,8 @@ void Entity::UpdateUnitStatForFoodDropped(int count)
 void Entity::UpdateUnitStatForStoneDropped(int count)
 {
 	m_state.m_resourceStoneDropped += count;
-	m_scoreBoard.UpdateScoreResourceStoneCollected(count);
-	m_map->GetMyScoreBoard(this).UpdateScoreResourceStoneCollected(count);
+	//m_scoreBoard.UpdateScoreResourceStoneCollected(count);
+	//m_map->GetMyScoreBoard(this).UpdateScoreResourceStoneCollected(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -723,8 +546,8 @@ void Entity::UpdateUnitStatForStoneDropped(int count)
 void Entity::UpdateUnitStatForWoodDropped(int count)
 {
 	m_state.m_resourceWoodDropped += count;
-	m_scoreBoard.UpdateScoreResourceWoodCollected(count);
-	m_map->GetMyScoreBoard(this).UpdateScoreResourceWoodCollected(count);
+	//m_scoreBoard.UpdateScoreResourceWoodCollected(count);
+	//m_map->GetMyScoreBoard(this).UpdateScoreResourceWoodCollected(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -736,8 +559,8 @@ void Entity::UpdateUnitStatForWoodDropped(int count)
 void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 {
 	m_state.m_numberOfArmySpawnerBuilt += count;
-	m_scoreBoard.UpdateScoreArmySpawnersBuilt(count);
-	m_map->GetMyScoreBoard(this).UpdateScoreArmySpawnersBuilt(count);
+	//m_scoreBoard.UpdateScoreArmySpawnersBuilt(count);
+	//m_map->GetMyScoreBoard(this).UpdateScoreArmySpawnersBuilt(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -749,8 +572,8 @@ void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 void Entity::UpdateUnitStatForHouseBuilt(int count)
 {
 	m_state.m_numberOfHouseBuilt += count;
-	m_scoreBoard.UpdateScoreHousesBuilt(count);
-	m_map->GetMyScoreBoard(this).UpdateScoreHousesBuilt(count);
+	//m_scoreBoard.UpdateScoreHousesBuilt(count);
+	//m_map->GetMyScoreBoard(this).UpdateScoreHousesBuilt(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -762,8 +585,8 @@ void Entity::UpdateUnitStatForHouseBuilt(int count)
 void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 {
 	m_state.m_shortRangeArmySpawned += count;
-	m_scoreBoard.UpdateScoreShortRangeArmySpawned(count);
-	m_map->GetMyScoreBoard(this).UpdateScoreShortRangeArmySpawned(count);
+	//m_scoreBoard.UpdateScoreShortRangeArmySpawned(count);
+	//m_map->GetMyScoreBoard(this).UpdateScoreShortRangeArmySpawned(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -775,8 +598,8 @@ void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
 {
 	m_state.m_longRangeArmySpawned += count;
-	m_scoreBoard.UpdateScoreLongRangeArmySpawned(count);
-	m_map->GetMyScoreBoard(this).UpdateScoreLongRangeArmySpawned(count);
+	//m_scoreBoard.UpdateScoreLongRangeArmySpawned(count);
+	//m_map->GetMyScoreBoard(this).UpdateScoreLongRangeArmySpawned(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -787,6 +610,7 @@ void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForEnemiesAttacked(Entity* attackedEntity ,int count)
 {
+/*
 	m_state.m_enemiesAttacked += count;
 	switch (attackedEntity->m_type)
 	{
@@ -816,7 +640,7 @@ void Entity::UpdateUnitStatForEnemiesAttacked(Entity* attackedEntity ,int count)
 		break;
 	default:
 		break;
-	}
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -827,7 +651,7 @@ void Entity::UpdateUnitStatForEnemiesAttacked(Entity* attackedEntity ,int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForEnemiesKilled(Entity* attackedEntity,int count)
 {
-	m_state.m_enemiesKilled += count;
+	/*m_state.m_enemiesKilled += count;
 	switch (attackedEntity->m_type)
 	{
 	case HOUSE:
@@ -856,7 +680,7 @@ void Entity::UpdateUnitStatForEnemiesKilled(Entity* attackedEntity,int count)
 		break;
 	default:
 		break;
-	}
+	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -868,8 +692,8 @@ void Entity::UpdateUnitStatForEnemiesKilled(Entity* attackedEntity,int count)
 void Entity::UpdateUnitStatForVillagerSpawned(int count)
 {
 	m_state.m_civilianSpawned += count;
-	m_map->GetMyScoreBoard(this).m_civiliansSpawned++;
-	m_scoreBoard.m_civiliansSpawned++;
+	//m_map->GetMyScoreBoard(this).m_civiliansSpawned++;
+	//m_scoreBoard.m_civiliansSpawned++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -911,162 +735,8 @@ void Entity::UpdateUnitStatForWoodUsed(int count)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::UpdateMostFavoredMoveTask(EntityState prevState,IntVector2 cords)
+void Entity::UpdateMostFavoredMoveTask(EntityState prevState, IntVector2 cords)
 {
-	int oldIndex = m_map->GetTileIndex(prevState.m_position);
-	int newIndex = m_map->GetTileIndex(cords);
-
-	CellSensoryValues oldSensoryValue = m_map->m_cellSensoryValues.at(oldIndex);
-	CellSensoryValues newSensoryValue = m_map->m_cellSensoryValues.at(newIndex);
-
-	for(int index = 0;index < oldSensoryValue.m_entityNearness.size();index++)
-	{
-		float newPositionSensoryValue = newSensoryValue.m_entityNearness.at(index);
-		float oldPositionSensoryValue = oldSensoryValue.m_entityNearness.at(index);
-		if(m_type == SHORT_RANGE_ARMY && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE) && m_teamID == 2)
-		{
-			//oldPositionSensoryValue -= m_map->GetCellDistance(cords,m_map->GetCordinates(prevState.m_position)) / m_map->m_classAWarriors.size();
-			continue;
-		}
-		if (m_type == SHORT_RANGE_ARMY && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE) && m_teamID == 1)
-		{
-			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classAWarriors.size();
-			continue;
-		}
-
-		if (m_type == LONG_RANGE_ARMY && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM1_ARMY_LONG_RANGE) && m_teamID == 1)
-		{
-			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classBWarriors.size();
-			continue;
-		}
-		if (m_type == LONG_RANGE_ARMY && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM2_ARMY_LONG_RANGE) && m_teamID == 2)
-		{
-			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classBWarriors.size();
-			continue;
-		}
-
-		if (m_type == CIVILIAN && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM1_CIVILIAN) && m_teamID == 1)
-		{
-			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classBWarriors.size();
-			continue;
-		}
-		if (m_type == CIVILIAN && (((FavoredMoveStats)index) == FAVORED_MOVETO_TEAM2_CIVILIAN) && m_teamID == 2)
-		{
-			//oldPositionSensoryValue -= m_map->GetCellDistance(cords, m_map->GetCordinates(prevState.m_position)) / m_map->m_classBWarriors.size();
-			continue;
-		}
-
-		if(m_type == SHORT_RANGE_ARMY || m_type == LONG_RANGE_ARMY)
-		{
-			if(((FavoredMoveStats)index) == FAVORED_MOVETO_RESOURCE_FOOD || ((FavoredMoveStats)index) == FAVORED_MOVETO_RESOURCE_WOOD || ((FavoredMoveStats)index) == FAVORED_MOVETO_RESOURCE_STONE)
-			{
-				continue;
-			}
-		}
-
-
-
-		if(newPositionSensoryValue < oldPositionSensoryValue)
-		{
-			m_state.m_favoredMoveTaskCount.at(index)++;
-		}
-	}
-	/*if(newSensoryValue.m_team1ArmyNearness > oldSensoryValue.m_team1ArmyNearness)
-	{
-		if(m_teamID == 1)
-		{
-			m_state.m_numTimesFavoredMoveToAllyArmy++;
-		}
-		else if(m_teamID == 2)
-		{
-			m_state.m_numTimesFavoredMoveToEnemyArmy++;
-		}
-	}
-
-	if(newSensoryValue.m_team1BuildingNearness > oldSensoryValue.m_team1BuildingNearness)
-	{
-		if(m_teamID == 1)
-		{
-			m_state.m_numTimesFavoredMoveToAllyBuilding++;
-		}
-		else if(m_teamID == 2)
-		{
-			m_state.m_numTimesFavoredMoveToEnemyBuilding++;
-		}
-	}
-
-	if(newSensoryValue.m_team1CivilianNearness > oldSensoryValue.m_team1CivilianNearness)
-	{
-		if(m_teamID == 1)
-		{
-			m_state.m_numTimesFavoredMoveToAllyCivilian++;
-		}
-		else if(m_teamID == 2)
-		{
-			m_state.m_numTimesFavoredMoveToEnemyCivilian++;
-		}
-	}
-
-	if(newSensoryValue.m_team1TownCenterNearness > newSensoryValue.m_team1TownCenterNearness)
-	{
-		if(m_teamID == 1)
-		{
-			m_state.m_numTimesFavoredMoveToAllyTownCenter++;
-		}
-		else if(m_teamID == 2)
-		{
-			m_state.m_numTimesFavoredMoveToEnemyTownCenter++;
-		}
-	}
-
-	/////////////////////////////////////////////////////////////////////////////////////////////////////////
-	if (newSensoryValue.m_team2ArmyNearness > oldSensoryValue.m_team2ArmyNearness)
-	{
-		if (m_teamID == 2)
-		{
-			m_state.m_numTimesFavoredMoveToAllyArmy++;
-		}
-		else if (m_teamID == 1)
-		{
-			m_state.m_numTimesFavoredMoveToEnemyArmy++;
-		}
-	}
-
-	if (newSensoryValue.m_team2BuildingNearness > oldSensoryValue.m_team2BuildingNearness)
-	{
-		if (m_teamID == 2)
-		{
-			m_state.m_numTimesFavoredMoveToAllyBuilding++;
-		}
-		else if (m_teamID == 1)
-		{
-			m_state.m_numTimesFavoredMoveToEnemyBuilding++;
-		}
-	}
-
-	if (newSensoryValue.m_team2CivilianNearness > oldSensoryValue.m_team2CivilianNearness)
-	{
-		if (m_teamID == 2)
-		{
-			m_state.m_numTimesFavoredMoveToAllyCivilian++;
-		}
-		else if (m_teamID == 1)
-		{
-			m_state.m_numTimesFavoredMoveToEnemyCivilian++;
-		}
-	}
-
-	if (newSensoryValue.m_team2TownCenterNearness > newSensoryValue.m_team2TownCenterNearness)
-	{
-		if (m_teamID == 2)
-		{
-			m_state.m_numTimesFavoredMoveToAllyTownCenter++;
-		}
-		else if (m_teamID == 1)
-		{
-			m_state.m_numTimesFavoredMoveToEnemyTownCenter++;
-		}
-	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1127,8 +797,8 @@ bool Entity::IsCurrentMoveFavoredByPastMoveTask(EntityState prevState, IntVector
 	int oldIndex = m_map->GetTileIndex(prevState.m_position);
 	int newIndex = m_map->GetTileIndex(cords);
 
-	CellSensoryValues oldSensoryValue = m_map->m_cellSensoryValues.at(oldIndex);
-	CellSensoryValues newSensoryValue = m_map->m_cellSensoryValues.at(newIndex);
+	/*CellSensoryValues oldSensoryValue = m_map->m_cellSensoryValues.at(oldIndex);
+	CellSensoryValues newSensoryValue = m_map->m_cellSensoryValues.at(newIndex);*/
 
 	/*float team1ArmyNearness		  = newSensoryValue.m_team1ArmyNearness       - oldSensoryValue.m_team1ArmyNearness;
 	float team1BuildingNearness   = newSensoryValue.m_team1BuildingNearness   - oldSensoryValue.m_team1BuildingNearness;
@@ -1212,6 +882,7 @@ void Entity::Render()
 	}
 	delete defaultMaterial;
 	RenderTaskType();
+	RenderSelection();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1222,6 +893,10 @@ void Entity::Render()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::RenderTaskType()
 {
+	if(m_type == TOWN_CENTER)
+	{
+		return;
+	}
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
 	TaskType taksType = GetMyCurrentTask();
@@ -1229,6 +904,52 @@ void Entity::RenderTaskType()
 	g_theRenderer->DrawTextOn3DPoint(Vector3(GetPosition(),0) + Vector3(0,g_radius + g_fontSize, 0), Vector3::RIGHT, Vector3::UP, taskTypeStr, g_fontSize, Rgba::YELLOW);
 
 	delete textMaterial;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/25
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::RenderSelection()
+{
+	bool isSelected = false;
+	for(size_t index = 0;index < m_map->m_selectedEntities.size();index++)
+	{
+		if(m_map->m_selectedEntities.at(index) == this)
+		{
+			isSelected = true;
+		}
+	}
+	if(!isSelected)
+	{
+		return;
+	}
+
+	Material *defaultMaterial = Material::AquireResource("default");
+	Renderer::GetInstance()->BindMaterial(defaultMaterial);
+
+	Disc2 selectionDisc(m_disc.center, m_disc.radius - 5.f);
+	switch (m_type)
+	{
+	case CIVILIAN:
+	case SHORT_RANGE_ARMY:
+	case LONG_RANGE_ARMY:
+		g_theRenderer->DrawCircle(selectionDisc, Rgba::YELLOW);
+		break;
+	case HOUSE:
+	case ARMY_SPAWNER:
+	case TOWN_CENTER:
+	case RESOURCE_FOOD:
+	case RESOURCE_STONE:
+	case RESOURCE_WOOD:
+	//	g_theRenderer->DrawAABB(m_aabb2, GetTeamColor());
+		break;
+	default:
+		break;
+	}
+	delete defaultMaterial;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1310,130 +1031,6 @@ void Entity::SetPositionInFloat(Vector2 position)
 		break;
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/10
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetDesiredOutputToMoveToNeighbour(EntityState prevState,int distance)
-{
-	IntVector2 cords = m_map->GetCordinates(prevState.m_position);
-	int xPosition = cords.x;
-	int yPosition = cords.y;
-	int minX = xPosition - g_entityMiniMapMaxWidth / 2;
-	int minY = yPosition - g_entityMiniMapMaxHeight / 2;
-
-	int maxX = xPosition + g_entityMiniMapMaxWidth / 2;
-	int maxY = yPosition + g_entityMiniMapMaxHeight / 2;
-
-	if (minX < 0)
-	{
-		maxX += (0 - minX);
-	}
-	if (minY < 0)
-	{
-		maxY += (0 - minY);
-	}
-	if (maxX > m_map->m_maxWidth)
-	{
-		minX -= (maxX - m_map->m_maxWidth);
-	}
-	if (maxY > m_map->m_maxHeight)
-	{
-		minY -= (maxY - m_map->m_maxHeight);
-	}
-
-
-
-	int mapMinX = GetMax(minX, 0);
-	int mapMinY = GetMax(minY, 0);
-
-	int mapMaxX = GetMin(maxX, m_map->m_maxWidth);
-	int mapMaxY = GetMin(maxY, m_map->m_maxHeight);
-
-
-	UNUSED(distance);
-	IntVector2 neighbour = m_map->GetRandomNeighbour(m_map->GetCordinates(prevState.m_position), distance);
-	float desiredXPosition = RangeMapFloat(static_cast<float>(neighbour.x),static_cast<float>(mapMinX), static_cast<float>(mapMaxX), 0.f, 1.f);
-	float desiredYPosition = RangeMapFloat(static_cast<float>(neighbour.y),static_cast<float>(mapMinY), static_cast<float>(mapMaxY), 0.f, 1.f);
-
-	desiredXPosition = GetRandomFloatZeroToOne();
-	desiredYPosition = GetRandomFloatZeroToOne();
-
-	SetDesiredOutputForTask(TASK_MOVE, 1);
-	SetDesiredOutputForTask(TASK_MOVEX, desiredXPosition);
-	SetDesiredOutputForTask(TASK_MOVEY, desiredYPosition);
-	if(desiredXPosition > 1 || desiredYPosition > 1 || desiredXPosition < 0 || desiredYPosition < 0)
-	{
-		//m_map->CreateExplosions(m_map->GetMapPosition(neighbour),Rgba::WHITE);
-	}
-	//m_map->CreateExplosions(m_map->GetMapPosition(neighbour),Rgba::YELLOW);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/20
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetDesiredOutputToMoveToNeighbour(Vector2 position)
-{
-	SetDesiredOutputForTask(TASK_MOVE, 1);
-	SetDesiredOutputForTask(TASK_MOVEX, position.x);
-	SetDesiredOutputForTask(TASK_MOVEY, position.y);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/27
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetDesiredOutputToMoveToNeighbourOpposite(int cellDistance, IntVector2 cords)
-{
-	UNUSED(cellDistance);
-	int xDistance = GetCordinates().x - cords.x;
-	int yDistance = GetCordinates().y - cords.y;
-	xDistance = ClampInt(xDistance,-1, 1);
-	yDistance = ClampInt(yDistance,-1, 1);
-	IntVector2 neighBour = GetCordinates() + IntVector2(xDistance, yDistance);
-	if(m_map->IsValidCordinate(neighBour))
-	{
-		SetDesiredOutputForTask(TASK_MOVE, 1);
-		SetDesiredOutputForTask(TASK_MOVEX, static_cast<float>(neighBour.x));
-		SetDesiredOutputForTask(TASK_MOVEY, static_cast<float>(neighBour.y));
-		//m_map->CreateExplosions(m_map->GetMapPosition(neighBour));
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/02
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetDesiredOutputToMoveToPrevPosition()
-{
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/21
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance)
-{
-	UNUSED(cellDistance);
-	double xPosition = GetRandomDoubleInRange(0, 1);
-	double yPosition = GetRandomDoubleInRange(0, 1);
-	SetDesiredOutputForTask(TASK_MOVEX, static_cast<float>(xPosition));
-	SetDesiredOutputForTask(TASK_MOVEY, static_cast<float>(yPosition));
-}
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/01/27
 *@purpose : NIL
@@ -1442,7 +1039,7 @@ void Entity::SetDesiredOutputToChooseRandomNeighbourLocation(int cellDistance)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::SetRandomTaskInQueue()
 {
-	if (m_map->m_mapMode == MAP_MODE_TRAINING_NONE_PLAY_GREEN && m_teamID == 1)
+	if (m_map->m_mapMode == MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN && m_teamID == 1)
 	{
 		return;
 	}
@@ -1570,7 +1167,14 @@ void Entity::ClearDesiredStrategyValues()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::SetDesiredStrategyAsOutputForNN(Strategy strategy,int incrementValue)
 {
-	m_intendedStrategy = strategy;
+	if(m_teamID == 2)
+	{
+		if(strategy == ATTACK)
+		{
+			int a = 1;
+		}
+	}
+	m_desiredStrategy = strategy;
 	m_desiredStrategyValues.at(strategy)+= incrementValue;
 }
 
@@ -1831,26 +1435,46 @@ bool Entity::CreateAndPushTask(TaskType taskType, IntVector2 taskPosition)
 		break;
 		case TASK_RETREAT:
 		{
+			if(m_desiredStrategy == RETREAT)
+			{
+				m_scoreBoard.m_numOfRetreatActions++;
+			}
 			CreateAndPushRetreatTask(taskPosition);
 		}
 		break;
 		case TASK_EXPLORE:
 		{
+			if (m_desiredStrategy == EXPLORE)
+			{
+				m_scoreBoard.m_numOfExploreActions++;
+			}
 			CreateAndPushExploreTask(taskPosition);
 		}
 		break;
 		case TASK_PATROL:
 		{
+			if (m_desiredStrategy == PATROL)
+			{
+				m_scoreBoard.m_numOfPatrolActions++;
+			}
 			CreateAndPushPatrolTask(taskPosition);
 		}
 		break;
 		case TASK_FOLLOW:
 		{
+			if (m_desiredStrategy == FOLLOW)
+			{
+				m_scoreBoard.m_numOfFollowActions++;
+			}
 			CreateAndPushFollowTask(taskPosition);
 		}
 		break;
 		case TASK_ATTACK:
 		{
+			if (m_desiredStrategy == ATTACK)
+			{
+				m_scoreBoard.m_numOfAttackActions++;
+			}
 			CreateAndPushAttackTask(taskPosition);
 		}
 		break;
@@ -2356,6 +1980,44 @@ IntVector2 Entity::GetRandomTeritaryArea()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Entity::GetMiniMapMins()
+{
+	int xCords = GetCordinates().x;
+	int yCords = GetCordinates().y;
+
+	xCords -= 4;
+	yCords -= 4;
+
+	xCords = ClampInt(xCords, 0, m_map->m_maxWidth - 1);
+	yCords = ClampInt(yCords, 0, m_map->m_maxHeight - 1);
+	return IntVector2(xCords, yCords);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/04
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+IntVector2 Entity::GetMiniMapMaxs()
+{
+	int xCords = GetCordinates().x;
+	int yCords = GetCordinates().y;
+
+	xCords += 4;
+	yCords += 4;
+
+	xCords = ClampInt(xCords, 0, m_map->m_maxWidth - 1);
+	yCords = ClampInt(yCords, 0, m_map->m_maxHeight - 1);
+	return IntVector2(xCords, yCords);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/01/27
 *@purpose : NIL
 *@param   : NIL
@@ -2533,6 +2195,28 @@ int Entity::GetGlobalBestScore()
 int Entity::GetLocalBestScore()
 {
 	return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetGlobalBestScore(int globalScore)
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/02/23
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetLocalBestScore(int globalScore)
+{
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3073,10 +2757,6 @@ bool Entity::CreateAndPushDefenseTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushFollowTask(IntVector2 cordinate)
 {
-	if (m_intendedStrategy == FOLLOW)
-	{
-		m_scoreBoard.m_bonusScore++;
-	}
 	UNUSED(cordinate);
 	Task *task = new TaskFollow(m_map, this);
 	m_taskQueue.push(task);
@@ -3091,10 +2771,6 @@ bool Entity::CreateAndPushFollowTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushRetreatTask(IntVector2 cordinate)
 {
-	if (m_intendedStrategy == RETREAT)
-	{
-		m_scoreBoard.m_bonusScore++;
-	}
 	UNUSED(cordinate);
 	Task *task = new TaskRetreat(m_map, this);
 	m_taskQueue.push(task);
@@ -3109,10 +2785,6 @@ bool Entity::CreateAndPushRetreatTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushPatrolTask(IntVector2 cordinate)
 {
-	if (m_intendedStrategy == PATROL)
-	{
-		m_scoreBoard.m_bonusScore++;
-	}
 	UNUSED(cordinate);
 	Task *task = new TaskPatrol(m_map, this);
 	m_taskQueue.push(task);
@@ -3127,10 +2799,6 @@ bool Entity::CreateAndPushPatrolTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushExploreTask(IntVector2 cordinate)
 {
-	if (m_intendedStrategy == EXPLORE)
-	{
-		m_scoreBoard.m_bonusScore++;
-	}
 	UNUSED(cordinate);
 	Task *task = new TaskExplore(m_map, this);
 	m_taskQueue.push(task);
@@ -3145,10 +2813,6 @@ bool Entity::CreateAndPushExploreTask(IntVector2 cordinate)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushAttackTask(IntVector2 cordinate)
 {
-	if (m_intendedStrategy == ATTACK)
-	{
-		m_scoreBoard.m_bonusScore++;
-	}
 	UNUSED(cordinate);
 	Task *task = new TaskAttack(m_map, this,m_attackRange);
 	m_taskQueue.push(task);
@@ -3161,7 +2825,7 @@ bool Entity::CreateAndPushAttackTask(IntVector2 cordinate)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyIfNoEnemies(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs)
+bool Entity::CheckAndSetStrategyIfNoEnemiesAlive(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs)
 {
 	if (inputs.m_enemyLongRangeArmyCount + inputs.m_enemyShortRangeArmyCount == 0)
 	{
@@ -3181,25 +2845,42 @@ bool Entity::CheckAndSetStrategyIfNoEnemies(std::vector<double> &NNInputVectors,
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/07
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CheckAndSetStrategyIfNoEnemiesAlive(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs functionValues, bool value)
+{
+	// ATTACK
+	NNInputVectors.at(NNInput_enemyLongRangeArmyCount)		 =  functionValues.m_enemyLongRangeArmyCount        * priority;
+	NNInputVectors.at(NNInput_enemyShortRangeArmyCount)		 =  functionValues.m_enemyShortRangeArmyCount       * priority;
+	// EXPLORE
+	// FOLLOW
+	// PATROL
+	// RETREAT
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/02/10
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyIfTownCenterUnderAttack(std::vector<double> &NNInputVectors,Strategy strategy,double priority,NNInputs inputs)
+bool Entity::CheckAndSetStrategyIfTownCenterUnderAttack(std::vector<double> &NNInputVectors,Strategy strategy,double priority,NNInputs functionValues)
 {
 	switch (strategy)
 	{
 	case RETREAT:
-		NNInputVectors.at(NNInput_allyTownCenterHealth) =            inputs.m_allyTownCenterHealth           * priority;
-		NNInputVectors.at(NNInput_allyTownCenterHealthLastFrame) =  -inputs.m_allyTownCenterHealthLastFrame  * priority;
-		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount) =      inputs.m_inRangeAllyTownCenterCount     * priority;
+		NNInputVectors.at(NNInput_allyTownCenterHealth) =            functionValues.m_allyTownCenterHealth           * priority;
+		NNInputVectors.at(NNInput_allyTownCenterHealthLastFrame) =  -functionValues.m_allyTownCenterHealthLastFrame  * priority;
+		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount) =      functionValues.m_inRangeAllyTownCenterCount     * priority;
 		priority--;
 		break;
 	case ATTACK:
-		NNInputVectors.at(NNInput_allyTownCenterHealth)          =   inputs.m_allyTownCenterHealth          * priority;
-		NNInputVectors.at(NNInput_allyTownCenterHealthLastFrame) =  -inputs.m_allyTownCenterHealthLastFrame * priority;
-		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount)    =   inputs.m_inRangeAllyTownCenterCount    * priority;
+		NNInputVectors.at(NNInput_allyTownCenterHealth)          =   functionValues.m_allyTownCenterHealth          * priority;
+		NNInputVectors.at(NNInput_allyTownCenterHealthLastFrame) =  -functionValues.m_allyTownCenterHealthLastFrame * priority;
+		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount)    =   functionValues.m_inRangeAllyTownCenterCount    * priority;
 		break;
 	}
 	if(true)
@@ -3210,14 +2891,14 @@ bool Entity::CheckAndSetStrategyIfTownCenterUnderAttack(std::vector<double> &NNI
 
 	if(townCenter->IsUnderAttack())
 	{
-		if(inputs.m_inRangeAllyTownCenterCount == 0)
+		if(functionValues.m_inRangeAllyTownCenterCount == 0)
 		{
 			SetDesiredStrategyAsOutputForNN(RETREAT, 1);
 			m_state.m_neuralNetPoints++;
 			CopyDesiredStrategyValuesIntoDesiredNNOuputs();
 			return true;
 		}
-		if(inputs.m_inRangeAllyTownCenterCount != 0)
+		if(functionValues.m_inRangeAllyTownCenterCount != 0)
 		{
 			SetDesiredStrategyAsOutputForNN(ATTACK, 1);
 			m_state.m_neuralNetPoints++;
@@ -3226,6 +2907,17 @@ bool Entity::CheckAndSetStrategyIfTownCenterUnderAttack(std::vector<double> &NNI
 		}
 	}
 	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CheckAndSetStrategyIfTownCenterUnderAttack(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
+{
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3282,6 +2974,17 @@ bool Entity::CheckAndSetStrategyIfEntityUnderAttack(std::vector<double> &NNInput
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CheckAndSetStrategyIfEntityUnderAttack(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
+{
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/02/11
 *@purpose : NIL
 *@param   : NIL
@@ -3334,6 +3037,18 @@ bool Entity::CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NN
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
+{
+	NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) = inputs.m_inRangeAttackingEnemyHeatMapValue   * priority;
+	NNInputVectors.at(NNInput_inRangeAttackingAllyHeatMapValue)  = inputs.m_inRangeStationaryEnemyHeatMapValue  * priority;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/02/11
 *@purpose : NIL
 *@param   : NIL
@@ -3373,6 +3088,19 @@ bool Entity::CheckAndSetStrategyPatrol(std::vector<double> &NNInputVectors, Stra
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CheckAndSetStrategyPatrol(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
+{
+	NNInputVectors.at(NNInput_allyInPatrolMode )                 =  inputs.m_inRangeAttackingAllyHeatMapValue   * priority;
+	NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) = -inputs.m_inRangeAttackingEnemyHeatMapValue  * priority;
+	NNInputVectors.at(NNInput_inRangeAllyTownCenterCount)        =  inputs.m_inRangeAllyTownCenterCount         * priority;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/02/11
 *@purpose : NIL
 *@param   : NIL
@@ -3405,6 +3133,18 @@ bool Entity::CheckAndSetStrategyExplore(std::vector<double> &NNInputVectors, Str
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CheckAndSetStrategyExplore(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
+{
+	NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) =  inputs.m_inRangeAttackingEnemyHeatMapValue   * priority;
+	NNInputVectors.at(NNInput_inRangeStationaryEnemyHeatMapValue) = inputs.m_inRangeStationaryEnemyHeatMapValue  * priority;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/02/11
 *@purpose : NIL
 *@param   : NIL
@@ -3420,6 +3160,18 @@ bool Entity::CheckAndSetStrategyAttack(std::vector<double> &NNInputVectors, Stra
 		return true;
 	}
 	return false;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/08
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+bool Entity::CheckAndSetStrategyAttack(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
+{
+	NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue)  = inputs.m_inRangeAttackingEnemyHeatMapValue   * priority;
+	NNInputVectors.at(NNInput_inRangeStationaryEnemyHeatMapValue) = inputs.m_inRangeStationaryEnemyHeatMapValue  * priority;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3463,49 +3215,6 @@ std::string Entity::GetEntityTypeAsString(EntityType entityType)
 		break;
 	}
 	return "";
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/23
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-std::string Entity::GetFavoredMoveToAsString(FavoredMoveStats stats)
-{
-	switch (stats)
-	{
-	case FAVORED_MOVETO_RESOURCE_FOOD:
-		return "FAVORED_MOVETO_RESOURCE";
-		break;
-	case FAVORED_MOVETO_TEAM1_ARMY_SHORT_RANGE:
-		return "FAVORED_MOVETO_TEAM1_ARMY";
-		break;
-	case FAVORED_MOVETO_TEAM1_BUILDING:
-		return "FAVORED_MOVETO_TEAM1_BUILDING";
-		break;
-	case FAVORED_MOVETO_TEAM1_CIVILIAN:
-		return "FAVORED_MOVETO_TEAM1_CIVILIAN";
-		break;
-	case FAVORED_MOVETO_TEAM1_TOWNCENTER:
-		return "FAVORED_MOVETO_TEAM1_TOWNCENTER";
-		break;
-	case FAVORED_MOVETO_TEAM2_ARMY_SHORT_RANGE:
-		return "FAVORED_MOVETO_TEAM2_ARMY";
-		break;
-	case FAVORED_MOVETO_TEAM2_BUILDING:
-		return "FAVORED_MOVETO_TEAM2_BUILDING";
-		break;
-	case FAVORED_MOVETO_TEAM2_CIVILIAN:
-		return "FAVORED_MOVETO_TEAM2_CIVILIAN";
-		break;
-	case FAVORED_MOVETO_TEAM2_TOWNCENTER:
-		return "FAVORED_MOVETO_TEAM2_TOWNCENTER";
-		break;
-	default:
-		break;
-	}
-	return "INVALID";
 }
 
 std::string Entity::GetStrategyAsString(Strategy strategy)

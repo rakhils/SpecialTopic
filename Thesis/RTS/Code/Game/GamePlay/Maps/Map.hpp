@@ -26,10 +26,12 @@ enum MapMode
 	MAP_MODE_TRAINING_CIVILIAN_BUILD,
 	MAP_MODE_TRAINING_CIVILIAN,
 	MAP_MODE_TRAINING_TOWNCENTER,
-	MAP_MODE_TRAINED_VS_RANDOM_TRAINING,
-	MAP_MODE_TRAINED_VS_RANDOM_GAME,
-	MAP_MODE_TRAINING_NONE_PLAY_GREEN,
-	MAP_MODE_TRAINING_NONE,
+
+	MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN,
+	MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN,
+	MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN,
+	MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN,
+
 	MAP_MODE_TRAINING_RANDOM_MAP_GEN,
 	MAP_MODE_NUM_ITEMS
 };
@@ -92,36 +94,7 @@ struct CellSensoryValues
 	IntVector2 m_coords;
 	std::vector<float> m_entityNearness;
 };
-struct ScoreCardByActions
-{
-	bool m_isSuccess = false;
-	int  m_numOfAttackActions  = 0;
-	int  m_numOfExploreActions = 0;
-	int  m_numOfFollowActions  = 0;
-	int  m_numOfPatrolActions  = 0;
-	int  m_numOfRetreatActions = 0;
-	int  m_numOfTotalActions   = 0;
 
-	int  CalculateTotalScore()
-	{
-		m_numOfTotalActions = m_numOfAttackActions + m_numOfExploreActions + m_numOfFollowActions + m_numOfPatrolActions + m_numOfRetreatActions + m_numOfTotalActions;
-		return m_numOfTotalActions;
-	}
-
-	std::string GetAsString(std::string winString)
-	{
-		std::string behaviorActions;
-		behaviorActions +=
-			"TEAM WIN - " + winString+"\n"+
-			"ATTACK   - " + ToString(m_numOfAttackActions)  + "\n" +
-			"EXPLORE  - " + ToString(m_numOfExploreActions) + "\n" +
-			"FOLLOW   - " + ToString(m_numOfFollowActions)  + "\n" +
-			"PATROL   - " + ToString(m_numOfPatrolActions)  + "\n" +
-			"RETREAT  - " + ToString(m_numOfRetreatActions) + "\n" +
-			"TOTAL    - " + ToString(m_numOfAttackActions   + m_numOfExploreActions + m_numOfFollowActions + m_numOfPatrolActions + m_numOfRetreatActions);
-		return behaviorActions;
-	}
-};
 class Map
 {
 public:
@@ -130,22 +103,6 @@ public:
 	
 	float							m_gameFinishedTime = 0.f;
 	float							m_gameTime		   = 0.f;
-
-	bool							m_displaySensoryFoodValue = false;
-	bool							m_displaySensoryStoneValue = false;
-	bool							m_displaySensoryWoodValue = false;
-	bool							m_displaySensoryShortRangeArmy1Value = false;
-	bool							m_displaySensoryShortRangeArmy2Value = false;
-	bool							m_displaySensoryLongRangeArmy1Value = false;
-	bool							m_displaySensoryLongRangeArmy2Value = false;
-	bool							m_displaySensoryBuilding1Value = false;
-	bool							m_displaySensoryBuilding2Value = false;
-	bool							m_displaySensoryArmySpawner1Value = false;
-	bool							m_displaySensoryArmySpawner2Value = false;
-	bool							m_displaySensoryCivilian1Value = false;
-	bool							m_displaySensoryCivilian2Value = false;
-	bool							m_displaySensoryTC1Value = false;
-	bool							m_displaySensoryTC2Value = false;
 
 	Camera *						m_camera = nullptr;
 	std::vector<ArmySpawner*>	    m_armySpawners;
@@ -164,12 +121,10 @@ public:
 	std::vector<Entity*>			m_standAloneEntities;
 	std::vector<EntityType>			m_entitiesHavingTraning;
 
-	std::vector<Entity*>			m_minimapValue;
-	std::vector<CellSensoryValues>  m_cellSensoryValues;
 	std::vector<Tile*>				m_tiles;
 
 	GameStats						m_gameStats;
-	MapMode							m_mapMode = MAP_MODE_TRAINING_NONE;
+	MapMode							m_mapMode = MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN;
 	std::string						m_folder;
 
 	bool							m_multipleEntitySelectionJustStarted = false;
@@ -185,10 +140,6 @@ public:
 	float							m_yOffset			= g_mapYOffset;
 	Vector2							m_mousePosition;
 
-	ScoreCard						m_team1;
-	ScoreCard						m_team2;
-	Strategy						m_team1Strategy;
-	Strategy						m_team2Strategy;
 	bool							m_isScoreBoardUpdated = false;
 	bool							m_firstTime = true;
 	int								m_counter = 0;
@@ -196,17 +147,23 @@ public:
 	ScoreCardByActions				m_team1ScoreCard;
 	ScoreCardByActions				m_team2ScoreCard;
 
+	ScoreCardByActions				m_localBestCivilianScoreCardTeam1;
+	ScoreCardByActions				m_localBestCivilianScoreCardTeam2;
+	ScoreCardByActions				m_localBestShortRangeArmyScoreCardTeam1;
+	ScoreCardByActions				m_localBestShortRangeArmyScoreCardTeam2;
+	ScoreCardByActions				m_localBestLongRangeArmyScoreCardTeam1;
+	ScoreCardByActions				m_localBestLongRangeArmyScoreCardTeam2;
+	ScoreCardByActions				m_localBestTownCenterScoreCardTeam1;
+	ScoreCardByActions				m_localBestTownCenterScoreCardTeam2;
+
 	Map();
 	~Map();
 
 	void							Initialize();
 	void							InitTiles();
-	void							InitCellSensoryValues();
 	void							CreateDirectoryForNN();
 	void							ResetAllScores();
 	void							InitAndStoreBestScoreFromFile();
-	void							ResetBestScoreToFile();
-	float							GetHeatMapDistanceFromEntity(IntVector2 cellposition, EntityType type,int teamID);
 	void							InitCamera();
 	void							RestartMap();
 
@@ -222,10 +179,14 @@ public:
 	void							InitTrainedVsRandomGame();
 	void							InitTrainingForPlayGreen();
 	void							InitTrainingForRandomGenMaps();
-	void							InitNonTrainingMode();
+	void							InitTrainedRedVsHumanGreen();
 
 	bool							IsNonTrainingMode();
 	bool							HasTrainingEnabled(Entity *entity);
+	bool							HasFeedForwardEnabled(Entity *entity);
+	bool							HasRandomBehaviorEnabled(Entity *entity);
+	bool							HasHumanBehaviorEnabled(Entity *entity);
+
 
 	Entity*							CreateCivilian(Vector2 position, int teamID);
 	Entity*							CreateArmySpawner(Vector2 position, int teamID);
@@ -244,26 +205,7 @@ public:
 	bool							IsNeighbours(IntVector2 position1, IntVector2 position2,int distance);
 	bool							IsResource(Entity * entity);
 	bool							ShouldSaveLocalResultInDirectory();
-	//MINIMAP
-	void							InitMiniMap();
-	void							UpdateMiniMap();
-	Entity*							GetMiniMapValueAtPosition(int row, int column);
-	double							GetMiniMapValueAtPositionFromEntityType(int row, int column, int myTeamID,EntityType myType,Entity *entity);
-	double							GetMiniMapValueAtPositionForCivilian(int myTeamID,int row, int column);
-	double							GetMiniMapValueAtPositionForShortRangeArmy(int myTeamID,int row, int column);
-	double							GetMiniMapValueAtPositionForLongRangeArmy(int myTeamID,int row, int column);
 
-	void							SetMiniMapValues(int row, int column, Entity *entity);
-
-	///////////////////////////////////////////////////////////////////////
-
-	// CELL VALUE
-	float							NearnessValueToTownCenter(IntVector2 coords,int teamID);
-	float							NearnessValueToResources (IntVector2 coords, EntityType type);
-	void							UpdateCellSensoryValues();
-	///////////////////////////////////////////////////////////////////////
-
-	ScoreCard &					    GetMyScoreBoard(Entity *entity);
 	IntVector2						GetFreeNeighbourTile(Vector2 position);
 	IntVector2						GetFreeNeighbourTile(Vector2 position,int distance);
 	IntVector2						GetTilePosition(int tilePosition);
@@ -300,9 +242,9 @@ public:
 
 	bool							IsValidCordinate(IntVector2 cords);
 
-	Entity *						AttackOnPosition(int tileIndex, float damagePoint);
-	Entity *						AttackOnPosition(IntVector2 cords, float damagePoint);
-	Entity *						AttackOnPosition(Vector2 cords, float damagePoint);
+	Entity *						AttackOnPosition(int tileIndex,    float damagePoint,int teamID);
+	Entity *						AttackOnPosition(IntVector2 cords, float damagePoint,int teamID);
+	Entity *						AttackOnPosition(Vector2 cords,    float damagePoint,int teamID);
 
 	bool							AreEnemies(Entity *entityOne, Entity *entityTwo);
 	void							DestroyEntity(Entity *entity);
@@ -321,7 +263,6 @@ public:
 	void							CheckAndSaveBestStats();
 	void							CheckAndSaveBestTeamStats();
 	void							CheckAndSaveBestEntities();
-	void							CheckAndSaveScoreCardsOnActions();
 
 	void							CheckAndSaveBestEntityNN(EntityType type,int teamID);
 	Entity*							FindLocalBestByEntity(EntityType type,int teamID);
@@ -366,6 +307,8 @@ public:
 	void							RenderHUDGameStat();
 	void							RenderHUDUnitStat();
 	void							RenderUnitTask();
+
+	void							RenderMultipleSelectionBox();
 
 	void							RenderMousePosition();
 	void							RenderWinState();

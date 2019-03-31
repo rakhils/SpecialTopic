@@ -1,0 +1,21 @@
+<PortalDefinitions>
+
+  <PortalDefinition name="TeleportVortex">
+    <Movement>
+      <Fly speed="0.0"/>
+    </Movement>
+    <SpriteAnimSet spriteSheet="terrain.png" spriteLayout="8,8">
+      <SpriteAnim name="Idle" spriteIndexes="50"/>
+    </SpriteAnimSet>
+  </PortalDefinition>
+
+  <PortalDefinition name="StairsDown">
+    <Movement>
+      <Fly speed="0.0"/>
+    </Movement>
+    <SpriteAnimSet spriteSheet="terrain.png" spriteLayout="8,8">
+      <SpriteAnim name="Idle" spriteIndexes="50"/>
+    </SpriteAnimSet>
+  </PortalDefinition>
+
+</PortalDefinitions>

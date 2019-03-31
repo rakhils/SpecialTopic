@@ -10,7 +10,6 @@ TaskPatrol::TaskPatrol(Map *map,Entity *entity)
 	InitPatrolBehavior();
 	m_taskType = TASK_PATROL;
 	m_subType = PATROL_MOVE_TO_TARGET;
-	m_entity->m_strategy = PATROL;
 }
 
 // DESTRUCTOR

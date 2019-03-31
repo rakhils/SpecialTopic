@@ -35,6 +35,8 @@ public:
 
 	void	 TrainNN(Task *task);
 	void	 EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
+	void	 EvaluateNNDefensive(Task *task, EntityState previousState, IntVector2 cords);
+	void	 EvaluateNN(Task *task, EntityState previousState, IntVector2 cords,bool value);
 
 	void     EvaluateDefenseTask(EntityState previousState, IntVector2 cords);
 	void     EvaluateAttackTask(EntityState previousState, IntVector2 cords);

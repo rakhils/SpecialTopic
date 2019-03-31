@@ -505,6 +505,42 @@
     <ClCompile Include="Net\NetObjectView.cpp">
       <Filter>General</Filter>
     </ClCompile>
+    <ClCompile Include="System\System.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\Selector.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\Composite.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\Sequence.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\Node.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\SimpleParallel.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\BehaviorTree.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\BehaviorTreeManager.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\Root.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\Decorators\BTreeDecorator.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\Services\BTreeService.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
+    <ClCompile Include="AI\BehaviorTree\Tasks\BTreeTaskWaitBlackboardTime.cpp">
+      <Filter>General</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Math\MathUtil.hpp">
@@ -823,6 +859,17 @@
     <ClInclude Include="System\EventSystem.hpp" />
     <ClInclude Include="Net\NetObjectConnectionView.hpp" />
     <ClInclude Include="Net\NetObjectView.hpp" />
+    <ClInclude Include="AI\BehaviorTree\Selector.hpp" />
+    <ClInclude Include="AI\BehaviorTree\Composite.hpp" />
+    <ClInclude Include="AI\BehaviorTree\Sequence.hpp" />
+    <ClInclude Include="AI\BehaviorTree\Node.hpp" />
+    <ClInclude Include="AI\BehaviorTree\SimpleParallel.hpp" />
+    <ClInclude Include="AI\BehaviorTree\BehaviorTree.hpp" />
+    <ClInclude Include="AI\BehaviorTree\BehaviorTreeManager.hpp" />
+    <ClInclude Include="AI\BehaviorTree\Root.hpp" />
+    <ClInclude Include="AI\BehaviorTree\Decorators\BTreeDecorator.hpp" />
+    <ClInclude Include="AI\BehaviorTree\Services\BTreeService.hpp" />
+    <ClInclude Include="AI\BehaviorTree\Tasks\BTreeTaskWaitBlackboardTime.hpp" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="ThirdParty\fmod\fmod_vc.lib">

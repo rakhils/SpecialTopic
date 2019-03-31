@@ -9,7 +9,6 @@ TaskRetreat::TaskRetreat(Map *map, Entity *entity)
 	m_entity = entity;
 	m_taskType = TASK_RETREAT;
 	InitRetreatBehavior();
-	m_entity->m_strategy = RETREAT;
 }
 
 // DESTRUCTOR

@@ -189,6 +189,8 @@ void NeuralNetwork::FeedForward(std::vector<double> &inputs, std::vector<double>
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void NeuralNetwork::DoBackPropogation(std::vector<double> &knownOutputs)
 {
+	BackPropogateOuputToHiddenLayer(knownOutputs);
+	BackPropogateHiddenToInputLayer(knownOutputs);
 	/*std::vector<float> outputErrorDerivatives;
 	std::vector<float> hiddenLayerErrors;
 	outputErrorDerivatives.reserve(knownOutputs.size());
@@ -229,8 +231,7 @@ void NeuralNetwork::DoBackPropogation(std::vector<double> &knownOutputs)
 		}
 		hiddenLayerErrors.push_back(hiddenLayerError);
 	}*/
-	BackPropogateOuputToHiddenLayer(knownOutputs);
-	BackPropogateHiddenToInputLayer(knownOutputs);
+	
 	/*////////////////////////////////////////////////////////////////////////////
 	//  DELTA CHANGE IN ERROR
 	//		: L.R				= Learning Rate
@@ -757,6 +758,17 @@ void NeuralNetwork::FeedForwardNN()
 double NeuralNetwork::GetActivationValue(double value)
 {
 	return GetSigmoidValue(value);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/07
+*@purpose : Calculates Rectified linear units activation value
+*@param   : Neuron value
+*@return  : RELU activated value
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+double NeuralNetwork::GetRELUActivationValue(double value)
+{
+	return ClampDouble(value, 0, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

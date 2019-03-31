@@ -47,6 +47,7 @@ public:
 	IntVector2		ToIntVector2();
 	bool			SetFromText( const char* text );
 	std::string		GetAsString();
+	std::string		ToString();
 
 	static Vector2  MakeDirectionAtDegrees( float degrees );// const; // create vector at angle
 	static Vector2  Interpolate( const Vector2& start, const Vector2& end, float fractionTowardEnd );

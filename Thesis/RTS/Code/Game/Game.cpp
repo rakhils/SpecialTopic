@@ -143,7 +143,7 @@ void Game::UpdateMap(float deltaTime)
 		if(m_map->m_gameFinished)
 		{
 			g_lastTrainingStopTime += deltaTime;
-			if(g_lastTrainingStopTime > 5 || ( m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN))
+			if(( m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN))
 			{
 				if(g_isGlobalyCurrentlyTraining)
 				{
@@ -157,6 +157,7 @@ void Game::UpdateMap(float deltaTime)
 		
 		m_map->Update(deltaTime);
 	}
+	//m_map->m_gameFinished = true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

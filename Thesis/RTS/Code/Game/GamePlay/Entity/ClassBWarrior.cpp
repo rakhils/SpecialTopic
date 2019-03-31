@@ -343,41 +343,6 @@ void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 		m_state.m_neuralNetPoints++;
 		return;
 	}
-	bool found = false;
-	std::vector<double> entityMiniMapInput = GetMyMiniMap();
-	for (int index = 0; index < entityMiniMapInput.size(); index++)
-	{
-		if (entityMiniMapInput.at(index) == 1)
-		{
-			IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
-			IntVector2 minimapMins = GetMiniMapMins(m_map->GetCordinates(previousState.m_position));
-			int xPos = index % 8;
-			int yPos = index / 8;
-
-			float xPosition = RangeMapInt(xPos, 0, 8, 0, 1);
-			float yPosition = RangeMapInt(yPos, 0, 8, 0, 1);
-			xPosition += GetRandomFloatInRange(-0.15f, 0.15f);
-			yPosition += GetRandomFloatInRange(-0.15f, 0.15f);
-			SetDesiredOutputToMoveToNeighbour(Vector2(xPosition, yPosition));
-			m_state.m_neuralNetPoints++;
-
-			IntVector2 actualCords = minimapMins + IntVector2(xPos, yPos);
-			//Entity *entity = m_map->GetEntityFromPosition(actualCords);
-			float currentTime = static_cast<float>(GetCurrentTimeSeconds());
-			m_scoreBoard.m_bonusScore++;
-			if (currentTime - m_lastAttackTime > 2)
-			{
-				//m_map->CreateExplosions(m_map->GetMapPosition(actualCords), Rgba::YELLOW);
-				m_lastAttackTime = currentTime;
-			}
-			found = true;
-		}
-	}
-	if (!found)
-	{
-		SetDesiredOutputToChooseRandomNeighbourLocation(8);
-		m_state.m_neuralNetPoints++;
-	}
 	Entity::EvaluateNN(task, previousState, cords);
 }
 
@@ -394,7 +359,6 @@ void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 	IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
 	if (m_map->GetCordinates(m_previousState.m_position) == cords)
 	{
-		SetDesiredOutputToMoveToNeighbour(previousState, 2);
 		m_state.m_neuralNetPoints++;
 		return;
 	}
@@ -423,7 +387,6 @@ void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 	{
 		if(m_map->GetEntityFromPosition(cords) != nullptr && m_map->GetEntityFromPosition(cords) != this)
 		{
-			SetDesiredOutputToMoveToNeighbour(previousState, 2);
 			m_state.m_neuralNetPoints++;
 			return;
 		}
@@ -431,7 +394,6 @@ void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 		m_state.m_neuralNetPoints++;
 		return;
 	}
-	SetDesiredOutputToMoveToNeighbour(previousState, 2);
 	m_state.m_neuralNetPoints++;
 }
 
@@ -474,7 +436,6 @@ void ClassBWarrior::EvaluateLongAttackTask(EntityState previousState, IntVector2
 		{
 			return;
 		}
-		SetDesiredOutputToChooseRandomNeighbourLocation(2);
 		return;
 	}
 	m_state.m_neuralNetPoints++;

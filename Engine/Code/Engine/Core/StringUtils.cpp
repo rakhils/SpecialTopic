@@ -645,7 +645,7 @@ int Compare(std::string one, std::string two)
 		{
 			return 1;
 		}
-		else
+		else if(ch1 < ch2)
 		{
 			return -1;
 		}

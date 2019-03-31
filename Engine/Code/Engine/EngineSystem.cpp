@@ -42,7 +42,7 @@ void EngineSystem::StartUp()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EngineSystem::Update(float deltaTime)
 {
-	ProfilerManager::PushProfiler("EngineSystem::Update");
+	//ProfilerManager::PushProfiler("EngineSystem::Update");
 	if(InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_F1))
 	{
 		ProfilerManager::CreateReportFromPreviousFrames();
@@ -51,7 +51,7 @@ void EngineSystem::Update(float deltaTime)
 	RCS::GetInstance()->Update(deltaTime);
 	UpdateDebugDraws(deltaTime);
 	UpdateDevConsoleSystem(deltaTime);
-	ProfilerManager::PoPProfiler();
+	//ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

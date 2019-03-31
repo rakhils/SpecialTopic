@@ -16,6 +16,7 @@ class TaskFollow : public Task
 public:
 	//Member_Variables
 	float   m_speed = 100;
+	Vector3   m_travelledDistance = Vector3::ZERO;
 	//Static_Member_Variables
 
 	//Methods

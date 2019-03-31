@@ -1,0 +1,6 @@
+<material id="Particles">
+  <shader id="Additive" />
+
+  <texture bind="0" src="Data\\Images\\particle.png" />
+
+</material>

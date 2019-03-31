@@ -9,7 +9,6 @@ TaskAttack::TaskAttack(Map *map, Entity *entity,int attackDistance)
 	m_entity = entity;
 	m_attackDistance = attackDistance;
 	m_taskType = TASK_ATTACK;
-	m_entity->m_strategy = ATTACK;
 	InitAttackTask();
 }
 
@@ -117,7 +116,7 @@ bool TaskAttack::DoAttackBehavior(float deltaTime)
 		float currentTime = static_cast<float>(GetCurrentTimeSeconds());
 		if(currentTime - m_entity->m_lastAttackTime  > 1)
 		{
-			Entity *attackedEntity = m_entity->m_map->AttackOnPosition(m_targetPosition, 1);
+			Entity *attackedEntity = m_entity->m_map->AttackOnPosition(m_targetPosition, 1,m_entity->m_teamID);
 			if(attackedEntity != nullptr && attackedEntity == m_targetEntity)
 			{
 				m_entity->m_map->CreateExplosions(m_targetPosition, m_entity->GetTeamColor());

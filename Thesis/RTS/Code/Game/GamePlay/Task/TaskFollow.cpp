@@ -8,7 +8,6 @@ TaskFollow::TaskFollow(Map *map, Entity *entity)
 	m_entity = entity;
 	m_taskType = TASK_FOLLOW;
 	InitFollowBehavior();
-	m_entity->m_strategy = FOLLOW;
 }
 
 // DESTRUCTOR
@@ -67,7 +66,7 @@ bool TaskFollow::DoFollow(float deltaTime)
 	direction = direction.GetNormalized();
 	currentPosition += direction * m_speed * deltaTime;
 	m_entity->SetPositionInFloat(currentPosition);
-
+	m_travelledDistance += direction * m_speed * deltaTime;
 	if (m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN)
 	{
 		m_entity->SetPosition(m_targetPosition);
@@ -78,6 +77,18 @@ bool TaskFollow::DoFollow(float deltaTime)
 	if (distance.GetLength() < 1)
 	{
 		CheckAndUpdateResourcesUsed();
+		if(m_travelledDistance.GetLength() > 1)
+		{
+			if (m_entity->m_teamID == 1)
+			{
+				m_map->m_team1ScoreCard.m_numOfFollowActions++;
+			}
+			if (m_entity->m_teamID == 2)
+			{
+				m_map->m_team2ScoreCard.m_numOfFollowActions++;
+			}
+		}
+		
 		m_entity->m_state.m_position = m_entity->GetPosition();
 		m_taskComplete = true;
 		return true;

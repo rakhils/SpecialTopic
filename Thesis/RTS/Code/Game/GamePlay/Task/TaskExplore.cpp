@@ -8,7 +8,6 @@ TaskExplore::TaskExplore(Map *map, Entity *entity)
 	m_entity = entity;
 	m_taskType = TASK_EXPLORE;
 	InitExploreBehaviour();
-	m_entity->m_strategy = EXPLORE;
 }
 
 // DESTRUCTOR

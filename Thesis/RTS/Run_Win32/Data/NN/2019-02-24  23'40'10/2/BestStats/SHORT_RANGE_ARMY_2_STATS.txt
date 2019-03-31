@@ -1,0 +1,8 @@
+1254
+TEAM STATS - FALSE
+ATTACK     - 1254
+EXPLORE    - 0
+FOLLOW     - 0
+PATROL     - 0
+RETREAT    - 0
+TOTAL      - 1254
