@@ -4,6 +4,7 @@
 
 #include "Engine/Math/Vector2.hpp"
 #include "Engine/Renderer/Camera.hpp"
+#include "Engine/Mesh/MeshBuilder.hpp"
 
 #include "Game/GamePlay/Entity/Entity.hpp"
 class Tiles;
@@ -14,6 +15,8 @@ public:
 	bool							m_gameFinished = false;
 	Camera *						m_camera       = nullptr;
 	std::vector<Tiles*>				m_tiles;
+	MeshBuilder 					m_marchingSquareMeshBuilder;
+	Mesh *							m_mesh = nullptr;
 
 	Map();
 	~Map();
@@ -22,6 +25,9 @@ public:
 	void							InitCamera();
 	void							InitBlocks();
 	void							InitObstacles();
+
+	void							GenerateMarchingSquareMesh();
+	void							TriangulateCells(Tiles *tile);
 
 	void							ProcessInputs(float deltaTime);
 

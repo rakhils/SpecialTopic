@@ -13,9 +13,9 @@ AudioSystem*	    g_audio			= nullptr;
 Clock*				g_theGameClock  = nullptr;
 
 bool				g_isQuitting	= false;
-int					g_maxWidth		= 16;
-int					g_maxHeight		= 16;
-int					g_unitDistance  = 50;
+const int			g_maxWidth		= 32;
+const int			g_maxHeight		= 20;
+const int			g_unitDistance  = 50;
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31

@@ -9,6 +9,7 @@
 #include "Engine/Renderer/Materials/Material.hpp"
 #include "Engine/Math/Vector3.hpp"
 #include "Engine/Math/MathUtil.hpp"
+#include "Engine/Mesh/Mesh.hpp"
 
 Map::Map()
 {
@@ -26,6 +27,7 @@ void Map::Initialize()
 	InitCamera();
 	InitBlocks();
 	InitObstacles();
+	GenerateMarchingSquareMesh();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,22 +72,371 @@ void Map::InitBlocks()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitObstacles()
 {
-	for(int index = 0;index < g_maxWidth * g_maxHeight;index++)
+	Texture *texture = Texture::CreateOrGetTexture("Data\\Images\\Map.png",true,false);
+
+	for (int indexY = 0; indexY < g_maxHeight; indexY++)
 	{
-		if(GetRandomFloatZeroToOne() > 0.75f)
+		for (int indexX = 0; indexX < g_maxWidth; indexX++)
 		{
-			m_tiles.at(index)->m_type = BLOCK;
+			int index = indexY * g_maxWidth + indexX;
+			Rgba color = texture->getTexel(index);
+			if (color != Rgba::WHITE)
+			{
+				m_tiles.at(index)->m_type = BLOCK;
+			}
+
+			int xCords = index % g_maxWidth;
+			int yCords = index / g_maxWidth;
+
+			m_tiles.at(index)->m_tileCoords = IntVector2(xCords*g_unitDistance, yCords * g_unitDistance);
+
+			IntVector2 mins = m_tiles.at(index)->m_tileCoords - IntVector2(g_unitDistance / 2, g_unitDistance / 2) + IntVector2(g_unitDistance / 2, g_unitDistance / 2);
+			IntVector2 maxs = m_tiles.at(index)->m_tileCoords + IntVector2(g_unitDistance / 2, g_unitDistance / 2) + IntVector2(g_unitDistance / 2, g_unitDistance / 2);
+
+			m_tiles.at(index)->m_aabb2 = AABB2(mins.GetAsVector2(), maxs.GetAsVector2());
 		}
-		int xCords = index % g_maxWidth;
-		int yCords = index / g_maxWidth;
-
-		m_tiles.at(index)->m_tileCoords = IntVector2(xCords*g_unitDistance, yCords * g_unitDistance);
-
-		IntVector2 mins = m_tiles.at(index)->m_tileCoords - IntVector2(g_unitDistance / 2, g_unitDistance / 2) + IntVector2(g_unitDistance / 2, g_unitDistance / 2);
-		IntVector2 maxs = m_tiles.at(index)->m_tileCoords + IntVector2(g_unitDistance / 2, g_unitDistance / 2) + IntVector2(g_unitDistance / 2, g_unitDistance / 2);
-
-		m_tiles.at(index)->m_aabb2 = AABB2(mins.GetAsVector2(), maxs.GetAsVector2());
 	}
+	
+
+	std::vector<ControlNode> controlNodes;
+
+	for (int indexY = 0; indexY < g_maxHeight; indexY++)
+	{
+		for (int indexX = 0; indexX < g_maxWidth; indexX++)
+		{
+			int index = indexY * (g_maxWidth) + indexX;
+			bool isActive = false;
+			if(m_tiles.at(index)->m_type == BLOCK)
+			{
+				isActive = true;
+			}
+			
+			Vector2 position(indexX * g_unitDistance + g_unitDistance /2.f,indexY * g_unitDistance + g_unitDistance/2.f);
+			ControlNode controlNode(position, isActive, g_unitDistance); 
+			controlNodes.push_back(controlNode);
+		}
+	}
+
+	for (int indexY = 0; indexY < g_maxHeight -1; indexY++)
+	{
+		for (int indexX = 0; indexX < g_maxWidth -1; indexX++)
+		{
+			int index = indexY * (g_maxWidth) + indexX;
+
+			int index1 = indexY			* (g_maxWidth)+  indexX;
+			int index2 = indexY			* (g_maxWidth)+ (indexX + 1);
+			int index3 = (indexY + 1)	* (g_maxWidth)+  indexX;
+			int index4 = (indexY + 1)	* (g_maxWidth)+ (indexX + 1);
+
+			m_tiles.at(index)->SetNodes(&controlNodes.at(index1), &(controlNodes.at(index2)),
+										&controlNodes.at(index3), &(controlNodes.at(index4)));
+		}
+	}
+
+
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::GenerateMarchingSquareMesh()
+{
+	m_marchingSquareMeshBuilder.Begin(PRIMITIVE_TRIANGES, false);
+	for (int indexY = 0; indexY < g_maxHeight; indexY++)
+	{
+		for (int indexX = 0; indexX < g_maxWidth; indexX++)
+		{
+			int index = indexY * g_maxWidth + indexX;
+			TriangulateCells(m_tiles.at(index));
+		}
+	}
+	m_marchingSquareMeshBuilder.End();
+	m_mesh = m_marchingSquareMeshBuilder.CreateMesh();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/03/31
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::TriangulateCells(Tiles *tile)
+{
+	Rgba color = Rgba::WHITE;
+	switch (tile->m_configurationNumber)
+	{
+	case 0:
+		break;
+	case 1:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreLeft()));
+		break;
+	case 2:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		break;
+	case 4:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+		break;
+	case 8:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		break;
+		// 2 point cases
+	case 3:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreLeft()));
+		break;
+	case 6:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopRight()));
+		break;
+
+	case 9:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		break;
+
+	case 12:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		break;
+
+		// 4 triangles 
+
+	case 10:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		break;
+
+	case 5:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+		break;
+
+	case 7:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+		break;
+
+	case 11:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreTop()));
+		break;
+
+	case 13:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		break;
+
+	case 14:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetCentreBottom()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		break;
+
+	case 15:
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomLeft()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetBottomRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopRight()));
+		m_marchingSquareMeshBuilder.SetColor(color);
+		m_marchingSquareMeshBuilder.PushVertex(Vector3(tile->GetTopLeft()));
+		break;
+	}
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -126,6 +477,10 @@ void Map::Render()
 	
 	RenderGrids();
 	RenderTiles();
+	Material *defaultMaterial = Material::AquireResource("default");
+	Renderer::GetInstance()->BindMaterial(defaultMaterial);
+	Renderer::GetInstance()->DrawMesh(m_mesh,Matrix44::GetIdentity());
+	delete defaultMaterial;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

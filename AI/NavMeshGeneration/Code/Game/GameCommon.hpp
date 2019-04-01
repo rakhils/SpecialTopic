@@ -19,9 +19,9 @@ extern AudioSystem*			g_audio;
 extern Clock*				g_theGameClock;
 
 extern bool					g_isQuitting;
-extern int					g_maxWidth;
-extern int					g_maxHeight;
-extern int					g_unitDistance;
+extern const int			g_maxWidth;
+extern const int			g_maxHeight;
+extern const int			g_unitDistance;
 
 void InitVariables();
 void QuitApp(Command &cmd);
