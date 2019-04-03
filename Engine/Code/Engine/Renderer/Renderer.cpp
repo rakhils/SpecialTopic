@@ -605,6 +605,25 @@ void Renderer::DrawSolidRectangle(Vector2 position1, Vector2 position2, Vector2 
 	DrawMeshImmediate(PRIMITIVE_TRIANGES, 6, rectangle);
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Renderer::DrawSolidTriangle(Vector2 position1, Vector2 position2, Vector2 position3, Rgba color)
+{
+	Vertex_3DPCU triangle[6];
+	triangle[0].setPoint(position1);
+	triangle[0].setRGBA(color);
+	triangle[1].setPoint(position2);
+	triangle[1].setRGBA(color);
+	triangle[2].setPoint(position3);
+	triangle[2].setRGBA(color);
+
+	DrawMeshImmediate(PRIMITIVE_TRIANGES, 3, triangle);
+}
+
 //////////////////////////////////////////////////////////////
 /*DATE    : 2018/02/10
 *@purpose : Draw Cube in 3D space

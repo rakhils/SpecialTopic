@@ -1,0 +1,10 @@
+<material id="ship">
+  <shader id="lighting" />
+
+  <texture bind="0" src="Data\\Model\\SciFi_Fighter-MK6-diffuse.jpg" />
+
+  <float   bind="SPEC_FACTOR" value="1.0" />
+  <float   bind="SPEC_POWER" value="16.0" />
+  <vector4 bind="TINT" value="0, 0, 0, 1" />
+
+</material>

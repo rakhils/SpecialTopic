@@ -218,6 +218,7 @@ public:
 	void			DrawRectangle(float x1,float y1,float x2,float y2);
 	void			DrawSolidRectangle(float x1, float y1, float x2, float y2);
 	void			DrawSolidRectangle(Vector2 position1, Vector2 position2, Vector2 position3, Vector2 position4, Rgba color);
+	void			DrawSolidTriangle(Vector2 position1, Vector2 position2, Vector2 position3, Rgba color);
 
 	void			DrawCube(Vector3 centre,float length,Rgba color);
 	void			DrawCuboid(Vector3 centre,Vector3 dimensions,Rgba color);

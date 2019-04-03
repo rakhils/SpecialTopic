@@ -1,0 +1,4 @@
+<material id="text">
+  <shader id="default" />
+  <texture bind="0" src="Data/Font/font2.png" />
+</material>

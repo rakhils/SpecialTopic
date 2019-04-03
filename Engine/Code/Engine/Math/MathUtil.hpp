@@ -195,4 +195,6 @@ float			 SmoothStop4 (float t); // 4th-degree smooth start (a.k.a. “quartic ease
 float			 SmoothStep3 (float t); // 3rd-degree smooth start/stop (a.k.a. “smoothstep”)
 float			 CorssFade	 (float a, float b, float t);
 
+float			 GetShortestDistanceBetweenLineAndPoint(Vector2 position1, Vector2 position2, Vector2 point);
+
 std::string      GetDirectionNameFromType(DIRECTIONS dir);

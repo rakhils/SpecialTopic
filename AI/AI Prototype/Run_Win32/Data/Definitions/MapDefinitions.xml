@@ -1,0 +1,663 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MapDefinitions>
+ <MapDefinition name ="level1" defaultTile="water" width="166" height="8" >
+<GenerationSteps>
+  <!--BIG BRICKS FOR GROUND-->
+   <SpawnActor>
+  <Brick actor ="Brick" position="1103,50" dimension="2210,30"/>
+   </SpawnActor>                                                            
+  <SpawnActor>                               
+    <Brick actor ="Brick" position="2512,50"  dimension="480,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="3889,50"  dimension="2075,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5872,50"  dimension="1768,20"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2512,50"  dimension="485,20"/>
+  </SpawnActor>
+  <SpawnActor>
+  <!--BIG BRICKS FOR GROUND-->
+
+
+   <!--ALL PIPES-->
+  <Brick actor ="Pipe"   position="930,95"    dimension="60,60"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="915,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="945,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="915,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="945,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  
+  
+  <SpawnActor>
+    <Brick actor ="Pipe" position="1245,113"  dimension="60,90"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1230,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1230,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1230,135"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1260,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1260,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1260,135"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  
+  
+  <SpawnActor>
+  <Brick actor ="Pipe"    position="1500,128"  dimension="60,120"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1485,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1485,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1485,135"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1485,165"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="1515,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1515,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1515,135"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1515,165"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  
+  
+  
+  <SpawnActor>
+  <Brick actor ="Pipe"    position="1860,125"  dimension="60,120"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1845,75"  dimension="30,30" physics="false" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1845,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1845,135"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1845,165"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="1875,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1875,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1875,135"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="1875,165"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  
+  
+  
+  
+  <SpawnActor>
+  <Brick actor ="Pipe" position="5280,98"   dimension="60,60"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5265,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5265,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5295,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5295,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  
+  
+  <SpawnActor>
+  <Brick actor ="Pipe" position="5790,98"   dimension="60,60"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5775,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5775,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5805,75"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5805,105"  dimension="30,30" physics="false"/>
+  </SpawnActor>
+  <!--ALL PIPES-->
+<!--BRICKS OF PIPES-->
+  
+ <!--\\BRICK ON PIPES-->
+
+  <!--STEP BRICK 1-->
+  <SpawnActor>
+    <Brick actor ="Brick" position="4338,80"  dimension="32,32"/>
+  </SpawnActor>
+  <SpawnActor>
+   <Brick actor ="Brick" position ="4370,80"  dimension="32,32"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4402,80"  dimension="32,32"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4434,80"  dimension="32,32"/>
+  </SpawnActor>
+  <SpawnActor>
+
+    <Brick actor ="Brick" position="4370,112" dimension="32,32"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4402,112" dimension="32,32"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4434,112" dimension="32,32"/>
+  </SpawnActor>
+  <SpawnActor>
+
+    <Brick actor ="Brick" position="4402,144" dimension="32,32"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4434,144" dimension="32,32"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4434,176" dimension="32,32"/>
+  </SpawnActor>
+
+  <!--STEP BRICK 2-->
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="4530,175" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4530,145" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4560,145" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4530,115" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4560,115" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4590,115" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4530,85" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4560,85" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4590,85" dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4620,85" dimension="30,30"/>
+  </SpawnActor>
+
+
+  <!--STEP BRICK 3-->
+
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="4790,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4820,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4850,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+  <Brick actor ="Brick"  position="4880,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick"  position="4920,80"  dimension="30,30"/>
+  </SpawnActor>
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="4820,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4850,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4880,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4920,110"  dimension="30,30"/>
+  </SpawnActor>
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="4850,145"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4880,145"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4920,145"  dimension="30,30"/>
+  </SpawnActor>
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="4880,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4920,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4920,175"  dimension="30,30"/>
+  </SpawnActor>
+
+  <!--STEP BRICK 4-->
+
+
+  
+
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="5010,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+  <Brick actor ="Brick"  position="5010,145"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick"  position="5040,145"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5010,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5040,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5070,110"  dimension="30,30"/>
+  </SpawnActor>
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="5010,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5040,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5070,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5100,80"  dimension="30,30"/>
+  </SpawnActor>
+
+
+  <!--STEP BRICK 5-->
+
+
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="5840,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5870,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5900,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5930,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5960,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5990,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6020,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6050,80"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6080,80"  dimension="30,30"/>
+  </SpawnActor>
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="5875,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5900,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5930,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5960,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5990,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6020,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6050,110"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6080,110"  dimension="30,30"/>
+  </SpawnActor>
+  
+  
+    <SpawnActor>
+      <Brick actor ="Brick" position="5905,140"  dimension="30,30"/>
+    </SpawnActor>
+    <SpawnActor>
+      <Brick actor ="Brick" position="5930,140"  dimension="30,30"/>
+    </SpawnActor>
+    <SpawnActor>
+      <Brick actor ="Brick" position="5960,145"  dimension="30,30"/>
+    </SpawnActor>
+    <SpawnActor>
+      <Brick actor ="Brick" position="5990,145"  dimension="30,30"/>
+    </SpawnActor>
+    <SpawnActor>
+      <Brick actor ="Brick" position="6020,145"  dimension="30,30"/>
+    </SpawnActor>
+    <SpawnActor>
+      <Brick actor ="Brick" position="6050,145"  dimension="30,30"/>
+    </SpawnActor>
+    <SpawnActor>
+      <Brick actor ="Brick" position="6085,145"  dimension="30,30"/>
+    </SpawnActor>
+
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="5940,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5969,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6000,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6030,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6060,175"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6090,175"  dimension="30,30"/>
+  </SpawnActor>
+  
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="5970,205"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5999,205"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6030,205"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6060,205"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6090,205"  dimension="30,30"/>
+  </SpawnActor>
+
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="6000,237"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6029,237"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6060,237"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6090,237"  dimension="30,30"/>
+  </SpawnActor>
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="6030,270"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6059,270"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6090,270"  dimension="30,30"/>
+  </SpawnActor>
+  
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="6060,300"  dimension="30,30"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="6089,300"  dimension="30,30"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="6090,330"  dimension="30,30"/>
+  </SpawnActor>
+
+
+  
+
+
+
+  <!--FIRST 7 BRICKS-->
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="465,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="645,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="675,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="705,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="735,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="765,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="705,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <!--FIRST 5 BRICKS-->
+
+<!--FIRST PIT-->
+  <SpawnActor>
+    <Brick actor ="Brick" position="2495,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2525,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2555,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="2585,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2615,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2645,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2675,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2705,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2735,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2765,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <!--FIRST PIT-->
+
+  <!--SECOND PIT-->
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="2955,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="2985,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="3015,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="3045,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="3045,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="3150,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="3180,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="3210,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="3330,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="3405,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="3405,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="3495,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="3675,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  
+  
+  <SpawnActor>
+    <Brick actor ="Brick" position="3765,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="3795,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="3825,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="3975,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4005,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4035,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4065,285"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="4005,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="4035,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Brick" position="5415,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5445,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5475,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Brick" position="5505,165"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Pit" position="2235,40"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Pit" position="2265,40"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+  <SpawnActor>
+    <Brick actor ="Pit" position="2775,40"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Pit" position="2805,40"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Pit" position="2835,40"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+  <SpawnActor>
+    <Brick actor ="Pit" position="4950,40"  dimension="30,30" hidden="false"/>
+  </SpawnActor> 
+  <SpawnActor>
+    <Brick actor ="Pit" position="4980,40"  dimension="30,30" hidden="false"/>
+  </SpawnActor>
+
+</GenerationSteps>                            
+
+</MapDefinition>
+
+</MapDefinitions>
+
+      

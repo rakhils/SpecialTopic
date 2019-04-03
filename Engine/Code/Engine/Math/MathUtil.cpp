@@ -1976,6 +1976,27 @@ float CorssFade(float a, float b, float t)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/01
+*@purpose : Finds shortest distance between a line and a point find area of parallelogram (area is distance into base )
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+float GetShortestDistanceBetweenLineAndPoint(Vector2 position1, Vector2 position2, Vector2 point)
+{
+	//	 A =========D==================B
+	//		\	   /		\
+	//		 \ 	  /			 \
+	//		  \  /			  \
+	//		   \/C- - - - - - -\
+
+	Vector2 AB = position2 - position1;						
+	Vector2 AC = point - position1;							
+	float   area = CrossProduct(AB, AC).GetLength();		
+	float   CD = area / AB.GetLength();						
+	return CD;												
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/06/08
 *@purpose : NIL
 *@param   : NIL

@@ -10,6 +10,7 @@
 #include "Engine/Math/Vector3.hpp"
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Mesh/Mesh.hpp"
+#include "Engine/Math/MathUtil.hpp"
 
 Map::Map()
 {
@@ -28,6 +29,8 @@ void Map::Initialize()
 	InitBlocks();
 	InitObstacles();
 	GenerateMarchingSquareMesh();
+	//CreateRamerDouglasPeuckerMesh();
+	//GenerateDelaunayTriangulation();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -155,6 +158,145 @@ void Map::GenerateMarchingSquareMesh()
 	}
 	m_marchingSquareMeshBuilder.End();
 	m_mesh = m_marchingSquareMeshBuilder.CreateMesh();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RunRamerDouglasPeuckerAlgorithm(std::vector<Vector2> pointList, int startPosition, int endPosition,int epsilonValue,std::vector<Vector2> &outPointList)
+{
+	float maxDistance = 0.f;
+	int   savedIndex = 0;
+	for (int index = startPosition + 1; index < endPosition - 1; index++)
+	{
+		float distance = GetShortestDistanceBetweenLineAndPoint(pointList.at(startPosition), pointList.at(endPosition), pointList.at(index));
+		if(distance > maxDistance)
+		{
+			maxDistance = distance;
+			savedIndex = index;
+		}
+	}
+	if(maxDistance > epsilonValue)
+	{
+		std::vector<Vector2> recResults1;
+		std::vector<Vector2> recResults2;
+
+		RunRamerDouglasPeuckerAlgorithm(pointList,startPosition + 1,savedIndex, epsilonValue, recResults1);
+		RunRamerDouglasPeuckerAlgorithm(pointList,savedIndex,endPosition -1, epsilonValue,  recResults2);
+
+		outPointList.assign(recResults1.begin(), recResults1.end()-1);
+		outPointList.insert(outPointList.end(), recResults2.begin(), recResults2.end());
+	}
+	else
+	{
+		outPointList.clear();
+		outPointList.push_back(pointList.at(startPosition));
+		outPointList.push_back(pointList.at(endPosition));
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::CreateRamerDouglasPeuckerMesh()
+{
+	std::vector<Vector2> outPoints;
+	for(int index = 0;index < m_marchingSquareMeshBuilder.m_vertices.size();index++)
+	{
+		m_pointList.push_back(m_marchingSquareMeshBuilder.m_vertices.at(index).m_position.GetXY());
+	}
+	RunRamerDouglasPeuckerAlgorithm(m_pointList, 0, m_pointList.size()-1, 1.f, outPoints);
+
+	MeshBuilder builder;
+	builder.Begin(PRIMITIVE_POINTS, false);
+	for (int index = 0; index < outPoints.size();index++)
+	{
+		builder.SetColor(Rgba::GREEN);
+		builder.PushVertex(Vector3(outPoints.at(index)));
+	}
+	builder.End();
+	m_meshFinalizedPointList = builder.CreateMesh();
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::GenerateDelaunayTriangulation()
+{
+	SortPointListByXY();
+	PushInitialTriangles();
+
+	int a = 1;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::SortPointListByXY()
+{
+	for (int indexI = 0; indexI < m_pointList.size(); indexI++)
+	{
+		for (int indexJ = 0; indexJ < m_pointList.size(); indexJ++)
+		{
+			Vector2 pointOne = m_pointList.at(indexI);
+			Vector2 pointTwo = m_pointList.at(indexJ);
+
+			if (pointOne.x < pointTwo.x)
+			{
+				m_pointList.at(indexJ) = pointOne;
+				m_pointList.at(indexI) = pointTwo;
+				continue;
+			}
+			if (pointOne.x == pointTwo.x)
+			{
+				if (pointOne.y < pointTwo.y)
+				{
+					m_pointList.at(indexJ) = pointOne;
+					m_pointList.at(indexI) = pointTwo;
+					continue;
+				}
+			}
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::PushInitialTriangles()
+{
+	Triangle triangle;
+	triangle.position1 = m_pointList.at(0);
+	triangle.position2 = m_pointList.at(1);
+	triangle.position3 = m_pointList.at(2);
+
+	m_triangles.push_back(triangle);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/01
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::PushAllTriangleFromPointList()
+{
+	
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -479,7 +621,9 @@ void Map::Render()
 	RenderTiles();
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
-	Renderer::GetInstance()->DrawMesh(m_mesh,Matrix44::GetIdentity());
+	//Renderer::GetInstance()->DrawMesh(m_mesh,Matrix44::GetIdentity());
+
+	Renderer::GetInstance()->DrawMesh(m_mesh, Matrix44::GetIdentity());
 	delete defaultMaterial;
 }
 

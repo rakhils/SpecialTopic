@@ -62,11 +62,11 @@ void EngineSystem::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EngineSystem::Render()
 {
-	ProfilerManager::PushProfiler("EngineSystem::Render");
+	//ProfilerManager::PushProfiler("EngineSystem::Render");
 	NetSession::GetInstance()->Render();
 	RenderDevConsoleSystem();
 	RenderDebugRenderSystem();
-	ProfilerManager::PoPProfiler();
+	//ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,14 +164,14 @@ void EngineSystem::UpdateDevConsoleSystem(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EngineSystem::UpdateProfiler(float deltaTime)
 {
-	ProfilerManager::PushProfiler("EngineSystem::UpdateProfiler");
+	//ProfilerManager::PushProfiler("EngineSystem::UpdateProfiler");
 #if defined( PROFILER_ENABLED )
 	if(ProfilerManager::s_profilerEnabled)
 	{
 		ProfilerManager::Update(deltaTime);
 	}
 #endif
-	ProfilerManager::PoPProfiler();
+	//ProfilerManager::PoPProfiler();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -209,14 +209,14 @@ void EngineSystem::RenderDevConsoleSystem()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EngineSystem::RenderProfiler()
 {
-	ProfilerManager::PushProfiler("EngineSystem::RenderProfiler");
+	//ProfilerManager::PushProfiler("EngineSystem::RenderProfiler");
 #if defined( PROFILER_ENABLED )
 	if (ProfilerManager::s_profilerEnabled)
 	{
 		ProfilerManager::RenderProfiler();
 	}
 #endif
-	ProfilerManager::PoPProfiler();
+	//ProfilerManager::PoPProfiler();
 
 }
 
