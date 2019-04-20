@@ -379,6 +379,7 @@ void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 		m_state.m_neuralNetPoints++;
 		return;
 	}
+/*
 	UpdateMostFavoredMoveTask(previousState, cords);
 	float maxValue = -1;
 	int index = GetMostFavoredMoveTask(&maxValue);
@@ -393,7 +394,7 @@ void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords
 		SetDesiredOutputForTask(TASK_MOVE, 1);
 		m_state.m_neuralNetPoints++;
 		return;
-	}
+	}*/
 	m_state.m_neuralNetPoints++;
 }
 
@@ -469,7 +470,14 @@ void ClassBWarrior::Render()
 	Entity::Render();
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
-	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "LA", g_fontSize / 2.f, GetTeamColor());
+	if(m_teamID == 1)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "LA", g_fontSize / 2.f, Rgba::BLACK);
+	}
+	else
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "LA", g_fontSize / 2.f, Rgba::WHITE);
+	}
 	delete textMaterial;
 }
 

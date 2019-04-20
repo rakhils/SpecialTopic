@@ -72,7 +72,7 @@ bool TaskAttack::DoMoveBehavior(float deltaTime)
 	currentPosition += direction * m_speed * deltaTime;
 	m_entity->SetPositionInFloat(currentPosition);
 
-	if (m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN)
+	if (m_map->m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_map->m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
 	{
 		m_entity->SetPosition(m_targetPosition);
 	}
@@ -96,6 +96,10 @@ bool TaskAttack::DoMoveBehavior(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool TaskAttack::DoAttackBehavior(float deltaTime)
 {
+	if(m_targetEntity == nullptr || m_targetEntity->m_health <= 0 || m_targetEntity->m_health > 50)
+	{
+		return true;
+	}
 	IntVector2 startCords   = m_map->GetCordinates(m_startPosition);
 	IntVector2 currentCords = m_entity->GetCordinates();
 	IntVector2 targetCords  = m_targetEntity->GetCordinates();
@@ -145,7 +149,7 @@ bool TaskAttack::DoAttackBehavior(float deltaTime)
 	currentPosition			+= direction * m_speed * deltaTime;
 	m_entity->SetPositionInFloat(currentPosition);
 
-	if (m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN)
+	if (m_map->m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_map->m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
 	{
 		m_entity->SetPosition(m_targetPosition);
 	}

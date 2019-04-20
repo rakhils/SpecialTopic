@@ -44,6 +44,6 @@ void Bullets::Render()
 
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
-	g_theRenderer->DrawCircle(m_position.x,m_position.y, m_radius,Rgba::RED,50);
+	g_theRenderer->DrawSolidCircle(m_position, m_radius,Rgba::RED);
 	delete defaultMaterial;
 }

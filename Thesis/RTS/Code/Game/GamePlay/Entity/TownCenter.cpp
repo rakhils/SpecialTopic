@@ -372,6 +372,13 @@ void TownCenter::Render()
 	Entity::Render();
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
-	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "T", g_fontSize, Rgba::WHITE);
+	if(m_teamID == 1)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "T", g_fontSize, Rgba::BLACK);
+	}
+	else
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "T", g_fontSize, Rgba::WHITE);
+	}
 	delete textMaterial;
 }

@@ -1,8 +1,8 @@
-1
+2
 TEAM STATS - FALSE
 ATTACK     - 0
-EXPLORE    - 1
+EXPLORE    - 2
 FOLLOW     - 0
 PATROL     - 0
 RETREAT    - 0
-TOTAL      - 1
+TOTAL      - 2

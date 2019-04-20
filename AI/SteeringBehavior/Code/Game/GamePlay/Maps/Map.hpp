@@ -15,6 +15,7 @@ enum MAP_TYPE
 	ALIGNMENT_SEPERATION_COHESION_BEHAVIOR,
 	FLOW_FIELD_BEHAVIOR,
 	PATH_FOLLOWING,
+	SAMPLE
 
 };
 struct DebugLines
@@ -86,6 +87,7 @@ class Map
 {
 public:
 	bool							m_init		   = false;
+	bool							m_start = false;
 	Camera *						m_camera       = nullptr;
 	MAP_TYPE						m_mapType;
 	std::vector<Tiles*>				m_tiles;
@@ -131,6 +133,7 @@ public:
 	void							InitFlowField();
 	void							InitPath();
 	void							InitNobes();
+	void							InitSample();
 
 	void							CreateEntity(Vector2 position,float angle);
 	void							DestroyLastEntity();
@@ -143,6 +146,7 @@ public:
 	void							Update(float deltaTime);
 	void							UpdateCamera(float deltaTime);
 	void							UpdateEntity(float deltaTime);
+	void							UpdateSample(float deltaTime);
 	void							ProcessInputForNobes();
 
 	void							SeekBehavior();
@@ -159,5 +163,6 @@ public:
 	void							RenderPaths();
 	void							RenderDebugPoints();
 	void							RenderNobes();
+	void							RenderSample();
 
 };

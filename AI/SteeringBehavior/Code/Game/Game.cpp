@@ -59,6 +59,13 @@ void Game::UpdateMainMenu(float deltaTime)
 		m_map->m_mapType = PATH_FOLLOWING;
 		m_gameMode = GAME_PLAY;
 	}
+	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_4))
+	{
+		m_map = new Map();
+		m_map->InitSample();
+		m_map->m_mapType = SAMPLE;
+		m_gameMode = GAME_PLAY;
+	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_ESCAPE))
 	{
 		isQuitTriggered = true;

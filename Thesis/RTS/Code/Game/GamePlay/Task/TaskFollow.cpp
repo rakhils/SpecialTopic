@@ -67,7 +67,7 @@ bool TaskFollow::DoFollow(float deltaTime)
 	currentPosition += direction * m_speed * deltaTime;
 	m_entity->SetPositionInFloat(currentPosition);
 	m_travelledDistance += direction * m_speed * deltaTime;
-	if (m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN)
+	if (m_map->m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_map->m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
 	{
 		m_entity->SetPosition(m_targetPosition);
 	}

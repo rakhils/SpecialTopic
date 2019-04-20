@@ -53,7 +53,7 @@ void Player::Render()
 {
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
-	g_theRenderer->DrawCircle(m_position, g_unitDistance/2.f);
+	g_theRenderer->DrawSolidCircle(m_position, g_unitDistance/2.f,Rgba::WHITE);
 	delete defaultMaterial;
 }
 

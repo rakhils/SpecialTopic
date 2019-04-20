@@ -38,6 +38,10 @@ void TaskExplore::InitExploreBehaviour()
 		}
 	}
 	m_targetPosition = m_map->GetMapPosition(m_map->GetRandomNeighbour(m_entity->FindEnemyTownCenter()->GetCordinates(), 5));
+	if(m_map->m_personality == DEFENSIVE && m_entity->m_teamID == 2)
+	{
+		m_targetPosition = m_map->GetMapPosition(m_map->GetRandomNeighbour(m_entity->FindMyTownCenter()->GetCordinates(), 5));
+	}
 	retryCount = 0;
 }
 
@@ -66,7 +70,7 @@ bool TaskExplore::DoExploreMoveTask(float deltaTime)
 	currentPosition += direction * m_speed * deltaTime;
 	m_entity->SetPositionInFloat(currentPosition);
 
-	if (m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN)
+	if (m_map->m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_map->m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
 	{
 		m_entity->SetPosition(m_targetPosition);
 	}

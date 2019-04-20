@@ -35,6 +35,7 @@ ClassAWarrior::ClassAWarrior(Map *map,Vector2 position, int teamID)
 	SetTeam(teamID);
 	InitNeuralNet();
 	InitStates();
+	InitPersonality();
 	SetRandomTaskInQueue();
 }
 
@@ -323,9 +324,27 @@ void ClassAWarrior::EvaluateNNDefensive(Task *task, EntityState previousState, I
 	NNInputs inputs  = GetMyNNInputs();
 
 	Strategy strategy = ATTACK;
+	std::vector<double> NNInputVectors;
+	for (int inputIndex = 0; inputIndex < NNInput_InputMaxCount; inputIndex++)
+	{
+		NNInputVectors.push_back(0);
+	}
+
+	for(int index = 0; index < m_strategies.size();index++)
+	{
+		FunctionStrategy currentStrategy = m_strategies.at(index);
+		bool result = (currentStrategy)(NNInputVectors, strategy, inputs);
+		if(result)
+		{
+			SetDesiredStrategyAsOutputForNN(strategy, 1);
+		}
+	}
 
 
-	Entity *townCenter = m_map->m_townCenters.at(1);
+
+
+
+	/*Entity *townCenter = m_map->m_townCenters.at(1);
 	NNInputs townCentreInputs = townCenter->GetMyNNInputs();
 
 	if (inputs.m_inRangeEnemyShortRangeArmyCount > 0.f)
@@ -352,13 +371,9 @@ void ClassAWarrior::EvaluateNNDefensive(Task *task, EntityState previousState, I
 	{
 		strategyValues.push_back(0);
 	}
-	std::vector<double> NNInputVectors;
-	for (int inputIndex = 0; inputIndex < NNInput_InputMaxCount; inputIndex++)
-	{
-		NNInputVectors.push_back(0);
-	}
+	
 
-	if(CheckAndSetStrategyIfNoEnemiesAlive(NNInputVectors, strategy, priority, inputs))
+	if(CheckAndSetStrategyIfNoEnemiesAliveToExplore(NNInputVectors, strategy, priority, inputs))
 	{
 		return;
 	}
@@ -368,7 +383,7 @@ void ClassAWarrior::EvaluateNNDefensive(Task *task, EntityState previousState, I
 		return;
 	}
 	priority -= NNInput_InputMaxCount;
-	if(CheckAndSetStrategyIfEntityUnderAttack     (NNInputVectors, strategy, priority, inputs))
+	if(CheckAndSetAttackStrategyIfEntityUnderAttack     (NNInputVectors, strategy, priority, inputs))
 	{
 		return;
 	}
@@ -393,73 +408,7 @@ void ClassAWarrior::EvaluateNNDefensive(Task *task, EntityState previousState, I
 		return;
 	}
 	priority -= NNInput_InputMaxCount;
-	SetDesiredStrategyAsOutputForNN(IDLE, 1);
-	m_state.m_neuralNetPoints++;
-	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-
-	Entity::EvaluateNN(task, previousState, cords);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/03/01
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords, bool value)
-{
-	if (!m_map->HasTrainingEnabled(this))
-	{
-		return;
-	}
-
-	CopyDesiredOutputs();
-	ClearDesiredStrategyValues();
-	NNInputs inputs = GetMyNNInputs();
-
-	Strategy strategy = ATTACK;
-	
-	if(inputs.m_enemyShortRangeArmyCount > 0)
-	{
-		SetDesiredStrategyAsOutputForNN(RETREAT, 1);
-		m_state.m_neuralNetPoints++;
-		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-		return;
-	}
-
-	SetDesiredStrategyAsOutputForNN(IDLE, 1);
-	m_state.m_neuralNetPoints++;
-	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-
-	
-	double priority = MAX_NUM_STRATEGY * NNInput_InputMaxCount;
-
-	std::vector<double> strategyValues;
-	for (int index = 0; index < MAX_NUM_STRATEGY; index++)
-	{
-		strategyValues.push_back(0);
-	}
-	std::vector<double> NNInputVectors;
-	for (int inputIndex = 0; inputIndex < NNInput_InputMaxCount; inputIndex++)
-	{
-		NNInputVectors.push_back(0);
-	}
-
-	CheckAndSetStrategyIfNoEnemiesAlive		   (NNInputVectors, strategy, priority, inputs,value);
-	priority -= NNInput_InputMaxCount;
-	CheckAndSetStrategyIfTownCenterUnderAttack (NNInputVectors, strategy, priority, inputs,value);
-	priority -= NNInput_InputMaxCount;
-	CheckAndSetStrategyIfEntityUnderAttack     (NNInputVectors, strategy, priority, inputs,value);
-	priority -= NNInput_InputMaxCount;
-	CheckAndSetStrategyIfEnemiesOutweighsAllies(NNInputVectors, strategy, priority, inputs,value);
-	priority -= NNInput_InputMaxCount;
-	CheckAndSetStrategyPatrol                  (NNInputVectors, strategy, priority, inputs,value);
-	priority -= NNInput_InputMaxCount;
-	CheckAndSetStrategyExplore                 (NNInputVectors, strategy, priority, inputs,value);
-	priority -= NNInput_InputMaxCount;
-	CheckAndSetStrategyAttack                  (NNInputVectors, strategy, priority, inputs,value);
-	priority -= NNInput_InputMaxCount;
-	//SetDesiredStrategyAsOutputForNN(IDLE, 1);
+	SetDesiredStrategyAsOutputForNN(IDLE, 1);*/
 	m_state.m_neuralNetPoints++;
 	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
 
@@ -489,10 +438,29 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 	{
 		NNInputVectors.push_back(0);
 	}
-	Entity *townCenter = m_map->m_townCenters.at(1);
-	NNInputs townCentreInputs = townCenter->GetMyNNInputs();
 
+	bool strategyChosen = false;
+	for (int index = 0; index < m_strategies.size(); index++)
+	{
+		FunctionStrategy currentStrategy = m_strategies.at(index);
+		bool result = (currentStrategy)(NNInputVectors, strategy, inputs);
+		if (result)
+		{
+			SetDesiredStrategyAsOutputForNN(strategy, 1);
+			m_state.m_neuralNetPoints++;
+			CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+			strategyChosen = true;
+			break;
+		}
+	}
+	if(strategyChosen == false)
+	{
+		SetDefaultStrategyAsOutputForNN();
+	}
+	m_townCentreHealthLastFrame = inputs.m_allyTownCenterHealth;
+	m_healthLastFrame			= m_health;
 
+/*
 	double priority = MAX_NUM_STRATEGY * NNInput_InputMaxCount;
 	if (CheckAndSetStrategyIfTownCenterUnderAttack (NNInputVectors, strategy, priority, inputs))
 	{
@@ -512,7 +480,7 @@ void ClassAWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2
 	if (CheckAndSetStrategyAttack                  (NNInputVectors, strategy, priority, inputs))
 	{
 		return;
-	}
+	}*/
 	Entity::EvaluateNN(task, previousState, cords);
 }
 
@@ -598,7 +566,14 @@ void ClassAWarrior::Render()
 	Entity::Render();
 	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
 	Renderer::GetInstance()->BindMaterial(textMaterial);
-	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "SA", g_fontSize/2.f, GetTeamColor());
+	if(m_teamID == 1)
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "SA", g_fontSize/2.f, Rgba::BLACK);
+	}
+	else
+	{
+		g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "SA", g_fontSize / 2.f, Rgba::WHITE);
+	}
 	delete textMaterial;
 }
 

@@ -199,6 +199,17 @@ void Map::InitNobes()
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitSample()
+{
+	CreateEntity(Vector2(100, 100), 0.f);
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
 *@purpose : NIL
 *@param   : NIL
@@ -332,7 +343,7 @@ void Map::Update(float deltaTime)
 	ProcessInputs(deltaTime);
 	UpdateCamera(deltaTime);
 	ClearDebugEntities();
-	UpdateEntity(deltaTime);
+	//UpdateEntity(deltaTime);
 
 
 	switch (m_mapType)
@@ -346,6 +357,10 @@ void Map::Update(float deltaTime)
 	case  SEEK_ARRIVE_BEHAVIOR:
 		SeekBehavior();
 		ArriveBehavior();
+		break;
+	case SAMPLE:
+		UpdateSample(deltaTime);
+		return;
 		break;
 	default:
 		break;
@@ -390,6 +405,50 @@ void Map::UpdateEntity(float deltaTime)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::UpdateSample(float deltaTime)
+{
+	Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
+	mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
+
+	Vector2 direction = mousePosition - m_entities.at(0)->m_position;
+	direction = direction.GetNormalized();
+
+	float directionAngle = Atan2Degrees(direction.y, direction.x);
+
+	float angleDiff = m_entities.at(0)->m_angle - directionAngle;
+
+
+
+	float rotationalDiff = angleDiff;
+	if (angleDiff > 180)
+	{
+		rotationalDiff -= 360;
+	}
+	if (angleDiff < -180)
+	{
+		rotationalDiff += 360;
+	}
+
+
+	if (m_start)
+	{
+		if (rotationalDiff < 0)
+		{
+			m_entities.at(0)->m_angle += 0.5;
+		}
+		else
+		{
+			m_entities.at(0)->m_angle -= 0.5;
+		}
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/02
 *@purpose : NIL
 *@param   : NIL
@@ -399,6 +458,11 @@ void Map::ProcessInputForNobes()
 {
 	Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
 	mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
+
+	if (InputSystem::GetInstance()->WasLButtonJustPressed())
+	{
+		m_start = m_start ? false : true;
+	}
 
 	if(InputSystem::GetInstance()->IsLButtonDown())
 	{
@@ -818,4 +882,15 @@ void Map::RenderNobes()
 	Renderer::GetInstance()->DrawTextOn3DPoint(m_seperationStringValueBounds.GetCenter(), Vector2(1, 0), Vector2(0, 1), "SEPERATION", 12, Rgba::WHITE);
 	Renderer::GetInstance()->DrawTextOn3DPoint(m_alignmentStringValueBounds.GetCenter(), Vector2(1, 0), Vector2(0, 1),  "ALIGNMENT", 12, Rgba::WHITE);
 	delete textMaterial;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/10
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::RenderSample()
+{
+	RenderEntity();
 }

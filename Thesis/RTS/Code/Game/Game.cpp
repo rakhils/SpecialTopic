@@ -140,10 +140,10 @@ void Game::UpdateMap(float deltaTime)
 		{
 			isQuitTriggered = true;
 		}
-		if(m_map->m_gameFinished)
+		//if(m_map->m_gameFinished)
 		{
 			g_lastTrainingStopTime += deltaTime;
-			if(( m_map->m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN))
+			if(( m_map->m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_map->m_mapMode == MAP_MODE_TRAINING_DEFENSIVE))
 			{
 				if(g_isGlobalyCurrentlyTraining)
 				{

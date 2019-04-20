@@ -18,21 +18,20 @@
 #include "Game/GamePlay/Utils/Explosion.hpp"
 #include "Game/GamePlay/Entity/DebugEntity.hpp"
 #include "Game/GamePlay/Utils/ScoreCard.hpp"
-
+enum Personality
+{
+	AGGRESSIVE,
+	DEFENSIVE
+};
 enum MapMode
 {
-	MAP_MODE_TRAINING_CIVILIAN_GATHER_FOOD,
-	MAP_MODE_TRAINING_CIVILIAN_GATHER_ALL_RESOURCES,
-	MAP_MODE_TRAINING_CIVILIAN_BUILD,
-	MAP_MODE_TRAINING_CIVILIAN,
-	MAP_MODE_TRAINING_TOWNCENTER,
+	MAP_MODE_AGGRESSIVE_VS_RANDOM,
+	MAP_MODE_DEFENSIVE_VS_RANDOM,
+	MAP_MODE_AGGRESSIVE_VS_HUMAN,
+	MAP_MODE_DEFENSIVE_VS_HUMAN,
 
-	MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN,
-	MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN,
-	MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN,
-	MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN,
-
-	MAP_MODE_TRAINING_RANDOM_MAP_GEN,
+	MAP_MODE_TRAINING_AGGRESSIVE,
+	MAP_MODE_TRAINING_DEFENSIVE,
 	MAP_MODE_NUM_ITEMS
 };
 struct GameStats
@@ -124,7 +123,8 @@ public:
 	std::vector<Tile*>				m_tiles;
 
 	GameStats						m_gameStats;
-	MapMode							m_mapMode = MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN;
+	MapMode							m_mapMode = MAP_MODE_AGGRESSIVE_VS_RANDOM;
+	Personality						m_personality;
 	std::string						m_folder;
 
 	bool							m_multipleEntitySelectionJustStarted = false;
@@ -170,16 +170,11 @@ public:
 	IntVector2						GetRandomFreePosition(IntVector2 positionStart, IntVector2 positionEnd);
 
 	void							SetMapType(MapMode type);
-	void							InitTrainingForCivilianGatherFood();
-	void							InitTrainingForCivilianGatherAllResources();
-	void							InitTrainingForCivilianBuildAll();
-	void							InitTrainingForCivilian();
-	void							InitTrainingForTownCenter();
-	void							InitTrainedVsRandomTraining();
-	void							InitTrainedVsRandomGame();
-	void							InitTrainingForPlayGreen();
+	void							InitAggressiveVsRandom();
+	void							InitDefensiveVsRandom();
+	void							InitAggressiveVsHuman();
+	void							InitDefensiveVsHuman();
 	void							InitTrainingForRandomGenMaps();
-	void							InitTrainedRedVsHumanGreen();
 
 	bool							IsNonTrainingMode();
 	bool							HasTrainingEnabled(Entity *entity);

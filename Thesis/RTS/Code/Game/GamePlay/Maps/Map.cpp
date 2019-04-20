@@ -48,36 +48,25 @@ void Map::Initialize()
 	g_mapCounter = 0;
 	switch (m_mapMode)
 	{
-	case MAP_MODE_TRAINING_CIVILIAN_GATHER_FOOD:
-		InitTrainingForCivilianGatherFood();
+	case MAP_MODE_AGGRESSIVE_VS_RANDOM:
+		InitAggressiveVsRandom();
 		break;
-	case MAP_MODE_TRAINING_CIVILIAN_GATHER_ALL_RESOURCES:
-		InitTrainingForCivilianGatherAllResources();
+	case MAP_MODE_DEFENSIVE_VS_RANDOM:
+		InitDefensiveVsRandom();
 		break;
-	case MAP_MODE_TRAINING_CIVILIAN_BUILD:
-		InitTrainingForCivilianBuildAll();
+	case MAP_MODE_AGGRESSIVE_VS_HUMAN:
+		InitAggressiveVsHuman();
 		break;
-	case MAP_MODE_TRAINING_CIVILIAN:
-		InitTrainingForCivilian();
+	case MAP_MODE_DEFENSIVE_VS_HUMAN:
+		InitDefensiveVsHuman();
 		break;
-	case MAP_MODE_TRAINING_TOWNCENTER:
-		InitTrainingForTownCenter();
-		break;
-	case MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN:
-		InitTrainedVsRandomTraining();
-		break;
-	case MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN:
-		InitTrainedVsRandomGame();
-		break;
-	case MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN:
-		InitTrainingForPlayGreen();
-		break;
-	case MAP_MODE_TRAINING_RANDOM_MAP_GEN:
+	case MAP_MODE_TRAINING_AGGRESSIVE:
+		m_personality = AGGRESSIVE;
 		InitTrainingForRandomGenMaps();
 		break;
-	case MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN:
-	default:
-		InitTrainedRedVsHumanGreen();
+	case MAP_MODE_TRAINING_DEFENSIVE:
+		m_personality = DEFENSIVE;
+		InitTrainingForRandomGenMaps();
 		break;
 	}
 
@@ -138,13 +127,21 @@ void Map::CreateDirectoryForNN()
 	}
 
 	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder).c_str());
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +  "\\Aggressive").c_str());
 
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +  "\\Aggressive\\1\\").c_str());
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +  "\\Aggressive\\2\\").c_str());
 
-	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\1\\").c_str());
-	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\2\\").c_str());
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +  "\\Aggressive\\1\\BestStats\\").c_str());
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +  "\\Aggressive\\2\\BestStats\\").c_str());
 
-	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\1\\BestStats\\").c_str());
-	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder + "\\2\\BestStats\\").c_str());
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +	"\\Defensive").c_str());
+
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +  "\\Defensive\\1\\").c_str());
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +  "\\Defensive\\2\\").c_str());
+
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +  "\\Defensive\\1\\BestStats\\").c_str());
+	System::CreateDirectoryFromPath(("Data\\NN\\" + m_folder +  "\\Defensive\\2\\BestStats\\").c_str());
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -165,18 +162,40 @@ void Map::ResetAllScores()
 	m_localBestLongRangeArmyScoreCardTeam2	.Reset();
 	m_localBestTownCenterScoreCardTeam1		.Reset();
 	m_localBestTownCenterScoreCardTeam2		.Reset();
-	if (m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN || m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN)
+	if (m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
 	{
+		m_localBestCivilianScoreCardTeam1.m_totalScore = -1;
+		m_localBestCivilianScoreCardTeam2.m_totalScore = -1;
+		m_localBestShortRangeArmyScoreCardTeam1.m_totalScore = -1;
+		m_localBestShortRangeArmyScoreCardTeam2.m_totalScore = -1;
+		m_localBestLongRangeArmyScoreCardTeam1.m_totalScore = -1;
+		m_localBestLongRangeArmyScoreCardTeam2.m_totalScore = -1;
+		m_localBestTownCenterScoreCardTeam1.m_totalScore = -1;
+		m_localBestTownCenterScoreCardTeam2.m_totalScore = -1;
 		return;
 	}
-	m_localBestCivilianScoreCardTeam1.ReadFromFile("Data\\NN\\BestGame\\1\\BestStats\\CIVILIAN_1_STATS.txt");
-	m_localBestCivilianScoreCardTeam2.ReadFromFile("Data\\NN\\BestGame\\2\\BestStats\\CIVILIAN_2_STATS.txt");
-	m_localBestShortRangeArmyScoreCardTeam1 .ReadFromFile("Data\\NN\\BestGame\\1\\BestStats\\SHORT_RANGE_ARMY_1_STATS.txt");
-	m_localBestShortRangeArmyScoreCardTeam2 .ReadFromFile("Data\\NN\\BestGame\\2\\BestStats\\SHORT_RANGE_ARMY_2_STATS.txt");
-	m_localBestLongRangeArmyScoreCardTeam1  .ReadFromFile("Data\\NN\\BestGame\\1\\BestStats\\LONG_RANGE_ARMY_1_STATS.txt");
-	m_localBestLongRangeArmyScoreCardTeam2  .ReadFromFile("Data\\NN\\BestGame\\2\\BestStats\\LONG_RANGE_ARMY_2_STATS.txt");
-	m_localBestTownCenterScoreCardTeam1		.ReadFromFile("Data\\NN\\BestGame\\1\\BestStats\\TOWN_CENTER_1_STATS.txt");
-	m_localBestTownCenterScoreCardTeam2		.ReadFromFile("Data\\NN\\BestGame\\2\\BestStats\\TOWN_CENTER_2_STATS.txt");
+	if(m_personality == AGGRESSIVE)
+	{
+		m_localBestCivilianScoreCardTeam1		.ReadFromFile("Data\\NN\\BestGame\\Aggressive\\1\\BestStats\\CIVILIAN_1_STATS.txt");
+		m_localBestCivilianScoreCardTeam2		.ReadFromFile("Data\\NN\\BestGame\\Aggressive\\2\\BestStats\\CIVILIAN_2_STATS.txt");
+		m_localBestShortRangeArmyScoreCardTeam1 .ReadFromFile("Data\\NN\\BestGame\\Aggressive\\1\\BestStats\\SHORT_RANGE_ARMY_1_STATS.txt");
+		m_localBestShortRangeArmyScoreCardTeam2 .ReadFromFile("Data\\NN\\BestGame\\Aggressive\\2\\BestStats\\SHORT_RANGE_ARMY_2_STATS.txt");
+		m_localBestLongRangeArmyScoreCardTeam1  .ReadFromFile("Data\\NN\\BestGame\\Aggressive\\1\\BestStats\\LONG_RANGE_ARMY_1_STATS.txt");
+		m_localBestLongRangeArmyScoreCardTeam2  .ReadFromFile("Data\\NN\\BestGame\\Aggressive\\2\\BestStats\\LONG_RANGE_ARMY_2_STATS.txt");
+		m_localBestTownCenterScoreCardTeam1		.ReadFromFile("Data\\NN\\BestGame\\Aggressive\\1\\BestStats\\TOWN_CENTER_1_STATS.txt");
+		m_localBestTownCenterScoreCardTeam2		.ReadFromFile("Data\\NN\\BestGame\\Aggressive\\2\\BestStats\\TOWN_CENTER_2_STATS.txt");
+	}
+	if(m_personality == DEFENSIVE)
+	{
+		m_localBestCivilianScoreCardTeam1		.ReadFromFile("Data\\NN\\BestGame\\Defensive\\1\\BestStats\\CIVILIAN_1_STATS.txt");
+		m_localBestCivilianScoreCardTeam2		.ReadFromFile("Data\\NN\\BestGame\\Defensive\\2\\BestStats\\CIVILIAN_2_STATS.txt");
+		m_localBestShortRangeArmyScoreCardTeam1 .ReadFromFile("Data\\NN\\BestGame\\Defensive\\1\\BestStats\\SHORT_RANGE_ARMY_1_STATS.txt");
+		m_localBestShortRangeArmyScoreCardTeam2 .ReadFromFile("Data\\NN\\BestGame\\Defensive\\2\\BestStats\\SHORT_RANGE_ARMY_2_STATS.txt");
+		m_localBestLongRangeArmyScoreCardTeam1  .ReadFromFile("Data\\NN\\BestGame\\Defensive\\1\\BestStats\\LONG_RANGE_ARMY_1_STATS.txt");
+		m_localBestLongRangeArmyScoreCardTeam2  .ReadFromFile("Data\\NN\\BestGame\\Defensive\\2\\BestStats\\LONG_RANGE_ARMY_2_STATS.txt");
+		m_localBestTownCenterScoreCardTeam1		.ReadFromFile("Data\\NN\\BestGame\\Defensive\\1\\BestStats\\TOWN_CENTER_1_STATS.txt");
+		m_localBestTownCenterScoreCardTeam2		.ReadFromFile("Data\\NN\\BestGame\\Defensive\\2\\BestStats\\TOWN_CENTER_2_STATS.txt");
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -336,308 +355,6 @@ void Map::SetMapType(MapMode type)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTrainingForCivilianGatherFood()
-{
-	m_entitiesHavingTraning.clear();
-	m_entitiesHavingTraning.push_back(CIVILIAN);
-	m_maxWidth  = g_mapMaxWidth;
-	m_maxHeight = g_mapMaxHeight;
-
-	CreateTownCenter(GetMapPosition(6), 1);
-	CreateResources(GetMapPosition(10),  RESOURCE_FOOD);
-	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Inits training of civilian with all resources
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTrainingForCivilianGatherAllResources()
-{
-	m_maxWidth  = 8; //g_mapMaxWidth;
-	m_maxHeight = 8;// g_mapMaxHeight;
-	m_entitiesHavingTraning.clear();
-	m_entitiesHavingTraning.push_back(CIVILIAN);
-
-	CreateTownCenter(GetMapPosition(55), 1);
-	CreateTownCenter(GetMapPosition(7), 2);
-	CreateResources(GetMapPosition(9), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(57), RESOURCE_STONE);
-	CreateResources(GetMapPosition(62), RESOURCE_WOOD);
-
-
-	CreateCivilian(GetMapPosition(17), 2);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Trains civilian in building House,ArmySpawner,
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTrainingForCivilianBuildAll()
-{
-	m_maxWidth = 8;
-	m_maxHeight = 8;
-	m_entitiesHavingTraning.clear();
-	m_entitiesHavingTraning.push_back(CIVILIAN);
-
-	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(9), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(57), RESOURCE_STONE);
-	CreateResources(GetMapPosition(62), RESOURCE_WOOD);
-
-
-	CreateTownCenter(GetMapPosition(61), 2);
-	CreateCivilian(GetMapPosition(42), 2);
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Trains civilan for all tasks
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTrainingForCivilian()
-{
-	m_maxWidth = 8;
-	m_maxHeight = 8;
-	m_entitiesHavingTraning.clear();
-	m_entitiesHavingTraning.push_back(CIVILIAN);
-
-	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(9), RESOURCE_FOOD);
-	CreateResources(GetMapPosition(57), RESOURCE_STONE);
-	CreateResources(GetMapPosition(62), RESOURCE_WOOD);
-
-
-	CreateTownCenter(GetMapPosition(34), 2);
-	CreateCivilian(GetMapPosition(33), 2);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Trains town center to spawn villagers
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTrainingForTownCenter()
-{
-	m_maxWidth = g_mapMaxWidth;
-	m_maxHeight = g_mapMaxHeight;
-	m_entitiesHavingTraning.push_back(TOWN_CENTER);
-	CreateTownCenter(GetMapPosition(7), 1);
-	CreateResources(GetMapPosition(40), RESOURCE_FOOD);
-
-	CreateTownCenter(GetMapPosition(61), 2);
-	//CreateCivilian(GetMapPosition(42), 2);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Trains short range army to attack and move
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTrainedVsRandomTraining()
-{
-	//g_isCurrentlyTraining = false;
-	SetRandomSRAND();
-	m_maxWidth = 40;
-	m_maxHeight = 20;
-	m_entitiesHavingTraning.clear();
-	m_entitiesHavingTraning.push_back(CIVILIAN);
-	m_entitiesHavingTraning.push_back(SHORT_RANGE_ARMY);
-	m_entitiesHavingTraning.push_back(LONG_RANGE_ARMY);
-	m_entitiesHavingTraning.push_back(ARMY_SPAWNER);
-	m_entitiesHavingTraning.push_back(TOWN_CENTER);
-
-	int randomFoodCount = GetRandomIntInRange(1, 3);
-	int randomWoodCount = GetRandomIntInRange(1, 3);
-	int randomStoneCount = GetRandomIntInRange(1, 3);
-
-	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-
-
-	//randomTownCenterPosition1 = IntVector2(15, 10);
-	//randomTownCenterPosition2 = IntVector2(25, 10);
-
-
-	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
-	CreateTownCenter(GetMapPosition(randomTownCenterPosition2), 2);
-
-
-	IntVector2 randomPosition(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_FOOD);
-	randomPosition = IntVector2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_FOOD);
-
-	randomPosition = IntVector2(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_STONE);
-	randomPosition = IntVector2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_STONE);
-
-	randomPosition = IntVector2(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_WOOD);
-	randomPosition = IntVector2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_WOOD);
-
-
-	IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	IntVector2 randomCivilianPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-
-
-	for (int index = 0; index < 5; index++)
-	{
-		CreateClassAWarrior(GetMapPosition(IntVector2(15 + index, 15)), 1);
-		CreateClassAWarrior(GetMapPosition(IntVector2(25 + index, 15)), 2);
-	}
-
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Trains long range army to attack and move
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTrainedVsRandomGame()
-{
-	g_isCurrentlyTraining = false;
-	SetRandomSRAND();
-	m_maxWidth = 40;
-	m_maxHeight = 20;
-	m_entitiesHavingTraning.clear();
-	m_entitiesHavingTraning.push_back(CIVILIAN);
-	m_entitiesHavingTraning.push_back(SHORT_RANGE_ARMY);
-	m_entitiesHavingTraning.push_back(LONG_RANGE_ARMY);
-	m_entitiesHavingTraning.push_back(ARMY_SPAWNER);
-	m_entitiesHavingTraning.push_back(TOWN_CENTER);
-
-	int randomFoodCount = GetRandomIntInRange(1, 3);
-	int randomWoodCount = GetRandomIntInRange(1, 3);
-	int randomStoneCount = GetRandomIntInRange(1, 3);
-
-	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-
-
-	//randomTownCenterPosition1 = IntVector2(15, 10);
-	//randomTownCenterPosition2 = IntVector2(25, 10);
-
-
-	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
-	CreateTownCenter(GetMapPosition(randomTownCenterPosition2), 2);
-
-
-	IntVector2 randomPosition(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_FOOD);
-	randomPosition = IntVector2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_FOOD);
-
-	randomPosition = IntVector2(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_STONE);
-	randomPosition = IntVector2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_STONE);
-
-	randomPosition = IntVector2(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_WOOD);
-	randomPosition = IntVector2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_WOOD);
-
-
-	IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	IntVector2 randomCivilianPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-
-
-	for (int index = 0; index < 5; index++)
-	{
-		CreateClassAWarrior(GetMapPosition(IntVector2(15 + index, 15)), 1);
-		CreateClassAWarrior(GetMapPosition(IntVector2(25 + index, 15)), 2);
-	}
-
-
-	//CreateCivilian(GetMapPosition(randomCivilianPosition1), 1);
-	//CreateCivilian(GetMapPosition(randomCivilianPosition2), 2);
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Trains army spawner to spawn long range and short range armies
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTrainingForPlayGreen()
-{
-	g_isCurrentlyTraining = false;
-	SetRandomSRAND();
-	m_maxWidth = 40;
-	m_maxHeight = 20;
-	m_entitiesHavingTraning.clear();
-	m_entitiesHavingTraning.push_back(CIVILIAN);
-	m_entitiesHavingTraning.push_back(SHORT_RANGE_ARMY);
-	m_entitiesHavingTraning.push_back(LONG_RANGE_ARMY);
-	m_entitiesHavingTraning.push_back(ARMY_SPAWNER);
-	m_entitiesHavingTraning.push_back(TOWN_CENTER);
-
-	int randomFoodCount = GetRandomIntInRange(1, 3);
-	int randomWoodCount = GetRandomIntInRange(1, 3);
-	int randomStoneCount = GetRandomIntInRange(1, 3);
-
-	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-
-
-	randomTownCenterPosition1 = IntVector2(15, 13);
-	randomTownCenterPosition2 = IntVector2(27, 10);
-
-
-	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
-	CreateTownCenter(GetMapPosition(randomTownCenterPosition2), 2);
-
-
-	IntVector2 randomPosition = GetRandomFreePosition(IntVector2(0, 0), IntVector2(m_maxWidth / 2, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_FOOD);
-	randomPosition			  = GetRandomFreePosition(IntVector2(m_maxWidth / 2, 0), IntVector2(m_maxWidth, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_FOOD);
-
-	randomPosition = GetRandomFreePosition(IntVector2(0, 0), IntVector2(m_maxWidth / 2, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_STONE);
-	randomPosition = GetRandomFreePosition(IntVector2(m_maxWidth / 2, 0), IntVector2(m_maxWidth, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_STONE);
-
-	randomPosition = GetRandomFreePosition(IntVector2(0, 0), IntVector2(m_maxWidth / 2, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_WOOD);
-	randomPosition = GetRandomFreePosition(IntVector2(m_maxWidth / 2, 0), IntVector2(m_maxWidth, m_maxHeight));
-	CreateResources(GetMapPosition(randomPosition), RESOURCE_WOOD);
-
-
-	IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	IntVector2 randomCivilianPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	CreateCivilian(GetMapPosition(randomCivilianPosition1), 1);
-	CreateCivilian(GetMapPosition(randomCivilianPosition2), 2);
-
-	for (int index = 0; index < 5; index++)
-	{
-		CreateClassAWarrior(GetMapPosition(IntVector2(15 + index, 15)), 1);
-		CreateClassAWarrior(GetMapPosition(IntVector2(25 + index, 15)), 2);
-	}
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/01/23
 *@purpose : NIL
 *@param   : NIL
@@ -671,8 +388,8 @@ void Map::InitTrainingForRandomGenMaps()
 	int randomWoodCount		  = GetRandomIntLessThan(4);
 	int randomStoneCount      = GetRandomIntLessThan(4);
 
-	IntVector2 randomTownCenterPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	IntVector2 randomTownCenterPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+	IntVector2 randomTownCenterPosition1(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
+	IntVector2 randomTownCenterPosition2(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 
 	Entity *entityTC1 = CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
 	Entity *entityTC2 = CreateTownCenter(GetMapPosition(randomTownCenterPosition2), 2);
@@ -695,37 +412,37 @@ void Map::InitTrainingForRandomGenMaps()
 
 	for(int randomFoodCountIndex = 0;randomFoodCountIndex < randomFoodCount;randomFoodCountIndex++)
 	{
-		IntVector2 randomFoodPosition(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomFoodPosition(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		CreateResources(GetMapPosition(randomFoodPosition), RESOURCE_FOOD);
 	}
 	for (int randomStoneCountIndex = 0; randomStoneCountIndex < randomStoneCount; randomStoneCountIndex++)
 	{
-		IntVector2 randomStonePosition(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomStonePosition(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		CreateResources(GetMapPosition(randomStonePosition), RESOURCE_STONE);
 	}
 	for (int randomWoodCountIndex = 0; randomWoodCountIndex < randomWoodCount; randomWoodCountIndex++)
 	{
-		IntVector2 randomWoodPosition(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomWoodPosition(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		CreateResources(GetMapPosition(randomWoodPosition), RESOURCE_WOOD);
 	}
 
 	for (size_t armySpawner1Index = 0; armySpawner1Index < randomArmySpawner1; armySpawner1Index++)
 	{
-		IntVector2 randomArmySpawnerPosition(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomArmySpawnerPosition(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity = CreateArmySpawner(GetMapPosition(randomArmySpawnerPosition), 1);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 
 	}
 	for (size_t house1Index = 0; house1Index < randomHouses1; house1Index++)
 	{
-		IntVector2 randomHouse1Position(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomHouse1Position(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity = CreateHouse(GetMapPosition(randomHouse1Position), 1);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 	}
 
 	for(int civilianIndex1 = 0;civilianIndex1 < randomCivilian1;civilianIndex1++)
 	{
-		IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity =CreateCivilian(GetMapPosition(randomCivilianPosition1), 1);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 		if(GetRandomBoolean())
@@ -748,21 +465,21 @@ void Map::InitTrainingForRandomGenMaps()
 
 	for (size_t shortRangeArmy1Index = 0; shortRangeArmy1Index < randomShortRangeArmy1; shortRangeArmy1Index++)
 	{
-		IntVector2 randomShortRangeArmy1Cords(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomShortRangeArmy1Cords(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity =CreateClassAWarrior(GetMapPosition(randomShortRangeArmy1Cords), 1);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 	}
 
 	for (size_t longRangeArmy1Index = 0 ; longRangeArmy1Index < randomLongRangeArmy1;longRangeArmy1Index++)
 	{
-		IntVector2 randomLongRangeArmy1Cords(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomLongRangeArmy1Cords(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity = CreateClassBWarrior(GetMapPosition(randomLongRangeArmy1Cords), 1);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 	}
 	
 	for (int civilianIndex2 = 0; civilianIndex2 < randomCivilian2; civilianIndex2++)
 	{
-		IntVector2 randomCivilian2Cords(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomCivilian2Cords(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity =CreateCivilian(GetMapPosition(randomCivilian2Cords), 2);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 		if (GetRandomBoolean())
@@ -785,7 +502,7 @@ void Map::InitTrainingForRandomGenMaps()
 
 	for (size_t shortRangeArmy2Index = 0; shortRangeArmy2Index < randomShortRangeArmy2; shortRangeArmy2Index++)
 	{
-		IntVector2 randomShortRangeArmy2Cords(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomShortRangeArmy2Cords(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity =CreateClassAWarrior(GetMapPosition(randomShortRangeArmy2Cords), 2);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 		//entity->SetPosition(GetMapPosition(IntVector2(5, 6)));
@@ -793,40 +510,36 @@ void Map::InitTrainingForRandomGenMaps()
 
 	for (size_t longRangeArmy2Index = 0; longRangeArmy2Index < randomLongRangeArmy2; longRangeArmy2Index++)
 	{
-		IntVector2 randomLongRangeArmy2Cords(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomLongRangeArmy2Cords(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity =CreateClassBWarrior(GetMapPosition(randomLongRangeArmy2Cords), 2);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 	}
 
 	for (size_t armySpawner2Index = 0; armySpawner2Index < randomArmySpawner2; armySpawner2Index++)
 	{
-		IntVector2 randomArmySpawner2Cords(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomArmySpawner2Cords(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity =CreateArmySpawner(GetMapPosition(randomArmySpawner2Cords), 2);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 	}
 
 	for (size_t house2Index = 0; house2Index < randomHouses2; house2Index++)
 	{
-		IntVector2 randomHouse2Cords(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomHouse2Cords(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		Entity *entity   = CreateHouse(GetMapPosition(randomHouse2Cords), 2);
 		entity->m_health = static_cast<float>(GetRandomIntLessThan(10));
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/14
-*@purpose : Initialize non training mode
+/*DATE    : 2019/04/17
+*@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTrainedRedVsHumanGreen()
+void Map::InitAggressiveVsRandom()
 {
-	if(true)
-	{
-		InitTrainedVsRandomGame();
-		return;
-	}
 	SetRandomSRAND();
+	m_personality = AGGRESSIVE;
 	m_maxWidth = 40;
 	m_maxHeight = 20;
 	m_entitiesHavingTraning.clear();
@@ -841,36 +554,209 @@ void Map::InitTrainedRedVsHumanGreen()
 	int randomStoneCount = GetRandomIntInRange(1, 3);
 
 	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
-	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight));
-
-
-	randomTownCenterPosition1 = IntVector2(15, 10);
-	randomTownCenterPosition2 = IntVector2(25, 10);
-
+	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth - 1), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight - 1));
 
 	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
 	CreateTownCenter(GetMapPosition(randomTownCenterPosition2), 2);
 
 	for (int randomFoodCountIndex = 0; randomFoodCountIndex < randomFoodCount; randomFoodCountIndex++)
 	{
-		IntVector2 randomFoodPosition(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomFoodPosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
 		CreateResources(GetMapPosition(randomFoodPosition), RESOURCE_FOOD);
 	}
 	for (int randomStoneCountIndex = 0; randomStoneCountIndex < randomStoneCount; randomStoneCountIndex++)
 	{
-		IntVector2 randomStonePosition(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomStonePosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight -1));
 		CreateResources(GetMapPosition(randomStonePosition), RESOURCE_STONE);
 	}
 	for (int randomWoodCountIndex = 0; randomWoodCountIndex < randomWoodCount; randomWoodCountIndex++)
 	{
-		IntVector2 randomWoodPosition(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
+		IntVector2 randomWoodPosition(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 		CreateResources(GetMapPosition(randomWoodPosition), RESOURCE_WOOD);
 	}
-	IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	IntVector2 randomCivilianPosition2(GetRandomIntLessThan(m_maxWidth), GetRandomIntLessThan(m_maxHeight));
-	CreateCivilian(GetMapPosition(randomCivilianPosition1), 1);
-	CreateCivilian(GetMapPosition(randomCivilianPosition2), 2);
+	IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
+	IntVector2 randomCivilianPosition2(GetRandomIntLessThan(m_maxWidth-1), GetRandomIntLessThan(m_maxHeight-1));
 
+	for (int index = 0; index < 5; index++)
+	{
+		IntVector2 randomPositionTeamA(GetRandomIntInRange(0, m_maxWidth -1), GetRandomIntInRange(0, m_maxHeight -1));
+		IntVector2 randomPositionTeamB(GetRandomIntInRange(0, m_maxWidth -1), GetRandomIntInRange(0, m_maxHeight -1));
+
+		CreateClassAWarrior(GetMapPosition(randomTownCenterPosition1), 1);
+		CreateClassAWarrior(GetMapPosition(randomTownCenterPosition2), 2);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/17
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitDefensiveVsRandom()
+{
+	SetRandomSRAND();
+	m_personality = DEFENSIVE;
+	m_maxWidth = 40;
+	m_maxHeight = 20;
+	m_entitiesHavingTraning.clear();
+	m_entitiesHavingTraning.push_back(CIVILIAN);
+	m_entitiesHavingTraning.push_back(SHORT_RANGE_ARMY);
+	m_entitiesHavingTraning.push_back(LONG_RANGE_ARMY);
+	m_entitiesHavingTraning.push_back(ARMY_SPAWNER);
+	m_entitiesHavingTraning.push_back(TOWN_CENTER);
+
+	int randomFoodCount = GetRandomIntInRange(1, 3);
+	int randomWoodCount = GetRandomIntInRange(1, 3);
+	int randomStoneCount = GetRandomIntInRange(1, 3);
+
+	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
+	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth - 1), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight - 1));
+
+	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
+	CreateTownCenter(GetMapPosition(randomTownCenterPosition2), 2);
+
+	for (int randomFoodCountIndex = 0; randomFoodCountIndex < randomFoodCount; randomFoodCountIndex++)
+	{
+		IntVector2 randomFoodPosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+		CreateResources(GetMapPosition(randomFoodPosition), RESOURCE_FOOD);
+	}
+	for (int randomStoneCountIndex = 0; randomStoneCountIndex < randomStoneCount; randomStoneCountIndex++)
+	{
+		IntVector2 randomStonePosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+		CreateResources(GetMapPosition(randomStonePosition), RESOURCE_STONE);
+	}
+	for (int randomWoodCountIndex = 0; randomWoodCountIndex < randomWoodCount; randomWoodCountIndex++)
+	{
+		IntVector2 randomWoodPosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+		CreateResources(GetMapPosition(randomWoodPosition), RESOURCE_WOOD);
+	}
+	IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+	IntVector2 randomCivilianPosition2(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+
+	for (int index = 0; index < 5; index++)
+	{
+		IntVector2 randomPositionTeamA(GetRandomIntInRange(0, m_maxWidth - 1), GetRandomIntInRange(0, m_maxHeight - 1));
+		IntVector2 randomPositionTeamB(GetRandomIntInRange(0, m_maxWidth - 1), GetRandomIntInRange(0, m_maxHeight - 1));
+		CreateClassAWarrior(GetMapPosition(randomTownCenterPosition1), 1);
+		Entity *entity2 = CreateClassAWarrior(GetMapPosition(randomTownCenterPosition2), 2);
+		entity2->ClearTaskQueue();
+		entity2->CreateAndPushIdleTask(IntVector2::ZERO);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/17
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitAggressiveVsHuman()
+{
+	SetRandomSRAND();
+	m_personality = AGGRESSIVE;
+	m_maxWidth = 40;
+	m_maxHeight = 20;
+	m_entitiesHavingTraning.clear();
+	m_entitiesHavingTraning.push_back(CIVILIAN);
+	m_entitiesHavingTraning.push_back(SHORT_RANGE_ARMY);
+	m_entitiesHavingTraning.push_back(LONG_RANGE_ARMY);
+	m_entitiesHavingTraning.push_back(ARMY_SPAWNER);
+	m_entitiesHavingTraning.push_back(TOWN_CENTER);
+
+	int randomFoodCount = GetRandomIntInRange(1, 3);
+	int randomWoodCount = GetRandomIntInRange(1, 3);
+	int randomStoneCount = GetRandomIntInRange(1, 3);
+
+	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
+	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth - 1), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight - 1));
+
+	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
+	CreateTownCenter(GetMapPosition(randomTownCenterPosition2), 2);
+
+	for (int randomFoodCountIndex = 0; randomFoodCountIndex < randomFoodCount; randomFoodCountIndex++)
+	{
+		IntVector2 randomFoodPosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+		CreateResources(GetMapPosition(randomFoodPosition), RESOURCE_FOOD);
+	}
+	for (int randomStoneCountIndex = 0; randomStoneCountIndex < randomStoneCount; randomStoneCountIndex++)
+	{
+		IntVector2 randomStonePosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+		CreateResources(GetMapPosition(randomStonePosition), RESOURCE_STONE);
+	}
+	for (int randomWoodCountIndex = 0; randomWoodCountIndex < randomWoodCount; randomWoodCountIndex++)
+	{
+		IntVector2 randomWoodPosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+		CreateResources(GetMapPosition(randomWoodPosition), RESOURCE_WOOD);
+	}
+	IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+	IntVector2 randomCivilianPosition2(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+
+	for (int index = 0; index < 5; index++)
+	{
+		IntVector2 randomPositionTeamA(GetRandomIntInRange(0, m_maxWidth - 1), GetRandomIntInRange(0, m_maxHeight - 1));
+		IntVector2 randomPositionTeamB(GetRandomIntInRange(0, m_maxWidth - 1), GetRandomIntInRange(0, m_maxHeight - 1));
+		CreateClassAWarrior(GetMapPosition(randomTownCenterPosition1), 1);
+		CreateClassAWarrior(GetMapPosition(randomTownCenterPosition2), 2);
+	}
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/04/17
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Map::InitDefensiveVsHuman()
+{
+	SetRandomSRAND();
+	m_personality = DEFENSIVE;
+	m_maxWidth = 40;
+	m_maxHeight = 20;
+	m_entitiesHavingTraning.clear();
+	m_entitiesHavingTraning.push_back(CIVILIAN);
+	m_entitiesHavingTraning.push_back(SHORT_RANGE_ARMY);
+	m_entitiesHavingTraning.push_back(LONG_RANGE_ARMY);
+	m_entitiesHavingTraning.push_back(ARMY_SPAWNER);
+	m_entitiesHavingTraning.push_back(TOWN_CENTER);
+
+	int randomFoodCount = GetRandomIntInRange(1, 3);
+	int randomWoodCount = GetRandomIntInRange(1, 3);
+	int randomStoneCount = GetRandomIntInRange(1, 3);
+
+	IntVector2 randomTownCenterPosition1(GetRandomIntInRange(0, m_maxWidth / 2), GetRandomIntInRange(0, m_maxHeight / 2));
+	IntVector2 randomTownCenterPosition2(GetRandomIntInRange(m_maxWidth / 2, m_maxWidth - 1), GetRandomIntInRange(m_maxHeight / 2, m_maxHeight - 1));
+
+	CreateTownCenter(GetMapPosition(randomTownCenterPosition1), 1);
+	CreateTownCenter(GetMapPosition(randomTownCenterPosition2), 2);
+
+	for (int randomFoodCountIndex = 0; randomFoodCountIndex < randomFoodCount; randomFoodCountIndex++)
+	{
+		IntVector2 randomFoodPosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+		CreateResources(GetMapPosition(randomFoodPosition), RESOURCE_FOOD);
+	}
+	for (int randomStoneCountIndex = 0; randomStoneCountIndex < randomStoneCount; randomStoneCountIndex++)
+	{
+		IntVector2 randomStonePosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+		CreateResources(GetMapPosition(randomStonePosition), RESOURCE_STONE);
+	}
+	for (int randomWoodCountIndex = 0; randomWoodCountIndex < randomWoodCount; randomWoodCountIndex++)
+	{
+		IntVector2 randomWoodPosition(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+		CreateResources(GetMapPosition(randomWoodPosition), RESOURCE_WOOD);
+	}
+	IntVector2 randomCivilianPosition1(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+	IntVector2 randomCivilianPosition2(GetRandomIntLessThan(m_maxWidth - 1), GetRandomIntLessThan(m_maxHeight - 1));
+
+	for (int index = 0; index < 5; index++)
+	{
+		IntVector2 randomPositionTeamA(GetRandomIntInRange(0, m_maxWidth - 1), GetRandomIntInRange(0, m_maxHeight - 1));
+		IntVector2 randomPositionTeamB(GetRandomIntInRange(0, m_maxWidth - 1), GetRandomIntInRange(0, m_maxHeight - 1));
+		CreateClassAWarrior(GetMapPosition(randomTownCenterPosition1), 1);
+		Entity *entity2 = CreateClassAWarrior(GetMapPosition(randomTownCenterPosition2), 2);
+		entity2->ClearTaskQueue();
+		entity2->CreateAndPushIdleTask(IntVector2::ZERO);
+	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -881,11 +767,11 @@ void Map::InitTrainedRedVsHumanGreen()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Map::IsNonTrainingMode()
 {
-	if(m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN)
+	if(m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
 	{
-		return true;
+		return false;
 	}
-	return false;
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -901,27 +787,19 @@ bool Map::HasTrainingEnabled(Entity *entity)
 	{
 		return false;
 	}
-	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN  && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_AGGRESSIVE_VS_HUMAN  && entity->m_teamID == 1)
 	{
 		return false;
 	}
-	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_DEFENSIVE_VS_HUMAN && entity->m_teamID == 1)
 	{
 		return false;
 	}
-	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN  && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_AGGRESSIVE_VS_RANDOM  && entity->m_teamID == 1)
 	{
 		return false;
 	}
-	if(m_mapMode ==  MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN   && entity->m_teamID == 1)
-	{
-		return false;
-	}
-	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN && entity->m_teamID == 2)
-	{
-		return false;
-	}
-	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN && entity->m_teamID == 2)
+	if(m_mapMode ==  MAP_MODE_DEFENSIVE_VS_RANDOM   && entity->m_teamID == 1)
 	{
 		return false;
 	}
@@ -943,21 +821,21 @@ bool Map::HasTrainingEnabled(Entity *entity)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Map::HasFeedForwardEnabled(Entity *entity)
 {
-	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_AGGRESSIVE_VS_HUMAN && entity->m_teamID == 1)
 	{
 		return false;
 	}
-	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_DEFENSIVE_VS_HUMAN && entity->m_teamID == 1)
 	{
 		return false;
 	}
-	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_AGGRESSIVE_VS_RANDOM && entity->m_teamID == 1)
 	{
-		return false;
+		return true;
 	}
-	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_DEFENSIVE_VS_RANDOM && entity->m_teamID == 1)
 	{
-		return false;
+		return true;
 	}
 	return true;
 }
@@ -970,11 +848,11 @@ bool Map::HasFeedForwardEnabled(Entity *entity)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Map::HasRandomBehaviorEnabled(Entity *entity)
 {
-	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_AGGRESSIVE_VS_RANDOM && entity->m_teamID == 1)
 	{
 		return true;
 	}
-	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_DEFENSIVE_VS_RANDOM && entity->m_teamID == 1)
 	{
 		return true;
 	}
@@ -989,11 +867,11 @@ bool Map::HasRandomBehaviorEnabled(Entity *entity)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Map::HasHumanBehaviorEnabled(Entity *entity)
 {
-	if (m_mapMode == MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_AGGRESSIVE_VS_HUMAN && entity->m_teamID == 1)
 	{
 		return true;
 	}
-	if (m_mapMode == MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN && entity->m_teamID == 1)
+	if (m_mapMode == MAP_MODE_DEFENSIVE_VS_HUMAN && entity->m_teamID == 1)
 	{
 		return true;
 	}
@@ -1289,7 +1167,7 @@ bool Map::IsResource(Entity * entity)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Map::ShouldSaveLocalResultInDirectory()
 {
-	if (!(m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN || m_mapMode == MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN || m_mapMode == MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN))
+	if (m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
 	{
 		return true;
 	}
@@ -1298,7 +1176,7 @@ bool Map::ShouldSaveLocalResultInDirectory()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/08
-*@purpose : Gets a free neighbour tile
+*@purpose : Gets a free neighbor tile
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2291,6 +2169,10 @@ Vector2 Map::GetMapPosition(IntVector2 tilecords)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 IntVector2 Map::GetCordinates(int tileIndex)
 {
+	if(tileIndex == -1)
+	{
+		return IntVector2(0, 0);
+	}
 	int x = tileIndex % m_maxWidth;
 	int y = tileIndex / m_maxWidth;
 	return IntVector2(x, y);
@@ -2431,7 +2313,7 @@ void Map::CheckAndUpdateOnWinCondition(float deltaTime)
 	{
 		m_gameFinishedTime += deltaTime;
 		//g_skipRendering = false;
-		if(m_gameFinishedTime > 1 || m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN)
+		if(m_gameFinishedTime > 1 || m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
 		{
 			m_gameFinishedTime = 0;
 			CheckAndSaveBestStats();
@@ -2451,6 +2333,17 @@ void Map::CheckAndUpdateOnWinCondition(float deltaTime)
 			return;
 		}
 	}
+	if (m_mapMode == MAP_MODE_DEFENSIVE_VS_HUMAN || m_mapMode == MAP_MODE_DEFENSIVE_VS_RANDOM)
+	{
+		if (m_townCenters.at(0)->m_resourceStat.m_shortRangeArmies + m_townCenters.at(0)->m_resourceStat.m_longRangeArmies == 0)
+		{
+			m_gameFinished = true;
+			g_numOfGameCounter++;
+			m_townCenters.at(0)->m_health = 0.f;
+			return;
+		}
+	}
+
 	if (g_mapCounter > 150000)
 	{
 		g_mapCounter = 0;
@@ -2473,7 +2366,7 @@ void Map::CheckAndUpdateOnWinCondition(float deltaTime)
 void Map::CheckAndUpdateOnRandomMapGen(float deltaTime)
 {
 	UNUSED(deltaTime);
-	if(m_mapMode == MAP_MODE_TRAINING_RANDOM_MAP_GEN)
+	if(m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
 	{
 		if(m_counter %2 == 0)
 		{
@@ -3208,7 +3101,8 @@ void Map::Render()
 	Renderer::GetInstance()->BeginFrame();
 	//DebugDraw::GetInstance()->DebugRenderLogf("GAME COUNTER %d MAP COUNTER %d MAP BREAK COUNTER %d", App::s_gameCounter,g_numOfGameCounter,g_mapBreakCounter);
 
-	RenderTiles();
+	//RenderTiles();
+	RenderGrids();
 	RenderCivilians();
 	RenderClassAWarriors();
 	RenderClassBWarriors();
@@ -3216,7 +3110,6 @@ void Map::Render()
 	RenderHouses();
 	RenderTownCenters();
 	RenderResources();
-	RenderGrids();
 	RenderExplosions();
 	RenderDebugEntites();
 	RenderHUDGameStat();
@@ -3350,6 +3243,16 @@ void Map::RenderGrids()
 {
 	Material *defaultMaterial = Material::AquireResource("default");
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
+
+	float minX = 50;
+	float minY = 50;
+	/*g_theRenderer->DrawLine(Vector3(minX, 0.f, 0.f), Vector3(minX, (static_cast<float>(m_maxHeight) + 2)*g_unitDistance, 0));
+	g_theRenderer->DrawLine(Vector3((static_cast<float>(m_maxWidth) + 1)*g_unitDistance, 0.f, 0.f), 
+							Vector3((static_cast<float>(m_maxWidth) + 1)*g_unitDistance, (static_cast<float>(m_maxHeight) + 2)*g_unitDistance, 0));
+
+	g_theRenderer->DrawLine(Vector3(0.f, minY, 0.f), Vector3((m_maxWidth + 1.f)* g_unitDistance,minY,0.f));
+	g_theRenderer->DrawLine(Vector3(0.f, (static_cast<float>(m_maxHeight) + 2)* g_unitDistance, 0.f),
+							Vector3((m_maxWidth + 1.f)* g_unitDistance,(static_cast<float>(m_maxHeight) + 2)* g_unitDistance,0.f));*/
 	for(float x = 0; x < (static_cast<float>(m_maxWidth) + 1)*g_unitDistance ;x += g_unitDistance)
 	{
 		g_theRenderer->DrawLine(Vector3(x, 0.f, 0.f), Vector3(x, (static_cast<float>(m_maxHeight) + 2)*g_unitDistance, 0));
@@ -3684,35 +3587,23 @@ std::string Map::GetMapModeAsString(MapMode mode)
 {
 	switch (mode)
 	{
-	case MAP_MODE_TRAINING_CIVILIAN_GATHER_FOOD:
-		return "TRAINING_CIVILIAN_GATHER_FOOD";
+	case MAP_MODE_AGGRESSIVE_VS_RANDOM:
+		return "MAP_AGGRESSIVE_VS_RANDOM";
 		break;
-	case MAP_MODE_TRAINING_CIVILIAN_GATHER_ALL_RESOURCES:
-		return "TRAINING_CIVILIAN_GATHER_ALL_RESOURCES";
+	case MAP_MODE_DEFENSIVE_VS_RANDOM:
+		return "MAP_DEFENSIVE_VS_RANDOM";
 		break;
-	case MAP_MODE_TRAINING_CIVILIAN_BUILD:
-		return "TRAINING_CIVILIAN_BUILD";
+	case MAP_MODE_AGGRESSIVE_VS_HUMAN:
+		return "MAP_AGGRESSIVE_VS_HUMAN";
 		break;
-	case MAP_MODE_TRAINING_CIVILIAN:
-		return "TRAINING_CIVILIAN";
+	case MAP_MODE_DEFENSIVE_VS_HUMAN:
+		return "MAP_DEFENSIVE_VS_HUMAN";
 		break;
-	case MAP_MODE_TRAINING_TOWNCENTER:
-		return "TRAINING_TOWNCENTER";
+	case MAP_MODE_TRAINING_AGGRESSIVE:
+		return "MAP_AGGRESSIVE_TRAINING";
 		break;
-	case MAP_MODE_TRAINING_RED_VS_RANDOM_GREEN:
-		return "TRAINING_RED_VS_RANDOM_GREEN";
-		break;
-	case MAP_MODE_TRAINED_RED_VS_RANDOM_GREEN:
-		return "TRAINED_RED_VS_RANDOM_GREEN";
-		break;
-	case MAP_MODE_TRAINING_RED_VS_HUMAN_GREEN:
-		return "TRAINING_RED_VS_HUMAN_GREEN";
-		break;
-	case MAP_MODE_TRAINED_RED_VS_HUMAN_GREEN:
-		return "TRAINED_RED_VS_HUMAN_GREEN";
-		break;
-	case MAP_MODE_TRAINING_RANDOM_MAP_GEN:
-		return "TRAINING_RANDOM_MAP_GEN";
+	case MAP_MODE_TRAINING_DEFENSIVE:
+		return "MAP_DEFENSIVE_TRAINING";
 		break;
 	case MAP_MODE_NUM_ITEMS:
 		return "NUM_ITEMS";
