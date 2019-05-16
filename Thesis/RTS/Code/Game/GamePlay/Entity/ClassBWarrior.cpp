@@ -39,11 +39,7 @@ ClassBWarrior::ClassBWarrior(Map *map, Vector2 position, int teamID)
 // DESTRUCTOR
 ClassBWarrior::~ClassBWarrior()
 {
-	/*Entity::Render();
-	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
-	Renderer::GetInstance()->BindMaterial(textMaterial);
-	g_theRenderer->DrawTextOn3DPoint(GetPosition(), Vector3::RIGHT, Vector3::UP, "SA", g_fontSize / 2, GetTeamColor());
-	delete textMaterial;*/
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -131,31 +127,6 @@ int ClassBWarrior::GetGlobalBestScore()
 	{
 		return g_globalMaxScoreLongRangeArmy2;
 	}
-	/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			return g_globalAttackMaxScoreLongRangeArmy1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_globalAttackMaxScoreLongRangeArmy2;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			return g_globalDefenseMaxScoreLongRangeArmy1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_globalDefenseMaxScoreLongRangeArmy2;
-		}
-		break;
-	default:
-		break;
-	}*/
 	return 0;
 }
 
@@ -175,31 +146,6 @@ int ClassBWarrior::GetLocalBestScore()
 	{
 		return g_localMaxScoreLongRangeArmy2;
 	}
-	/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			return g_localAttackMaxScoreLongRangeArmy1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_localAttackMaxScoreLongRangeArmy2;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			return g_localDefenseMaxScoreLongRangeArmy1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_localDefenseMaxScoreLongRangeArmy2;
-		}
-		break;
-	default:
-		break;
-	}*/
 	return 0;
 }
 
@@ -219,31 +165,6 @@ void ClassBWarrior::SetGlobalBestScore(int value)
 	{
 		g_globalMaxScoreLongRangeArmy2 = value;
 	}
-	/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			g_globalAttackMaxScoreLongRangeArmy1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_globalAttackMaxScoreLongRangeArmy2 = value;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			g_globalDefenseMaxScoreLongRangeArmy1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_globalDefenseMaxScoreLongRangeArmy2 = value;
-		}
-		break;
-	default:
-		break;
-	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -262,31 +183,6 @@ void ClassBWarrior::SetLocalBestScore(int value)
 	{
 		g_localMaxScoreLongRangeArmy2 = value;
 	}
-	/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			g_localAttackMaxScoreLongRangeArmy1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_localAttackMaxScoreLongRangeArmy2 = value;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			g_localDefenseMaxScoreLongRangeArmy1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_localDefenseMaxScoreLongRangeArmy2 = value;
-		}
-		break;
-	default:
-		break;
-	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -295,9 +191,9 @@ void ClassBWarrior::SetLocalBestScore(int value)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClassBWarrior::TrainNN(Task *task)
+void ClassBWarrior::TrainNeuralNetwork(Task *task)
 {
-	Entity::TrainNN(task);
+	Entity::TrainNeuralNetwork(task);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -308,153 +204,37 @@ void ClassBWarrior::TrainNN(Task *task)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ClassBWarrior::EvaluateNN(Task *task, EntityState previousState, IntVector2 cords)
 {
-	if (!g_isCurrentlyTraining)
+	if (!m_map->HasTrainingEnabled(this))
 	{
-		return;
-	}
-	CopyDesiredOutputs();
-	switch (task->m_taskType)
-	{
-	case TASK_MOVE:
-		EvaluateMoveTask(previousState, cords);
-		break;
-	case TASK_LONG_ATTACK:
-		cords = GetTaskPositonFromNNOutput(previousState.m_position, 4, 4);
-		EvaluateLongAttackTask(previousState, cords);
-		break;
-	case TASK_IDLE:
-		EvaluateIdleTask(previousState, cords);
-		break;
-	}
-	std::vector<Entity*> neighbourEnemies = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
-	if (neighbourEnemies.size() > 0)
-	{
-		SetDesiredOutputForTask(TASK_MOVE, 0);
-		SetDesiredOutputForTask(TASK_SHORT_ATTACK, 1);
-		m_state.m_neuralNetPoints++;
-		return;
-	}
-	neighbourEnemies.clear();
-	neighbourEnemies = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 2);
-	if (neighbourEnemies.size() > 0)
-	{
-		SetDesiredOutputForTask(TASK_MOVE, 0);
-		SetDesiredOutputForTask(TASK_SHORT_ATTACK, 1);
-		m_state.m_neuralNetPoints++;
-		return;
-	}
-	Entity::EvaluateNN(task, previousState, cords);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/21
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClassBWarrior::EvaluateMoveTask(EntityState previousState, IntVector2 cords)
-{
-	UNUSED(cords);
-
-	IntVector2 prevCords = m_map->GetCordinates(previousState.m_position);
-	if (m_map->GetCordinates(m_previousState.m_position) == cords)
-	{
-		m_state.m_neuralNetPoints++;
 		return;
 	}
 
-	std::vector<Entity*> entityList = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 1);
-	/*if (entityList.size() > 0)
-	{
-		SetDesiredOutputForTask(TASK_MOVE, 0);
-		m_state.m_neuralNetPoints++;
-		return;
-	}
-	entityList.clear();*/
-	//entityList = m_map->GetAllEnemiesNearLocation(m_teamID, previousState.m_position, 2);
-	if (entityList.size() > 0)
-	{
-		SetDesiredOutputForTask(TASK_MOVE, 0);
-		SetDesiredOutputForTask(TASK_LONG_ATTACK,1);
-		m_state.m_neuralNetPoints++;
-		return;
-	}
-/*
-	UpdateMostFavoredMoveTask(previousState, cords);
-	float maxValue = -1;
-	int index = GetMostFavoredMoveTask(&maxValue);
+	ClearDesiredStrategyValues();
+	NNInputs inputs = GetMyNNInputsFromMap();
 
-	if (previousState.m_favoredMoveTaskCount.at(index) < m_state.m_favoredMoveTaskCount.at(index))
+	Strategy strategy = ATTACK;
+	std::vector<double> NNInputVectors;
+	for (int inputIndex = 0; inputIndex < NNInput_InputMaxCount; inputIndex++)
 	{
-		if(m_map->GetEntityFromPosition(cords) != nullptr && m_map->GetEntityFromPosition(cords) != this)
+		NNInputVectors.push_back(0);
+	}
+
+	for (int index = 0; index < m_strategies.size(); index++)
+	{
+		FunctionStrategy currentStrategy = m_strategies.at(index);
+		bool result = (currentStrategy)(NNInputVectors, strategy, inputs);
+		if (result)
 		{
-			m_state.m_neuralNetPoints++;
-			return;
+			SetDesiredStrategyValue(strategy, 1);
 		}
-		SetDesiredOutputForTask(TASK_MOVE, 1);
-		m_state.m_neuralNetPoints++;
-		return;
-	}*/
-	m_state.m_neuralNetPoints++;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/21
-*@purpose : Evaluates the short attack task
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClassBWarrior::EvaluateLongAttackTask(EntityState previousState, IntVector2 cords)
-{
-	if(m_state.m_enemiesAttacked > previousState.m_enemiesAttacked)
-	{
-		SetDesiredOutputForTask(TASK_LONG_ATTACK, 1);
-		m_state.m_neuralNetPoints++;
-		return;
 	}
 
-	std::vector<Entity*> entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 2);
-	/*if (entityList.size() > 0)
-	{
-		SetDesiredOutputForTask(TASK_LONG_ATTACK, 1);
-		m_state.m_neuralNetPoints++;
-		Entity* enemy = m_map->GetEntityFromPosition(cords);
-		if (enemy != nullptr && enemy->m_teamID != m_teamID)
-		{
-			return;
-		}
-		SetDesiredOutputToChooseRandomNeighbourLocation(2);
-		return;
-	}*/
-	entityList.clear();
-	entityList = m_map->GetAllEnemiesNearLocation(m_teamID, GetPosition(), 1);
-	if (entityList.size() > 0)
-	{
-		SetDesiredOutputForTask(TASK_LONG_ATTACK, 1);
-		m_state.m_neuralNetPoints++;
-		Entity* enemy = m_map->GetEntityFromPosition(cords);
-		if (enemy != nullptr && enemy->m_teamID != m_teamID && enemy->m_teamID != 0)
-		{
-			return;
-		}
-		return;
-	}
-	m_state.m_neuralNetPoints++;
-	SetDesiredOutputForTask(TASK_LONG_ATTACK, 0);
+	m_state.m_neuralNetTrainingCount++;
+	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
+
+	Entity::EvaluateStrategies(task, previousState, cords);
 }
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/21
-*@purpose : Evaluates the idle task
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClassBWarrior::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
-{
-	UNUSED(cords);
-	SetDesiredOutputForTask(TASK_IDLE, 0);
-	m_state.m_neuralNetPoints++;
-}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/01
 *@purpose : NIL

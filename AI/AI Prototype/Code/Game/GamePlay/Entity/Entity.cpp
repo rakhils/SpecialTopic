@@ -49,26 +49,10 @@ void Entity::Render()
 		return;
 	}
 	Vector2 nose = m_position + m_forward;
-	Vector2 leftPosition = m_position + m_forward*
 }
 
 
 void Entity::SetMap(Map *map)
 {
 	m_map = map;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/12/12
-*@purpose : Reduces health by damage amount
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::TakeDamage(float healthReduction)
-{
-	m_health -= healthReduction;
-	if(m_health <= 0)
-	{
-
-	}
 }

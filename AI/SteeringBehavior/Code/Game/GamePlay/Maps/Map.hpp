@@ -7,16 +7,15 @@
 #include "Engine/Mesh/MeshBuilder.hpp"
 #include "Engine/Math/MathUtil.hpp"
 
-#include "Game/GamePlay/Entity/Entity.hpp"
+//#include "Game/GamePlay/Entity/Entity.hpp"
 class Tiles;
 enum MAP_TYPE
 {
-	SEEK_ARRIVE_BEHAVIOR,
-	ALIGNMENT_SEPERATION_COHESION_BEHAVIOR,
-	FLOW_FIELD_BEHAVIOR,
-	PATH_FOLLOWING,
-	SAMPLE
-
+	MAP_TYPE_SEEK_ARRIVE_BEHAVIOR,
+	MAP_TYPE_ALIGNMENT_SEPERATION_COHESION_BEHAVIOR,
+	MAP_TYPE_FLOW_FIELD_BEHAVIOR,
+	MAP_TYPE_PATH_FOLLOWING,
+	MAP_TYPE_UNKNOWN
 };
 struct DebugLines
 {
@@ -54,7 +53,7 @@ struct Path
 		m_radius = radius;
 	}
 
-	bool IsPositionInRange(Vector2 position)
+	bool IsPositionInRange(Vector2 position) const
 	{
 		float distance = GetShortestDistanceBetweenLineAndPoint(m_start, m_end, position);
 		if(distance < m_radius)
@@ -64,7 +63,7 @@ struct Path
 		return false;
 	}
 
-	Vector2 FindClosestPositionAlongPath(Vector2 position)
+	Vector2 FindClosestPositionAlongPath(Vector2 position) const
 	{
 		Vector2 line = m_end - m_start;
 		line = line.GetNormalized();
@@ -76,7 +75,7 @@ struct Path
 		return m_start + line * projectedDistance;
 	}
 
-	Vector2 GetDirection()
+	Vector2 GetDirection() const
 	{
 		Vector2 direction = m_end - m_start;
 		direction = direction.GetNormalized();
@@ -86,69 +85,54 @@ struct Path
 class Map
 {
 public:
-	bool							m_init		   = false;
-	bool							m_start = false;
-	Camera *						m_camera       = nullptr;
-	MAP_TYPE						m_mapType;
-	std::vector<Tiles*>				m_tiles;
+	bool							m_init							= false;
+	bool							m_start							= false;
+	Camera *						m_camera						= nullptr;
+	MAP_TYPE						m_mapType						= MAP_TYPE_UNKNOWN;
+
 	std::vector<Entity*>			m_entities;
 	std::vector<Vector2>			m_flowField;
 	std::vector<Path>				m_paths;
 
-	float							m_cohesiveForce   = 1.f;
-	float							m_alignmentForce  = 1.f;
-	float							m_seperationForce = 1.f;
-
 	// DEBUG
 	std::vector<DebugCircle>		m_debugCircles;
 	std::vector<DebugLines>			m_debugLines;
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	Mesh *							m_flowFieldMesh = nullptr;
-	Mesh *							m_pathMesh		= nullptr;
-	bool							m_flowFieldVisible = false;
+	float							m_cohesiveForce					= 1.f;
+	float							m_alignmentForce				= 1.f;
+	float							m_seperationForce				= 1.f;
+	bool							m_flowFieldVisible				= false;
 
-	AABB2							m_cohesionNegativeBounds;
-	AABB2							m_cohesionPositiveBounds;
-	AABB2							m_cohesionValueBounds;
-	AABB2							m_cohesionStringValueBounds;
+	Mesh *							m_flowFieldMesh					= nullptr;
+	Mesh *							m_pathMesh						= nullptr;
 
-	AABB2							m_seperationNegativeBounds;
-	AABB2							m_seperationPositiveBounds;
-	AABB2							m_seperationValueBounds;
-	AABB2							m_seperationStringValueBounds;
-
-	AABB2							m_alignmentNegativeBounds;
-	AABB2							m_alignmentPositiveBounds;
-	AABB2							m_alignmentValueBounds;
-	AABB2							m_alignmentStringValueBounds;
-
-
-	
 	Map();
 	~Map();
 
+	// Map Initialization
 	void							Initialize();
 	void							InitCamera();
-	void							InitTiles();
 	void							InitFlowField();
 	void							InitPath();
-	void							InitNobes();
-	void							InitSample();
+	void							InitEntities();
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	void							CreateEntity(Vector2 position,float angle);
+	void							CreatePlayerEntity(Vector2 &position,float angle);
 	void							DestroyLastEntity();
 	void							DestroyAllEntity();
-	int								GetClosestPathIndex(Vector2 position);
+	int								GetClosestPathIndex(Vector2 &position);
 	void							ClearDebugEntities();
 
 	void							ProcessInputs(float deltaTime);
-
+	// Update cycle
 	void							Update(float deltaTime);
 	void							UpdateCamera(float deltaTime);
 	void							UpdateEntity(float deltaTime);
-	void							UpdateSample(float deltaTime);
 	void							ProcessInputForNobes();
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	// Behaviors
 	void							SeekBehavior();
 	void							ArriveBehavior();
 	void							FollowFlowField();
@@ -156,13 +140,14 @@ public:
 	void							AlignBehavior();
 	void							SeperateBehavior();
 	void							CohesionBehavior();
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+	// Rendering
 	void							Render();
-	void							RenderEntity();
+	void							RenderEntities();
 	void							RenderFlowField();
 	void							RenderPaths();
 	void							RenderDebugPoints();
-	void							RenderNobes();
-	void							RenderSample();
-
+	void							RenderSteeringKnobsInUI();
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 };

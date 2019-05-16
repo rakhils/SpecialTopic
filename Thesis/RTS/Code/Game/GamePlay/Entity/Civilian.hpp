@@ -56,20 +56,12 @@ public:
 	void TrainOnDropingResources(EntityState previousState, IntVector2 cords);
 	void TrainToGatherAndDropResource(EntityState previousState, IntVector2 cords);
 
-	IntVector2 GetBestNeighbour();
-
-	//void SetDesiredOutputToMoveToNeighbour();
-	void SetDesiredOutputToMoveToSafeArea();
-	void SetDesiredOutputToMoveToRandomArea();
 	void SetDesiredOutputToRandomTask();
 
 	void SetDesiredOutputToMoveToTownCenter(float value,EntityState previousState,IntVector2 cords);
 	void SetDesiredOuputForMoveToResourceTask  (float value, EntityState previousState, IntVector2 cords);
 
-	void EvaluateMoveTaskToTownCenter(EntityState prevState,IntVector2 cords);
-	void EvaluateMoveTaskToResource(EntityState prevState,IntVector2 cords);
-
-	void TrainNN(Task *task);
+	void TrainNeuralNetwork(Task *task);
 	
 	void Render();
 

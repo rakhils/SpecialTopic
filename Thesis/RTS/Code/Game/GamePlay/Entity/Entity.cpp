@@ -151,34 +151,7 @@ void Entity::InitStates()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::InitPersonality()
 {
-	switch (m_map->m_personality)
-	{
-	case AGGRESSIVE:
-	{
-		m_strategies.push_back(CheckAndSetAttackStrategyIfNoEnemiesAliveTo);
-		m_strategies.push_back(CheckAndSetExploreStrategyIfNoEnemiesAliveToExplore);
-		m_strategies.push_back(CheckAndSetStrategyAttackIfTownCenterUnderAttack);
-		m_strategies.push_back(CheckAndSetStrategyRetreatIfTownCenterUnderAttack);
-		m_strategies.push_back(CheckAndSetAttackStrategyIfEntityUnderAttack);
-		m_strategies.push_back(CheckAndSetRetreatStrategyIfEntityUnderAttack);
-		m_strategies.push_back(CheckAndSetAttackStrategyIfEnemiesOutweighs);
-		m_strategies.push_back(CheckAndSetRetreatStrategyIfEnemiesOutweighs);
-		m_strategies.push_back(CheckAndSetStrategyPatrol);
-		m_strategies.push_back(CheckAndSetStrategyExplore);
-		m_strategies.push_back(CheckAndSetStrategyAttack);
-	}
-		break;
-	case DEFENSIVE:
-		m_strategies.push_back(CheckAndSetStrategyAttackIfTownCenterUnderAttack);
-		m_strategies.push_back(CheckAndSetStrategyRetreatIfTownCenterUnderAttack);
-		m_strategies.push_back(CheckAndSetRetreatStrategyIfEntityUnderAttack);
-		m_strategies.push_back(CheckAndSetRetreatStrategyIfEnemiesOutweighs);
-		m_strategies.push_back(CheckAndSetAttackStrategyIfEntityUnderAttack);
-		m_strategies.push_back(CheckAndSetStrategyPatrol);
-		break;
-	default:
-		break;
-	}
+
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -223,42 +196,6 @@ void Entity::ProcessInputs(float deltaTime)
 			{
 				g_currentSelectedEntity = this;
 			}
-			/*if (g_currentSelectedEntity->m_type == SHORT_RANGE_ARMY || g_currentSelectedEntity->m_type == LONG_RANGE_ARMY)
-			{
-				switch (this->m_type)
-				{
-				case RESOURCE_FOOD:
-				case RESOURCE_STONE:
-				case RESOURCE_WOOD:
-				case ARMY_SPAWNER:
-				case TOWN_CENTER:
-				case HOUSE:
-					g_currentSelectedEntity = this;
-					break;
-				default:
-					break;
-				}
-			}
-			else
-			{
-				switch (this->m_type)
-				{
-				case RESOURCE_FOOD:
-				case RESOURCE_STONE:
-				case RESOURCE_WOOD:
-					break;
-				case ARMY_SPAWNER:
-				case TOWN_CENTER:
-				case HOUSE:
-				case CIVILIAN:
-				case LONG_RANGE_ARMY:
-				case SHORT_RANGE_ARMY:
-					g_currentSelectedEntity = this;
-					break;
-				default:
-					break;
-				}
-			}*/
 		}
 	}
 }
@@ -269,7 +206,7 @@ void Entity::ProcessInputs(float deltaTime)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::TrainNN(Task *task)
+void Entity::TrainNeuralNetwork(Task *task)
 {
 	PrintDebugNN();
 
@@ -291,7 +228,7 @@ void Entity::TrainNN(Task *task)
 		}
 	}
 
-	if (m_state.m_neuralNetPoints > m_previousState.m_neuralNetPoints)
+	if (m_state.m_neuralNetTrainingCount > m_previousState.m_neuralNetTrainingCount)
 	{
 		for (int index = 0; index < 3; index++)
 		{
@@ -303,7 +240,7 @@ void Entity::TrainNN(Task *task)
 
 void Entity::Update(float deltaTime)
 {
-	if(m_health <= 0)
+	if (m_health <= 0)
 	{
 		return;
 	}
@@ -317,11 +254,11 @@ void Entity::Update(float deltaTime)
 			m_taskQueue.pop();
 			if(m_taskQueue.size() == 0)
 			{
-				EvaluateNN(task,m_previousState,GetTaskPositonFromNNOutput(m_previousState.m_position));
-				TrainNN(task);
+				EvaluateStrategies(task,m_previousState,GetTaskPositonFromNNOutput(m_previousState.m_position));
+				TrainNeuralNetwork(task);
 				UpdateEntityState();
-				UpdateNN(deltaTime);
-				UpdateTaskFromNN(deltaTime);
+				UpdateNeuralNetork(deltaTime);
+				RetrievePredictedBehaviorFromNNAndPushToQueue(deltaTime);
 			}
 			delete task;
 		}
@@ -337,10 +274,6 @@ void Entity::Update(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateCoveredArea()
 {
-	/*if (g_skipRendering)
-	{
-		return;
-	}*/
 	if(m_type == SHORT_RANGE_ARMY || m_type == LONG_RANGE_ARMY)
 	{
 		IntVector2 minimapMins = GetMiniMapMins();
@@ -373,7 +306,7 @@ void Entity::UpdateCoveredArea()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::EvaluateNN(Task * type,EntityState previousState,IntVector2 cords)
+void Entity::EvaluateStrategies(Task * type,EntityState previousState,IntVector2 cords)
 {
 	UNUSED(previousState);
 	UNUSED(cords);
@@ -386,7 +319,7 @@ void Entity::EvaluateNN(Task * type,EntityState previousState,IntVector2 cords)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::UpdateNN(float deltaTime)
+void Entity::UpdateNeuralNetork(float deltaTime)
 {
 	UNUSED(deltaTime);
 	
@@ -396,7 +329,7 @@ void Entity::UpdateNN(float deltaTime)
 	}
 
 	std::vector<double> m_gameStats;
-	NNInputs inputs = GetMyNNInputs();
+	NNInputs inputs = GetMyNNInputsFromMap();
 	m_gameStats.push_back(inputs.m_allyArmySpawnerCount				);
 	m_gameStats.push_back(inputs.m_allyCiviliansCount				);
 	m_gameStats.push_back(inputs.m_allyLongRangeArmyCount			);
@@ -445,8 +378,9 @@ void Entity::UpdateNN(float deltaTime)
 	m_neuralNet.FeedForward(m_gameStats);
 }
 
-void Entity::UpdateTaskFromNN(float deltaTime)
+void Entity::RetrievePredictedBehaviorFromNNAndPushToQueue(float deltaTime)
 {
+	UNUSED(deltaTime);
 	if(m_map->HasHumanBehaviorEnabled(this))
 	{
 		return;
@@ -454,7 +388,7 @@ void Entity::UpdateTaskFromNN(float deltaTime)
 
 	if (m_map->HasRandomBehaviorEnabled(this))
 	{
-		int randomTask = GetRandomIntLessThan(m_taskTypeSupported.size());
+		int randomTask = GetRandomIntLessThan(static_cast<int>(m_taskTypeSupported.size()));
 		TaskType task = m_taskTypeSupported.at(randomTask);
 		int randomIntX = GetRandomIntLessThan(8);
 		int randomIntY = GetRandomIntLessThan(8);
@@ -490,6 +424,7 @@ void Entity::UpdateEntityState()
 void Entity::PrintDebugNN()
 {
 	if (g_skipRendering == false && g_currentSelectedEntity == this && g_enableDebugPrints && static_cast<double>(m_lastDebug + m_debugPrintDelay) < GetCurrentTimeSeconds())
+	//if(m_teamID == 2 && static_cast<double>(m_lastDebug + m_debugPrintDelay) < GetCurrentTimeSeconds() && m_type == SHORT_RANGE_ARMY)
 	{
 		m_lastDebug = static_cast<float>(GetCurrentTimeSeconds());
 		double max = 0;
@@ -509,9 +444,6 @@ void Entity::PrintDebugNN()
 			debugNN.append(ToString(GetTaskValueFromDesiredOutput(task)));
 			DebugDraw::GetInstance()->DebugRenderLogf(debugNN, m_debugPrintDelay, GetTeamColor(), GetTeamColor());
 		}
-		float maxValue = 0;
-		//int index = GetMostFavoredMoveTask(&maxValue);
-		//DebugDraw::GetInstance()->DebugRenderLogf(taskStr, m_debugPrintDelay, GetTeamColor(), GetTeamColor());
 	}
 
 }
@@ -558,8 +490,6 @@ void Entity::UpdateUnitStatForWoodGathered(int count)
 void Entity::UpdateUnitStatForFoodDropped(int count)
 {
 	m_state.m_resourceFoodDropped += count;
-	//m_scoreBoard.UpdateScoreResourceFoodCollected(count);
-	//m_map->GetMyScoreBoard(this).UpdateScoreResourceFoodCollected(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -571,8 +501,6 @@ void Entity::UpdateUnitStatForFoodDropped(int count)
 void Entity::UpdateUnitStatForStoneDropped(int count)
 {
 	m_state.m_resourceStoneDropped += count;
-	//m_scoreBoard.UpdateScoreResourceStoneCollected(count);
-	//m_map->GetMyScoreBoard(this).UpdateScoreResourceStoneCollected(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -584,8 +512,6 @@ void Entity::UpdateUnitStatForStoneDropped(int count)
 void Entity::UpdateUnitStatForWoodDropped(int count)
 {
 	m_state.m_resourceWoodDropped += count;
-	//m_scoreBoard.UpdateScoreResourceWoodCollected(count);
-	//m_map->GetMyScoreBoard(this).UpdateScoreResourceWoodCollected(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -597,8 +523,6 @@ void Entity::UpdateUnitStatForWoodDropped(int count)
 void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 {
 	m_state.m_numberOfArmySpawnerBuilt += count;
-	//m_scoreBoard.UpdateScoreArmySpawnersBuilt(count);
-	//m_map->GetMyScoreBoard(this).UpdateScoreArmySpawnersBuilt(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -610,8 +534,6 @@ void Entity::UpdateUnitStatForArmySpawnerBuilt(int count)
 void Entity::UpdateUnitStatForHouseBuilt(int count)
 {
 	m_state.m_numberOfHouseBuilt += count;
-	//m_scoreBoard.UpdateScoreHousesBuilt(count);
-	//m_map->GetMyScoreBoard(this).UpdateScoreHousesBuilt(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -623,8 +545,6 @@ void Entity::UpdateUnitStatForHouseBuilt(int count)
 void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 {
 	m_state.m_shortRangeArmySpawned += count;
-	//m_scoreBoard.UpdateScoreShortRangeArmySpawned(count);
-	//m_map->GetMyScoreBoard(this).UpdateScoreShortRangeArmySpawned(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -636,8 +556,6 @@ void Entity::UpdateUnitStatForShortRangeArmySpawned(int count)
 void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
 {
 	m_state.m_longRangeArmySpawned += count;
-	//m_scoreBoard.UpdateScoreLongRangeArmySpawned(count);
-	//m_map->GetMyScoreBoard(this).UpdateScoreLongRangeArmySpawned(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -648,37 +566,8 @@ void Entity::UpdateUnitStatForLongRangeArmySpawned(int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForEnemiesAttacked(Entity* attackedEntity ,int count)
 {
-/*
-	m_state.m_enemiesAttacked += count;
-	switch (attackedEntity->m_type)
-	{
-	case HOUSE:
-		m_scoreBoard.UpdateScoreHousesAttacked(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreHousesAttacked(count);
-		break;
-	case ARMY_SPAWNER:
-		m_scoreBoard.UpdateScoreArmySpawnersAttacked(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreArmySpawnersAttacked(count);
-		break;
-	case CIVILIAN:
-		m_scoreBoard.UpdateScoreCiviliansAttacked(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreCiviliansAttacked(count);
-		break;
-	case SHORT_RANGE_ARMY:
-		m_scoreBoard.UpdateScoreShortRangeArmySpawned(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreShortRangeArmySpawned(count);
-		break;
-	case LONG_RANGE_ARMY:
-		m_scoreBoard.UpdateScoreLongRangeArmyAttacked(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreLongRangeArmyAttacked(count);
-		break;
-	case TOWN_CENTER:
-		m_scoreBoard.UpdateScoreTownCenterAttacked(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreTownCenterAttacked(count);
-		break;
-	default:
-		break;
-	}*/
+	UNUSED(attackedEntity);
+	UNUSED(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -689,36 +578,8 @@ void Entity::UpdateUnitStatForEnemiesAttacked(Entity* attackedEntity ,int count)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::UpdateUnitStatForEnemiesKilled(Entity* attackedEntity,int count)
 {
-	/*m_state.m_enemiesKilled += count;
-	switch (attackedEntity->m_type)
-	{
-	case HOUSE:
-		m_scoreBoard.UpdateScoreHousesAttacked(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreHousesDestroyed(count);
-		break;
-	case ARMY_SPAWNER:
-		m_scoreBoard.UpdateScoreArmySpawnersDestroyed(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreArmySpawnersDestroyed(count);
-		break;
-	case CIVILIAN:
-		m_scoreBoard.UpdateScoreCiviliansKilled(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreCiviliansKilled(count);
-		break;
-	case SHORT_RANGE_ARMY:
-		m_scoreBoard.UpdateScoreShortRangeArmyKilled(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreShortRangeArmyKilled(count);
-		break;
-	case LONG_RANGE_ARMY:
-		m_scoreBoard.UpdateScoreLongRangeArmyKilled(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreLongRangeArmyKilled(count);
-		break;
-	case TOWN_CENTER:
-		m_scoreBoard.UpdateScoreTownCenterDestroyed(count);
-		m_map->GetMyScoreBoard(this).UpdateScoreTownCenterDestroyed(count);
-		break;
-	default:
-		break;
-	}*/
+	UNUSED(attackedEntity);
+	UNUSED(count);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -730,8 +591,6 @@ void Entity::UpdateUnitStatForEnemiesKilled(Entity* attackedEntity,int count)
 void Entity::UpdateUnitStatForVillagerSpawned(int count)
 {
 	m_state.m_civilianSpawned += count;
-	//m_map->GetMyScoreBoard(this).m_civiliansSpawned++;
-	//m_scoreBoard.m_civiliansSpawned++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -898,7 +757,6 @@ void Entity::RenderSelection()
 	case RESOURCE_FOOD:
 	case RESOURCE_STONE:
 	case RESOURCE_WOOD:
-	//	g_theRenderer->DrawAABB(m_aabb2, GetTeamColor());
 		break;
 	default:
 		break;
@@ -1071,7 +929,7 @@ void Entity::CopyDesiredOutputs()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::CopyDesiredStrategyValuesIntoDesiredNNOuputs()
 {
-	double max = -1;
+	double max   = -1;
 	int maxIndex = 0;
 	for(int index = 0;index < m_desiredStrategyValues.size();index++)
 	{
@@ -1114,7 +972,7 @@ void Entity::ClearDesiredStrategyValues()
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Entity::SetDesiredStrategyAsOutputForNN(Strategy strategy,int incrementValue)
+void Entity::SetDesiredStrategyValue(Strategy strategy,float incrementValue)
 {
 	m_desiredStrategy = strategy;
 	m_desiredStrategyValues.at(strategy)+= incrementValue;
@@ -1130,15 +988,15 @@ void Entity::SetDefaultStrategyAsOutputForNN()
 {
 	if(m_map->m_personality == DEFENSIVE)
 	{
-		SetDesiredStrategyAsOutputForNN(PATROL, 1);
-		m_state.m_neuralNetPoints++;
+		SetDesiredStrategyValue(PATROL, 1);
+		m_state.m_neuralNetTrainingCount++;
 		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
 		return;
 	}
 	if (m_map->m_personality == AGGRESSIVE)
 	{
-		SetDesiredStrategyAsOutputForNN(RETREAT, 1);
-		m_state.m_neuralNetPoints++;
+		SetDesiredStrategyValue(RETREAT, 1);
+		m_state.m_neuralNetTrainingCount++;
 		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
 		return;
 	}
@@ -1340,6 +1198,11 @@ bool Entity::IsResourceNearMe(int cellDistance)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool Entity::CreateAndPushTask(TaskType taskType, IntVector2 taskPosition)
 {
+	if (GetRandomFloatZeroToOne() > m_map->m_diff)
+	{
+		int val = GetRandomIntInRange(0, static_cast<int>(m_taskTypeSupported.size())-1);
+		taskType = m_taskTypeSupported.at(val);
+	}
 	switch (taskType)
 	{
 		case TASK_IDLE:
@@ -1835,105 +1698,6 @@ IntVector2 Entity::GetTaskPositonFromNNOutput(Vector2 prevPosition, Vector2 nnOu
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/20
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-Vector2 Entity::GetPredictedNNOutputFromMapPosition(IntVector2 entityCords,IntVector2 mapCords,int width,int height)
-{
-	int xPosition = entityCords.x;
-	int yPosition = entityCords.y;
-
-	int minX = xPosition - width / 2;
-	int minY = yPosition - height / 2;
-
-	int maxX = xPosition + width / 2;
-	int maxY = yPosition + height / 2;
-
-	int mapMinX = GetMax(minX, 0);
-	int mapMinY = GetMax(minY, 0);
-
-	int mapMaxX = GetMin(maxX, m_map->m_maxWidth  - 1);
-	int mapMaxY = GetMin(maxY, m_map->m_maxHeight - 1);
-
-	if(mapMinX <= mapCords.x && mapCords.x <= mapMaxX)
-	{
-		if(mapMinY <= mapCords.y && mapCords.y <= mapMaxY)
-		{
-			int distanceX = mapCords.x - mapMinX;
-			int distanceY = mapCords.y - mapMinY;
-			float rangedX = RangeMapInt(distanceX, mapMinX, mapMaxX, 0, 1);
-			float rangedY = RangeMapInt(distanceY, mapMinY, mapMaxY, 0, 1);
-			return Vector2(rangedX, rangedY);
-		}
-	}
-
-
-	double taskXPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 2).m_value;
-	double taskYPosition = m_neuralNet.m_outputs->m_neurons.at(m_taskTypeSupported.size() - 1).m_value;
-
-	float xRangedValue = RangeMapFloat(static_cast<float>(taskXPosition), 0.f, 1.f, static_cast<float>(mapMinX) - 0.48f, static_cast<float>(mapMaxX) + 0.48f);
-	float yRangedValue = RangeMapFloat(static_cast<float>(taskYPosition), 0.f, 1.f, static_cast<float>(mapMinY) - 0.48f, static_cast<float>(mapMaxY) + 0.48f);
-	int xPos = ClampInt(RoundToNearestInt(xRangedValue), 0, m_map->m_maxWidth - 1);
-	int yPos = ClampInt(RoundToNearestInt(yRangedValue), 0, m_map->m_maxHeight - 1);
-	return Vector2(static_cast<float>(xPos), static_cast<float>(yPos));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/08
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetRelativeCellLocation(float x, float y)
-{
-	int retX = -1;
-	int retY = -1;
-	if (x > 0.66)
-	{
-		retX = 1;
-	}
-	else if(x > 0.33)
-	{
-		retX = 0;
-	}
-	
-	if (y > 0.66)
-	{
-		retY = 1;
-	}
-	else if (y > 0.33)
-	{
-		retY = 0;
-	}
-	return IntVector2(retX, retY);
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/10
-*@purpose : Retrieves a random safe area from the map
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetRandomSafeArea()
-{
-	//return IntVector2(39, 19);
-	return IntVector2(GetRandomIntInRange(m_minSafeArea.x, m_maxSafeArea.x), GetRandomIntInRange(m_minSafeArea.y, m_maxSafeArea.y));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/10
-*@purpose : Retrives a random area in the teritary
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-IntVector2 Entity::GetRandomTeritaryArea()
-{
-	return IntVector2(GetRandomIntInRange(m_minTeritaryArea.x, m_maxTeritaryArea.x), GetRandomIntInRange(m_minTeritaryArea.y, m_maxTeritaryArea.y));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/03/04
 *@purpose : NIL
 *@param   : NIL
@@ -2101,6 +1865,7 @@ std::string Entity::GetGlobalBestFilePath()
 	{
 		return "Data\\NN\\BestGame\\Defensive\\" + ToString(m_teamID) + "\\" + GetEntityTypeAsString(m_type) + "_" + ToString(m_teamID) + ".txt";
 	}
+	return "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2119,6 +1884,7 @@ std::string Entity::GetLocalBestFilePath()
 	{
 		return "Data\\NN\\" + m_map->m_folder + "\\Defensive\\" + ToString(m_teamID) + "\\" + GetEntityTypeAsString(m_type) + "_" + ToString(m_teamID) + ".txt";
 	}
+	return "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2137,7 +1903,7 @@ std::string Entity::GetGlobalBestStatFilePath()
 	{
 		return "Data\\NN\\BestGame\\Defensive\\" + ToString(m_teamID) +"\\BestStats\\" + GetEntityTypeAsString(m_type) + "_" + ToString(m_teamID) + "_STATS.txt";
 	}
-	
+	return "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2156,6 +1922,7 @@ std::string Entity::GetLocalBestStatFilePath()
 	{
 		return "Data\\NN\\" + m_map->m_folder +"\\Defensive"+ToString(m_teamID)+"\\BestStats\\"+GetEntityTypeAsString(m_type) + "_"+ToString(m_teamID) + "_STATS.txt";
 	}
+	return "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2188,7 +1955,7 @@ int Entity::GetLocalBestScore()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::SetGlobalBestScore(int globalScore)
 {
-
+	UNUSED(globalScore);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2199,7 +1966,7 @@ void Entity::SetGlobalBestScore(int globalScore)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Entity::SetLocalBestScore(int globalScore)
 {
-
+	UNUSED(globalScore);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2208,7 +1975,7 @@ void Entity::SetLocalBestScore(int globalScore)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-NNInputs Entity::GetMyNNInputs()
+NNInputs Entity::GetMyNNInputsFromMap()
 {
 
 	NNInputs inputs;
@@ -2629,17 +2396,6 @@ bool Entity::CreateAndPushBuildArmySpawnerTask(IntVector2 cordinate)
 	Task *task = new TaskBuildArmySpawner(m_map, this, mapPosition);
 	m_taskQueue.push(task);
 	return true;
-
-	/*Vector2 mapPosition = m_map->GetMapPosition(cordinate);
-	Task *task = new TaskBuildArmySpawner(m_map, this, mapPosition);
-	if (task->CheckAndReduceResources())
-	{
-		m_taskQueue.push(task);
-		return true;
-	}
-	delete task;
-	CreateAndPushIdleTask(IntVector2::ONE);
-	return false;*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2810,366 +2566,6 @@ bool Entity::CreateAndPushAttackTask(IntVector2 cordinate)
 	return true;
 }
 
-
-
-
-
-/*
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/02/19
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyIfNoEnemiesAliveToExplore(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs)
-{
-	if (inputs.m_enemyLongRangeArmyCount + inputs.m_enemyShortRangeArmyCount == 0)
-	{
-		if(inputs.m_inRangeEnemyTownCenterCount == 0)
-		{
-			SetDesiredStrategyAsOutputForNN(EXPLORE, 1);
-			m_state.m_neuralNetPoints++;
-			CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-			return true;
-		}
-		SetDesiredStrategyAsOutputForNN(ATTACK, 1);
-		m_state.m_neuralNetPoints++;
-		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-		return true;
-	}
-	return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/03/07
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyIfNoEnemiesAliveToExplore(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs functionValues, bool value)
-{
-	// ATTACK
-	NNInputVectors.at(NNInput_enemyLongRangeArmyCount)		 =  functionValues.m_enemyLongRangeArmyCount        * priority;
-	NNInputVectors.at(NNInput_enemyShortRangeArmyCount)		 =  functionValues.m_enemyShortRangeArmyCount       * priority;
-	// EXPLORE
-	// FOLLOW
-	// PATROL
-	// RETREAT
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/02/10
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyIfTownCenterUnderAttack(std::vector<double> &NNInputVectors,Strategy strategy,double priority,NNInputs functionValues)
-{
-	switch (strategy)
-	{
-	case RETREAT:
-		NNInputVectors.at(NNInput_allyTownCenterHealth) =            functionValues.m_allyTownCenterHealth           * priority;
-		NNInputVectors.at(NNInput_allyTownCenterHealthLastFrame) =  -functionValues.m_allyTownCenterHealthLastFrame  * priority;
-		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount) =      functionValues.m_inRangeAllyTownCenterCount     * priority;
-		priority--;
-		break;
-	case ATTACK:
-		NNInputVectors.at(NNInput_allyTownCenterHealth)          =   functionValues.m_allyTownCenterHealth          * priority;
-		NNInputVectors.at(NNInput_allyTownCenterHealthLastFrame) =  -functionValues.m_allyTownCenterHealthLastFrame * priority;
-		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount)    =   functionValues.m_inRangeAllyTownCenterCount    * priority;
-		break;
-	}
-	if(true)
-	{
-		//return;
-	}
-	TownCenter *townCenter = (TownCenter*)FindMyTownCenter();
-
-	if(townCenter->IsUnderAttack())
-	{
-		if(functionValues.m_inRangeAllyTownCenterCount == 0)
-		{
-			SetDesiredStrategyAsOutputForNN(RETREAT, 1);
-			m_state.m_neuralNetPoints++;
-			CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-			return true;
-		}
-		if(functionValues.m_inRangeAllyTownCenterCount != 0)
-		{
-			SetDesiredStrategyAsOutputForNN(ATTACK, 1);
-			m_state.m_neuralNetPoints++;
-			CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-			return true;
-		}
-	}
-	return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/03/08
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyIfTownCenterUnderAttack(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
-{
-
-}
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/02/10
-*@purpose : Checks if current entity is under attack and cannot overpower
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetAttackStrategyIfEntityUnderAttack(std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs)
-{
-	switch (strategy)
-	{
-	case ATTACK:
-		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount)           = inputs.m_inRangeAllyTownCenterCount         * priority;
-		NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue)    = inputs.m_inRangeAttackingEnemyHeatMapValue  * priority;
-		priority--;
-		break;
-	case RETREAT:
-		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount)           = inputs.m_inRangeAllyTownCenterCount        * priority;
-		NNInputVectors.at(NNInput_health)                               = inputs.m_health - 0.4					     * priority;
-		break;
-	}
-	if (true)
-	{
-		//return;
-	}
-
-
-
-
-	if (inputs.m_inRangeAllyTownCenterCount != 0)
-	{
-		if(inputs.m_inRangeAttackingEnemyHeatMapValue > 0)
-		{
-			SetDesiredStrategyAsOutputForNN(ATTACK, 1);
-			m_state.m_neuralNetPoints++;
-			CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-			return true;
-		}
-	}
-	
-	if(inputs.m_inRangeAllyTownCenterCount == 0)
-	{
-		if(inputs.m_health < 0.4f)
-		{
-			SetDesiredStrategyAsOutputForNN(RETREAT, 1);
-			m_state.m_neuralNetPoints++;
-			CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-			return true;
-		}
-	}
-	
-	return false;
-}
-
-
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/02/11
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs)
-{
-	switch (strategy)
-	{
-	case ATTACK:
-		NNInputVectors.at(NNInput_inRangeAttackingAllyHeatMapValue)  =  inputs.m_inRangeAttackingAllyHeatMapValue   * priority;
-		NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) = -inputs.m_inRangeAttackingEnemyHeatMapValue  * priority;
-		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount)        =  inputs.m_inRangeAllyTownCenterCount         * priority;
-		priority--;
-		break;
-	case RETREAT:
-		NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) =  inputs.m_inRangeAttackingEnemyHeatMapValue  * priority;
-		NNInputVectors.at(NNInput_inRangeAttackingAllyHeatMapValue)  = -inputs.m_inRangeAttackingAllyHeatMapValue   * priority;
-		NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) =  inputs.m_inRangeAttackingEnemyHeatMapValue  * priority;
-		break;
-	}
-	if (true)
-	{
-		//return;
-	}
-
-	if (inputs.m_inRangeAttackingAllyHeatMapValue > inputs.m_inRangeAttackingEnemyHeatMapValue && inputs.m_inRangeAttackingEnemyHeatMapValue > 0)
-	{
-		SetDesiredStrategyAsOutputForNN(ATTACK, 1);
-		m_state.m_neuralNetPoints++;
-		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-		return true;
-	}
-	
-	else if(inputs.m_inRangeAttackingAllyHeatMapValue < inputs.m_inRangeAttackingEnemyHeatMapValue && inputs.m_inRangeAttackingEnemyHeatMapValue > 0)
-	{
-		SetDesiredStrategyAsOutputForNN(RETREAT, 1);
-		m_state.m_neuralNetPoints++;
-		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-		return true;
-	}
-	if (inputs.m_inRangeStationaryEnemyHeatMapValue > 0)
-	{
-		SetDesiredStrategyAsOutputForNN(ATTACK, 1);
-		m_state.m_neuralNetPoints++;
-		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-		return true;
-	}
-	return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/03/08
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
-{
-	NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) = inputs.m_inRangeAttackingEnemyHeatMapValue   * priority;
-	NNInputVectors.at(NNInput_inRangeAttackingAllyHeatMapValue)  = inputs.m_inRangeStationaryEnemyHeatMapValue  * priority;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/02/11
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyPatrol(std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs)
-{
-	switch (strategy)
-	{
-	case PATROL:
-		NNInputVectors.at(NNInput_allyInPatrolMode )                 =  inputs.m_inRangeAttackingAllyHeatMapValue   * priority;
-		NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) = -inputs.m_inRangeAttackingEnemyHeatMapValue  * priority;
-		NNInputVectors.at(NNInput_inRangeAllyTownCenterCount)        =  inputs.m_inRangeAllyTownCenterCount         * priority;
-		break;
-	}
-
-	if(true)
-	{
-		//return true;
-	}
-
-	float enemyCount = inputs.m_enemyLongRangeArmyCount + inputs.m_enemyShortRangeArmyCount;
-	float allyCount = inputs.m_allyLongRangeArmyCount + inputs.m_allyShortRangeArmyCount;
-	if(allyCount > enemyCount)
-	{
-		return false;
-	}
-
-	if(inputs.m_allyInPatrolMode < 0.4)
-	{
-		SetDesiredStrategyAsOutputForNN(PATROL, 1);
-		m_state.m_neuralNetPoints++;
-		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-		return true;
-	}
-	return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/03/08
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyPatrol(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
-{
-	NNInputVectors.at(NNInput_allyInPatrolMode )                 =  inputs.m_inRangeAttackingAllyHeatMapValue   * priority;
-	NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) = -inputs.m_inRangeAttackingEnemyHeatMapValue  * priority;
-	NNInputVectors.at(NNInput_inRangeAllyTownCenterCount)        =  inputs.m_inRangeAllyTownCenterCount         * priority;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/02/11
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyExplore(std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs)
-{
-	switch (strategy)
-	{
-	case EXPLORE:
-		NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue)  =  0.5 * inputs.m_inRangeAttackingEnemyHeatMapValue   * priority;
-		NNInputVectors.at(NNInput_inRangeStationaryEnemyHeatMapValue) =  0.5 * inputs.m_inRangeStationaryEnemyHeatMapValue  * priority;
-		break;
-	}
-
-	if (true)
-	{
-		//return true;
-	}
-
-
-	if (inputs.m_inRangeAttackingEnemyHeatMapValue == 0 && inputs.m_inRangeStationaryEnemyHeatMapValue == 0)
-	{
-		SetDesiredStrategyAsOutputForNN(EXPLORE, 1);
-		m_state.m_neuralNetPoints++;
-		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-		return true;
-	}
-	return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/03/08
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyExplore(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
-{
-	NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue) =  inputs.m_inRangeAttackingEnemyHeatMapValue   * priority;
-	NNInputVectors.at(NNInput_inRangeStationaryEnemyHeatMapValue) = inputs.m_inRangeStationaryEnemyHeatMapValue  * priority;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/02/11
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyAttack(std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs)
-{
-	if (inputs.m_inRangeStationaryEnemyHeatMapValue > 0)
-	{
-		SetDesiredStrategyAsOutputForNN(ATTACK, 1);
-		m_state.m_neuralNetPoints++;
-		CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-		return true;
-	}
-	return false;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/ *DATE    : 2019/03/08
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool Entity::CheckAndSetStrategyAttack(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value)
-{
-	NNInputVectors.at(NNInput_inRangeAttackingEnemyHeatMapValue)  = inputs.m_inRangeAttackingEnemyHeatMapValue   * priority;
-	NNInputVectors.at(NNInput_inRangeStationaryEnemyHeatMapValue) = inputs.m_inRangeStationaryEnemyHeatMapValue  * priority;
-}*/
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/09/22
 *@purpose : NIL
@@ -3245,7 +2641,7 @@ Strategy Entity::GetStrategyFromString(std::string strategyStr)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-float ClampAndExtendTo01(float value)
+float ClampAndExtendToZeroOrOne(float value)
 {
 	if (value > 0)
 	{
@@ -3261,7 +2657,7 @@ float ClampAndExtendTo01(float value)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-bool ConvertValueToFunctionBool(float value)
+bool ConvertValueToBool(float value)
 {
 	if (value > 0)
 	{
@@ -3278,7 +2674,7 @@ bool ConvertValueToFunctionBool(float value)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool FunctionToCheckEquality(float value1, float value2)
 {
-	if(value2 == value1)
+	if(value2 == value1 || IsAlmostEqual(value1,value2))
 	{
 		return true;
 	}
@@ -3286,92 +2682,89 @@ bool FunctionToCheckEquality(float value1, float value2)
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/12
+/*DATE    : 2019/03/12
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CheckAndSetAttackStrategyIfNoEnemiesAliveTo(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1 = inputs.m_inRangeEnemyTownCenterCount;
-	float functionValue = ClampAndExtendTo01(variable1);
-	strategy = ATTACK;
-	return ConvertValueToFunctionBool(functionValue);
+	UNUSED(NNInputVectors);
+	float variable1     = static_cast<float>(inputs.m_inRangeEnemyTownCenterCount);
+	float functionValue = ClampAndExtendToZeroOrOne(variable1);
+	strategy			= ATTACK;
+	return ConvertValueToBool(functionValue);
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/12
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool CheckAndSetExploreStrategyIfNoEnemiesAliveToExplore(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1 = inputs.m_enemyLongRangeArmyCount + inputs.m_enemyShortRangeArmyCount;
-	variable1 = ClampAndExtendTo01(variable1);
+	UNUSED(NNInputVectors);
+	float variable1     = static_cast<float>(inputs.m_enemyLongRangeArmyCount + inputs.m_enemyShortRangeArmyCount);
+	variable1           = ClampAndExtendToZeroOrOne(variable1);
 	float functionValue = 1 - variable1;
 	strategy = EXPLORE;
-	return ConvertValueToFunctionBool(functionValue);
+	return ConvertValueToBool(functionValue);
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/12
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 bool CheckAndSetStrategyRetreatIfTownCenterUnderAttack(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1		= (float)FunctionToCheckEquality(inputs.m_allyTownCenterHealthLastFrame,inputs.m_allyTownCenterHealth);
+	UNUSED(NNInputVectors);
+	float variable1		= static_cast<float>(FunctionToCheckEquality(static_cast<float>(inputs.m_allyTownCenterHealthLastFrame),																	 static_cast<float>(inputs.m_allyTownCenterHealth)));
 	variable1			= 1 - variable1;
-	variable1			= ClampAndExtendTo01(variable1);
+	variable1			= ClampAndExtendToZeroOrOne(variable1);
 	float functionValue = variable1;
 	strategy			= RETREAT;
-	return ConvertValueToFunctionBool(functionValue);
+	return ConvertValueToBool(functionValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/19
+/*DATE    : 2019/03/19
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CheckAndSetStrategyAttackIfTownCenterUnderAttack(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1     = (float)FunctionToCheckEquality(inputs.m_allyTownCenterHealthLastFrame, inputs.m_allyTownCenterHealth);
+	UNUSED(NNInputVectors);
+	float variable1     = static_cast<float>(FunctionToCheckEquality(static_cast<float>(inputs.m_allyTownCenterHealthLastFrame), 
+		static_cast<float>(inputs.m_allyTownCenterHealth)));
 	variable1           = 1 - variable1;
-	variable1           = ClampAndExtendTo01(variable1);
+	variable1           = ClampAndExtendToZeroOrOne(variable1);
 
-	float variable2     = inputs.m_inRangeAllyTownCenterCount;
-	float functionValue = ClampAndExtendTo01(variable1 * variable2);
-
+	float variable2     = static_cast<float>(inputs.m_inRangeAllyTownCenterCount);
+	float functionValue = ClampAndExtendToZeroOrOne(variable1 * variable2);
+	
 	strategy = ATTACK;
-	return ConvertValueToFunctionBool(functionValue);
+	return ConvertValueToBool(functionValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/15
+/*DATE    : 2019/03/15
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CheckAndSetAttackStrategyIfEntityUnderAttack(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1 = inputs.m_inRangeAllyTownCenterCount * inputs.m_inRangeAttackingEnemyHeatMapValue;
-	variable1 = ClampAndExtendTo01(variable1);
+	UNUSED(NNInputVectors);
+	float variable1 = static_cast<float>(inputs.m_inRangeAllyTownCenterCount * (inputs.m_healthLastFrame - inputs.m_health));
+	variable1 = ClampAndExtendToZeroOrOne(variable1);
 	float functionValue = variable1;
 	strategy = ATTACK;
-	return ConvertValueToFunctionBool(functionValue);
+	return ConvertValueToBool(functionValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/15
+/*DATE    : 2019/03/15
 *@purpose : NIL
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CheckAndSetRetreatStrategyIfEntityUnderAttack(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1 = (1 - inputs.m_inRangeAllyTownCenterCount) * inputs.m_health;
-	if (inputs.m_health < 0.4f)
+	UNUSED(NNInputVectors);
+	float variable1 = static_cast<float>((1.f - inputs.m_inRangeAllyTownCenterCount) * inputs.m_health);
+	if (inputs.m_healthLastFrame != inputs.m_health  && inputs.m_health < 0.5f)
 	{
 		variable1 = 0.5;
 	}
@@ -3379,20 +2772,10 @@ bool CheckAndSetRetreatStrategyIfEntityUnderAttack(std::vector<double> &NNInputV
 	{
 		variable1 = 0.f;
 	}
-	variable1			= ClampAndExtendTo01(variable1);
+	variable1			= ClampAndExtendToZeroOrOne(variable1);
 	float functionValue = variable1;
 	strategy			= RETREAT;
-	return ConvertValueToFunctionBool(functionValue);
-	/*if (inputs.m_inRangeAllyTownCenterCount == 0)
-	{
-	if (inputs.m_health < 0.4f)
-	{
-	SetDesiredStrategyAsOutputForNN(RETREAT, 1);
-	m_state.m_neuralNetPoints++;
-	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-	return true;
-	}
-	}*/
+	return ConvertValueToBool(functionValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3403,18 +2786,12 @@ bool CheckAndSetRetreatStrategyIfEntityUnderAttack(std::vector<double> &NNInputV
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CheckAndSetAttackStrategyIfEnemiesOutweighs(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1		= (inputs.m_inRangeAttackingAllyHeatMapValue - inputs.m_inRangeAttackingEnemyHeatMapValue)*inputs.m_inRangeAttackingEnemyHeatMapValue;
-	variable1			= ClampAndExtendTo01(variable1);
+	UNUSED(NNInputVectors);
+	float variable1		= static_cast<float>(inputs.m_inRangeAttackingAllyHeatMapValue - inputs.m_inRangeAttackingEnemyHeatMapValue) *static_cast <float>(inputs.m_inRangeAttackingEnemyHeatMapValue);
+	variable1			= ClampAndExtendToZeroOrOne(variable1);
 	float functionValue = variable1;
 	strategy			= ATTACK;
-	return ConvertValueToFunctionBool(functionValue);
-	/*if (inputs.m_inRangeAttackingAllyHeatMapValue > inputs.m_inRangeAttackingEnemyHeatMapValue && inputs.m_inRangeAttackingEnemyHeatMapValue > 0)
-	{
-	SetDesiredStrategyAsOutputForNN(ATTACK, 1);
-	m_state.m_neuralNetPoints++;
-	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-	return true;
-	}*/
+	return ConvertValueToBool(functionValue);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/15
@@ -3424,19 +2801,12 @@ bool CheckAndSetAttackStrategyIfEnemiesOutweighs(std::vector<double> &NNInputVec
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CheckAndSetRetreatStrategyIfEnemiesOutweighs(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1		= (inputs.m_inRangeAttackingEnemyHeatMapValue - inputs.m_inRangeAttackingAllyHeatMapValue)*inputs.m_inRangeAttackingEnemyHeatMapValue;
-	variable1			= ClampAndExtendTo01(variable1);
+	UNUSED(NNInputVectors);
+	float variable1		= static_cast<float>(inputs.m_inRangeAttackingEnemyHeatMapValue - inputs.m_inRangeAttackingAllyHeatMapValue*inputs.m_inRangeAttackingEnemyHeatMapValue);
+	variable1			= ClampAndExtendToZeroOrOne(variable1);
 	float functionValue = variable1;
 	strategy			= RETREAT;
-	return ConvertValueToFunctionBool(functionValue);
-
-	/*if (inputs.m_inRangeAttackingAllyHeatMapValue < inputs.m_inRangeAttackingEnemyHeatMapValue && inputs.m_inRangeAttackingEnemyHeatMapValue > 0)
-	{
-	SetDesiredStrategyAsOutputForNN(RETREAT, 1);
-	m_state.m_neuralNetPoints++;
-	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-	return true;
-	}*/
+	return ConvertValueToBool(functionValue);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/15
@@ -3446,11 +2816,12 @@ bool CheckAndSetRetreatStrategyIfEnemiesOutweighs(std::vector<double> &NNInputVe
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CheckAndSetStrategyPatrol(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1 = inputs.m_inRangeAttackingEnemyHeatMapValue + inputs.m_inRangeStationaryEnemyHeatMapValue;
-	variable1 = ClampAndExtendTo01(variable1);
+	UNUSED(NNInputVectors);
+	float variable1 = static_cast<float>(inputs.m_inRangeAttackingEnemyHeatMapValue + inputs.m_inRangeStationaryEnemyHeatMapValue);
+	variable1 = ClampAndExtendToZeroOrOne(variable1);
 	variable1 = 1 - variable1;
-	variable1 = ClampAndExtendTo01(variable1);
-	if(inputs.m_allyInPatrolMode < 0.4) 
+	variable1 = ClampAndExtendToZeroOrOne(variable1);
+	if(inputs.m_allyInPatrolMode < 0.1) 
 	{
 		variable1 = 0.5;
 	}
@@ -3460,16 +2831,7 @@ bool CheckAndSetStrategyPatrol(std::vector<double> &NNInputVectors, Strategy &st
 	}
 	float functionValue = variable1;
 	strategy = PATROL;
-	return ConvertValueToFunctionBool(functionValue);
-
-	/*if (inputs.m_allyInPatrolMode < 0.4)
-	{
-	SetDesiredStrategyAsOutputForNN(PATROL, 1);
-	m_state.m_neuralNetPoints++;
-	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-	return true;
-	}
-	return false;*/
+	return ConvertValueToBool(functionValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3480,22 +2842,14 @@ bool CheckAndSetStrategyPatrol(std::vector<double> &NNInputVectors, Strategy &st
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CheckAndSetStrategyExplore(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1		= inputs.m_inRangeAttackingEnemyHeatMapValue + inputs.m_inRangeStationaryEnemyHeatMapValue;
-	variable1			= ClampAndExtendTo01(variable1);
+	UNUSED(NNInputVectors);
+	float variable1		= static_cast<float>(inputs.m_inRangeAttackingEnemyHeatMapValue + inputs.m_inRangeStationaryEnemyHeatMapValue);
+	variable1			= ClampAndExtendToZeroOrOne(variable1);
 	variable1			= 1 - variable1;
-	variable1			= ClampAndExtendTo01(variable1);
+	variable1			= ClampAndExtendToZeroOrOne(variable1);
 	float functionValue = variable1;
 	strategy			= EXPLORE;
-	return ConvertValueToFunctionBool(functionValue);
-
-	/*if (inputs.m_inRangeAttackingEnemyHeatMapValue == 0 && inputs.m_inRangeStationaryEnemyHeatMapValue == 0)
-	{
-	SetDesiredStrategyAsOutputForNN(EXPLORE, 1);
-	m_state.m_neuralNetPoints++;
-	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-	return true;
-	}
-	return false;*/
+	return ConvertValueToBool(functionValue);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3506,19 +2860,10 @@ bool CheckAndSetStrategyExplore(std::vector<double> &NNInputVectors, Strategy &s
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool CheckAndSetStrategyAttack(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs)
 {
-	float variable1		= inputs.m_inRangeStationaryEnemyHeatMapValue;
-	variable1			= ClampAndExtendTo01(variable1);
+	UNUSED(NNInputVectors);
+	float variable1		= static_cast<float>(inputs.m_inRangeStationaryEnemyHeatMapValue);
+	variable1			= ClampAndExtendToZeroOrOne(variable1);
 	float functionValue = variable1;
 	strategy			= ATTACK;
-	return ConvertValueToFunctionBool(functionValue);
-
-	/*
-	if (inputs.m_inRangeStationaryEnemyHeatMapValue > 0)
-	{
-	SetDesiredStrategyAsOutputForNN(ATTACK, 1);
-	m_state.m_neuralNetPoints++;
-	CopyDesiredStrategyValuesIntoDesiredNNOuputs();
-	return true;
-	}
-	return false;*/
+	return ConvertValueToBool(functionValue);
 }

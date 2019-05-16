@@ -64,7 +64,7 @@ public:
 		m_hasResource					= state.m_hasResource;
 		m_position						= state.m_position;
 
-		m_neuralNetPoints				= state.m_neuralNetPoints;
+		m_neuralNetTrainingCount				= state.m_neuralNetTrainingCount;
 
 		for(int index = 0;index < m_favoredMoveTaskCount.size();index++)
 		{
@@ -111,7 +111,7 @@ public:
 	int   m_numTimesFavoredMoveToAllyArmy		 = 0;
 	int   m_numTimesFavoredMoveToAllyTownCenter  = 0;*/
 
-	int		m_neuralNetPoints			= 0;
+	int		m_neuralNetTrainingCount			= 0;
 	Vector2	m_position;
 
 };
@@ -282,12 +282,8 @@ public:
 	double							GetTaskValueFromDesiredOutput(TaskType type);
 	virtual TaskType				GetTaskFromNNOutput(double &max);
 	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition);
-	Vector2							GetPredictedNNOutputFromMapPosition(IntVector2 entityCords,IntVector2 mapCords,int width,int height);
 	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition,int width,int height);
 	IntVector2						GetTaskPositonFromNNOutput(Vector2 prevPosition,Vector2 nnOutput, int width, int height);
-	IntVector2						GetRelativeCellLocation(float x, float y);
-	IntVector2						GetRandomSafeArea();
-	IntVector2						GetRandomTeritaryArea();
 	IntVector2						GetMiniMapMins();
 	IntVector2						GetMiniMapMaxs();
 	Task *							GetRandomTaskByType(TaskType type);
@@ -303,7 +299,7 @@ public:
 	virtual void					SetGlobalBestScore(int globalScore);
 	virtual void					SetLocalBestScore (int globalScore);
 
-	NNInputs						GetMyNNInputs();
+	NNInputs						GetMyNNInputsFromMap();
 
 	bool							IsStationaryEntity();
 	bool							HasResource();
@@ -325,16 +321,16 @@ public:
 
 	void							InitNeuralNet();
 	void							InitStates();
-	void							InitPersonality();
+	virtual void					InitPersonality();
 	void							ProcessInputs(float deltaTime);
 
 	void							Update(float deltaTime);
 	void							UpdateCoveredArea();
 	void							UpdateTask();
-	virtual void					EvaluateNN(Task *task,EntityState previousState,IntVector2 cords);
-	virtual void					TrainNN(Task *task);
-	void							UpdateNN(float deltaTime);
-	void							UpdateTaskFromNN(float deltaTime);
+	virtual void					EvaluateStrategies(Task *task,EntityState previousState,IntVector2 cords);
+	virtual void					TrainNeuralNetwork(Task *task);
+	void							UpdateNeuralNetork(float deltaTime);
+	void							RetrievePredictedBehaviorFromNNAndPushToQueue(float deltaTime);
 	
 	void							UpdateEntityState();
 	void							PrintDebugNN();
@@ -370,7 +366,7 @@ public:
 	void							CopyDesiredOutputs();
 	void							CopyDesiredStrategyValuesIntoDesiredNNOuputs();
 	void							ClearDesiredStrategyValues();
-	void							SetDesiredStrategyAsOutputForNN(Strategy strategy,int incrementValue);
+	void							SetDesiredStrategyValue(Strategy strategy,float incrementValue);
 	void							SetDefaultStrategyAsOutputForNN();
 	void							ClearDesiredOutputs();
 	void							SetDesiredOutputForTask(TaskType type,float value);
@@ -404,42 +400,13 @@ public:
 	bool							CreateAndPushExploreTask(IntVector2 cordinate);
 	bool							CreateAndPushAttackTask(IntVector2 cordinate);
 
-/*
-	bool							CheckAndSetStrategyIfNoEnemiesAliveToAttack		(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);
-	bool							CheckAndSetStrategyIfNoEnemiesAliveToExplore    (std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);
-	bool							CheckAndSetStrategyIfTownCenterUnderAttack		(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);
-	bool							CheckAndSetAttackStrategyIfEntityUnderAttack	(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);
-	bool							CheckAndSetRetreatStrategyIfEntityUnderAttack	(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);
-	bool							CheckAndSetAttackStrategyIfEnemiesOutweighs		(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);
-	bool							CheckAndSetRetreatStrategyIfEnemiesOutweighs	(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);
-	bool							CheckAndSetStrategyPatrol						(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);
-	bool							CheckAndSetStrategyExplore						(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);
-	bool							CheckAndSetStrategyAttack						(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);*/
-
-	/*bool							CheckAndSetStrategyIfNoEnemiesAliveToExplore        (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
-	bool							CheckAndSetStrategyIfTownCenterUnderAttack (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
-	bool							CheckAndSetAttackStrategyIfEntityUnderAttack     (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
-	bool							CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy,double priority, NNInputs inputs);
-	bool							CheckAndSetStrategyPatrol			       (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
-	bool							CheckAndSetStrategyExplore				   (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
-	bool							CheckAndSetStrategyAttack				   (std::vector<double> &NNInputVectors, Strategy strategy,double priority,NNInputs inputs);
-
-	bool CheckAndSetStrategyIfNoEnemiesAliveToExplore        (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
-	bool CheckAndSetStrategyIfTownCenterUnderAttack		(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
-	bool CheckAndSetAttackStrategyIfEntityUnderAttack     (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
-	bool CheckAndSetStrategyIfEnemiesOutweighsAllies(std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
-	bool CheckAndSetStrategyPatrol			        (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
-	bool CheckAndSetStrategyExplore				    (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);
-	bool CheckAndSetStrategyAttack				    (std::vector<double> &NNInputVectors, Strategy strategy, double priority, NNInputs inputs, bool value);*/
-
-
 	static std::string				GetEntityTypeAsString(EntityType entityType);
 	static std::string				GetStrategyAsString(Strategy strategy);
 	static Strategy					GetStrategyFromString(std::string strategyStr);
 };
 
-float							ClampAndExtendTo01(float value);
-bool							ConvertValueToFunctionBool(float value);
+float							ClampAndExtendToZeroOrOne(float value);
+bool							ConvertValueToBool(float value);
 bool							FunctionToCheckEquality(float value1, float value2);
 
 bool							CheckAndSetAttackStrategyIfNoEnemiesAliveTo			(std::vector<double> &NNInputVectors, Strategy &strategy, NNInputs inputs);

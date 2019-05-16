@@ -91,11 +91,8 @@ void ArmySpawner::EvaluateNN(Task *task, EntityState previousState, IntVector2 c
 	case TASK_SPAWN_CLASSB_WARRIOR:
 		EvaluateLongRangeArmySpawnTask(previousState, cords);
 		break;
-	case TASK_IDLE:
-		EvaluateIdleTask(previousState, cords);
-		break;
 	}
-	Entity::EvaluateNN(task,previousState,cords);
+	Entity::EvaluateStrategies(task,previousState,cords);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -107,7 +104,7 @@ void ArmySpawner::EvaluateNN(Task *task, EntityState previousState, IntVector2 c
 void ArmySpawner::EvaluateShortRangeArmySpawnTask(EntityState previousState, IntVector2 cords)
 {
 	UNUSED(cords);
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	if (previousState.m_shortRangeArmySpawned == m_state.m_shortRangeArmySpawned)
 	{
 		m_desiredOuputs.at(0) = 0;
@@ -149,7 +146,7 @@ void ArmySpawner::EvaluateShortRangeArmySpawnTask(EntityState previousState, Int
 void ArmySpawner::EvaluateLongRangeArmySpawnTask(EntityState previousState, IntVector2 cords)
 {
 	UNUSED(cords);
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	if (previousState.m_longRangeArmySpawned == m_state.m_longRangeArmySpawned)
 	{
 		m_desiredOuputs.at(1) = 0;
@@ -183,37 +180,6 @@ void ArmySpawner::EvaluateLongRangeArmySpawnTask(EntityState previousState, IntV
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/11/12
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ArmySpawner::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
-{
-	UNUSED(cords);
-	m_state.m_neuralNetPoints++;
-	if (m_teamID == 1 && m_map->m_gameStats.m_numOfLongRangeArmyTeam1 >= g_maxLongRangeArmyCount && m_map->m_gameStats.m_numOfShortRangeArmyTeam1 >= g_maxShortRangeArmyCount)
-	{
-		m_desiredOuputs.at(2) = 1;
-		return;
-	}
-	if (m_teamID == 2 && m_map->m_gameStats.m_numOfLongRangeArmyTeam2 >= g_maxLongRangeArmyCount && m_map->m_gameStats.m_numOfShortRangeArmyTeam2 >= g_maxShortRangeArmyCount)
-	{
-		m_desiredOuputs.at(2) = 1;
-		return;
-	}
-
-	if(m_map->HasEnoughResourceToSpawnLongRangeArmy(m_teamID) || m_map->HasEnoughResourceToSpawnShortRangeArmy(m_teamID))
-	{
-		m_desiredOuputs.at(2) = 0;
-		return;
-	}
-	
-	m_desiredOuputs.at(2) = 1;
-	return;
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/01/31
 *@purpose : NIL
 *@param   : NIL
@@ -230,32 +196,6 @@ int ArmySpawner::GetGlobalBestScore()
 		return g_globalMaxScoreArmySpawnerTeam2;
 	}
 	return 0;
-/*switch (m_strategy)
-	{
-	case ATTACK:
-		if(m_teamID == 1)
-		{
-			return g_globalAttackMaxScoreArmySpawnerTeam1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_globalAttackMaxScoreArmySpawnerTeam2;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			return g_globalDefenseMaxScoreArmySpawnerTeam1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_globalDefenseMaxScoreArmySpawnerTeam2;
-		}
-		break;
-	default:
-		break;
-	}
-	return 0;*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -275,32 +215,6 @@ int ArmySpawner::GetLocalBestScore()
 		return g_localMaxScoreArmySpawnerTeam2;
 	}
 	return 0;
-	/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			return g_localAttackMaxScoreArmySpawnerTeam1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_localAttackMaxScoreArmySpawnerTeam2;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			return g_localDefenseMaxScoreArmySpawnerTeam1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_localDefenseMaxScoreArmySpawnerTeam2;
-		}
-		break;
-	default:
-		break;
-	}
-	return 0;*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -319,32 +233,6 @@ void ArmySpawner::SetGlobalBestScore(int value)
 	{
 		g_globalMaxScoreArmySpawnerTeam2 = value;
 	}
-
-/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			g_globalAttackMaxScoreArmySpawnerTeam1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_globalAttackMaxScoreArmySpawnerTeam2 = value;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			g_globalDefenseMaxScoreArmySpawnerTeam1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_globalDefenseMaxScoreArmySpawnerTeam2 = value;
-		}
-		break;
-	default:
-		break;
-	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -363,32 +251,6 @@ void ArmySpawner::SetLocalBestScore(int value)
 	{
 		g_localMaxScoreArmySpawnerTeam2 = value;
 	}
-
-	/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			g_localAttackMaxScoreArmySpawnerTeam1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_localAttackMaxScoreArmySpawnerTeam2 = value;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			g_localDefenseMaxScoreArmySpawnerTeam1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_localDefenseMaxScoreArmySpawnerTeam2 = value;
-		}
-		break;
-	default:
-		break;
-	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

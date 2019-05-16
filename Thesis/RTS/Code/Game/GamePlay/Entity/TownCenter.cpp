@@ -292,7 +292,7 @@ void TownCenter::EvaluateNN(Task *task, EntityState previousState, IntVector2 co
 		EvaluateIdleTask(previousState, cords);
 		break;
 	}
-	Entity::EvaluateNN(task, previousState, cords);
+	Entity::EvaluateStrategies(task, previousState, cords);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -304,7 +304,7 @@ void TownCenter::EvaluateNN(Task *task, EntityState previousState, IntVector2 co
 void TownCenter::EvaluateSpawnCivilianTask(EntityState previousState, IntVector2 cords)
 {
 	UNUSED(cords);
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	if (m_state.m_civilianSpawned == previousState.m_civilianSpawned)
 	{
 		m_desiredOuputs.at(0) = 0;
@@ -339,7 +339,7 @@ void TownCenter::EvaluateSpawnCivilianTask(EntityState previousState, IntVector2
 void TownCenter::EvaluateIdleTask(EntityState previousState, IntVector2 cords)
 {
 	UNUSED(cords);
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	m_desiredOuputs.at(1) = 1;
 	if (m_teamID == 1 && m_map->m_gameStats.m_numOfCiviliansTeam1 > g_maxCivilianCount)
 	{

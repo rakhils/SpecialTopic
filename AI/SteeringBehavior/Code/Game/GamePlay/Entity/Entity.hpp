@@ -22,7 +22,7 @@ public:
 	void						Init();
 
 	void						SetMap(Map *map);
-
+	inline void 				SetPosition(Vector2 position);
 	void						ProcessInputs(float deltaTime);
 	void						Update(float deltaTime);
 

@@ -43,6 +43,7 @@ public:
 	Matrix44	m_projection;
 	Matrix44	m_view;
 	Matrix44	m_model;
+	Matrix44    m_cameraMatrix;
 
 	float		m_xZoomIn = 0.f;
 	float       m_yZoomIn = 0.f;
@@ -63,6 +64,7 @@ public:
 	Vector3		GetCameraRightVector();
 	Vector3		GetCameraForwardVector();
 	Vector3		GetCameraUpVector();
+	void        SetDefaultFramebuffer(FrameBuffer *frameBuffer);
 	void		SetProjection(Matrix44 const &proj);
 	void		SetViewMatrix(Matrix44 view);
 	void		SetModelMatrix(Matrix44 model);

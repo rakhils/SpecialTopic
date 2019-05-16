@@ -41,29 +41,30 @@ void Game::InitCamera()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Game::UpdateMainMenu(float deltaTime)
 {
+	UNUSED(deltaTime);
 	if(InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_1))
 	{
 		m_map = new Map();
-		m_map->m_mapType = SEEK_ARRIVE_BEHAVIOR;
+		m_map->m_mapType = MAP_TYPE_SEEK_ARRIVE_BEHAVIOR;
 		m_gameMode = GAME_PLAY;
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_2))
 	{
 		m_map = new Map();
-		m_map->m_mapType = FLOW_FIELD_BEHAVIOR;
+		m_map->m_mapType = MAP_TYPE_FLOW_FIELD_BEHAVIOR;
 		m_gameMode = GAME_PLAY;
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_3))
 	{
 		m_map = new Map();
-		m_map->m_mapType = PATH_FOLLOWING;
+		m_map->m_mapType = MAP_TYPE_PATH_FOLLOWING;
 		m_gameMode = GAME_PLAY;
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_4))
 	{
 		m_map = new Map();
-		m_map->InitSample();
-		m_map->m_mapType = SAMPLE;
+		m_map->InitEntities();
+		m_map->m_mapType = MAP_TYPE_UNKNOWN;
 		m_gameMode = GAME_PLAY;
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_ESCAPE))

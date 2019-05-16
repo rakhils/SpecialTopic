@@ -89,6 +89,7 @@ bool TaskPatrol::DoTask(float delatTime)
 	default:
 		break;
 	}
+	return true;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -118,8 +119,6 @@ bool TaskPatrol::DoMoveTask(float deltaTime)
 		if(m_subType == PATROL_MOVE_TO_START)
 		{
 			return true;
-			//m_subType = PATROL_MOVE_TO_TARGET;
-			//InitPatrolBehavior();
 		}
 		else
 		if(m_subType == PATROL_MOVE_TO_TARGET)

@@ -297,32 +297,32 @@ void NeuralNetwork::DoBackPropogation(std::vector<double> &knownOutputs)
 	// 
 	// 
 	// PARTIAL DERIVATIVES
-	//	 d ErrorTotal		 d ErrorTotal		 d Out O1		d Net 01
-	//	--------------	=	--------------	*   ----------  *  ----------
-	//		d W n			  d Out O1		     d Net O1        d W n
+	//	d Cost Function	  	 d Cost Function  		 d Out O1		d Net 01
+	//	--------------	  =	--------------	    *   ----------  *  ----------
+	//		d W n		  	  d Out O1		         d Net O1        d W n
 	//  
 	//  
-	//						 1									 1		
-	//	 ErrorTotal     =	--- *  (target O1 - Out1) ^ 2   + 	--- * (target O2 - Out2) ^ 2					
-	//						 2									 2
+	//						      1									 1		
+	//	Cost Function     =	     --- *  (target O1 - Out1) ^ 2   + 	--- * (target O2 - Out2) ^ 2			// summation		
+	//						      2									 2
 	//
-	//   d ErrorTotal		 1		
-	//	 -----------    =   --- * 2 * (target O1 - Out1) * -1
-	// 	  d Out O1			 2
+	//   d Cost Function		  1		
+	//	 -----------      =      --- * 2 * (target O1 - Out1) * -1
+	// 	  d Out O1			      2
 	//
 	// 
 	//     d Out 01 
-	//   ------------   =   Out 01 * ( 1- Out 01)               // Derivative of Sigmoid
+	//   ------------     =   Out 01 * ( 1- Out 01)               // Derivative of Sigmoid
 	//	   d Net 01
 	//
 	//
 	//	   d Net 01
-	//	 ------------	=   Out H1								// (Net 01 = W1 * OutH1  +  W2 * OutH2 ) 
+	//	 ------------	  =   Out H1								// (Net 01 = W1 * OutH1  +  W2 * OutH2 ) 
 	//		d W n
 	// 
 	// 
-	//  d ErrorTotal	
-	// --------------	= (Out1 - targetO1)  *  Out 01 * ( 1- Out 01)  *  Out H1
+	//  d Cost Function	
+	// --------------	   = (Out1 - targetO1)  *  Out 01 * ( 1- Out 01)  *  Out H1
 	// 	    d W n		
 void NeuralNetwork::BackPropogateOuputToHiddenLayer(std::vector<double> &knownOutputs)
 {
@@ -346,9 +346,9 @@ void NeuralNetwork::BackPropogateOuputToHiddenLayer(std::vector<double> &knownOu
 	}
 
 
-	//					d ErrorTotal    1		 
-	//	Calculating		 ----------  =  -- * 2 * (target O1 - Out1) * -1 
-	//					  d Net 01      2
+	//					d Cost Function    1		 
+	//	Calculating		 ----------    =  --- * 2 * (target O1 - Out1) * -1 
+	//					  d Net 01         2
 	////////////////////////////////////////////////////////////////////////////
 	std::vector<double> outputErrorDerivatives;
 	outputErrorDerivatives.reserve(knownOutputs.size());
@@ -381,8 +381,6 @@ void NeuralNetwork::BackPropogateOuputToHiddenLayer(std::vector<double> &knownOu
 
 	// CALCULATING TOTAL DERIVATIVE
 	// OUPUT ERROR * SIGMOID DERIVATIVE OF OUTPUT * HIDDENLAYER OUTPUT  :-  OE * ( O * (1 - O)) * OutHn
-	//std::vector<float> outputGradient;
-	//outputGradient.reserve(m_hiddenLayers->m_neurons.size() * m_outputs->m_neurons.size());
 
 	for (size_t outputIndex = 0; outputIndex < m_outputs->m_neurons.size(); outputIndex++)
 	{

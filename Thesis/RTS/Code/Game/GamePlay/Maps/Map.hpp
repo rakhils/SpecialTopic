@@ -143,6 +143,7 @@ public:
 	bool							m_isScoreBoardUpdated = false;
 	bool							m_firstTime = true;
 	int								m_counter = 0;
+	float							m_diff = 1.f;
 
 	ScoreCardByActions				m_team1ScoreCard;
 	ScoreCardByActions				m_team2ScoreCard;
@@ -181,7 +182,6 @@ public:
 	bool							HasFeedForwardEnabled(Entity *entity);
 	bool							HasRandomBehaviorEnabled(Entity *entity);
 	bool							HasHumanBehaviorEnabled(Entity *entity);
-
 
 	Entity*							CreateCivilian(Vector2 position, int teamID);
 	Entity*							CreateArmySpawner(Vector2 position, int teamID);
@@ -268,6 +268,7 @@ public:
 	void							CheckAndClearEntityOverlap();
 
 	void							DeleteFromMovableEntityList(Entity *entity);
+	void							DeleteFromSelectedEntityList(Entity *entity);
 	void							DeleteFromStandAlonEntityList(Entity *entity);
 
 	void							ProcessInputForMultipleSelection(float deltaTime);
@@ -307,8 +308,6 @@ public:
 
 	void							RenderMousePosition();
 	void							RenderWinState();
-
-	void							RenderCensoryValues();
 
 	static std::string				GetMapModeAsString(MapMode mode);
 };

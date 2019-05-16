@@ -17,6 +17,7 @@ class ClassAWarrior : public Entity
 public:
 	//Member_Variables
 	float m_lastAttackTime = 0.f;
+	Strategy m_currentStr = IDLE;
 	//Static_Member_Variables
 
 	//Methods
@@ -32,19 +33,12 @@ public:
 	int		 GetLocalBestScore();
 	void	 SetGlobalBestScore(int value);
 	void	 SetLocalBestScore (int value);
+	void     InitPersonality();
 
-	void	 TrainNN(Task *task);
-	void	 EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
+	void	 TrainNeuralNetwork(Task *task);
+	void	 EvaluateStrategies(Task *task, EntityState previousState, IntVector2 cords);
 	void	 EvaluateNNDefensive(Task *task, EntityState previousState, IntVector2 cords);
-	void	 EvaluateNN(Task *task, EntityState previousState, IntVector2 cords,bool value);
 
-	void     EvaluateDefenseTask(EntityState previousState, IntVector2 cords);
-	void     EvaluateAttackTask(EntityState previousState, IntVector2 cords);
-
-	void	 EvaluateMoveTask(EntityState previousState, IntVector2 cords);
-	void	 EvaluateShortAttackTask(EntityState previousState, IntVector2 cords);
-	void	 EvaluateIdleTask(EntityState previousState, IntVector2 cords);
-			 
 	void	 Render();
 			 
 	bool	 IsInRange(int tileIndex);

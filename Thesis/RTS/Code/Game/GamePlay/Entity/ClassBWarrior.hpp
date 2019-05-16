@@ -35,13 +35,10 @@ public:
 	TaskType GetTaskFromNNOutput(double &max);
 	int		 GetGlobalBestScore();
 	int		 GetLocalBestScore();
-	void		 SetGlobalBestScore(int value);
-	void		 SetLocalBestScore (int value);
-	void TrainNN(Task *task);
+	void	 SetGlobalBestScore(int value);
+	void	 SetLocalBestScore (int value);
+	void TrainNeuralNetwork(Task *task);
 	void EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
-	void EvaluateMoveTask(EntityState previousState, IntVector2 cords);
-	void EvaluateLongAttackTask(EntityState previousState, IntVector2 cords);
-	void EvaluateIdleTask(EntityState previousState, IntVector2 cords);
 	void Render();
 
 	bool IsInRange(int tileIndex);

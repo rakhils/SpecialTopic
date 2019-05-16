@@ -10,6 +10,7 @@ public:
 	float						m_angle;
 	Vector2						m_forward;
 	Map *						m_map						= nullptr;
+	float						m_health;
 
 	Entity(Vector2 position);
 

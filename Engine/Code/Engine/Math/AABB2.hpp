@@ -34,4 +34,6 @@ public:
 	AABB2 operator -  (const Vector2& antiTranslation) const;
 	
 	const AABB2 Interpolate( const AABB2& start, const AABB2& end, float fractionTowardEnd );
+
+	static AABB2 ZERO;
 };

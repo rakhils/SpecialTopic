@@ -53,7 +53,25 @@ void TaskExplore::InitExploreBehaviour()
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool TaskExplore::DoTask(float deltaTime)
 {
-	return DoExploreMoveTask(deltaTime);
+	Vector2 currentPosition = m_entity->GetPosition();
+	Vector2 direction = m_targetPosition - currentPosition;
+	direction = direction.GetNormalized();
+	currentPosition += direction * m_speed * deltaTime;
+	m_entity->SetPositionInFloat(currentPosition);
+
+	if (m_map->m_mapMode == MAP_MODE_TRAINING_AGGRESSIVE || m_map->m_mapMode == MAP_MODE_TRAINING_DEFENSIVE)
+	{
+		m_entity->SetPosition(m_targetPosition);
+	}
+	Vector2 distance = m_entity->GetPosition() - m_targetPosition;
+
+	if (distance.GetLength() < 1)
+	{
+		CheckAndUpdateResourcesUsed();
+		m_entity->m_state.m_position = m_entity->GetPosition();
+		return true;
+	}
+	return false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

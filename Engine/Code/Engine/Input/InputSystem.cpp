@@ -100,12 +100,9 @@ void InputSystem::UpdateKeyboard()
 //////////////////////////////////////////////////////////////
 /*DATE    : 2017/12/19
 *@purpose : Update mouse events
-*
 *@param   : NIL
-*
 *@return  : NIL
-*/
-//////////////////////////////////////////////////////////////
+*//////////////////////////////////////////////////////////////
 void InputSystem::UpdateMouse()
 {
 	m_mouseStates.m_wasLButtonJustPressed = false;
@@ -124,6 +121,7 @@ void InputSystem::UpdateMouse()
 		SetMousePosition(m_mouse.m_positionLastFrame);
 		
 	}
+	//MouseLockToScreen(true);
 	if (m_mouse.m_mouseMode == MOUSEMODE_ABSOLUTE)
 	{
 		//ShowCursor(true);

@@ -28,12 +28,11 @@ public:
 	void EvaluateNN(Task *task, EntityState previousState, IntVector2 cords);
 	void EvaluateShortRangeArmySpawnTask(EntityState previousState, IntVector2 cords);
 	void EvaluateLongRangeArmySpawnTask(EntityState previousState, IntVector2 cords);
-	void EvaluateIdleTask(EntityState previousState, IntVector2 cords);
 
 	int		 GetGlobalBestScore();
 	int		 GetLocalBestScore();
-	void		 SetGlobalBestScore(int value);
-	void		 SetLocalBestScore (int value);
+	void	 SetGlobalBestScore(int value);
+	void	 SetLocalBestScore (int value);
 	TaskType GetTaskFromNNOutput(double &max);
 	void Update(float deltaTime);
 	void Render();

@@ -29,10 +29,7 @@ Civilian::Civilian(Map *map,Vector2 position, int teamID)
 	m_taskTypeSupported.push_back(TASK_DROP_RESOURCE);
 	m_taskTypeSupported.push_back(TASK_BUILD_ARMY_SPAWNER);
 	m_taskTypeSupported.push_back(TASK_BUILD_HOUSE);
-	//m_taskTypeSupported.push_back(TASK_MOVE);
 	m_taskTypeSupported.push_back(TASK_IDLE);
-	//m_taskTypeSupported.push_back(TASK_MOVEX);
-	//m_taskTypeSupported.push_back(TASK_MOVEY);
 	InitNeuralNet();
 	InitStates();
 	SetRandomTaskInQueue();
@@ -205,31 +202,6 @@ int Civilian::GetGlobalBestScore()
 	{
 		return g_globalMaxScoreCivilianTeam2;
 	}
-	/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			return g_globalAttackMaxScoreCivilianTeam1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_globalAttackMaxScoreCivilianTeam2;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			return g_globalDefenseMaxScoreCivilianTeam1;
-		}
-		if (m_teamID == 2)
-		{
-			return g_globalDefenseMaxScoreCivilianTeam2;
-		}
-		break;
-	default:
-		break;
-	}*/
 	return 0;
 }
 
@@ -268,31 +240,6 @@ void Civilian::SetGlobalBestScore(int value)
 	{
 		g_globalMaxScoreCivilianTeam2 = value;
 	}
-	/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			g_globalAttackMaxScoreCivilianTeam1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_globalAttackMaxScoreCivilianTeam2 = value;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			g_globalDefenseMaxScoreCivilianTeam1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_globalDefenseMaxScoreCivilianTeam2 = value;
-		}
-		break;
-	default:
-		break;
-	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -311,31 +258,6 @@ void Civilian::SetLocalBestScore(int value)
 	{
 		g_localMaxScoreCivilianTeam2 = value;
 	}
-	/*switch (m_strategy)
-	{
-	case ATTACK:
-		if (m_teamID == 1)
-		{
-			g_localAttackMaxScoreCivilianTeam1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_localAttackMaxScoreCivilianTeam2 = value;
-		}
-		break;
-	case DEFENSE:
-		if (m_teamID == 1)
-		{
-			g_localDefenseMaxScoreCivilianTeam1 = value;
-		}
-		if (m_teamID == 2)
-		{
-			g_localDefenseMaxScoreCivilianTeam2 = value;
-		}
-		break;
-	default:
-		break;
-	}*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -371,7 +293,7 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 
 	if(m_state.m_health < previousState.m_health)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		return;
 	}
 
@@ -410,7 +332,7 @@ void Civilian::EvaluateNN(Task * task,EntityState previousState,IntVector2 cords
 		break;
 	}
 	
-	Entity::EvaluateNN(task, previousState, cords);
+	Entity::EvaluateStrategies(task, previousState, cords);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -423,30 +345,16 @@ void Civilian::EvaluateMoveTask(EntityState previousState,IntVector2 cords)
 {
 	if(m_map->GetCordinates(previousState.m_position) == cords)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		return;
 	}
 
 	Entity *targetPlaceEntity = m_map->GetEntityFromPosition(cords);
 	if (targetPlaceEntity != nullptr && targetPlaceEntity != this)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		return;
 	}
-	//SetDesiredOutputForTask(TASK_MOVE, 0);
-	//m_state.m_neuralNetPoints++;
-
-	/*if(true)
-	{
-		return;
-	}
-	if (m_resourceTypeCarrying != nullptr)
-	{
-		EvaluateMoveTaskToTownCenter(previousState, cords);
-		return;
-	}
-	EvaluateMoveTaskToResource(previousState, cords);
-	return;*/
 }
 
 
@@ -459,8 +367,7 @@ void Civilian::EvaluateMoveTask(EntityState previousState,IntVector2 cords)
 void Civilian::EvaluateIdleTask(EntityState prevState)
 {
 	SetDesiredOutputForTask(TASK_IDLE, 0);
-	//SetDesiredOutputToMoveToNeighbour(prevState, 8);
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -474,7 +381,7 @@ void Civilian::EvaluateGatherResourceFoodTask(EntityState prevState,IntVector2 c
 	UNUSED(cords);
 	if (m_state.m_resourceFoodGathered == prevState.m_resourceFoodGathered)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
 		return;
 	}
@@ -486,12 +393,12 @@ void Civilian::EvaluateGatherResourceFoodTask(EntityState prevState,IntVector2 c
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		return;
 	}
 	if (resourceStat.m_food > g_maxResourceCountRequired)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
 		if (resourceStat.m_wood < g_maxResourceCountRequired)
 		{
@@ -503,7 +410,7 @@ void Civilian::EvaluateGatherResourceFoodTask(EntityState prevState,IntVector2 c
 		}
 		return;
 	}
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1);
 	return;
 }
@@ -519,7 +426,7 @@ void Civilian::EvaluateGatherResourceStoneTask(EntityState prevState, IntVector2
 	UNUSED(cords);
 	if (m_state.m_resourceStoneGathered == prevState.m_resourceStoneGathered)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
 		return;
 	}
@@ -531,12 +438,12 @@ void Civilian::EvaluateGatherResourceStoneTask(EntityState prevState, IntVector2
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		return;
 	}
 	if (resourceStat.m_stone > g_maxResourceCountRequired)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
 		if (resourceStat.m_food < g_maxResourceCountRequired)
 		{
@@ -548,7 +455,7 @@ void Civilian::EvaluateGatherResourceStoneTask(EntityState prevState, IntVector2
 		}
 		return;
 	}
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1);
 	return;
 }
@@ -564,7 +471,7 @@ void Civilian::EvaluateGatherResourceWoodTask(EntityState prevState, IntVector2 
 	UNUSED(cords);
 	if (m_state.m_resourceWoodGathered == prevState.m_resourceWoodGathered)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
 		return;
 	}
@@ -576,12 +483,12 @@ void Civilian::EvaluateGatherResourceWoodTask(EntityState prevState, IntVector2 
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		return;
 	}
 	if (resourceStat.m_wood > g_maxResourceCountRequired)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
 		if (resourceStat.m_food < g_maxResourceCountRequired)
 		{
@@ -593,7 +500,7 @@ void Civilian::EvaluateGatherResourceWoodTask(EntityState prevState, IntVector2 
 		}
 		return;
 	}
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1);
 	return;
 }
@@ -613,10 +520,10 @@ void Civilian::EvaluateDropResourceTask(EntityState prevState, IntVector2 cords)
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 0);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		return;
 	}
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	SetDesiredOutputForTask(TASK_DROP_RESOURCE, 0.0f);
 	return;
 }
@@ -632,7 +539,7 @@ void Civilian::EvaluateBuildHouseTask(EntityState prevState, IntVector2 location
 	UNUSED(location);
 	if(prevState.m_numberOfHouseBuilt == m_state.m_numberOfHouseBuilt)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.0f);
 		SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 		return;
@@ -643,13 +550,13 @@ void Civilian::EvaluateBuildHouseTask(EntityState prevState, IntVector2 location
 	{
 		if(numHouses > g_maxHousesBuilt)
 		{
-			m_state.m_neuralNetPoints++;
+			m_state.m_neuralNetTrainingCount++;
 			SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.0f);
 			SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 			return;
 		}
 	}
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.0f);
 	SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 }
@@ -665,7 +572,7 @@ void Civilian::EvaluateBuildArmySpawnerTask(EntityState prevState, IntVector2 lo
 	UNUSED(location);
 	if(prevState.m_numberOfArmySpawnerBuilt == m_state.m_numberOfArmySpawnerBuilt)
 	{
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.0f);
 		SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 		return;
@@ -675,13 +582,13 @@ void Civilian::EvaluateBuildArmySpawnerTask(EntityState prevState, IntVector2 lo
 	{
 		if (numArmySpawners > g_maxArmySpawnerBuilt)
 		{
-			m_state.m_neuralNetPoints++;
+			m_state.m_neuralNetTrainingCount++;
 			SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.0f);
 			SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 			return;
 		}
 	}
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.0f);
 	SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 }
@@ -717,7 +624,7 @@ void Civilian::TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords
 				return;
 			}
 		}
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_BUILD_HOUSE, 1.0f);
 		SetDesiredOutputForTask(TASK_MOVE, 1.0f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 0);
@@ -726,7 +633,7 @@ void Civilian::TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords
 		return;
 	}
 	
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 	SetDesiredOutputForTask(TASK_BUILD_HOUSE, 0.f);
 	Resources resourceStat = ((TownCenter*)FindMyTownCenter())->m_resourceStat;
@@ -737,7 +644,7 @@ void Civilian::TrainOnBuildHouseTask(EntityState previousState, IntVector2 cords
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD, 1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 1.f);
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		return;
 	}
 	if (resourceStat.m_food <= g_maxResourceCountRequired)
@@ -781,7 +688,7 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 				return;
 			}
 		}
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 1.0f);
 		SetDesiredOutputForTask(TASK_MOVE, 0.f);
 		
@@ -790,7 +697,7 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD, 0);
 		return;
 	}
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	SetDesiredOutputForTask(TASK_MOVE, 0.0f);
 	SetDesiredOutputForTask(TASK_BUILD_ARMY_SPAWNER, 0.f);
 	Resources resourceStat = ((TownCenter*)FindMyTownCenter())->m_resourceStat;
@@ -801,7 +708,7 @@ void Civilian::TrainOnBuildArmySpawnerTask(EntityState previousState, IntVector2
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD,  1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_STONE, 1.f);
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_WOOD,  1.f);
-		m_state.m_neuralNetPoints++;
+		m_state.m_neuralNetTrainingCount++;
 		return;
 	}
 	if (resourceStat.m_food <= g_maxResourceCountRequired)
@@ -844,7 +751,7 @@ void Civilian::TrainOnDropingResources(EntityState previousState, IntVector2 cor
 void Civilian::TrainToGatherAndDropResource(EntityState previousState, IntVector2 cords)
 {
 	UNUSED(cords);
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 	if(HasResource())
 	{
 		SetDesiredOutputForTask(TASK_GATHER_RESOURCE_FOOD,  0);
@@ -882,39 +789,6 @@ void Civilian::TrainToGatherAndDropResource(EntityState previousState, IntVector
 	}
 	SetDesiredOutputForTask(TASK_DROP_RESOURCE, 0);
 }
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/10
-*@purpose : Sets the desired output to move to safe area
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Civilian::SetDesiredOutputToMoveToSafeArea()
-{
-	IntVector2 neighbour = GetRandomSafeArea();
-	float xPosition = RangeMapFloat(static_cast<float>(neighbour.x), 0.f, static_cast<float>(m_map->m_maxWidth),  0.f, 1.f);
-	float yPosition = RangeMapFloat(static_cast<float>(neighbour.y), 0.f, static_cast<float>(m_map->m_maxHeight), 0.f, 1.f);
-	SetDesiredOutputForTask(TASK_MOVE, 1.f);
-	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
-	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
-	//m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2018/10/10
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Civilian::SetDesiredOutputToMoveToRandomArea()
-{
-	IntVector2 neighbour = GetRandomTeritaryArea();
-	float xPosition = RangeMapFloat(static_cast<float>(neighbour.x), 0.f, static_cast<float>(m_map->m_maxWidth),  0.f, 1.f);
-	float yPosition = RangeMapFloat(static_cast<float>(neighbour.y), 0.f, static_cast<float>(m_map->m_maxHeight), 0.f, 1.f);
-	SetDesiredOutputForTask(TASK_MOVE, 1.f);
-	SetDesiredOutputForTask(TASK_MOVEX, xPosition);
-	SetDesiredOutputForTask(TASK_MOVEY, yPosition);
-	//m_map->CreateExplosions(m_map->GetMapPosition(neighbour));
-}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/10/11
@@ -927,7 +801,7 @@ void Civilian::SetDesiredOutputToRandomTask()
 	int index = GetRandomIntLessThan(static_cast<int>(m_desiredOuputs.size()));
 	SetDesiredOutputForTask(m_taskTypeSupported.at(index), GetRandomFloatZeroToOne());
 	SetDesiredOutputForTask(TASK_IDLE, 0.1f);
-	m_state.m_neuralNetPoints++;
+	m_state.m_neuralNetTrainingCount++;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -941,7 +815,6 @@ void Civilian::SetDesiredOutputToMoveToTownCenter(float value,EntityState previo
 	UNUSED(value);
 	UNUSED(previousState);
 	UNUSED(cords);
-	//float currentTownCenterNearnessValue = 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -968,9 +841,9 @@ void Civilian::SetDesiredOuputForMoveToResourceTask(float value, EntityState pre
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Civilian::TrainNN(Task *task)
+void Civilian::TrainNeuralNetwork(Task *task)
 {
-	Entity::TrainNN(task);
+	Entity::TrainNeuralNetwork(task);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

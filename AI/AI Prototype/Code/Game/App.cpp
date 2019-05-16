@@ -1,19 +1,21 @@
 #include "App.hpp"
-#include "Game\Game.hpp"
-#include "Game\GameCommon.hpp"
+#include "Game.hpp"
+#include "GameCommon.hpp"
+#include "Engine\Core\Time.hpp"
+#include <Windows.h>
+#include "Engine\Math\MathUtil.hpp"
 #include "Engine\Time\Clock.hpp"
-#include "Engine\EngineSystem.hpp"
+#include "Engine\Renderer\Renderer.hpp"
+#include "Engine\Renderer\Shader.hpp"
 
 App::App()
 {
-	g_theRenderer   = Renderer::GetInstance();
-	g_theInput		= InputSystem::GetInstance();
-	g_audio			= AudioSystem::GetInstance();
-	g_theGame		= Game::GetInstance();
+	g_theRenderer = Renderer::GetInstance();
+	g_theInput = new InputSystem();
+	g_theGame = new Game();
 
 	Clock::g_theMasterClock = new Clock();
 	g_theGameClock = new Clock();
-
 }
 
 App::~App()
@@ -21,48 +23,42 @@ App::~App()
 	delete g_theGame;
 	g_theGame = nullptr;
 
-	delete g_audio;
-	g_audio = nullptr;
-
 	delete g_theInput;
 	g_theInput = nullptr;
 
 	delete g_theRenderer;
 	g_theRenderer = nullptr;
-	EngineSystem::ShutDown();
 
 }
 
 void App::RunFrame()
 {
 	Clock::g_theMasterClock->BeginFrame();
-	Renderer::GetInstance()->BeginFrame();
+	g_theRenderer->BeginFrame();
+	g_theInput->BeginFrame();
 
-	//g_audio->BeginFrame();
-
-	Update(MAX_DELTA_VALUE);
+	float deltaTime = static_cast<float>(Clock::g_theMasterClock->GetMasterDeltaTime());
+	Update(deltaTime);
 	Render();
 
-	//g_audio->EndFrame();	
-
-	Renderer::GetInstance()->EndFrame();
+	g_theInput->EndFrame();
+	g_theRenderer->EndFrame();
 }
+
+
 
 void App::Update(float deltaTime)
 {
-	g_theInput->BeginFrame();
 	g_theGame->Update(deltaTime);
-	g_theInput->EndFrame();
-
-	EngineSystem::Update(MAX_DELTA_VALUE);
-	EngineSystem::UpdateProfiler(deltaTime);
 }
 
 void App::Render()
 {
 	g_theGame->Render();
-	EngineSystem::Render();
-	EngineSystem::RenderProfiler();
+	if (DevConsole::GetInstance()->IsDevConsoleOpen())
+	{
+		DevConsole::GetInstance()->Render();
+	}
 }
 
 bool App::IsReadyToQuit()

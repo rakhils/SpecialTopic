@@ -5,14 +5,15 @@
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GameCommon.hpp"
 
-Entity::Entity()
+Entity::Entity() : Entity(g_playerStart)
 {
-	Init();
+
 }
 
 Entity::Entity(Vector2 position)
 {
-	Init();	
+	SetPosition(position);
+	Init();
 }
 
 
@@ -87,4 +88,15 @@ void Entity::Render()
 void Entity::SetMap(Map *map)
 {
 	m_map = map;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/05/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Entity::SetPosition(Vector2 position)
+{
+	m_position = position;
 }

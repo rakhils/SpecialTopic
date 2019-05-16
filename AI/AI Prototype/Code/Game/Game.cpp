@@ -15,7 +15,6 @@ Game::~Game()
 void Game::Initialize()
 {
 	m_map = new Map();
-	m_gameMode = GAME_PLAY;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -36,34 +35,13 @@ void Game::Update(float deltaTime)
 		Initialize();
 		m_init = true;
 	}
-	
-	switch (m_gameMode)
-	{
-	case MAIN_MENU:
-		UpdateMainMenu(deltaTime);
-		break;
-	case GAME_PLAY:
-		UpdateGame(deltaTime);
-		break;
-	default:
-		break;
-	}
+	UpdateGame(deltaTime);
 }
 
 
 void Game::Render()
 {
-	switch (m_gameMode)
-	{
-	case MAIN_MENU:
-		RenderMainMenu();
-		break;
-	case GAME_PLAY:
-		RenderGame();
-		break;
-	default:
-		break;
-	}
+	RenderGame();
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -93,6 +71,7 @@ void Game::UpdateGame(float deltaTime)
 		}
 		
 		m_map->Update(deltaTime);
+		DebugDraw::Update();
 	}
 }
 
@@ -107,6 +86,7 @@ void Game::RenderGame()
 	if(m_map)
 	{
 		m_map->Render();
+		DebugDraw::Render();
 	}
 }
 

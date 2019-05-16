@@ -141,60 +141,50 @@ void Task::UpdateScoreCard()
 		if (m_entity->m_teamID == 1)
 		{
 			m_map->m_team1ScoreCard.m_numOfAttackActions++;
-			//m_entity->m_scoreBoard.m_numOfAttackActions++;
 		}
 		if (m_entity->m_teamID == 2)
 		{
 			m_map->m_team2ScoreCard.m_numOfAttackActions++;
-			//m_entity->m_scoreBoard.m_numOfAttackActions++;
 		}
 		break;
 	case TASK_RETREAT:
 		if (m_entity->m_teamID == 1)
 		{
 			m_map->m_team1ScoreCard.m_numOfRetreatActions++;
-			//m_entity->m_scoreBoard.m_numOfRetreatActions++;
 		}
 		if (m_entity->m_teamID == 2)
 		{
 			m_map->m_team2ScoreCard.m_numOfRetreatActions++;
-			//m_entity->m_scoreBoard.m_numOfRetreatActions++;
 		}
 		break;
 	case TASK_FOLLOW:
-		/*if (m_entity->m_teamID == 1)
+		if (m_entity->m_teamID == 1)
 		{
 			m_map->m_team1ScoreCard.m_numOfFollowActions++;
-			m_entity->m_scoreBoard.m_numOfFollowActions++;
 		}
 		if (m_entity->m_teamID == 2)
 		{
 			m_map->m_team2ScoreCard.m_numOfFollowActions++;
-			m_entity->m_scoreBoard.m_numOfFollowActions++;
-		}*/
+		}
 		break;
 	case TASK_PATROL:
 		if (m_entity->m_teamID == 1)
 		{
 			m_map->m_team1ScoreCard.m_numOfPatrolActions++;
-			//m_entity->m_scoreBoard.m_numOfPatrolActions++;
 		}
 		if (m_entity->m_teamID == 2)
 		{
 			m_map->m_team2ScoreCard.m_numOfPatrolActions++;
-			//m_entity->m_scoreBoard.m_numOfPatrolActions++;
 		}
 		break;
 	case TASK_EXPLORE:
 		if (m_entity->m_teamID == 1)
 		{
 			m_map->m_team1ScoreCard.m_numOfExploreActions++;
-			//m_entity->m_scoreBoard.m_numOfExploreActions++;
 		}
 		if (m_entity->m_teamID == 2)
 		{
 			m_map->m_team2ScoreCard.m_numOfExploreActions++;
-			//m_entity->m_scoreBoard.m_numOfExploreActions++;
 		}
 		break;
 	}

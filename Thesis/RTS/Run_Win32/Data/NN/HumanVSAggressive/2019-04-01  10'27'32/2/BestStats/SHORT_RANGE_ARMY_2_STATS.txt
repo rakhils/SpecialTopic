@@ -1,0 +1,8 @@
+689
+TEAM STATS - TRUE
+ATTACK     - 323
+EXPLORE    - 84
+FOLLOW     - 0
+PATROL     - 102
+RETREAT    - 180
+TOTAL      - 689

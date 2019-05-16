@@ -20,6 +20,12 @@ public:
 	bool							m_init		   = false;
 	Camera *						m_camera       = nullptr;
 	std::vector<Tiles*>				m_tiles;
+	float   m_rotationX = 0.f;
+	float   m_rotationY = 0.f;
+	float   m_rotationZ = 0.f;
+	Vector3 m_cameraPosition;
+	Matrix44 m_cameraMatrix;
+	float   m_cameraSpeed = 10;
 	
 	Map();
 	~Map();

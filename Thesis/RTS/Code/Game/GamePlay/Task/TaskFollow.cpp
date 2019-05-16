@@ -88,7 +88,6 @@ bool TaskFollow::DoFollow(float deltaTime)
 				m_map->m_team2ScoreCard.m_numOfFollowActions++;
 			}
 		}
-		
 		m_entity->m_state.m_position = m_entity->GetPosition();
 		m_taskComplete = true;
 		return true;

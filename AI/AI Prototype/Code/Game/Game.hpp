@@ -1,19 +1,14 @@
 #pragma once
 
+#include "Engine/Debug/DebugDraw.hpp"
+
 #include "Game/GameCommon.hpp"
 #include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Maps/MapDefinition.hpp"
 
-enum GameMode
-{
-	MAIN_MENU,
-	GAME_PLAY
-};
-
 class Game
 {
 public:
-	GameMode					m_gameMode;
 	bool						isQuitTriggered					= false;
 	Map *						m_map							= nullptr;
 	bool						m_init							= false;

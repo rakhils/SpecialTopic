@@ -1,18 +1,22 @@
-#include "Game/GamePlay/Maps/Map.hpp"
-#include "Game/GameCommon.hpp"
-#include "Game/Game.hpp"
+// GAME RELATED
 #include "Game/App.hpp"
+#include "Game/Game.hpp"
+#include "Game/GameCommon.hpp"
+#include "Game/GamePlay/Maps/Map.hpp"
 #include "Game/GamePlay/Tiles/Tiles.hpp"
+#include "Game/GamePlay/Entity/Entity.hpp"
 
-#include "Engine/Renderer/Camera/OrthographicCamera.hpp"
-#include "Engine/Renderer/Renderer.hpp"
-#include "Engine/Renderer/Materials/Material.hpp"
+// ENGINE RELATED
+#include "Engine/Mesh/Mesh.hpp"
 #include "Engine/Math/Vector3.hpp"
 #include "Engine/Math/MathUtil.hpp"
-#include "Engine/Mesh/Mesh.hpp"
+#include "Engine/Renderer/Renderer.hpp"
 #include "Engine/Math/MathUtil.hpp"
 #include "Engine/Core/StringUtils.hpp"
+#include "Engine/Renderer/Materials/Material.hpp"
+#include "Engine/Renderer/Camera/OrthographicCamera.hpp"
 
+// Constructor
 Map::Map()
 {
 	Initialize();
@@ -20,106 +24,68 @@ Map::Map()
 
 Map::~Map()
 {
-
+	// Destructor
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/21
-*@purpose : Init the map
+*@purpose : Initialize the map
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::Initialize()
 {
 	InitCamera();
-	//InitTiles();
 	InitFlowField();
 	InitPath();
-	InitNobes();
+
+	m_entities.reserve(25);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/21
-*@purpose : Inits camera
+*@purpose : Initialize camera system (creates frame buffer set color targets)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitCamera()
 {
-	int width  = Windows::GetInstance()->GetDimensions().x;
-	int height = Windows::GetInstance()->GetDimensions().y;
+	Vector2 resoulution  = Windows::GetInstance()->GetDimensions().GetAsVector2();
 	m_camera   = new OrthographicCamera();
-	FrameBuffer *frameBuffer = new FrameBuffer();
-	m_camera->m_defaultFrameBuffer = frameBuffer;
+	m_camera->SetDefaultFramebuffer(new FrameBuffer());
 	m_camera->SetColorTarget(Texture::GetDefaultColorTargetTexture());
 	m_camera->SetDepthStencilTarget(Texture::GetDefaultDepthTargetTexture());
-	m_camera->m_transform.SetLocalPosition(Vector3(static_cast<float>(width / 2), static_cast<float>(height / 2), 0));
+	m_camera->m_transform.SetLocalPosition(resoulution/2.f);
 	Camera::SetGameplayCamera(m_camera);
 	Camera::SetCurrentCamera(m_camera);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitTiles()
-{
-	for (int tileIndex = 0; tileIndex < g_maxWidth * g_maxHeight; tileIndex++)
-	{
-		m_tiles.push_back(new Tiles());
-	}
-	Texture *texture = Texture::CreateOrGetTexture("Data\\Images\\Map.png", true, false);
-
-	for (int indexY = 0; indexY < g_maxHeight; indexY++)
-	{
-		for (int indexX = 0; indexX < g_maxWidth; indexX++)
-		{
-			int index = indexY * g_maxWidth + indexX;
-			Rgba color = texture->getTexel(index);
-			if (color != Rgba::WHITE)
-			{
-				m_tiles.at(index)->m_type = BLOCK;
-			}
-
-			int xCords = index % g_maxWidth;
-			int yCords = index / g_maxWidth;
-
-			m_tiles.at(index)->m_tileCoords = IntVector2(xCords*g_unitDistance, yCords * g_unitDistance);
-
-			IntVector2 mins = m_tiles.at(index)->m_tileCoords - IntVector2(g_unitDistance / 2, g_unitDistance / 2) + IntVector2(g_unitDistance / 2, g_unitDistance / 2);
-			IntVector2 maxs = m_tiles.at(index)->m_tileCoords + IntVector2(g_unitDistance / 2, g_unitDistance / 2) + IntVector2(g_unitDistance / 2, g_unitDistance / 2);
-
-			m_tiles.at(index)->m_aabb2 = AABB2(mins.GetAsVector2(), maxs.GetAsVector2());
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Initialize flow fields for the flow field demo
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitFlowField()
 {
+	m_flowField.reserve(g_maxWidth * g_maxHeight);
+
 	MeshBuilder flowFieldBuilder;
-	flowFieldBuilder.Begin(PRIMITIVE_LINES, false);
+	flowFieldBuilder.Begin(PRIMITIVE_LINES, false); // Rendering flow field direction as lines
 	for(int indexY = 0;indexY < g_maxHeight;indexY++)
 	{
 		for (int indexX = 0; indexX < g_maxWidth; indexX++)
 		{
-			float randomAngle = GetRandomFloatInRange(-45, 45);
+			float randomAngle = GetRandomFloatInRange(-g_randomAngle, g_randomAngle); // random angle for forward direction
 			Vector2 direction(CosDegrees(randomAngle), SinDegrees(randomAngle));
 			m_flowField.push_back(direction);
-			Vector2 position(indexX * g_unitDistance, indexY * g_unitDistance);
+			Vector2 position(indexX * g_unitDistance, indexY * static_cast<float>(g_unitDistance));
 
 			flowFieldBuilder.SetColor(Rgba::WHITE);
 			flowFieldBuilder.PushVertex(position);
 
 			flowFieldBuilder.SetColor(Rgba::WHITE);
-			flowFieldBuilder.PushVertex(position + direction*g_unitDistance);
+			flowFieldBuilder.PushVertex(position + direction*static_cast<float>(g_unitDistance));
 		}
 	}
 	flowFieldBuilder.End();
@@ -128,38 +94,26 @@ void Map::InitFlowField()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Initialize path for path following demo
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::InitPath()
 {
-	int pathRadius = g_unitDistance * 2;
-	Path path1(Vector2(0,  100),   Vector2(200, 200),  pathRadius);
-	Path path2(Vector2(200, 200),  Vector2(400, 400),  pathRadius);
-	Path path3(Vector2(400, 400),  Vector2(600, 600),  pathRadius);	
-	Path path4(Vector2(600, 600),  Vector2(800, 600),  pathRadius);
-	Path path5(Vector2(800, 600),  Vector2(900, 500),  pathRadius);
-	Path path6(Vector2(900, 500), Vector2(1200, 300),  pathRadius);
-	Path path7(Vector2(1200, 300), Vector2(1400, 200), pathRadius);
-	Path path8(Vector2(1400, 200), Vector2(1600, 100), pathRadius);
-	Path path9(Vector2(1600, 100), Vector2(1900, 100), pathRadius);
-
-
-
-	m_paths.push_back(path1);
-	m_paths.push_back(path2);
-	m_paths.push_back(path3);
-	m_paths.push_back(path4);
-	m_paths.push_back(path5);
-	m_paths.push_back(path6);
-	m_paths.push_back(path7);
-	m_paths.push_back(path8);
-	m_paths.push_back(path9);
-
+	float pathRadius = g_unitDistance * 2; // Random path for the project
+	m_paths.reserve(9);
+	m_paths.emplace_back(Path(g_demoPath1, g_demoPath2, pathRadius));
+	m_paths.emplace_back(Path(g_demoPath2, g_demoPath3, pathRadius));
+	m_paths.emplace_back(Path(g_demoPath3, g_demoPath4, pathRadius));
+	m_paths.emplace_back(Path(g_demoPath4, g_demoPath5, pathRadius));
+	m_paths.emplace_back(Path(g_demoPath5, g_demoPath6, pathRadius));
+	m_paths.emplace_back(Path(g_demoPath6, g_demoPath7, pathRadius));
+	m_paths.emplace_back(Path(g_demoPath7, g_demoPath8, pathRadius));
+	m_paths.emplace_back(Path(g_demoPath8, g_demoPath9, pathRadius));
+	m_paths.emplace_back(Path(g_demoPath9, g_demoPath10, pathRadius));
 
 	MeshBuilder pathBuilder;
-	pathBuilder.Begin(PRIMITIVE_LINES, false);
+	pathBuilder.Begin(PRIMITIVE_LINES, false); // Rendering paths as lines
 	for(int index = 0;index < m_paths.size();index++)
 	{
 		pathBuilder.SetColor(Rgba::WHITE);
@@ -169,63 +123,35 @@ void Map::InitPath()
 	}
 	pathBuilder.End();
 	m_pathMesh = pathBuilder.CreateMesh();
-
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/02
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitNobes()
-{
-	m_cohesionNegativeBounds		= AABB2(Vector2(300, 950), 25, 25);
-	m_cohesionPositiveBounds		= AABB2(Vector2(500, 950), 25, 25);
-	m_cohesionValueBounds			= AABB2(Vector2(350, 950), 25, 25);
-	m_cohesionStringValueBounds		= AABB2(Vector2(50, 950), 25, 25);
-
-	m_seperationNegativeBounds		= AABB2(Vector2(300, 890), 25, 25);
-	m_seperationPositiveBounds		= AABB2(Vector2(500, 890), 25, 25);
-	m_seperationValueBounds			= AABB2(Vector2(350, 890), 25, 25);
-	m_seperationStringValueBounds	= AABB2(Vector2(50, 890), 25, 25);
-
-
-	m_alignmentNegativeBounds		= AABB2(Vector2(300, 830), 25, 25);
-	m_alignmentPositiveBounds		= AABB2(Vector2(500, 830), 25, 25);
-	m_alignmentValueBounds		    = AABB2(Vector2(350, 830), 25, 25);
-	m_alignmentStringValueBounds    = AABB2(Vector2(50, 830), 25, 25);
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/10
-*@purpose : NIL
+*@purpose : Initialize all entities needed for the demo
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::InitSample()
+void Map::InitEntities()
 {
-	CreateEntity(Vector2(100, 100), 0.f);
+	CreatePlayerEntity(g_playerStart, 0.f);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Creates the main player entity
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::CreateEntity(Vector2 position, float angle)
+void Map::CreatePlayerEntity(Vector2 &position, float angle)
 {
-	Entity *entity = new Entity();
-	entity->m_position = position;
-	entity->m_angle = angle;
-	m_entities.push_back(entity);
+	Entity *entity      = new Entity(position);
+	entity->m_angle		= angle;
+	m_entities.emplace_back(entity);
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Destroys the last entity and clean up memory from entity list
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -238,7 +164,7 @@ void Map::DestroyLastEntity()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Destroys and cleans up memory from the entity list
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -267,14 +193,15 @@ void Map::DestroyAllEntity()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
+*@purpose : Retrieves the closest index from a position
+*@			Found using Point Vs Line Math Lib
+*@param   : Position in map
+*@return  : Closest path index
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int Map::GetClosestPathIndex(Vector2 position)
+int Map::GetClosestPathIndex(Vector2 &position)
 {
 	int returnIndex = 0;
-	float minDistance = 1000;
+	float minDistance = g_maxValue;
 	for(int index = 0;index < m_paths.size();index++)
 	{
 		float distance = GetShortestDistanceBetweenLineAndPoint(m_paths.at(index).m_start, m_paths.at(index).m_end, position);
@@ -304,7 +231,7 @@ int Map::GetClosestPathIndex(Vector2 position)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Clears all debug entities in the debug list
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -316,7 +243,7 @@ void Map::ClearDebugEntities()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31
-*@purpose : Process all inputs
+*@purpose : Process all inputs (Mouse and Keyboard)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -328,7 +255,7 @@ void Map::ProcessInputs(float deltaTime)
 
 	if(InputSystem::GetInstance()->isKeyPressed(InputSystem::KEYBOARD_SPACE))
 	{
-		CreateEntity(mousePosition,0);
+		CreatePlayerEntity(mousePosition,0);
 	}
 	if (InputSystem::GetInstance()->wasKeyJustPressed(InputSystem::KEYBOARD_V))
 	{
@@ -338,29 +265,31 @@ void Map::ProcessInputs(float deltaTime)
 	ProcessInputForNobes();
 }
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2018/08/31
+*@purpose : Main Update loop of the Map
+*@param   : Delta time
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::Update(float deltaTime)
 {
 	ProcessInputs(deltaTime);
 	UpdateCamera(deltaTime);
 	ClearDebugEntities();
-	//UpdateEntity(deltaTime);
 
-
+	UpdateEntity(deltaTime);
 	switch (m_mapType)
 	{
-	case FLOW_FIELD_BEHAVIOR:
+	case MAP_TYPE_FLOW_FIELD_BEHAVIOR:
 		FollowFlowField();
 		break;
-	case PATH_FOLLOWING:
+	case MAP_TYPE_PATH_FOLLOWING:
 		FollowPath();
 		break;
-	case  SEEK_ARRIVE_BEHAVIOR:
+	case  MAP_TYPE_SEEK_ARRIVE_BEHAVIOR:
 		SeekBehavior();
 		ArriveBehavior();
 		break;
-	case SAMPLE:
-		UpdateSample(deltaTime);
-		return;
 		break;
 	default:
 		break;
@@ -372,8 +301,8 @@ void Map::Update(float deltaTime)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2018/08/31
-*@purpose : Updates camera
-*@param   : NIL
+*@purpose : Updates camera currently used orthographic camera
+*@param   : Delta Time
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::UpdateCamera(float deltaTime)
@@ -384,7 +313,7 @@ void Map::UpdateCamera(float deltaTime)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Updates all entities boundary
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -393,64 +322,22 @@ void Map::UpdateEntity(float deltaTime)
 	for(int index = 0;index < m_entities.size();index++)
 	{
 		m_entities.at(index)->Update(deltaTime);
-		if(m_entities.at(index)->m_position.x > 1800)
+
+		// Check entities inside boundary
+		if (m_entities.at(index)->m_position.x > (Windows::GetInstance()->GetDimensions().x - g_unitDistance))
 		{
-			m_entities.at(index)->m_position.x = -50;
+			m_entities.at(index)->m_position.x = -static_cast<float>(g_unitDistance);
 		}
-		if (m_entities.at(index)->m_position.y > 1000)
+		if (m_entities.at(index)->m_position.y > (Windows::GetInstance()->GetDimensions().y - g_unitDistance))
 		{
-			m_entities.at(index)->m_position.y = -50;
-		}
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/10
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::UpdateSample(float deltaTime)
-{
-	Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
-	mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
-
-	Vector2 direction = mousePosition - m_entities.at(0)->m_position;
-	direction = direction.GetNormalized();
-
-	float directionAngle = Atan2Degrees(direction.y, direction.x);
-
-	float angleDiff = m_entities.at(0)->m_angle - directionAngle;
-
-
-
-	float rotationalDiff = angleDiff;
-	if (angleDiff > 180)
-	{
-		rotationalDiff -= 360;
-	}
-	if (angleDiff < -180)
-	{
-		rotationalDiff += 360;
-	}
-
-
-	if (m_start)
-	{
-		if (rotationalDiff < 0)
-		{
-			m_entities.at(0)->m_angle += 0.5;
-		}
-		else
-		{
-			m_entities.at(0)->m_angle -= 0.5;
+			m_entities.at(index)->m_position.y = -g_unitDistance;
 		}
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/02
-*@purpose : NIL
+*@purpose : Process inputs for steering behavioral knobs
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -466,34 +353,34 @@ void Map::ProcessInputForNobes()
 
 	if(InputSystem::GetInstance()->IsLButtonDown())
 	{
-		if(m_cohesionNegativeBounds.IsPointInside(mousePosition))
+		if(g_cohesionNegativeBounds.IsPointInside(mousePosition))
 		{
-			m_cohesiveForce -= 0.005;
+			m_cohesiveForce -= g_deltaChangeInForce;
 			m_cohesiveForce = ClampFloat(m_cohesiveForce, 0, 5);
 		}
-		if (m_cohesionPositiveBounds.IsPointInside(mousePosition))
+		if (g_cohesionPositiveBounds.IsPointInside(mousePosition))
 		{
-			m_cohesiveForce += 0.005;
+			m_cohesiveForce += g_deltaChangeInForce;
 			m_cohesiveForce = ClampFloat(m_cohesiveForce, 0, 5);
 		}
-		if (m_seperationNegativeBounds.IsPointInside(mousePosition))
+		if (g_seperationNegativeBounds.IsPointInside(mousePosition))
 		{
-			m_seperationForce -= 0.005;
+			m_seperationForce -= g_deltaChangeInForce;
 			m_seperationForce = ClampFloat(m_seperationForce, 0, 5);
 		}
-		if (m_seperationPositiveBounds.IsPointInside(mousePosition))
+		if (g_seperationPositiveBounds.IsPointInside(mousePosition))
 		{
-			m_seperationForce += 0.005;
+			m_seperationForce += g_deltaChangeInForce;
 			m_seperationForce = ClampFloat(m_seperationForce, 0, 5);
 		}
-		if (m_alignmentNegativeBounds.IsPointInside(mousePosition))
+		if (g_alignmentNegativeBounds.IsPointInside(mousePosition))
 		{
-			m_alignmentForce -= 0.005;
+			m_alignmentForce -= g_deltaChangeInForce;
 			m_alignmentForce = ClampFloat(m_alignmentForce, 0, 5);
 		}
-		if (m_alignmentPositiveBounds.IsPointInside(mousePosition))
+		if (g_alignmentPositiveBounds.IsPointInside(mousePosition))
 		{
-			m_alignmentForce += 0.005;
+			m_alignmentForce += g_deltaChangeInForce;
 			m_alignmentForce = ClampFloat(m_alignmentForce, 0, 5);
 		}
 	}
@@ -501,7 +388,7 @@ void Map::ProcessInputForNobes()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Applies Seek force
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -524,7 +411,7 @@ void Map::SeekBehavior()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Applies arriving force
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -537,9 +424,9 @@ void Map::ArriveBehavior()
 		Vector2 desiredVelocity = mousePosition - m_entities.at(index)->m_position;
 		float desiredMagnitude = desiredVelocity.GetLength();
 
-		if(desiredMagnitude < 100)
+		if(desiredMagnitude < g_maxArriveForce)
 		{
-			float appliedMagnitude = RangeMap(desiredMagnitude, 0, 100, 0, m_entities.at(index)->m_maxSpeed);
+			float appliedMagnitude = RangeMapFloat(desiredMagnitude, 0.f, g_maxArriveForce, 0.f, m_entities.at(index)->m_maxSpeed);
 			desiredVelocity.Limit(appliedMagnitude);
 		}
 		else
@@ -556,7 +443,7 @@ void Map::ArriveBehavior()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Set force for following flow field
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -566,8 +453,8 @@ void Map::FollowFlowField()
 	{
 		Vector2 desiredVelocity;
 		Vector2 position = m_entities.at(index)->m_position;
-		int xIndex = (position.x / g_unitDistance);
-		int yIndex = (position.y / g_unitDistance);
+		int xIndex = static_cast<int>(position.x / g_unitDistance);
+		int yIndex = static_cast<int>(position.y / g_unitDistance);
 
 		int flowFieldIndex = yIndex * g_maxWidth + xIndex;
 		if(flowFieldIndex < m_flowField.size())
@@ -576,7 +463,7 @@ void Map::FollowFlowField()
 		}
 		else
 		{
-			desiredVelocity = Vector2(1, 0);
+			desiredVelocity = Vector2::ONE_ZERO; // default direction
 		}
 
 		desiredVelocity = desiredVelocity * m_entities.at(index)->m_maxSpeed;
@@ -590,7 +477,7 @@ void Map::FollowFlowField()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Set all entities to follow path
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -600,18 +487,18 @@ void Map::FollowPath()
 	mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
 	int pathIndex = GetClosestPathIndex(mousePosition);
 	Vector2 closestPosition = m_paths.at(pathIndex).FindClosestPositionAlongPath(mousePosition);
-	m_debugCircles.push_back(DebugCircle(closestPosition,g_unitDistance/4.f,Rgba::GREEN));
 
-	for(int entityIndex = 0;entityIndex < m_entities.size();entityIndex++)
+	m_debugCircles.reserve(m_entities.size());
+	m_debugCircles.emplace_back(DebugCircle(closestPosition,g_unitDistance/4.f,Rgba::GREEN));
+	for(int entityIndex = 0; entityIndex < m_entities.size(); entityIndex++)
 	{
-		int pathIndex = GetClosestPathIndex(m_entities.at(entityIndex)->m_position);
+		pathIndex = GetClosestPathIndex(m_entities.at(entityIndex)->m_position);
 		Vector2 position		  = m_entities.at(entityIndex)->m_position;
-		//Vector2 predictedPosition = position + m_entities.at(entityIndex)->m_velocity.GetNormalized() * 50;
 
-		Vector2 closestPosition = m_paths.at(pathIndex).FindClosestPositionAlongPath(position);
+		closestPosition = m_paths.at(pathIndex).FindClosestPositionAlongPath(position);
 		closestPosition = closestPosition + m_paths.at(pathIndex).GetDirection() * g_unitDistance * 5;
 
-		m_debugCircles.push_back(DebugCircle(closestPosition,g_unitDistance/4.f,Rgba::RED));
+		m_debugCircles.emplace_back(DebugCircle(closestPosition,g_unitDistance/4.f,Rgba::RED));
 
 		Vector2 desiredVelocity = closestPosition - m_entities.at(entityIndex)->m_position;
 		desiredVelocity = desiredVelocity.GetNormalized();
@@ -621,13 +508,12 @@ void Map::FollowPath()
 		appliedForce = appliedForce.GetNormalized();
 		appliedForce = appliedForce * m_entities.at(entityIndex)->m_maxForce;
 		m_entities.at(entityIndex)->ApplyForce(appliedForce );		
-		
 	}
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/02
-*@purpose : Aligns with the group
+*@purpose : Apply alignment force to each entity
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -635,7 +521,7 @@ void Map::AlignBehavior()
 {
 	for(int index = 0;index < m_entities.size();index++)
 	{
-		Vector2 neighbourVelocity(0.f,0.f);
+		Vector2 neighbourVelocity = Vector2::ZERO;
 		int     neighbourCount = 0;
 		for(int entityIndex = 0;entityIndex < m_entities.size();entityIndex++)
 		{
@@ -647,7 +533,7 @@ void Map::AlignBehavior()
 			}
 		}
 
-		Vector2 desiredVelocity = neighbourVelocity / neighbourCount;
+		Vector2 desiredVelocity = neighbourVelocity / static_cast<float>(neighbourCount);
 		desiredVelocity = desiredVelocity.GetNormalized();
 		desiredVelocity = desiredVelocity * m_entities.at(index)->m_maxSpeed;
 
@@ -660,7 +546,7 @@ void Map::AlignBehavior()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/02
-*@purpose : Seperate from neighbour
+*@purpose : Apply separation force to each entity
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -668,7 +554,7 @@ void Map::SeperateBehavior()
 {
 	for (int index = 0; index < m_entities.size(); index++)
 	{
-		Vector2 neighbourVelocity(0.f, 0.f);
+		Vector2 neighbourVelocity = Vector2::ZERO;
 		int     neighbourCount = 0;
 		for (int entityIndex = 0; entityIndex < m_entities.size(); entityIndex++)
 		{
@@ -686,7 +572,7 @@ void Map::SeperateBehavior()
 		{
 			continue;
 		}
-		Vector2 desiredVelocity = neighbourVelocity / neighbourCount;
+		Vector2 desiredVelocity = neighbourVelocity / static_cast<float>(neighbourCount);
 		desiredVelocity = desiredVelocity.GetNormalized();
 		desiredVelocity = desiredVelocity * m_entities.at(index)->m_maxSpeed;
 
@@ -699,7 +585,7 @@ void Map::SeperateBehavior()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/02
-*@purpose : NIL
+*@purpose : Apply cohesion force to each entity
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -707,7 +593,7 @@ void Map::CohesionBehavior()
 {
 	for (int index = 0; index < m_entities.size(); index++)
 	{
-		Vector2 neighbourVelocity(0.f, 0.f);
+		Vector2 neighbourVelocity = Vector2::ZERO;
 		int     neighbourCount = 0;
 		for (int entityIndex = 0; entityIndex < m_entities.size(); entityIndex++)
 		{
@@ -719,11 +605,11 @@ void Map::CohesionBehavior()
 				neighbourVelocity += distanceFromNeighbour;
 			}
 		}
-		if (neighbourCount <= 1)
+		if (neighbourCount <= 1) // no neighbours
 		{
 			continue;
 		}
-		Vector2 desiredVelocity = neighbourVelocity / neighbourCount;
+		Vector2 desiredVelocity = neighbourVelocity / static_cast<float>(neighbourCount);
 		desiredVelocity = desiredVelocity.GetNormalized();
 		desiredVelocity = desiredVelocity * m_entities.at(index)->m_maxSpeed;
 
@@ -741,86 +627,65 @@ void Map::Render()
 
 	Vector2 mousePosition = InputSystem::GetInstance()->GetMouseClientPosition();
 	mousePosition.y = Windows::GetInstance()->GetDimensions().y - mousePosition.y;
-	Material *defaultMaterial = Material::AquireResource("default");
+	Material *defaultMaterial = Material::AquireResource(g_defaultMaterialPath);
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Renderer::GetInstance()->DrawSolidCircle(mousePosition, g_unitDistance / 4.f, Rgba::RED);
 	delete defaultMaterial;
 
 	switch (m_mapType)
 	{
-	case SEEK_ARRIVE_BEHAVIOR:
-		break;
-	case ALIGNMENT_SEPERATION_COHESION_BEHAVIOR:
-		break;
-	case FLOW_FIELD_BEHAVIOR:
+	case MAP_TYPE_FLOW_FIELD_BEHAVIOR:
 		RenderFlowField();
 		break;
-	case PATH_FOLLOWING:
+	case MAP_TYPE_PATH_FOLLOWING:
 		RenderPaths();
 		break;
 	default:
 		break;
 	}
-	RenderEntity();
+	RenderEntities();
 	RenderDebugPoints();
-	RenderNobes();
+	RenderSteeringKnobsInUI();
 
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
-*@param   : NIL
-*@return  : NIL
-*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::RenderEntity()
-{
-	for (int index = 0; index < m_entities.size(); index++)
-	{
-		m_entities.at(index)->Render();
-	}
-}
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Renders flow field in the map
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::RenderFlowField()
 {
-	Material *defaultMaterial = Material::AquireResource("default");
+	Material *defaultMaterial = Material::AquireResource(g_defaultMaterialPath);
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	Renderer::GetInstance()->DrawMesh(m_flowFieldMesh,Matrix44::GetIdentity());
 	delete defaultMaterial;
-
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Renders path in the map 
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::RenderPaths()
 {
-	Material *defaultMaterial = Material::AquireResource("default");
+	Material *defaultMaterial = Material::AquireResource(g_defaultMaterialPath);
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 	for(int index = 0;index < m_paths.size();index++)
 	{
 		Path currentPath = m_paths.at(index);
 		Vector2 pathDirection = currentPath.GetDirection();
 		float   angle		  = Atan2Degrees(pathDirection.y,pathDirection.x);
-
-		Vector2 normalDirection(CosDegrees(angle + 90), SinDegrees(angle + 90));
-
+		float   normalAngle2D = angle + 90;
+		Vector2 normalDirection(CosDegrees(normalAngle2D), SinDegrees(normalAngle2D));
 
 		Vector2 leftTop     = currentPath.m_start + normalDirection * currentPath.m_radius;
 		Vector2 leftBottom  = currentPath.m_start - normalDirection * currentPath.m_radius;
 
-		Vector2 rightTop    = currentPath.m_end + normalDirection * currentPath.m_radius;
-		Vector2 rightBottom = currentPath.m_end - normalDirection * currentPath.m_radius;
-
+		Vector2 rightTop    = currentPath.m_end   + normalDirection * currentPath.m_radius;
+		Vector2 rightBottom = currentPath.m_end   - normalDirection * currentPath.m_radius;
 
 		Renderer::GetInstance()->DrawSolidRectangle(leftBottom, rightBottom, rightTop, leftTop,Rgba::FADED_BLUE);
 		Renderer::GetInstance()->DrawLine(m_paths.at(index).m_start, m_paths.at(index).m_end);
@@ -830,13 +695,13 @@ void Map::RenderPaths()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/01
-*@purpose : NIL
+*@purpose : Renders debug entities in map (circles and lines)
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Map::RenderDebugPoints()
 {
-	Material *defaultMaterial = Material::AquireResource("default");
+	Material *defaultMaterial = Material::AquireResource(g_defaultMaterialPath);
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
 
 	for(int index = 0;index < m_debugCircles.size();index++)
@@ -853,44 +718,55 @@ void Map::RenderDebugPoints()
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/02
-*@purpose : NIL
+*@purpose : Render all Steering knobs in UI
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::RenderNobes()
+void Map::RenderSteeringKnobsInUI()
 {
-	Material *defaultMaterial = Material::AquireResource("default");
+	// Steering knob buttons
+	Material *defaultMaterial = Material::AquireResource(g_defaultMaterialPath);
 	Renderer::GetInstance()->BindMaterial(defaultMaterial);
-	Renderer::GetInstance()->DrawAABB(m_cohesionNegativeBounds, Rgba::RED);
-	Renderer::GetInstance()->DrawAABB(m_cohesionPositiveBounds, Rgba::GREEN);
+	Renderer::GetInstance()->DrawAABB(g_cohesionNegativeBounds,   Rgba::RED);
+	Renderer::GetInstance()->DrawAABB(g_cohesionPositiveBounds,   Rgba::GREEN);
+									  
+	Renderer::GetInstance()->DrawAABB(g_seperationNegativeBounds, Rgba::RED);
+	Renderer::GetInstance()->DrawAABB(g_seperationPositiveBounds, Rgba::GREEN);
 
-	Renderer::GetInstance()->DrawAABB(m_seperationNegativeBounds, Rgba::RED);
-	Renderer::GetInstance()->DrawAABB(m_seperationPositiveBounds, Rgba::GREEN);
-
-	Renderer::GetInstance()->DrawAABB(m_alignmentNegativeBounds, Rgba::RED);
-	Renderer::GetInstance()->DrawAABB(m_alignmentPositiveBounds, Rgba::GREEN);
+	Renderer::GetInstance()->DrawAABB(g_alignmentNegativeBounds,  Rgba::RED);
+	Renderer::GetInstance()->DrawAABB(g_alignmentPositiveBounds,  Rgba::GREEN);
 	delete defaultMaterial;
 
-
-	Material *textMaterial = Material::AquireResource("Data\\Materials\\text.mat");
+	// Steering values
+	Material *textMaterial = Material::AquireResource(g_textMaterialPath);
 	Renderer::GetInstance()->BindMaterial(textMaterial);
-	Renderer::GetInstance()->DrawTextOn3DPoint(m_cohesionValueBounds.GetCenter(), Vector2(1, 0), Vector2(0, 1), ToString(m_cohesiveForce,2), 12, Rgba::WHITE);
-	Renderer::GetInstance()->DrawTextOn3DPoint(m_seperationValueBounds.GetCenter(), Vector2(1, 0), Vector2(0, 1), ToString(m_seperationForce,2), 12, Rgba::WHITE);
-	Renderer::GetInstance()->DrawTextOn3DPoint(m_alignmentValueBounds.GetCenter(), Vector2(1, 0), Vector2(0, 1), ToString(m_alignmentForce,2), 12, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOn3DPoint(g_cohesionValueBounds.GetCenter(), 
+		Vector2::ONE_ZERO, Vector2::ZERO_ONE, ToString(m_cohesiveForce,2),   g_fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOn3DPoint(g_seperationValueBounds.GetCenter(), 
+		Vector2::ONE_ZERO, Vector2::ZERO_ONE, ToString(m_seperationForce,2), g_fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOn3DPoint(g_alignmentValueBounds.GetCenter(),  
+		Vector2::ONE_ZERO, Vector2::ZERO_ONE, ToString(m_alignmentForce,2),  g_fontSize, Rgba::WHITE);
 
-	Renderer::GetInstance()->DrawTextOn3DPoint(m_cohesionStringValueBounds.GetCenter(), Vector2(1, 0), Vector2(0, 1),   "COHESIVE", 12, Rgba::WHITE);
-	Renderer::GetInstance()->DrawTextOn3DPoint(m_seperationStringValueBounds.GetCenter(), Vector2(1, 0), Vector2(0, 1), "SEPERATION", 12, Rgba::WHITE);
-	Renderer::GetInstance()->DrawTextOn3DPoint(m_alignmentStringValueBounds.GetCenter(), Vector2(1, 0), Vector2(0, 1),  "ALIGNMENT", 12, Rgba::WHITE);
+	// Constants
+	Renderer::GetInstance()->DrawTextOn3DPoint(g_cohesionStringValueBounds.GetCenter(), 
+		Vector2::ONE_ZERO, Vector2::ZERO_ONE, COHESION,   g_fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOn3DPoint(g_seperationStringValueBounds.GetCenter(), 
+		Vector2::ONE_ZERO, Vector2::ZERO_ONE, SEPARATION, g_fontSize, Rgba::WHITE);
+	Renderer::GetInstance()->DrawTextOn3DPoint(g_alignmentStringValueBounds.GetCenter(),
+		Vector2::ONE_ZERO, Vector2::ZERO_ONE, ALIGNMENT,  g_fontSize, Rgba::WHITE);
 	delete textMaterial;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /*DATE    : 2019/04/10
-*@purpose : NIL
+*@purpose : Renders all entities in the game
 *@param   : NIL
 *@return  : NIL
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void Map::RenderSample()
+void Map::RenderEntities()
 {
-	RenderEntity();
+	for (int index = 0; index < m_entities.size(); index++)
+	{
+		m_entities.at(index)->Render();
+	}
 }

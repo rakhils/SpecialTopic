@@ -1,6 +1,9 @@
 #include "Engine/Math/AABB2.hpp"
 #include "Engine/Math/MathUtil.hpp"
 
+
+AABB2 AABB2::ZERO = AABB2(Vector2(0, 0), 0, 0);
+
 AABB2::AABB2( const AABB2& copy )
 {
 	mins.x = copy.mins.x;

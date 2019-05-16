@@ -29,7 +29,17 @@ void TaskAttack::InitAttackTask()
 	m_targetEntity = nullptr;
 	m_startPosition = m_entity->GetPosition();
 	std::vector<Entity*> m_entityListEnemiesNear = m_map->GetAllEnemiesNearLocation(m_entity->m_teamID, m_entity->GetPosition(), 1);
-	if(m_entityListEnemiesNear.size() != 0)
+
+	for(int index = 0;index < m_entityListEnemiesNear.size();index++)
+	{
+		if (m_entityListEnemiesNear.at(index) != nullptr && m_entityListEnemiesNear.at(index)->m_type == SHORT_RANGE_ARMY)
+		{
+			m_targetEntity = m_entityListEnemiesNear.at(index);
+			break;
+		}
+	}
+
+	if(m_targetEntity == nullptr && m_entityListEnemiesNear.size() != 0)
 	{
 		m_targetEntity = m_entityListEnemiesNear.at(0);
 		return;
@@ -96,22 +106,17 @@ bool TaskAttack::DoMoveBehavior(float deltaTime)
 *///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 bool TaskAttack::DoAttackBehavior(float deltaTime)
 {
-	if(m_targetEntity == nullptr || m_targetEntity->m_health <= 0 || m_targetEntity->m_health > 50)
+	if(m_targetEntity == nullptr || m_targetEntity->m_health <= 0)
+	{
+		return true;
+	}
+	if (m_entity == nullptr || m_entity->m_health <= 0)
 	{
 		return true;
 	}
 	IntVector2 startCords   = m_map->GetCordinates(m_startPosition);
 	IntVector2 currentCords = m_entity->GetCordinates();
 	IntVector2 targetCords  = m_targetEntity->GetCordinates();
-
-	if(m_map->GetCellDistance(currentCords,startCords) > 2)
-	{
-		//return true;
-	}
-	if (m_map->GetCellDistance(currentCords, targetCords) > 4)
-	{
-		///return true;
-	}
 
 	// ATTACK
 	if(m_map->GetCellDistance(targetCords,currentCords) <= m_attackDistance)

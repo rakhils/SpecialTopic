@@ -136,6 +136,7 @@ void Camera::SetOrthoProjection(Vector2 bottomLeft,Vector2 topRigth, float nearZ
 *//////////////////////////////////////////////////////////////
 void Camera::SetPerspective(float fovDegrees, float aspect, float nearz, float farz)
 {
+/*
 	Matrix44 modelMatrix = m_transform.GetWorldMatrix();
 	m_model = modelMatrix;
 	modelMatrix.Tx = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetIVector());
@@ -146,6 +147,25 @@ void Camera::SetPerspective(float fovDegrees, float aspect, float nearz, float f
 	SetViewMatrix(modelMatrix);
 
 	Matrix44 perspectiveMatrix = Matrix44::MakePerspectiveMatrix(fovDegrees, aspect, nearz, farz);
+	SetProjection(perspectiveMatrix);*/
+
+
+	Matrix44 modelMatrix = m_transform.GetWorldMatrix();
+	m_model = modelMatrix;
+	modelMatrix.Tx = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetIVector());
+	modelMatrix.Ty = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetJVector());
+	modelMatrix.Tz = DotProduct(m_transform.GetWorldPosition(), m_transform.GetWorldMatrix().GetKVector());
+
+	modelMatrix.InvertFast();
+
+
+	Matrix44 identity;
+	identity.SetIdentity();
+	SetViewMatrix(identity);
+	m_view.Append(m_cameraMatrix);
+
+	Matrix44 perspectiveMatrix = Matrix44::MakePerspectiveMatrix(fovDegrees, aspect, nearz, farz);
+
 	SetProjection(perspectiveMatrix);
 }
 
@@ -336,6 +356,17 @@ Vector3 Camera::GetCameraUpVector()
 	//Vector3 forwardVector(m_view.Jx, m_view.Jy, m_view.Jz);
 	Vector3 forwardVector(m_view.Iy, m_view.Jy, m_view.Ky);
 	return forwardVector;
+}
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/*DATE    : 2019/05/15
+*@purpose : NIL
+*@param   : NIL
+*@return  : NIL
+*///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Camera::SetDefaultFramebuffer(FrameBuffer *frameBuffer)
+{
+	m_defaultFrameBuffer = frameBuffer;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
